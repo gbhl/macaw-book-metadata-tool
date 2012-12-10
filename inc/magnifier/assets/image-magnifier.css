@@ -1,0 +1,29 @@
+/**
+ * Image magnifier widget.
+ * Author: Julien Lecomte <jlecomte@yahoo-inc.com>
+ * Copyright (c) 2007, Yahoo! Inc. All rights reserved.
+ * Code licensed under the BSD License:
+ * http://developer.yahoo.net/yui/license.txt
+ * Requires YUI >= 2.3.
+ */
+
+.magnifier {
+  position:absolute;
+  visibility:hidden;
+  width:200px; height:200px;
+  cursor:move;
+  top:0; /* to avoid having scroll bars while the large image is loading */
+}
+
+.magnifier .lens {
+  position:absolute;
+  width:200px; height:200px; /* ie6 has some problems with 100% */
+  z-index:2; /* make it appear on top of the canvas */
+  background-image:url(magnifier.png);
+}
+
+/* The following is for IE < 7 */
+* html .magnifier .lens {
+  background-image:none;
+  filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='magnifier.png', sizingMethod='scale');
+}
