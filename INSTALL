@@ -129,13 +129,9 @@ Download the most recent tgz file:
 	$ tar fxz macaw-N.N.NNN.tar.gz
 	$ cd macaw-N.NN.NNN
 	$ sudo cp -r * /var/www/htdocs/.
-	$ sudo rm /var/www/htdocs/install.php
 
 As a reminder, Macaw does not deliver the "incoming" or "books" directories nor does it deliver
 the config.php, macaw.php, or database.php files, therefore the recursive copy is non-destructive.
-
-(The last "rm" command is needed because Macaw should not have the install.php present in a working 
-installation. It will refuse to operate when install.php is present.)
 
 =======================
 UPGRADING THE DATABASE
