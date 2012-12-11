@@ -66,526 +66,564 @@
 	$macaw_config = $config_path.'/macaw.php';
 	$macaw_def_config = $config_path.'/macaw.default.php';
 	$organization_name = '';
-	
-	if (is_writable($base_path)) {
-		// Build our filenames
 
-	} else {
-		$errormessage .= 'The installer cannot write to the base directory: <blockquote style="font-weight:bold">'.$base_path.'</blockquote>'.$write_perm_error;
-	}
-
-	if (is_writable($config_path)) {
-		// Build our filenames
-
-		// Make sure we have a config.php, we should.
-		if (file_exists($ci_config)) {
-			if (!is_writable($ci_config)) {
-				$errormessage .= 'The installer cannot write to the configuration file: <blockquote style="font-weight:bold">'.$ci_config.'</blockquote>'.$write_perm_error;
-			}
-		} else {
-			# Try to copy the file
-			if (file_exists($def_ci_config)) {
-				if (!copy($def_ci_config, $ci_config)) {
-					$errormessage .= 'The installer was unable to create the <strong>config.php</strong> file from the default: <blockquote style="font-weight:bold">'.$def_ci_config.'</blockquote>'.$write_perm_error;
-				}
-			} else {		
-				$errormessage .= 'The installer cannot find the file: <blockquote style="font-weight:bold">'.$def_ci_config.'</blockquote>';
-			}
-		}
-
-		// Make sure we have a database.php, we should.
-		if (file_exists($db_config)) {
-			if (!is_writable($db_config)) {
-				$errormessage .= 'The installer cannot write to the configuration file: <blockquote style="font-weight:bold">'.$db_config.'</blockquote>'.$write_perm_error;
-			}
-		} else {
-			# Try to copy the file
-			if (file_exists($def_db_config)) {
-				if (!copy($def_db_config, $db_config)) {
-					$errormessage .= 'The installer was unable to create the <strong>database.php</strong> file from the default: <blockquote style="font-weight:bold">'.$def_db_config.'</blockquote>'.$write_perm_error;
-				}			
-			} else {		
-				$errormessage .= 'The installer cannot find the file: <blockquote style="font-weight:bold">'.$def_db_config.'</blockquote>';
-			}			
-		}
-
-		// Make sure we have a macaw.php, if not create it from the default.
-		if (file_exists($macaw_config)) {
-			if (!is_writable($macaw_config)) {
-				$errormessage .= 'The installer cannot write to the configuration file: <blockquote style="font-weight:bold">'.$macaw_config.'</blockquote>'.$write_perm_error;
-			}
-		} else {
-			// try to create the macaw configuration file
-			if (file_exists($macaw_def_config)) {
-				if (!copy($macaw_def_config, $macaw_config)) {
-					$errormessage .= 'The installer was unable to create the <strong>macaw.php</strong> file from the default: <blockquote style="font-weight:bold">'.$macaw_def_config.'</blockquote>'.$write_perm_error;
-				}
-			} else {
-				$errormessage .= 'The installer cannot find the file: <blockquote style="font-weight:bold">'.$macaw_def_config.'</blockquote>';
-			}
-		}
-	} else {
-		$errormessage .= 'The installer cannot write to the configuration directory: <blockquote style="font-weight:bold">'.$config_path.'</blockquote>'.$write_perm_error;
-	}
-	
-	
-	// Verify system components
-	// PHP Version
-	$matches = array();
-	if (!defined('PHP_VERSION_ID')) {
-		$version = explode('.', PHP_VERSION);
-		define('PHP_VERSION_ID', ($version[0] * 10000 + $version[1] * 100 + $version[2]));
-	}
-	if (PHP_VERSION_ID < 50300) {
-		$errormessage .= 'PHP must be version 5.3 or higher. Current version is "'.PHP_VERSION.'".<br><br>';
-	}
-
-	// PHP ZIP
-	$extensions = get_loaded_extensions();
-	if (!in_array('zip', $extensions)) {
-		$errormessage .= 'PHP <strong>zip</strong> extension not found. Please install it using PECL.<br><br>';
-	}
-
-	// PHP Archive_Tar
-	if (!include('Archive/Tar.php')) {
-		$errormessage .= 'PHP <strong>Archive_Tar</strong> extension not found. Please install it using PEAR.<br><br>';
-	}
-
-	// PHP XSL
-	if (!in_array('xsl', $extensions)) {
-		$errormessage .= 'PHP <strong>xs</strong>l extension not found. Please install it with apt, yum or other package manager (preferred), or recompile PHP using --with-xsl.<br><br>';
-	}
-
-	// PHP PgSQL
-	if (!in_array('xsl', $extensions)) {
-		$errormessage .= 'PHP <strong>pgsql</strong> extension not found. Please install it with apt, yum or other package manager (preferred), or recompile PHP using --with-pgsql.<br><br>';
-	}
-	
-	// PHP Imagick
-	if (!in_array('imagick', $extensions)) {
-		$errormessage .= 'PHP <strong>imagick</strong> extension not found. Please install it with apt, yum or other package manager (preferred) or with PECL. <br><br>';
-	}
-
-	// These are a bit harder to determine. Skip them for now and hope for the best.
-	// PostgreSQL
-	// ImageMagick 6.5
-	// Jasper
-	// curl
-	
-
-	if (!$errormessage && $step == 0) {
-		$step = 1;
-	}
-
-	if (!isset($_POST['submit'])) {$_POST['submit'] = '';}
-
-	if ($_POST['submit'] == '<< Back') {
-		$step -= 1;
-	}
-
-	if ($_POST['submit'] == 'Retry >>') {
-		$step -= 1;
-	}
-
-	if ($step == 1) { // Database connection info
-
-		// Get our existing info from the config file
+	$continue = false;
+	// determine if we are already installed. We 
+	if (file_exists($db_config)) {
 		require_once($db_config);
 
-		// Prepopulate the info on the page
-		$db_dbdriver = $db['default']['dbdriver'];
-		$db_hostname = $db['default']['hostname'];
-		$db_username = $db['default']['username'];
-		$db_password = $db['default']['password'];
-		$db_database = $db['default']['database'];
-		$db_port = '';
-		if (isset($db['default']['port'])) { $db_port = $db['default']['port']; }
+		$conn = "host=".$db['default']['hostname'].
+			($db['default']['port'] ? " port=".$db['default']['port'] : '').
+			" dbname=".$db['default']['database'].
+			" user=".$db['default']['username'].
+			" password=".$db['default']['password'];
+		
+		// Connect and query
+		$conn = pg_connect($conn);
+		$result = pg_query('select * from settings where name = \'installed\'');
+		$row = pg_fetch_assoc($result);		
 
-		if (isset($_POST['submit'])) {
-			if ($_POST['submit'] == 'Next >>') {
-				// Save whatever data was passed in
-				set_config($db_config, "\$db['default']['hostname']", $_POST['database_host']);
-				set_config($db_config, "\$db['default']['username']", $_POST['database_username']);
-				set_config($db_config, "\$db['default']['password']", $_POST['database_password']);
-				set_config($db_config, "\$db['default']['database']", $_POST['database_name']);
-				set_config($db_config, "\$db['default']['dbdriver']", $_POST['database_type']);
-				set_config($db_config, "\$db['default']['port']",     $_POST['database_port']);
+		// Do we have a setting
+		if (isset($row)) {
+			// Is it 1?
+			if (isset($row['value']) && $row['value'] == 1) {
+				$url = getBaseURL().'/';
+				$errormessage .= '<div class="error">Macaw has already been installed!</div> <h3>Start using Macaw at this URL: <a href="'.$url.'">'.$url.'</a></h3>' ;	 
 
-				// Now test the database connection
-				if ($_POST['database_type'] == 'postgre') {
-					$conn = "host=".$_POST['database_host'].
-							($_POST['database_port'] ? " port=".$_POST['database_port'] : '').
-							" dbname=".$_POST['database_name'].
-							" user=".$_POST['database_username'].
-							" password=".$_POST['database_password'];
-					$conn = pg_connect($conn);
-					
-					$db_created	= 0;
-					if ($conn) {
-						$result = @pg_query('select count(*) from account');
-						if (!$result) {
-							// The account table doesn't exist, so we go ahead and create the database
-							$queries = file_get_contents($base_path.'/system/application/sql/macaw-pgsql.sql');
-							$result = @pg_query($conn, $queries);
+			} else {
+				$continue = true;
+			} // if (isset($row['value']) && $row['value'] == 1)
+
+		} else {
+			$continue = true;
+		} // if (isset($row))
+
+	} else {
+		$continue = true;
+	} // if (file_exists($db_config))
+	
+	if ($continue) {
+	
+		if (is_writable($base_path)) {
+			// Build our filenames
+	
+		} else {
+			$errormessage .= 'The installer cannot write to the base directory: <blockquote style="font-weight:bold">'.$base_path.'</blockquote>'.$write_perm_error;
+		}
+	
+		if (is_writable($config_path)) {
+			// Build our filenames
+	
+			// Make sure we have a config.php, we should.
+			if (file_exists($ci_config)) {
+				if (!is_writable($ci_config)) {
+					$errormessage .= 'The installer cannot write to the configuration file: <blockquote style="font-weight:bold">'.$ci_config.'</blockquote>'.$write_perm_error;
+				}
+			} else {
+				# Try to copy the file
+				if (file_exists($def_ci_config)) {
+					if (!copy($def_ci_config, $ci_config)) {
+						$errormessage .= 'The installer was unable to create the <strong>config.php</strong> file from the default: <blockquote style="font-weight:bold">'.$def_ci_config.'</blockquote>'.$write_perm_error;
+					}
+				} else {		
+					$errormessage .= 'The installer cannot find the file: <blockquote style="font-weight:bold">'.$def_ci_config.'</blockquote>';
+				}
+			}
+	
+			// Make sure we have a database.php, we should.
+			if (file_exists($db_config)) {
+				if (!is_writable($db_config)) {
+					$errormessage .= 'The installer cannot write to the configuration file: <blockquote style="font-weight:bold">'.$db_config.'</blockquote>'.$write_perm_error;
+				}
+			} else {
+				# Try to copy the file
+				if (file_exists($def_db_config)) {
+					if (!copy($def_db_config, $db_config)) {
+						$errormessage .= 'The installer was unable to create the <strong>database.php</strong> file from the default: <blockquote style="font-weight:bold">'.$def_db_config.'</blockquote>'.$write_perm_error;
+					}			
+				} else {		
+					$errormessage .= 'The installer cannot find the file: <blockquote style="font-weight:bold">'.$def_db_config.'</blockquote>';
+				}			
+			}
+	
+			// Make sure we have a macaw.php, if not create it from the default.
+			if (file_exists($macaw_config)) {
+				if (!is_writable($macaw_config)) {
+					$errormessage .= 'The installer cannot write to the configuration file: <blockquote style="font-weight:bold">'.$macaw_config.'</blockquote>'.$write_perm_error;
+				}
+			} else {
+				// try to create the macaw configuration file
+				if (file_exists($macaw_def_config)) {
+					if (!copy($macaw_def_config, $macaw_config)) {
+						$errormessage .= 'The installer was unable to create the <strong>macaw.php</strong> file from the default: <blockquote style="font-weight:bold">'.$macaw_def_config.'</blockquote>'.$write_perm_error;
+					}
+				} else {
+					$errormessage .= 'The installer cannot find the file: <blockquote style="font-weight:bold">'.$macaw_def_config.'</blockquote>';
+				}
+			}
+		} else {
+			$errormessage .= 'The installer cannot write to the configuration directory: <blockquote style="font-weight:bold">'.$config_path.'</blockquote>'.$write_perm_error;
+		}
+		
+		
+		// Verify system components
+		// PHP Version
+		$matches = array();
+		if (!defined('PHP_VERSION_ID')) {
+			$version = explode('.', PHP_VERSION);
+			define('PHP_VERSION_ID', ($version[0] * 10000 + $version[1] * 100 + $version[2]));
+		}
+		if (PHP_VERSION_ID < 50300) {
+			$errormessage .= 'PHP must be version 5.3 or higher. Current version is "'.PHP_VERSION.'".<br><br>';
+		}
+	
+		// PHP ZIP
+		$extensions = get_loaded_extensions();
+		if (!in_array('zip', $extensions)) {
+			$errormessage .= 'PHP <strong>zip</strong> extension not found. Please install it using PECL.<br><br>';
+		}
+	
+		// PHP Archive_Tar
+		if (!include('Archive/Tar.php')) {
+			$errormessage .= 'PHP <strong>Archive_Tar</strong> extension not found. Please install it using PEAR.<br><br>';
+		}
+	
+		// PHP XSL
+		if (!in_array('xsl', $extensions)) {
+			$errormessage .= 'PHP <strong>xs</strong>l extension not found. Please install it with apt, yum or other package manager (preferred), or recompile PHP using --with-xsl.<br><br>';
+		}
+	
+		// PHP PgSQL
+		if (!in_array('xsl', $extensions)) {
+			$errormessage .= 'PHP <strong>pgsql</strong> extension not found. Please install it with apt, yum or other package manager (preferred), or recompile PHP using --with-pgsql.<br><br>';
+		}
+		
+		// PHP Imagick
+		if (!in_array('imagick', $extensions)) {
+			$errormessage .= 'PHP <strong>imagick</strong> extension not found. Please install it with apt, yum or other package manager (preferred) or with PECL. <br><br>';
+		}
+	
+		// These are a bit harder to determine. Skip them for now and hope for the best.
+		// PostgreSQL
+		// ImageMagick 6.5
+		// Jasper
+		// curl
+		
+	
+		if (!$errormessage && $step == 0) {
+			$step = 1;
+		}
+	
+		if (!isset($_POST['submit'])) {$_POST['submit'] = '';}
+	
+		if ($_POST['submit'] == '<< Back') {
+			$step -= 1;
+		}
+	
+		if ($_POST['submit'] == 'Retry >>') {
+			$step -= 1;
+		}
+	
+		if ($step == 1) { // Database connection info
+	
+			// Get our existing info from the config file
+			require_once($db_config);
+	
+			// Prepopulate the info on the page
+			$db_dbdriver = $db['default']['dbdriver'];
+			$db_hostname = $db['default']['hostname'];
+			$db_username = $db['default']['username'];
+			$db_password = $db['default']['password'];
+			$db_database = $db['default']['database'];
+			$db_port = '';
+			if (isset($db['default']['port'])) { $db_port = $db['default']['port']; }
+	
+			if (isset($_POST['submit'])) {
+				if ($_POST['submit'] == 'Next >>') {
+					// Save whatever data was passed in
+					set_config($db_config, "\$db['default']['hostname']", $_POST['database_host']);
+					set_config($db_config, "\$db['default']['username']", $_POST['database_username']);
+					set_config($db_config, "\$db['default']['password']", $_POST['database_password']);
+					set_config($db_config, "\$db['default']['database']", $_POST['database_name']);
+					set_config($db_config, "\$db['default']['dbdriver']", $_POST['database_type']);
+					set_config($db_config, "\$db['default']['port']",     $_POST['database_port']);
+	
+					// Now test the database connection
+					if ($_POST['database_type'] == 'postgre') {
+						$conn = "host=".$_POST['database_host'].
+								($_POST['database_port'] ? " port=".$_POST['database_port'] : '').
+								" dbname=".$_POST['database_name'].
+								" user=".$_POST['database_username'].
+								" password=".$_POST['database_password'];
+						$conn = pg_connect($conn);
+						
+						$db_created	= 0;
+						if ($conn) {
+							$result = @pg_query('select count(*) from account');
 							if (!$result) {
-								$errormessage = pg_last_error();
-								$success = 0;
+								// The account table doesn't exist, so we go ahead and create the database
+								$queries = file_get_contents($base_path.'/system/application/sql/macaw-pgsql.sql');
+								$result = @pg_query($conn, $queries);
+								if (!$result) {
+									$errormessage = pg_last_error();
+									$success = 0;
+								} else {
+									$db_created = 1;
+									$success = 1;
+									$step += 1;
+									$done = 1;
+								}
 							} else {
-								$db_created = 1;
 								$success = 1;
 								$step += 1;
 								$done = 1;
 							}
 						} else {
-							$success = 1;
-							$step += 1;
-							$done = 1;
-						}
-					} else {
-						$errormessage = pg_last_error();
-						if (!$errormessage) {
-							$errormessage = "Unknown error connecting to database. Is it set up and is it running?";
-						}
-						$success = 0;
-					} // if ($conn)
-				} // if ($_POST['database_type'] == 'postgre')
-			} // if ($_POST['submit'] == 'Next >>')
-		} // if (isset($_POST['submit']))
-	} // if ($step == 1)
-
-	if ($step == 2 && !$done) { // Database initial setup
-
-		if (isset($_POST['submit'])) {
-			if ($_POST['submit'] == 'Next >>') {
-				$step += 1;
-				$_POST['submit'] = null;
-			}
-		}
-
-	}
-
-	if ($step == 3 && !$done) {
-		// Admin name, password, email
-
-		// Get the data from the database
-		require_once($db_config);
-		require_once($macaw_config);
-
-		$conn = null;
-
-		if ($db['default']['dbdriver'] == 'postgre') {
-			$conn = "host=".$db['default']['hostname'].
-				($db['default']['port'] ? " port=".$db['default']['port'] : '').
-				" dbname=".$db['default']['database'].
-				" user=".$db['default']['username'].
-				" password=".$db['default']['password'];
-
-			$conn = pg_connect($conn);
-			$result = pg_query('select * from account where id = 1');
-			$row = pg_fetch_assoc($result);
-			// Fill in the fields for the administrator
-			$admin_fullname = $row['full_name'];
-			$admin_username = $row['username'];
-			$admin_email = $config['macaw']['admin_email'];
-			$admin_password = $row['password'];
-			$organization_name = $config['macaw']['organization_name'];
-		}
-
-		if (isset($_POST['submit'])) {
-			if ($_POST['submit'] == 'Next >>') {
-				// Save whatever data was passed in
-				set_config($macaw_config, "\$config['macaw']['admin_email']", $_POST['admin_email']);
-				set_config($macaw_config, "\$config['macaw']['organization_name']", $_POST['organization_name']);
-
-
-				// Set the data in the database
-				$result = pg_query_params($conn, 'UPDATE account SET full_name = $1 WHERE id = 1', array($_POST['admin_full_name']));
-
-				// Make sure that we get around the whole concept of null values and "variable not set" errors. Sheesh.
-				if (!isset($_POST['admin_password'])) {$_POST['admin_password'] = '';}
-				if (!isset($_POST['admin_password_c'])) {$_POST['admin_password_c'] = '';}
-
-				// Make sure we get a password when we need one
-				if (!$admin_password && !$_POST['admin_password']) {
-					$errormessage = "You must enter a password and confirmation password.";
-				}
-				// Continue only if we didn't have an error
-				if (!$errormessage) {
-					if ($_POST['admin_password'] || $_POST['admin_password_c']) {
-						// Make sure the passwords match
-						if ($_POST['admin_password'] != $_POST['admin_password_c']) {
-							$errormessage = "The passwords you entered do not match.";
-						} else {
-							// generate the new password hash
-							$hasher = new PasswordHash(8, false);
-							$pass_hash = $hasher->HashPassword($_POST['admin_password']);
-							// Set the data in the database
-							$result = pg_query_params($conn, 'UPDATE account SET password = $1 WHERE id = 1', array($pass_hash));
-						}
-					}
-				}
-
-				$done = 1;
-
-				if (!$errormessage) {
-					// Now determine what the next step is and get it displayed
+							$errormessage = pg_last_error();
+							if (!$errormessage) {
+								$errormessage = "Unknown error connecting to database. Is it set up and is it running?";
+							}
+							$success = 0;
+						} // if ($conn)
+					} // if ($_POST['database_type'] == 'postgre')
+				} // if ($_POST['submit'] == 'Next >>')
+			} // if (isset($_POST['submit']))
+		} // if ($step == 1)
+	
+		if ($step == 2 && !$done) { // Database initial setup
+	
+			if (isset($_POST['submit'])) {
+				if ($_POST['submit'] == 'Next >>') {
 					$step += 1;
 					$_POST['submit'] = null;
 				}
 			}
+	
 		}
-	}
-
-	if ($step == 4 && !$done) {
-
-		if (isset($_POST['submit'])) {
-			if ($_POST['submit'] == 'Next >>') {
-				$step += 1;
-				$_POST['submit'] = null;
+	
+		if ($step == 3 && !$done) {
+			// Admin name, password, email
+	
+			// Get the data from the database
+			require_once($db_config);
+			require_once($macaw_config);
+	
+			$conn = null;
+	
+			if ($db['default']['dbdriver'] == 'postgre') {
+				$conn = "host=".$db['default']['hostname'].
+					($db['default']['port'] ? " port=".$db['default']['port'] : '').
+					" dbname=".$db['default']['database'].
+					" user=".$db['default']['username'].
+					" password=".$db['default']['password'];
+	
+				$conn = pg_connect($conn);
+				$result = pg_query('select * from account where id = 1');
+				$row = pg_fetch_assoc($result);
+				// Fill in the fields for the administrator
+				$admin_fullname = $row['full_name'];
+				$admin_username = $row['username'];
+				$admin_email = $config['macaw']['admin_email'];
+				$admin_password = $row['password'];
+				$organization_name = $config['macaw']['organization_name'];
+			}
+	
+			if (isset($_POST['submit'])) {
+				if ($_POST['submit'] == 'Next >>') {
+					// Save whatever data was passed in
+					set_config($macaw_config, "\$config['macaw']['admin_email']", $_POST['admin_email']);
+					set_config($macaw_config, "\$config['macaw']['organization_name']", $_POST['organization_name']);
+	
+	
+					// Set the data in the database
+					$result = pg_query_params($conn, 'UPDATE account SET full_name = $1 WHERE id = 1', array($_POST['admin_full_name']));
+	
+					// Make sure that we get around the whole concept of null values and "variable not set" errors. Sheesh.
+					if (!isset($_POST['admin_password'])) {$_POST['admin_password'] = '';}
+					if (!isset($_POST['admin_password_c'])) {$_POST['admin_password_c'] = '';}
+	
+					// Make sure we get a password when we need one
+					if (!$admin_password && !$_POST['admin_password']) {
+						$errormessage = "You must enter a password and confirmation password.";
+					}
+					// Continue only if we didn't have an error
+					if (!$errormessage) {
+						if ($_POST['admin_password'] || $_POST['admin_password_c']) {
+							// Make sure the passwords match
+							if ($_POST['admin_password'] != $_POST['admin_password_c']) {
+								$errormessage = "The passwords you entered do not match.";
+							} else {
+								// generate the new password hash
+								$hasher = new PasswordHash(8, false);
+								$pass_hash = $hasher->HashPassword($_POST['admin_password']);
+								// Set the data in the database
+								$result = pg_query_params($conn, 'UPDATE account SET password = $1 WHERE id = 1', array($pass_hash));
+							}
+						}
+					}
+	
+					$done = 1;
+	
+					if (!$errormessage) {
+						// Now determine what the next step is and get it displayed
+						$step += 1;
+						$_POST['submit'] = null;
+					}
+				}
 			}
 		}
-
-	}
-
-	if ($step == 5 && !$done) {
-		// Path to base, data and purge directories
-		require_once($macaw_config);
-		require_once($ci_config);
-
-		$base_url = getBaseURL().'/';
-		$incoming_path = $base_path."/incoming";
-
-		if (isset($_POST['submit'])) {
-			$success = true;
-			
-			if ($_POST['submit'] == 'Next >>') {
+	
+		if ($step == 4 && !$done) {
+	
+			if (isset($_POST['submit'])) {
+				if ($_POST['submit'] == 'Next >>') {
+					$step += 1;
+					$_POST['submit'] = null;
+				}
+			}
+	
+		}
+	
+		if ($step == 5 && !$done) {
+			// Path to base, data and purge directories
+			require_once($macaw_config);
+			require_once($ci_config);
+	
+			$base_url = getBaseURL().'/';
+			$incoming_path = $base_path."/incoming";
+	
+			if (isset($_POST['submit'])) {
+				$success = true;
 				
-				// Save Changes
-				set_config($ci_config,    "\$config['base_url']",                    $_POST['base_url']);
-				set_config($macaw_config, "\$config['macaw']['base_directory']",     $_POST['base_path']);
-				set_config($macaw_config, "\$config['macaw']['incoming_directory']", $_POST['incoming_path']);
-				set_config($macaw_config, "\$config['macaw']['incoming_directory_remote']", $_POST['incoming_path']);
-
-				// Set these in memory because we sort of need them for the next steps.
-				$config['base_url']                    = $_POST['base_url'];
-				$config['macaw']['base_directory']     = $_POST['base_path'];
-				$config['macaw']['incoming_directory'] = $_POST['incoming_path'];
-				$config['macaw']['incoming_directory_remote'] = $_POST['incoming_path'];
-				$config['macaw']['data_directory']     = $_POST['base_path'].'/books';
-				$config['macaw']['logs_directory']     = $_POST['base_path'].'/system/application/logs';
-			}
-			if ($_POST['submit'] == 'Next >>' || $_POST['submit'] == 'Retry >>') {
-				// Verify access to the paths
-				array_push($paths, array(
-					'name' => 'Base URL',
-					'path' => $config['base_url'],
-					'success' => 1,
-					'message' => 'OK.'
-				));
-
-
-				if (!file_exists($config['macaw']['base_directory'])) {
+				if ($_POST['submit'] == 'Next >>') {
+					
+					// Save Changes
+					set_config($ci_config,    "\$config['base_url']",                    $_POST['base_url']);
+					set_config($macaw_config, "\$config['macaw']['base_directory']",     $_POST['base_path']);
+					set_config($macaw_config, "\$config['macaw']['incoming_directory']", $_POST['incoming_path']);
+					set_config($macaw_config, "\$config['macaw']['incoming_directory_remote']", $_POST['incoming_path']);
+	
+					// Set these in memory because we sort of need them for the next steps.
+					$config['base_url']                    = $_POST['base_url'];
+					$config['macaw']['base_directory']     = $_POST['base_path'];
+					$config['macaw']['incoming_directory'] = $_POST['incoming_path'];
+					$config['macaw']['incoming_directory_remote'] = $_POST['incoming_path'];
+					$config['macaw']['data_directory']     = $_POST['base_path'].'/books';
+					$config['macaw']['logs_directory']     = $_POST['base_path'].'/system/application/logs';
+				}
+				if ($_POST['submit'] == 'Next >>' || $_POST['submit'] == 'Retry >>') {
+					// Verify access to the paths
 					array_push($paths, array(
-						'name' => 'Base Directory',
-						'path' => $config['macaw']['base_directory'],
-						'success' => 0,
-						'message' => 'Error! The path could not be found.'
-					));
-					$success = false;
-				} else {
-					array_push($paths, array(
-						'name' => 'Base Directory',
-						'path' => $config['macaw']['base_directory'],
+						'name' => 'Base URL',
+						'path' => $config['base_url'],
 						'success' => 1,
-						'message' => 'Success!'
+						'message' => 'OK.'
 					));
-				}
-				
-				if (!file_exists($config['macaw']['data_directory'])) {
-					if (!@mkdir($config['macaw']['data_directory'])) {
+	
+	
+					if (!file_exists($config['macaw']['base_directory'])) {
 						array_push($paths, array(
-							'name' => 'Data Directory',
-							'path' => $config['macaw']['data_directory'],
+							'name' => 'Base Directory',
+							'path' => $config['macaw']['base_directory'],
 							'success' => 0,
-							'message' => 'Error! The path could not be created.'
+							'message' => 'Error! The path could not be found.'
 						));
 						$success = false;
 					} else {
 						array_push($paths, array(
-							'name' => 'Data Directory',
-							'path' => $config['macaw']['data_directory'],
+							'name' => 'Base Directory',
+							'path' => $config['macaw']['base_directory'],
 							'success' => 1,
 							'message' => 'Success!'
-						));					
-					}
-				} else {
-					if (!is_writable($config['macaw']['data_directory'])) {
-						array_push($paths, array(
-							'name' => 'Data Directory',
-							'path' => $config['macaw']['data_directory'],
-							'success' => 0,
-							'message' => 'Error! Could not write to this path. Please make sure the web server has read/write permissions.'
 						));
-						$success = false;
+					}
+					
+					if (!file_exists($config['macaw']['data_directory'])) {
+						if (!@mkdir($config['macaw']['data_directory'])) {
+							array_push($paths, array(
+								'name' => 'Data Directory',
+								'path' => $config['macaw']['data_directory'],
+								'success' => 0,
+								'message' => 'Error! The path could not be created.'
+							));
+							$success = false;
+						} else {
+							array_push($paths, array(
+								'name' => 'Data Directory',
+								'path' => $config['macaw']['data_directory'],
+								'success' => 1,
+								'message' => 'Success!'
+							));					
+						}
 					} else {
-						array_push($paths, array(
-							'name' => 'Data Directory',
-							'path' => $config['macaw']['data_directory'],
-							'success' => 1,
-							'message' => 'Success!'
-						));
+						if (!is_writable($config['macaw']['data_directory'])) {
+							array_push($paths, array(
+								'name' => 'Data Directory',
+								'path' => $config['macaw']['data_directory'],
+								'success' => 0,
+								'message' => 'Error! Could not write to this path. Please make sure the web server has read/write permissions.'
+							));
+							$success = false;
+						} else {
+							array_push($paths, array(
+								'name' => 'Data Directory',
+								'path' => $config['macaw']['data_directory'],
+								'success' => 1,
+								'message' => 'Success!'
+							));
+						}
 					}
-				}
-
-				if (!file_exists($config['macaw']['data_directory'].'/export')) {
-					if (!@mkdir($config['macaw']['data_directory'].'/export')) {
-						array_push($paths, array(
-							'name' => 'Data Export Directory',
-							'path' => $config['macaw']['data_directory'].'/export',
-							'success' => 0,
-							'message' => 'Error! The path could not be created.'
-						));
-						$success = false;
+	
+					if (!file_exists($config['macaw']['data_directory'].'/export')) {
+						if (!@mkdir($config['macaw']['data_directory'].'/export')) {
+							array_push($paths, array(
+								'name' => 'Data Export Directory',
+								'path' => $config['macaw']['data_directory'].'/export',
+								'success' => 0,
+								'message' => 'Error! The path could not be created.'
+							));
+							$success = false;
+						} else {
+							array_push($paths, array(
+								'name' => 'Data Export Directory',
+								'path' => $config['macaw']['data_directory'].'/export',
+								'success' => 1,
+								'message' => 'Success!'
+							));					
+						}
 					} else {
-						array_push($paths, array(
-							'name' => 'Data Export Directory',
-							'path' => $config['macaw']['data_directory'].'/export',
-							'success' => 1,
-							'message' => 'Success!'
-						));					
+						if (!is_writable($config['macaw']['data_directory'].'/export')) {
+							array_push($paths, array(
+								'name' => 'Data Export Directory',
+								'path' => $config['macaw']['data_directory'].'/export',
+								'success' => 0,
+								'message' => 'Error! Could not write to this path. Please make sure the web server has read/write permissions.'
+							));
+							$success = false;
+						} else {
+							array_push($paths, array(
+								'name' => 'Data Export Directory',
+								'path' => $config['macaw']['data_directory'].'/export',
+								'success' => 1,
+								'message' => 'Success!'
+							));
+						}
 					}
-				} else {
-					if (!is_writable($config['macaw']['data_directory'].'/export')) {
-						array_push($paths, array(
-							'name' => 'Data Export Directory',
-							'path' => $config['macaw']['data_directory'].'/export',
-							'success' => 0,
-							'message' => 'Error! Could not write to this path. Please make sure the web server has read/write permissions.'
-						));
-						$success = false;
-					} else {
-						array_push($paths, array(
-							'name' => 'Data Export Directory',
-							'path' => $config['macaw']['data_directory'].'/export',
-							'success' => 1,
-							'message' => 'Success!'
-						));
-					}
-				}
-
-
-				if (!file_exists($config['macaw']['logs_directory'])) {
-					array_push($paths, array(
-						'name' => 'Logs Directory',
-						'path' => $config['macaw']['logs_directory'],
-						'success' => 0,
-						'message' => 'Error! The path could not be found.'
-					));
-					$success = false;
-				} else {
-					if (!is_writable($config['macaw']['logs_directory'])) {
+	
+	
+					if (!file_exists($config['macaw']['logs_directory'])) {
 						array_push($paths, array(
 							'name' => 'Logs Directory',
 							'path' => $config['macaw']['logs_directory'],
 							'success' => 0,
-							'message' => 'Error! Could not write to this path. Please make sure the web server has read/write permissions.'
+							'message' => 'Error! The path could not be found.'
 						));
 						$success = false;
 					} else {
-						array_push($paths, array(
-							'name' => 'Logs Directory',
-							'path' => $config['macaw']['logs_directory'],
-							'success' => 1,
-							'message' => 'Success!'
-						));
+						if (!is_writable($config['macaw']['logs_directory'])) {
+							array_push($paths, array(
+								'name' => 'Logs Directory',
+								'path' => $config['macaw']['logs_directory'],
+								'success' => 0,
+								'message' => 'Error! Could not write to this path. Please make sure the web server has read/write permissions.'
+							));
+							$success = false;
+						} else {
+							array_push($paths, array(
+								'name' => 'Logs Directory',
+								'path' => $config['macaw']['logs_directory'],
+								'success' => 1,
+								'message' => 'Success!'
+							));
+						}
+					}
+	
+					if (!file_exists($config['macaw']['incoming_directory'])) {
+						if (!@mkdir($config['macaw']['incoming_directory'])) {
+							array_push($paths, array(
+								'name' => 'Incoming Directory',
+								'path' => $config['macaw']['incoming_directory'],
+								'success' => 0,
+								'message' => 'Error! The path could not be created.'
+							));
+							$success = false;
+						} else {
+							array_push($paths, array(
+								'name' => 'Incoming Directory',
+								'path' => $config['macaw']['incoming_directory'],
+								'success' => 1,
+								'message' => 'Success!'
+							));					
+						}
+					} else {
+						if (!is_writable($config['macaw']['incoming_directory'])) {
+							array_push($paths, array(
+								'name' => 'Incoming Directory',
+								'path' => $config['macaw']['incoming_directory'],
+								'success' => 0,
+								'message' => 'Error! Could not write to this path. Please make sure the web server has read/write permissions.'
+							));
+							$success = false;
+						} else {
+							array_push($paths, array(
+								'name' => 'Incoming Directory',
+								'path' => $config['macaw']['incoming_directory'],
+								'success' => 1,
+								'message' => 'Success!'
+							));
+						}
+					}
+	
+					$done = 1;
+	
+					if (!$errormessage) {
+						// Now determine what the next step is and get it displayed
+						$step += 1;
+						$_POST['submit'] = null;
 					}
 				}
-
-				if (!file_exists($config['macaw']['incoming_directory'])) {
-					if (!@mkdir($config['macaw']['incoming_directory'])) {
-						array_push($paths, array(
-							'name' => 'Incoming Directory',
-							'path' => $config['macaw']['incoming_directory'],
-							'success' => 0,
-							'message' => 'Error! The path could not be created.'
-						));
-						$success = false;
-					} else {
-						array_push($paths, array(
-							'name' => 'Incoming Directory',
-							'path' => $config['macaw']['incoming_directory'],
-							'success' => 1,
-							'message' => 'Success!'
-						));					
-					}
-				} else {
-					if (!is_writable($config['macaw']['incoming_directory'])) {
-						array_push($paths, array(
-							'name' => 'Incoming Directory',
-							'path' => $config['macaw']['incoming_directory'],
-							'success' => 0,
-							'message' => 'Error! Could not write to this path. Please make sure the web server has read/write permissions.'
-						));
-						$success = false;
-					} else {
-						array_push($paths, array(
-							'name' => 'Incoming Directory',
-							'path' => $config['macaw']['incoming_directory'],
-							'success' => 1,
-							'message' => 'Success!'
-						));
-					}
-				}
-
-				$done = 1;
-
-				if (!$errormessage) {
-					// Now determine what the next step is and get it displayed
+			}
+		}
+	
+		if ($step == 6 && !$done) {
+	
+			if (isset($_POST['submit'])) {
+				if ($_POST['submit'] == 'Next >>') {
 					$step += 1;
 					$_POST['submit'] = null;
 				}
 			}
+	
 		}
-	}
-
-	if ($step == 6 && !$done) {
-
-		if (isset($_POST['submit'])) {
-			if ($_POST['submit'] == 'Next >>') {
-				$step += 1;
-				$_POST['submit'] = null;
+	
+		if ($step == 7 && !$done) {
+			require_once($macaw_config);
+			require_once($ci_config);
+			require_once($db_config);
+	
+			if ($db['default']['dbdriver'] == 'postgre') {
+				$database_driver = 'PostgreSQL';
+				$conn = "host=".$db['default']['hostname'].
+					($db['default']['port'] ? " port=".$db['default']['port'] : '').
+					" dbname=".$db['default']['database'].
+					" user=".$db['default']['username'].
+					" password=".$db['default']['password'];
+	
+				$conn = pg_connect($conn);
+				$result = pg_query('select * from account where id = 1');
+				$row = pg_fetch_assoc($result);
+				// Fill in the fields for the administrator
+				$admin_fullname = $row['full_name'];
+				$admin_username = $row['username'];
+				$admin_email = $config['macaw']['admin_email'];
+				$admin_password = $row['password'];
+				
+				$install_file = $config['macaw']['base_directory'].'/install.php';
+				rename($install_file, $install_file.'.delete');
 			}
 		}
-
 	}
-
-	if ($step == 7 && !$done) {
-		require_once($macaw_config);
-		require_once($ci_config);
-		require_once($db_config);
-
-		if ($db['default']['dbdriver'] == 'postgre') {
-			$database_driver = 'PostgreSQL';
-			$conn = "host=".$db['default']['hostname'].
-				($db['default']['port'] ? " port=".$db['default']['port'] : '').
-				" dbname=".$db['default']['database'].
-				" user=".$db['default']['username'].
-				" password=".$db['default']['password'];
-
-			$conn = pg_connect($conn);
-			$result = pg_query('select * from account where id = 1');
-			$row = pg_fetch_assoc($result);
-			// Fill in the fields for the administrator
-			$admin_fullname = $row['full_name'];
-			$admin_username = $row['username'];
-			$admin_email = $config['macaw']['admin_email'];
-			$admin_password = $row['password'];
-			
-			$install_file = $config['macaw']['base_directory'].'/install.php';
-			rename($install_file, $install_file.'.delete');
-		}
-	}
-
+	
 	function set_config($file, $setting, $value) {
 		// Open the file, read into an array
 		if (file_exists($file.'.new')) {
@@ -664,7 +702,6 @@
 			return "nix";
 		}
 	}
-
 ?>
 
 	<style type="text/css">

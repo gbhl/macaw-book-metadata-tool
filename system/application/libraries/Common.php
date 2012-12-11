@@ -121,10 +121,6 @@ class Common extends Controller {
 	 * @throws Causes web-page error to be displayed.
 	 */
 	function validate_config() {
-		// Make sure that the install.php script doesn't still exist
-		if (file_exists('install.php')) {
-			show_error('For security reasons, please delete <strong>install.php</strong> in the web root directory.');
-		}
 
 		// Clean all paths in the config to eliminate trailing slashes
 		$this->cfg['base_directory'] = preg_replace('/\/+$/', '', $this->cfg['base_directory']);
@@ -441,7 +437,15 @@ class Common extends Controller {
  			} catch (Exception $e) {
  				echo "Exception";
  			}
-		// } elseif ($version = "1.7") {  // FUTURE USE
+ 			
+		} elseif ($version == "1.7") { 
+				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-pgsql-2.0.sql');
+				$result = $this->CI->db->query($queries);
+				$this->CI->db->where('name','version');
+				$this->CI->db->set('value', '2.0');
+				$this->CI->db->update('settings');
+				
+		// } elseif ($version == "2.1") {  // FUTURE USE
 			// 	$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-pgsql-1.8.sql');
 			// 	$result = $this->CI->db->query($queries);
 			//	$this->CI->db->where('name','version');
