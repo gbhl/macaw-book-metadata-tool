@@ -946,14 +946,23 @@ class Book extends Model {
 		}
 
 		// Update the the marc.xml and item.xml files on disk
+		// We're going to assume that the directory exists. If it doesn't
+		// we ignore the error. It could be the case that this item has been
+		// resurrected and doesn't exist on disk because it's been archived.
+		// If the item is current, the directory should have been created when
+		// it was first added to the database. And yes, this is a long comment. :)
 		$path = $this->cfg['data_directory'].'/'.$this->barcode;
 		if ($md = $this->get_metadata('marc_xml')) {
-			write_file($path.'/marc.xml', $md);
-			chmod($path.'/marc.xml', 0775);
+			if (file_exists($path)) {
+				write_file($path.'/marc.xml', $md);
+				chmod($path.'/marc.xml', 0775);
+			}
 		}
 		if ($md = $this->get_metadata('mods_xml')) {
-			write_file($path.'/mods.xml', $md);
-			chmod($path.'/mods.xml', 0775);
+			if (file_exists($path)) {
+				write_file($path.'/mods.xml', $md);
+				chmod($path.'/mods.xml', 0775);
+			}
 		}
 	}
 

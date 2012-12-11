@@ -1,0 +1,32 @@
+########################################
+# CONFIGURATION FILES
+# We never want to track these because they are created at install
+
+system/application/config/config.php
+system/application/config/database.php
+system/application/config/macaw.php
+
+
+########################################
+# PLUGINS
+# We ignore everything, then un-ignore those that we want in git
+
+plugins/export/*
+!plugins/export/export.default.php
+!plugins/export/Internet_archive.sample.php
+plugins/import/*
+!plugins/import/import.default.php
+plugins/metadata/*
+!plugins/metadata/_metadata-sample.js
+!plugins/metadata/_metadata-sample.php
+!plugins/metadata/Generic.js
+!plugins/metadata/Generic.php
+!plugins/metadata/Standard_Metadata.js
+!plugins/metadata/Standard_Metadata.php
+
+########################################
+# DATA DIRECTORIES
+# These are also created when we install 
+
+books
+incoming
