@@ -45,20 +45,11 @@ class Main extends Controller {
 		 	if ($status == 'scanned' || $status == 'reviewing') {
 		 		redirect($this->config->item('base_url').'scan/review');	
 		 			}
-		 	if ($status == 'exporting' || $status == 'completed' || $status == 'archived') {
+		 	if ($status == 'exporting' || $status == 'completed' || $status == 'archived' || $status == 'reviewed') {
 		 	 	redirect($this->config->item('base_url').'scan/history');
 		 	}
-				 	
-		 	if ($status == 'reviewed'){
-			 	redirect($this->config->item('base_url').'main');
-		 	}
-
-		 
-		}else{
-		
-			//$this->load->view('main/main_nobarcode_view', $data);
+		} else {
 		 	redirect($this->config->item('base_url').'main/listitems');
-		
 		}
 	}
 
