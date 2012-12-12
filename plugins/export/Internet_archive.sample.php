@@ -156,9 +156,10 @@ class Internet_archive extends Controller {
 		# $file should be "marc", "scans", "scandata", "meta"
 		$file = (count($args) >= 2 ? $args[1] : '');
 		$force = false;
-		if ($file == 'force') {
-			$file = '';
-			$force = true;
+		if (count($args) > 0) {
+			if ($args[count($args)-1] == 'force') {
+				$force = true;
+			}
 		}
 
 		// Find those items that need to be uploaded or use the ID we were given
@@ -185,7 +186,7 @@ class Internet_archive extends Controller {
 				// If we were given a specific ID, we only upload the book if it's been reviewed or it's already uploaded.
 				// TODO: Remove this, we will unconditionall upload if an ID is provided.
 				if ($sent_id) {
-					if ($this->CI->book->status != 'reviewed' && $this->CI->book->status != 'exporting') {
+					if ($this->CI->book->status != 'reviewed' && $this->CI->book->status != 'exporting' && !$file) {
 						echo '(export) The item with id #'.$sent_id.' is not marked as reviewed or exporting and cannot be uploaded. (status is '.$this->CI->book->status.')'."\n";
 						continue;
 					}
@@ -545,8 +546,15 @@ class Internet_archive extends Controller {
 					}
 				} // for ($i = 1; $i <= 15; $i++)
 				if (!$bucket_found) {
-					$this->CI->logging->log('book', 'error', 'Bucket at Internet Archive not created after 10 minutes. Will try again later.', $bc);
-					return;
+					$this->CI->logging->log('book', 'error', 'Bucket at Internet Archive not created after 15 minutes. Will try again later.', $bc);
+					$message = "Error processing export.\n\n".
+						"Identifier:    ".$bc."\n\n".
+						"IA Identifier: ".$id."\n\n".
+						"Error Message: Bucket at Internet Archive not created after 15 minutes. Will try again later.\n".
+						"Command: \n\n".$cmd."\n\n";
+						"Output: \n\n".$output_text."\n\n";
+					$this->CI->common->email_error($message);
+					continue;
 				}
 				echo "\n";
 
@@ -749,9 +757,13 @@ class Internet_archive extends Controller {
 
 			if ($verified == 1) {
 				// Mark the book as verified
-				$this->CI->book->set_export_status('verified_upload');
-				$this->CI->logging->log('book', 'info', 'Item successfully verified at internet archive.', $b->barcode);
-				$this->CI->logging->log('access', 'info', 'Item with barcode '.$b->barcode.' verified at internet archive.');
+				try {
+					$this->CI->book->set_export_status('verified_upload');
+					$this->CI->logging->log('book', 'info', 'Item successfully verified at internet archive.', $b->barcode);
+					$this->CI->logging->log('access', 'info', 'Item with barcode '.$b->barcode.' verified at internet archive.');
+				} catch (Exception $e) {
+					// Do nothing.
+				}
 			} else {
 				$this->CI->logging->log('book', 'info', 'Item NOT verified at internet archive ('.$id.'). '.$error, $b->barcode);
 				$this->CI->logging->log('access', 'info', 'Item with barcode '.$b->barcode.' ('.$id.') NOT verified at internet archive. '.$error);
@@ -820,9 +832,13 @@ class Internet_archive extends Controller {
 
 			if ($verified == 1) {
 				// Mark the book as verified
-				$this->CI->book->set_export_status('verified_derive');
-				$this->CI->logging->log('book', 'info', 'Item successfully verified at internet archive.', $b->barcode);
-				$this->CI->logging->log('access', 'info', 'Item with barcode '.$b->barcode.' verified at internet archive.');
+				try {
+					$this->CI->book->set_export_status('verified_derive');
+					$this->CI->logging->log('book', 'info', 'Item successfully verified at internet archive.', $b->barcode);
+					$this->CI->logging->log('access', 'info', 'Item with barcode '.$b->barcode.' verified at internet archive.');
+				} catch (Exception $e) {
+					// Do nothing.
+				}
 			} else {
 				$this->CI->logging->log('book', 'info', 'Item NOT verified at internet archive ('.$id.'). '.$error, $b->barcode);
 				$this->CI->logging->log('access', 'info', 'Item with barcode '.$b->barcode.' ('.$id.') NOT verified at internet archive. '.$error);
@@ -939,9 +955,13 @@ class Internet_archive extends Controller {
 					$this->CI->logging->log('access', 'info', 'Item with barcode '.$b->barcode.' NOT harvested from internet archive. Will try again next time.');
 				} else {
 					// Success!
-					$this->CI->book->set_export_status('completed');
-					$this->CI->logging->log('book', 'info', 'Derivatives successfully downloaded from Internet archive.', $b->barcode);
-					$this->CI->logging->log('access', 'info', 'Item with barcode '.$b->barcode.' harvested from internet archive.');
+					try {
+						$this->CI->book->set_export_status('completed');
+						$this->CI->logging->log('book', 'info', 'Derivatives successfully downloaded from Internet archive.', $b->barcode);
+						$this->CI->logging->log('access', 'info', 'Item with barcode '.$b->barcode.' harvested from internet archive.');
+					} catch (Exception $e) {
+						// Do nothing.
+					}
 				}
 			} else {
 				// We didn't get any URLs, so we'll log this, but we wont set an error
@@ -1290,6 +1310,10 @@ class Internet_archive extends Controller {
 		// Load the book
 		$this->CI->book->load($b->barcode);
 		$path = $this->cfg['base_directory'].'/books/'.$b->barcode.'/';
+		if (!file_exists($path)) {
+			$path = '/tmp/';
+			print "INFO: Saving meta file to /tmp/\n";
+		}
 		$filename = $path.$b->barcode."_meta.xml";
 		$ch = curl_init($urls[0].'/'.$id."_meta.xml");
 		$fh = fopen($filename, "w");
@@ -1395,7 +1419,7 @@ class Internet_archive extends Controller {
 
 		$ret = ($mods->xpath($root.$ns."titleInfo[not(@type)]/".$ns."title"));
 		if ($ret && count($ret) > 0) {
-			$metadata['x-archive-meta-title'] = str_replace('"', "'", $ret[0]).'';
+			$metadata['x-archive-meta-title'] = str_replace("'", "&quot;", str_replace('"', "'", $ret[0].''));
 		}
 
 		$ret = ($mods->xpath($root.$ns."name/".$ns."role/".$ns."roleTerm[.='creator']/../../".$ns."namePart"));
@@ -1445,9 +1469,24 @@ class Internet_archive extends Controller {
 			$metadata['x-archive-meta-volume'] = $this->CI->book->get_metadata('volume').'';
 		}
 
-		$metadata['x-archive-meta-call--number'] = $this->CI->book->barcode.'';
- 		$metadata['x-archive-meta-call-number'] = $this->CI->book->barcode.'';
-		$metadata['x-archive-meta-identifier-bib'] = $this->CI->book->barcode.'';
+		if ($this->CI->book->get_metadata('call_number')) {
+			$val = $this->CI->book->get_metadata('call_number').'';
+			$metadata['x-archive-meta-call--number'] = $val;
+			$metadata['x-archive-meta-call-number'] = $val;
+			$metadata['x-archive-meta-identifier-bib'] = $val;
+
+		} elseif ($this->CI->book->get_metadata('call-number')) {
+			$val = $this->CI->book->get_metadata('call-number').'';
+			$metadata['x-archive-meta-call--number'] = $val;
+			$metadata['x-archive-meta-call-number'] = $val;
+			$metadata['x-archive-meta-identifier-bib'] = $val;
+
+		} else {
+			$val = $this->CI->book->barcode.'';
+			$metadata['x-archive-meta-call--number'] = $val;
+			$metadata['x-archive-meta-call-number'] = $val;
+			$metadata['x-archive-meta-identifier-bib'] = $val;
+		}
 
 		$ret = ($mods->xpath($root.$ns."note"));
 		$c = 0;
@@ -1718,7 +1757,7 @@ class Internet_archive extends Controller {
 			$base = $matches[1];
 			$content = file_get_contents($base);
 			if (preg_match_all('<a href="(.*?)">', $content, $matches)) {
-				return array($base ,$matches[1]);
+				return array($base, $matches[1]);
 			}
 		}
 		// Just in case, return nothing, which is an error.

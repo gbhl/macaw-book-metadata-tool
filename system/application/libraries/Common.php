@@ -543,5 +543,29 @@ class Common extends Controller {
 		system('rm -r '.$tmp.'/import_export/serialize/'.$barcode);
 		return "$tmp/import_export/serialize/".$barcode.".tgz";
 	}
+	
+	function email_error($message = '') {
+		if ($message != '') {
+			$this->load->library('email');
+	
+			$config['protocol'] = 'smtp';
+			$config['crlf'] = '\r\n';
+			$config['newline'] = '\r\n';
+			$config['smtp_host'] = $this->cfg['email_smtp_host'];
+			$config['smtp_port'] = $this->cfg['email_smtp_port'];
+			if ($this->cfg['email_smtp_user']) { $config['smtp_user'] = $this->cfg['email_smtp_user']; }
+			if ($this->cfg['email_smtp_pass']) { $config['smtp_pass'] = $this->cfg['email_smtp_pass']; }
+			
+			$this->email->initialize($config);
+			$this->email->from($this->cfg['admin_email'], 'MACAW Admin');
+			$this->email->to($this->cfg['admin_email']);
+			$this->email->subject('[Macaw] Error Notification');
+			$this->email->message(
+				'This is a message from the MACAW server located at: '.$this->config->item('base_url')."\r\n\r\n".
+				'The following error occurred, most likely during a cron run: '."\r\n\r\n".$message
+			);
+			$this->email->send();
+		}
+	}
 
 }
