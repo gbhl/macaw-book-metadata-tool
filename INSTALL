@@ -63,9 +63,9 @@ For a new installation of Macaw:
 1. Copy the files into the appropriate location on your web server. Be sure to use paths appropriate
 for your system.
 
-   $ curl -O -L https://github.com/cajunjoel/macaw-book-metadata-tool/archive/master.zip
-   $ unzip master.zip
-   $ cp -ri macaw-book-metadata-tool-master/* macaw-book-metadata-tool-master/.htaccess /var/www/htdocs/macaw
+	$ curl -O -L https://github.com/cajunjoel/macaw-book-metadata-tool/archive/master.zip
+	$ unzip master.zip
+	$ cp -ri macaw-book-metadata-tool-master/* macaw-book-metadata-tool-master/.htaccess /var/www/htdocs/macaw
    
 2. Configure your webserver
 
@@ -93,8 +93,8 @@ for your system.
 Macaw requires a UTF-8 encoding on the database. Be sure to remember the password you used to create
 the database. You'll need it during the installation process. 		
 
-    $ createuser -U postgres --createdb --no-createrole --no-superuser --pwprompt macaw
-    $ createdb -U macaw --encoding=UTF8 macaw
+	$ createuser -U postgres --createdb --no-createrole --no-superuser --pwprompt macaw
+	$ createdb -U macaw --encoding=UTF8 macaw
 
 4. Set file and directory permissions
 
@@ -105,7 +105,7 @@ path to Macaw and user and group that your web server uses. This may be "www", "
 
 4. Start Macaw by going to the install.php page
 
-    http://www.website.com/install.php
+	http://www.website.com/install.php
     
     
 =====================
