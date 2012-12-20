@@ -1103,6 +1103,7 @@ class Book extends Model {
 				$all_fields = $this->get_metadata_fieldnames();
 				// Loop through the required metadata fields
 				foreach ($fields as $f) {
+					if ($f == 'copyright') { continue; }
 					if (in_array($f, $all_fields)) {
 						if ($strict) {
 							// If we're strict, we demand a non-empty value

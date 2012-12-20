@@ -262,14 +262,41 @@ $config['macaw']['metadata_fields'] = array('identifier', 'name', 'title', 'auth
 // ------------------------------
 // COPYRIGHT VALUES
 // ------------------------------
-// When getting a list of all items, which metadata fields should be returned (if they exist)
-// in the resulting dataset. This is only used in one place. Be careful of putting too many
-// items in this list as it may slow down certain procedures that use the full list of items.
+// Possible values for the Copyright drop-down on the Add/Edit item page. You can override these
+// with your own values, but keep in mind that the Internet_archive.php export is expecting values 
+// of 0, 1, or 2 which it translates into values suitable for the Internet Archive
+// If you want to change these, copy them into your macaw.php file. This is the default used if it 
+// is not found. 
 $config['macaw']['copyright_values'] = array(
 	array('title' => 'Not in Copyright', 'value' => 0),
 	array('title' => 'In Copyright, Permission Granted', 'value' => 1),
 	array('title' => 'In Copyright, Due Dilligence', 'value' => 2)
 );
+
+// ------------------------------
+// CREATIVE COMMONS LICENSES
+// ------------------------------
+// For use when the item is in copyright but you want to set an explicit license, copy these into
+// your macaw.php. These are the default values used by macaw and correspond to international 
+// jurisdiction. You may want to change the URLs for your country, example:
+//      
+//      http://creativecommons.org/licenses/by/3.0/us/
+//      http://creativecommons.org/licenses/by-sa/3.0/us/
+//      http://creativecommons.org/licenses/by-nd/3.0/us/
+//      http://creativecommons.org/licenses/by-nc/3.0/us/
+//      http://creativecommons.org/licenses/by-nc-sa/3.0/us/
+//      http://creativecommons.org/licenses/by-nc-nd/3.0/us/
+
+$config['macaw']['copyright_values'] = array(
+	array('title' => '(none)', 			'value' => ''),
+	array('title' => 'CC BY', 			'value' => 'http://creativecommons.org/licenses/by/3.0/'),
+	array('title' => 'CC BY-SA', 		'value' => 'http://creativecommons.org/licenses/by-sa/3.0/'),
+	array('title' => 'CC BY-ND', 		'value' => 'http://creativecommons.org/licenses/by-nd/3.0/'),
+	array('title' => 'CC BY-NC', 		'value' => 'http://creativecommons.org/licenses/by-nc/3.0/'),
+	array('title' => 'CC BY-NC-SA', 'value' => 'http://creativecommons.org/licenses/by-nc-sa/3.0/'),
+	array('title' => 'CC BY-NC-ND', 'value' => 'http://creativecommons.org/licenses/by-nc-nd/3.0/'),
+);
+
 
 // ------------------------------
 // TEST MODE?

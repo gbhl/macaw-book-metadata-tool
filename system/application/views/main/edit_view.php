@@ -13,8 +13,11 @@
 			var obtnSave = new YAHOO.widget.Button("btnSave");
 			obtnSave.on('click', FIELDS.submit, 'save');
 
+			<? // HERE COMES SOME PHP CODE! ?>
+			<? if (($is_admin || $is_local_admin) && !$new) { ?>
 			var obtnDelete = new YAHOO.widget.Button("btnDelete");
 			obtnDelete.on('click', FIELDS.submit, 'delete');
+			<? } ?>
 			
 			var obtnAddField = new YAHOO.widget.Button("btnAddField");
 			obtnAddField.on('click', FIELDS.addField);
@@ -235,6 +238,16 @@
 						</select>
 					</td>
 				</tr>
+				<tr class="row">
+					<td class="fieldname">Creative Commons:</td>
+					<td>
+						<select name="cc_license[]">
+						<?php	foreach ($cc_licenses as $c) {?>
+							<option value="<?php echo($c['value']) ?>" <?php echo ($c['value'] == $cc_license ? 'selected' : ''); ?>><?php echo($c['title']) ?></option>
+						<?php } ?>
+						</select>
+					</td>
+				</tr>
 					
 				<?  $c = 0;
 					foreach ($metadata as $i) { ?>
@@ -290,7 +303,7 @@
 		</form>
 		<div class="savebutton">
 			<button id="btnSave">Save</button>
-			<? if ($is_admin || $is_local_admin) { ?>
+			<? if (($is_admin || $is_local_admin) && !$new) { ?>
 			<button id="btnDelete">Delete Item</button>
 			<? } ?>
 		</div>

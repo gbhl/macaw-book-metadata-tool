@@ -343,7 +343,7 @@ class Main extends Controller {
 			} else {
 				$array_counts[$i['fieldname']] = 1;
 			}
-			if ($i['fieldname'] != 'needs_qa' && $i['fieldname'] != 'copyright') {
+			if ($i['fieldname'] != 'needs_qa' && $i['fieldname'] != 'copyright' && $i['fieldname'] != 'cc_license') {
 				array_push($md, array(
 					'fieldnamex' => $i['fieldname'].'_'.$array_counts[$i['fieldname']],
 					'fieldname' => $i['fieldname'],
@@ -364,8 +364,34 @@ class Main extends Controller {
 		$data['needs_qa'] = $this->book->needs_qa;
 		$data['id'] = $this->book->id;
 		$data['organization'] = $this->book->org_name;
-		$data['copyright_values'] = $this->cfg['copyright_values'];
-		$data['copyright'] = $this->book->get_metadata('copyright');
+		if (isset($this->cfg['copyright_values'])) {
+			$data['copyright_values'] = $this->cfg['copyright_values'];		
+		} else {
+			$data['copyright_values'] = array(
+				array('title' => 'Not in Copyright', 'value' => 0),
+				array('title' => 'In Copyright, Permission Granted', 'value' => 1),
+				array('title' => 'In Copyright, Due Dilligence', 'value' => 2)
+			);		
+		}
+		$copyright = $this->book->get_metadata('copyright');
+		if (is_array($copyright)) {
+			$copyright = $copyright[0];		
+		}
+		$data['copyright'] = $copyright;
+		if (isset($this->cfg['cc_licenses'])) {
+			$data['cc_licenses'] = $this->cfg['cc_licenses'];
+		} else {
+			$data['cc_licenses'] = array(
+				array('title' => '(none)', 			'value' => ''),
+				array('title' => 'CC BY', 			'value' => 'http://creativecommons.org/licenses/by/3.0/'),
+				array('title' => 'CC BY-SA', 		'value' => 'http://creativecommons.org/licenses/by-sa/3.0/'),
+				array('title' => 'CC BY-ND', 		'value' => 'http://creativecommons.org/licenses/by-nd/3.0/'),
+				array('title' => 'CC BY-NC', 		'value' => 'http://creativecommons.org/licenses/by-nc/3.0/'),
+				array('title' => 'CC BY-NC-SA', 'value' => 'http://creativecommons.org/licenses/by-nc-sa/3.0/'),
+				array('title' => 'CC BY-NC-ND', 'value' => 'http://creativecommons.org/licenses/by-nc-nd/3.0/'),
+			);
+		}
+		$data['cc_license'] = $this->book->get_metadata('cc_license');
 
 		$this->load->view('main/edit_view', $data);
 	}
@@ -613,6 +639,8 @@ class Main extends Controller {
 			return;
 		}
 
+		$data['is_local_admin'] = $this->user->has_permission('local_admin');
+		$data['is_admin'] = $this->user->has_permission('admin');
 		$data['new'] = true;		
 		$data['metadata'] = array();		
 		$data['identifier'] = $barcode;
@@ -626,6 +654,30 @@ class Main extends Controller {
 			$data['is_qa_user'] = true;
 		}
 		$data['organization'] = $this->user->org_name;		
+		if (isset($this->cfg['copyright_values'])) {
+			$data['copyright_values'] = $this->cfg['copyright_values'];		
+		} else {
+			$data['copyright_values'] = array(
+				array('title' => 'Not in Copyright', 'value' => 0),
+				array('title' => 'In Copyright, Permission Granted', 'value' => 1),
+				array('title' => 'In Copyright, Due Dilligence', 'value' => 2)
+			);		
+		}
+		$data['copyright'] = 0;
+		if (isset($this->cfg['cc_licenses'])) {
+			$data['cc_licenses'] = $this->cfg['cc_licenses'];
+		} else {
+			$data['cc_licenses'] = array(
+				array('title' => '(none)', 			'value' => ''),
+				array('title' => 'CC BY', 			'value' => 'http://creativecommons.org/licenses/by/3.0/'),
+				array('title' => 'CC BY-SA', 		'value' => 'http://creativecommons.org/licenses/by-sa/3.0/'),
+				array('title' => 'CC BY-ND', 		'value' => 'http://creativecommons.org/licenses/by-nd/3.0/'),
+				array('title' => 'CC BY-NC', 		'value' => 'http://creativecommons.org/licenses/by-nc/3.0/'),
+				array('title' => 'CC BY-NC-SA', 'value' => 'http://creativecommons.org/licenses/by-nc-sa/3.0/'),
+				array('title' => 'CC BY-NC-ND', 'value' => 'http://creativecommons.org/licenses/by-nc-nd/3.0/'),
+			);
+		}
+		$data['cc_license'] = '';
 		$this->load->view('main/edit_view', $data);
 	}
 

@@ -1415,8 +1415,12 @@ class Internet_archive extends Controller {
 			$metadata['x-archive-meta-possible-copyright-status'] = $this->CI->book->get_metadata('copyright');
 		}
 
-		// Now we use xpath to get stuff out of the mods. Fun!
+		// If we have explicitly set a CC license, let's use it.
+		if (isset($this->CI->book->get_metadata('cc_license'))) {
+			$metadata['x-archive-meta-licenseurl'] = $this->CI->book->get_metadata('cc_license');							
+		}
 
+		// Now we use xpath to get stuff out of the mods. Fun!
 		$ret = ($mods->xpath($root.$ns."titleInfo[not(@type)]/".$ns."title"));
 		if ($ret && count($ret) > 0) {
 			$metadata['x-archive-meta-title'] = str_replace("'", "&quot;", str_replace('"', "'", $ret[0].''));

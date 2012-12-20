@@ -179,10 +179,6 @@ class Common extends Controller {
 				}
 			}
 		}
-
-		if (!array_key_exists('copyright_values', $this->cfg)) {
-			show_error('The possible copyright values could not be found. Please make sure <strong>$config[\'macaw\'][\'copyright_values\']</strong> is defined. You may copy it from the <strong>macaw.default.php</strong> configuration file.');
-		}
 		
 		// Validate that the log files can be written to
 		$ret = $this->validate_log_config();
