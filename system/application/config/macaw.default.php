@@ -291,7 +291,7 @@ $config['macaw']['copyright_values'] = array(
 //      http://creativecommons.org/licenses/by-nc-sa/3.0/us/
 //      http://creativecommons.org/licenses/by-nc-nd/3.0/us/
 
-$config['macaw']['copyright_values'] = array(
+$config['macaw']['cc_values'] = array(
 	array('title' => '(none)', 			'value' => ''),
 	array('title' => 'CC BY', 			'value' => 'http://creativecommons.org/licenses/by/3.0/'),
 	array('title' => 'CC BY-SA', 		'value' => 'http://creativecommons.org/licenses/by-sa/3.0/'),
