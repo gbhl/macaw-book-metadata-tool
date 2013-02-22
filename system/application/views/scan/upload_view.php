@@ -92,7 +92,7 @@
 		
 		// New set of file filters.
 		var ff = new Array(
-			{description:"Images", extensions:"*.jpg;*.png;*.gif"},
+			{description:"Images", extensions:"*.jpg;*.png;*.gif;*.jp2;*.jpeg"},
 			{description:"PDF", extensions:"*.pdf;*.PDF"}
 		);
 		

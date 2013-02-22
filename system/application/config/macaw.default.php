@@ -9,6 +9,10 @@
 // for oursevles and is only used by the /cron/macaw_cron.php script.
 $config['macaw']['curl_exe'] = "/usr/bin/curl";
 
+// Where is the GhostScript (gs) executable located? This is a hack until we can determine it for ourselves.
+$config['macaw']['gs_exe'] = "/usr/bin/gs";
+
+
 // ------------------------------
 // ADMINISTRATOR'S EMAIL
 // ------------------------------

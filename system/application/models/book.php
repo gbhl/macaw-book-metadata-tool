@@ -1215,17 +1215,22 @@ class Book extends Model {
 					//If it does, scan the files
 					// TODO: This is probably broken since PATH is often blank. We should handle it more gracefully.
 					$files = get_filenames($incoming_dir.'/'.$this->barcode);
+						$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->barcode);
 					// Filter out files we want to ignore
 					foreach ($files as $f) {
 						if (preg_match("/\.(pdf|PDF)$/i", $f)) {							
 							$fname = $incoming_dir.'/'.$this->barcode.'/'.$f;	
 							$fnamenew = $book_dir.$f;
 							rename($fname, $fnamenew );			
-							$outname = $incoming_dir.'/'.$this->barcode.'/'.preg_replace('/\.(.+)$/', '', $f).'%04d.jpg';
+							$outname = $incoming_dir.'/'.$this->barcode.'/'.preg_replace('/\.(.+)$/', '', $f).'_%04d.jpg';
 							//$outname = $incoming_dir.'/'.$this->barcode.'/single%03d.jpg';
 							$this->logging->log('book', 'info', 'About to split  '.$fnamenew.' to '.$outname.' via convert.', $this->barcode);
 							//$exec = "convert -quality 100 -density 300x300 $fnamenew $outname";
-							$exec = "gs -sDEVICE=jpeg -dJPEGQ=100 -r300x300 -o $outname $fnamenew";
+							$gs = 'gs';
+							if (isset($this->cfg['gs_exe'])) {
+								$gs = $this->cfg['gs_exe'];
+							}
+							$exec = "$gs -sDEVICE=jpeg -dJPEGQ=100 -r450x450 -o $outname $fnamenew";
 							$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->barcode);
 							exec($exec, $output);
 							
