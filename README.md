@@ -12,3 +12,5 @@ Macaw performs three major tasks in the process of digitizing a book-like item:
 Macaw is built in PHP using CodeIgniter and uses PostgreSQL for the database. Further requirements can be found in the wiki.
 
 There is a mailing list for Macaw located at Google Groups: https://groups.google.com/forum/#!forum/macaw-discussion
+
+A VirtualBox VM image is available at: https://www.dropbox.com/sh/vgm7pzczdafwjxe/w79yCR-__c
