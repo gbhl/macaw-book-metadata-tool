@@ -389,11 +389,16 @@ class Book extends Model {
 
 		// Merge the data together (don't want to use a crosstab or pivot since it's DB-specific)
 		foreach ($pages as $p) {
-			// Take the filebase and convert it into the proper filenames for preview and thumbnail files
-			$p->thumbnail = $thumb_path.'/'.$p->filebase.'.'.$this->cfg['thumbnail_format'];
-			$p->preview = $preview_path.'/'.$p->filebase.'.'.$this->cfg['preview_format'];
-			$p->scan_filename = $p->filebase.'.'.$p->extension;
-			$p->scan = $scans_path.'/'.$p->scan_filename;
+			if (preg_match('/archive\.org\/download/', $p->filebase)) {
+				$p->thumbnail = $p->filebase.'_thumb.'.$p->extension;
+				$p->preview = $p->filebase.'_medium.'.$p->extension;
+			} else {
+				// Take the filebase and convert it into the proper filenames for preview and thumbnail files
+				$p->thumbnail = $thumb_path.'/'.$p->filebase.'.'.$this->cfg['thumbnail_format'];
+				$p->preview = $preview_path.'/'.$p->filebase.'.'.$this->cfg['preview_format'];
+				$p->scan_filename = $p->filebase.'.'.$p->extension;
+				$p->scan = $scans_path.'/'.$p->scan_filename;
+			}
 			// Make a more human readable of "250 K" or "1.5 MB"
 			$p->size = ($p->bytes < 1048576
 			            ? number_format($p->bytes/1024, 0).' K'
