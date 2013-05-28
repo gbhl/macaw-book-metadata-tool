@@ -9,7 +9,7 @@ Basically the commands to set up the server
 yum install httpd httpd-tools
 
 # Setting up php and apache
-yum install php php-cli php-common php-pear php-pgsql php-pdo
+yum install php php-cli php-common php-pear php-pgsql php-pdo php-xml
 pear channel-update pear.php.net
 pear install Archive_Tar
 
