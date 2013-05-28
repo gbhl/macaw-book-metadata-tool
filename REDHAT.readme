@@ -1,0 +1,70 @@
+REDHAT INSTALLATION
+-------------------
+Some notes for installing on a clean redhat server
+Basically the commands to set up the server
+
+
+--------
+# Install Apache
+yum install httpd httpd-tools
+
+# Setting up php and apache
+yum install php php-cli php-common php-pear php-pgsql php-pdo
+pear channel-update pear.php.net
+pear install Archive_Tar
+
+# Install Postgresql
+yum install postgresql postgresql-libs postgresql-server
+
+# Install ImageMagick and PHP connectors
+yum install ImageMagick  jasper libjpeg php-pecl-imagick ghostscript ghostscript-fonts libwmf-lite urw-fonts
+
+# Install CURL
+yum install libcurl php-pear-Net-Curl curl libssh2
+--------
+
+Configure the following apache modules (and no others)
+
+ auth_basic_module (shared)
+ authn_file_module (shared)
+ authz_host_module (shared)
+ authz_user_module (shared)
+ authz_groupfile_module (shared)
+ authz_default_module (shared)
+ log_config_module (shared)
+ env_module (shared)
+ deflate_module (shared)
+ headers_module (shared)
+ setenvif_module (shared)
+ mime_module (shared)
+ status_module (shared)
+ autoindex_module (shared)
+ negotiation_module (shared)
+ dir_module (shared)
+ alias_module (shared)
+ cgi_module (shared)
+ php5_module (shared)
+
+Make an /etc/httpd/conf.d/macaw.conf file:
+
+<VirtualHost *:80>
+        ServerAdmin webmaster@localhost
+
+        DocumentRoot /var/www/macaw/htdocs
+        <Directory />
+                Options FollowSymLinks
+                AllowOverride All
+        </Directory>
+        <Directory /var/www/macaw/htdocs>
+                Options Indexes FollowSymLinks MultiViews
+                AllowOverride All
+                Order allow,deny
+                allow from all
+        </Directory>
+
+        ErrorLog /var/www/macaw/logs/error.log
+        LogLevel warn
+        CustomLog /var/www/macaw/logs/access.log combined
+</VirtualHost>
+
+
