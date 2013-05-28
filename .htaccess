@@ -43,4 +43,5 @@
 
 <IfModule mod_php5.c>
 #	php_value upload_max_filesize "32M"
+	php_value short_open_tag "On"
 </IfModule>
