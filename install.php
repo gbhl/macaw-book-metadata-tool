@@ -190,11 +190,11 @@
 	
 		// PHP XSL
 		if (!in_array('xsl', $extensions)) {
-			$errormessage .= 'PHP <strong>xs</strong>l extension not found. Please install it with apt, yum or other package manager (preferred), or recompile PHP using --with-xsl.<br><br>';
+			$errormessage .= 'PHP <strong>xsl</strong> extension not found. Please install it with apt, yum or other package manager (preferred), or recompile PHP using --with-xsl.<br><br>';
 		}
 	
 		// PHP PgSQL
-		if (!in_array('xsl', $extensions)) {
+		if (!in_array('pgsql', $extensions)) {
 			$errormessage .= 'PHP <strong>pgsql</strong> extension not found. Please install it with apt, yum or other package manager (preferred), or recompile PHP using --with-pgsql.<br><br>';
 		}
 		
