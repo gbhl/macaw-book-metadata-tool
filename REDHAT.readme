@@ -42,6 +42,7 @@ Configure the following apache modules (and no others)
  negotiation_module (shared)
  dir_module (shared)
  alias_module (shared)
+ rewrite_module (shared)
  cgi_module (shared)
  php5_module (shared)
 
