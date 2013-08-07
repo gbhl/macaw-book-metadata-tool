@@ -47,6 +47,8 @@ class Book extends Model {
 	public $needs_qa = '';
 	public $last_error = '';
 	public $org_name = '';
+	public $date_review_end = '';
+	
 	var $metadata_array = array();
 
 	public $cfg;
@@ -98,7 +100,8 @@ class Book extends Model {
 				$this->pages_found   = $row->pages_found;
 				$this->pages_scanned = $row->pages_scanned;
 				$this->scan_time     = $row->scan_time;
-	
+				$this->date_review_end => $row->date_review_end 
+				
 				if ($row->needs_qa == 't') { 
 					$this->needs_qa = true;
 				} else {
