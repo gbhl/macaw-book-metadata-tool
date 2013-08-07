@@ -341,7 +341,6 @@ class Common extends Controller {
 	 * @param int [$timeout] Number of seconds before we give up.
 	 * @since Version 1.0
 	 */
-
 	function is_file_stable($fname, $stability = 5, $timeout = 60) {
 		if (file_exists($fname)) {
 			$count = $timeout;
@@ -380,16 +379,13 @@ class Common extends Controller {
 		}
 	}
 
-	function stack_trace() {
-		$stack = debug_backtrace(false);
-		echo "STACK TRACE:\n";
-		foreach ($stack as $s) {
-			if (array_key_exists('file', $s)) {
-				echo $s['file']." (".$s['line'].")"."\n";
-			}
-		}
-	}
-	
+	/**
+	 * Convert MARC XML to MODS XML
+	 *
+	 * Using the included MARC21-MODS3.3 XSL, convert MARC to MODS
+	 *
+	 * @param string [$text] The MARC XML to be converted
+	 */
 	function marc_to_mods($text) {
 		$xml = new DOMDocument;
 		$xsl = new DOMDocument;
@@ -406,6 +402,17 @@ class Common extends Controller {
 		}
 	}
 
+	/**
+	 * Determine if Macaw needs an upgrade and if so, update it.
+	 *
+	 * Makes sure that we have a settings table. If it's not there. It
+	 * creates it. Then it looks to the settings table to see if we have 
+	 * a "version" entry. If we do, then we can decide how we want to 
+	 * upgrade. The upgrade instructions are in a SQL file that should be 
+	 * included with Macaw
+	 *
+	 * No Parameters.
+	 */
 	function check_upgrade() {
 		// Check to see if we have the settings table
 		// !!! PostgreSQL-specific
@@ -450,6 +457,14 @@ class Common extends Controller {
 		}
 	}
 	
+	/**
+	 * Warn the user about metadata that might be missing
+	 *
+	 * Decide if the book is missing some metadata based on the requirements
+	 * specified in the configuration file. If so, we set a warning in the session.
+	 *
+	 * @param Book [$book] The book object we want to check
+	 */
 	function check_missing_metadata($book) {
 		if ($this->CI->uri->segment(1) == 'scan' || $this->CI->uri->segment(1) == 'main') { 
 			$missing_metadata =  $book->get_missing_metadata(true);
@@ -466,7 +481,11 @@ class Common extends Controller {
 		}	
 	}
 
-
+	/**
+	 * Export a book to a downloadable file
+	 *
+	 * @param string [$barcode] The barcode of the item we want to export
+	 */
 	function serialize($barcode) {
 		if (!$barcode) {
 			throw new Exception("Please supply a barcode.");
@@ -539,7 +558,12 @@ class Common extends Controller {
 		system('rm -r '.$tmp.'/import_export/serialize/'.$barcode);
 		return "$tmp/import_export/serialize/".$barcode.".tgz";
 	}
-	
+
+	/**
+	 * Email an error message to the admins
+	 *
+	 * @param string [$message] The message of the email. 
+	 */
 	function email_error($message = '') {
 		if ($message != '') {
 			$this->CI->load->library('email');
