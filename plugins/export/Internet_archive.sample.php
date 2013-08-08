@@ -180,7 +180,6 @@ class Internet_archive extends Controller {
 		foreach ($books as $b) {
 			try {
 				$bc = $b->barcode;
-
 				$this->CI->book->load($bc);
 
 				// If we were given a specific ID, we only upload the book if it's been reviewed or it's already uploaded.
@@ -201,7 +200,10 @@ class Internet_archive extends Controller {
 				$this->CI->logging->log('book', 'info', 'Starting upload to internet archive.', $bc);
 
 				// Get an identifier for this book
-				$id = $this->identifier($b);
+				$metadata = $this->_get_metadata();
+				$id = $this->identifier($b, $metadata);
+				$metadata['x-archive-meta-identifier'] = $id;
+
 				if ($id == '') {
 					$this->CI->book->set_status('error');
 					$this->CI->logging->log('book', 'error', 'Could not get an identifier for the book.', $bc);
@@ -443,9 +445,6 @@ class Internet_archive extends Controller {
 				}
 
 				// upload the files to internet archive
-
-				$metadata = $this->_get_metadata($id);
-
 				if ($file == 'meta') {
 					$old_metadata = $this->_get_ia_meta_xml($b, $id);
 					// Fill in any blanks from the old metadata
@@ -714,8 +713,13 @@ class Internet_archive extends Controller {
 
 		// Cycle through these items
 		foreach ($books as $b) {
+			// Load the book
+			$this->CI->book->load($b->barcode);
+
 			// We check the ID, but we really REALLY should have one.
-			$id = $this->identifier($b);
+			$metadata = $this->_get_metadata();
+			$id = $this->identifier($b, $metadata);
+			$metadata['x-archive-meta-identifier'] = $id;
 
 			if ($id) {
 				$status = $this->CI->book->get_export_status('Internet_archive');
@@ -724,9 +728,6 @@ class Internet_archive extends Controller {
 					continue;
 				}
 			}
-
-			// Load the book
-			$this->CI->book->load($b->barcode);
 
 			if ($id == '') {
 				$this->CI->book->set_status('error');
@@ -790,8 +791,12 @@ class Internet_archive extends Controller {
 
 		// Cycle through these items
 		foreach ($books as $b) {
+			$this->CI->book->load($b->barcode);
+
 			// We check the ID, but we really REALLY should have one.
-			$id = $this->identifier($b);
+			$metadata = $this->_get_metadata();
+			$id = $this->identifier($b, $metadata);
+			$metadata['x-archive-meta-identifier'] = $id;
 
 			if ($id) {
 				$status = $this->CI->book->get_export_status('Internet_archive');
@@ -800,8 +805,6 @@ class Internet_archive extends Controller {
 					continue;
 				}
 			}
-
-			$this->CI->book->load($b->barcode);
 
 			if ($id == '') {
 				$this->CI->book->set_status('error');
@@ -844,8 +847,11 @@ class Internet_archive extends Controller {
 				$this->CI->logging->log('access', 'info', 'Item with barcode '.$b->barcode.' ('.$id.') NOT verified at internet archive. '.$error);
 
 			}
-			if ($id && count($args) >= 1) {
+			if ($id && count($args) >= 1 && $verified) {
 				echo 'The item with id #'.$b->id.' was successfully verified.'."\n";
+			}
+			if ($id && count($args) >= 1 && !$verified) {
+				echo 'The item with id #'.$b->id.' was NOT verified. '.$error."\n";
 			}
 		}
 	}
@@ -878,8 +884,12 @@ class Internet_archive extends Controller {
 
 		// Cycle through these items
 		foreach ($books as $b) {
+			$this->CI->book->load($b->barcode);
+
 			// We check the ID, but we really REALLY should have one.
-			$id = $this->identifier($b);
+			$metadata = $this->_get_metadata();
+			$id = $this->identifier($b, $metadata);
+			$metadata['x-archive-meta-identifier'] = $id;
 
 			if ($id) {
 				$status = $this->CI->book->get_export_status('Internet_archive');
@@ -1345,7 +1355,7 @@ class Internet_archive extends Controller {
 	// Standard function for creating an array of internet-archive-specific
 	// metadat elements to be used when uploading an item to IA.
 	// ----------------------------
-	function _get_metadata($id) {
+	function _get_metadata() {
 		// Get our mods into something we can use. All the info we need is in there.
 		$mods = simplexml_load_string($this->CI->book->get_metadata('mods_xml'));
 		$namespaces = $mods->getDocNamespaces();
@@ -1372,7 +1382,6 @@ class Internet_archive extends Controller {
 
 		// These are almost as easy
 		$metadata['x-archive-meta-uploader'] = $this->email;
-		$metadata['x-archive-meta-identifier'] = $id;
 		$metadata['x-archive-meta-sponsor'] = $this->CI->book->get_metadata('sponsor');
 
 		// Handle the collection(s) that the book might be in
@@ -1382,11 +1391,13 @@ class Internet_archive extends Controller {
 		}
 
 		$count = 0;
+		$bhl = 0;
 		foreach ($collections as $c) {
 			if ($c == 'bhl' || $c == 'biodiversity') {
 				$metadata['x-archive-meta'.sprintf("%02d", $count).'-collection'] = 'biodiversity';
 				$metadata['x-archive-meta-curation'] = '[curator]biodiversitylibrary.org[/curator][date]'.mdate('%Y%m%d%h%i%s',time()).'[/date][state]approved[/state]';
-			} elseif ($c == 'sil' || $c == 'smithsonian') {
+				$bhl = 1;
+			} elseif ($c == 'sil' || $c == 'smithsonian' || $c == 'Smithsonian') {
 				$metadata['x-archive-meta'.sprintf("%02d", $count).'-collection'] = 'smithsonian';
 			} else {
 				$metadata['x-archive-meta'.sprintf("%02d", $count).'-collection'] = $c;
@@ -1394,10 +1405,20 @@ class Internet_archive extends Controller {
 			$count++;
 		}
 
+		// If we have explicitly set a CC license, let's use it.
+		$cc_license = $this->CI->book->get_metadata('cc_license');
+		if (isset($cc_license)) {
+			$metadata['x-archive-meta-licenseurl'] = $cc_license;
+		}
+
 		// BHL Copyright guidelines: https://bhl.wikispaces.com/copyright
 		// Handle copyright - Not in Copyright
 		if ($this->CI->book->get_metadata('copyright') == '0' || strtoupper($this->CI->book->get_metadata('copyright')) == 'F' ) {
-			$metadata['x-archive-meta-possible-copyright-status'] = "NOT_IN_COPYRIGHT";
+			if ($bhl == 1) {
+				$metadata['x-archive-meta-possible-copyright-status'] = "Public domain. The BHL considers that this work is no longer under copyright protection.";
+			} else {
+				$metadata['x-archive-meta-possible-copyright-status'] = "Public domain. The Library considers that this work is no longer under copyright protection";
+			}
 
 		// Handle copyright - Permission Granted to Scan
 		} elseif ($this->CI->book->get_metadata('copyright') == '1'  || strtoupper($this->CI->book->get_metadata('copyright')) == 'T' ) {
@@ -1415,11 +1436,6 @@ class Internet_archive extends Controller {
 			$metadata['x-archive-meta-possible-copyright-status'] = $this->CI->book->get_metadata('copyright');
 		}
 
-		// If we have explicitly set a CC license, let's use it.
-		if (isset($this->CI->book->get_metadata('cc_license'))) {
-			$metadata['x-archive-meta-licenseurl'] = $this->CI->book->get_metadata('cc_license');							
-		}
-
 		// Now we use xpath to get stuff out of the mods. Fun!
 		$ret = ($mods->xpath($root.$ns."titleInfo[not(@type)]/".$ns."title"));
 		if ($ret && count($ret) > 0) {
@@ -1430,6 +1446,13 @@ class Internet_archive extends Controller {
 		if ($ret && count($ret) > 0) {
 			$metadata['x-archive-meta-creator'] = str_replace('"', "'", $ret[0]).'';
 		}
+		if (!isset($metadata['x-archive-meta-creator'])) {
+			$ret = ($mods->xpath($root.$ns."name/".$ns."namePart"));
+			if ($ret && count($ret) > 0) {
+				$metadata['x-archive-meta-creator'] = str_replace('"', "'", $ret[0]).'';
+			}		
+		}
+		
 
 		$ret = ($mods->xpath($root.$ns."subject[@authority='lcsh']/".$ns."topic"));
 		$c = 0;
@@ -1506,9 +1529,12 @@ class Internet_archive extends Controller {
 				$c++;
 			}
 		}
-
-		// TODO: Not sure what this is. Check with Keri.
-		// $metadata['rights'] = '???';
+		
+		$tm = time();
+		if (isset($this->CI->book->date_review_end)) {
+			$tm = strtotime($this->CI->book->date_review_end);
+		}
+		$metadata['x-archive-scandate'] = date('YmdHis', $tm);
 
 		return $metadata;
 	}
@@ -1526,7 +1552,7 @@ class Internet_archive extends Controller {
 	function _create_marc_xml() {
 		// Just get the MARC XML from the book and format the XML file properly
 		$marc = $this->CI->book->get_metadata('marc_xml');
-		if (!preg_match("/<\?xml.*?>/is", $marc)) {
+		if (!preg_match("/<\?xml.*?\>/is", $marc)) {
 			return '<?xml version="1.0" encoding="UTF-8" ?'.'>'."\n".$marc;
 		} else {
 			return $marc;
@@ -1550,7 +1576,7 @@ class Internet_archive extends Controller {
 	//
 	// todo: make sure we are getting the volume or year properly. Should it come from the page?
 	// ----------------------------
-	function identifier($book) {
+	function identifier($book, $metadata) {
 
 		$this->CI->book->load($book->barcode);
 
@@ -1568,14 +1594,15 @@ class Internet_archive extends Controller {
 		// A counter to help make things unique
 		$count = 0;
 
+		// Get the title and author from MODS, sometimes it's not available on the book's metadata
 		// Process the title
-		$title = $this->_utf8_clean($this->CI->book->get_metadata('title'));
+		$title = $this->_utf8_clean($metadata['x-archive-meta-title']);
 		$title = preg_replace('/\b(the|a|an|and|or|of|for|to|in|it|is|are|at|of|by)\b/i', '', $title);
 		$title = preg_replace('/[^a-zA-Z0-9]/', '', $title);
 		$title = substr($title, 0, 15);
 
 		// Process the author
-		$author = $this->_utf8_clean($this->CI->book->get_metadata('author'));
+		$author = $this->_utf8_clean($metadata['x-archive-meta-creator']);
 		$author = substr(preg_replace('/[^a-zA-Z0-9]/', '', $author), 0, 4);
 
 
@@ -1669,27 +1696,27 @@ class Internet_archive extends Controller {
 		curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, true);
 		$output = curl_exec($this->curl);
 
-		if (preg_match('/No historical tasks/', $output) && preg_match('/No outstanding tasks/', $output)) {
+		if (!preg_match('/No historical tasks/', $output) && !preg_match('/No outstanding tasks/', $output)) {
+			echo "Found!\n";
+			return 1;
+		}
+
+		// Now we check to see if the /details/ page exists. Because a new error is happening where
+		// the bucket doesn't exist on the second upload.
+		echo "\nChecking ".'http://archive.org/details/'.$id."...";
+		curl_setopt($this->curl, CURLOPT_URL, 'http://www.archive.org/details/'.$id);
+		curl_setopt($this->curl, CURLOPT_COOKIE, 'test-cookie=1');
+		curl_setopt($this->curl, CURLOPT_COOKIEJAR, $this->cookie_jar);
+		curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($this->curl, CURLOPT_HTTPGET, true);
+		curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, true);
+		$output = curl_exec($this->curl);
+		if (preg_match('/<b>All Files: <\/b>/', $output)) {
+			echo "Found!\n";
+			return 1;
+		} else {
 			echo "Not found.\n";
 			return 0;
-		} else {
-			// Now we check to see if the /details/ page exists. Because a new error is happening where
-			// the bucket doesn't exist on the second upload.
-			echo "\nChecking ".'http://archive.org/details/'.$id."...";
-			curl_setopt($this->curl, CURLOPT_URL, 'http://www.archive.org/details/'.$id);
-			curl_setopt($this->curl, CURLOPT_COOKIE, 'test-cookie=1');
-			curl_setopt($this->curl, CURLOPT_COOKIEJAR, $this->cookie_jar);
-			curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, 1);
-			curl_setopt($this->curl, CURLOPT_HTTPGET, true);
-			curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, true);
-			$output = curl_exec($this->curl);
-			if (preg_match('/<b>All Files: <\/b>/', $output)) {
-				echo "Found!\n";
-				return 1;
-			} else {
-				echo "Not found.\n";
-				return 0;
-			}
 		}
 	}
 
@@ -1752,14 +1779,34 @@ class Internet_archive extends Controller {
 	// ----------------------------
 	function _get_derivative_urls($id) {
 		// Get the content of the details page.
-		$content = file_get_contents("http://www.archive.org/details/$id");
+		try {
+			$content = file_get_contents("http://www.archive.org/details/$id");
+		} catch (Exception $e) {
+			$message = "Error connecting to Internet Archive.\n\n".
+				"IA Identifier: ".$id."\n\n".
+				"URL: http://www.archive.org/details/".$id."\n\n".
+				"Error Message: Could not connect.\n".
+				"Output: \n\n".$e->getMessage()."\n\n";
+			$this->CI->common->email_error($message);
+			print "Error connecting to the Internet Archive. ".$e->getMessage()."\n\n";
+		}
 		// Search for the "HTTP" URL and get that href
 		$matches = array();
 		$base = '';
 
 		if (preg_match('/<b>All Files: <\/b><a href="(.*?\/items\/'.$id.')">HTTPS?<\/a>/', $content, $matches)) {
 			$base = $matches[1];
-			$content = file_get_contents($base);
+			try {
+				$content = file_get_contents($base);
+			} catch (Exception $e) {
+				$message = "Error connecting to Internet Archive.\n\n".
+					"IA Identifier: ".$id."\n\n".
+					"URL: ".$base."\n\n".
+					"Error Message: Could not connect.\n".
+					"Output: \n\n".$e->getMessage()."\n\n";
+				$this->CI->common->email_error($message);
+			print "Error connecting to the Internet Archive. ".$e->getMessage()."\n\n";
+			}
 			if (preg_match_all('<a href="(.*?)">', $content, $matches)) {
 				return array($base, $matches[1]);
 			}
