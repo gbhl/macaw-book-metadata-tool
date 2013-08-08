@@ -205,8 +205,12 @@ class Main extends Controller {
 					redirect($this->config->item('base_url').'scan/review');
 	
 				} elseif ($this->book->status == 'reviewed' || $this->book->status == 'completed' || $this->book->status == 'exporting' || $this->book->status == 'archived'){			
-					$this->session->set_userdata('warning', 'This item can no longer be edited. You are seeing the item\'s history instead.');
-					redirect($this->config->item('base_url').'scan/history');
+					if ($this->book->status == 'reviewed' && $this->user->has_permission('admin')) {
+						redirect($this->config->item('base_url').'scan/review');					
+					} else {
+						$this->session->set_userdata('warning', 'This item can no longer be edited. You are seeing the item\'s history instead.');
+						redirect($this->config->item('base_url').'scan/history');
+					}
 					
 				} else {
 					redirect($this->config->item('base_url').'main');
@@ -588,15 +592,17 @@ class Main extends Controller {
 
 		// Do we want to backup the item?
 		$path = '';
-		if ($_REQUEST['backup'] == 1) {
-			try {
-				// Back up the item. Use the serialize code in the utils controller
-				$path = $this->common->serialize($barcode);
-			} catch (Exception $e) {
-				// Whoops! 
-				$this->session->set_userdata('errormessage', 'Unable to backup the item before deleting. The error was: '.$e->getMessage());
-				redirect($this->config->item('base_url').'main/delete_confirm');
-				return;
+		if (isset($_REQUEST['backup'])) {
+			if ($_REQUEST['backup'] == 1) {
+				try {
+					// Back up the item. Use the serialize code in the utils controller
+					$path = $this->common->serialize($barcode);
+				} catch (Exception $e) {
+					// Whoops! 
+					$this->session->set_userdata('errormessage', 'Unable to backup the item before deleting. The error was: '.$e->getMessage());
+					redirect($this->config->item('base_url').'main/delete_confirm');
+					return;
+				}
 			}
 		}
 		
@@ -608,8 +614,12 @@ class Main extends Controller {
 		$query = $this->db->query('delete from item_export_status where item_id = ?', array($id));
 		$query = $this->db->query('delete from item where id = ?', array($id));
 		// Delete the files
-		delete_files($this->cfg['data_directory'].'/'.$barcode, TRUE);
-		rmdir($this->cfg['data_directory'].'/'.$barcode);
+		try {
+			delete_files($this->cfg['data_directory'].'/'.$barcode, TRUE);
+			rmdir($this->cfg['data_directory'].'/'.$barcode);
+		} catch (Exception $e) {
+			$this->session->set_userdata('errormessage', 'Unable to delete the the item.<br>'.$e->getMessage());			
+		}
 
 		if ($path) {
 			$data['path'] = str_replace($this->cfg['base_directory'], '', $path);
