@@ -153,39 +153,7 @@ class Cron extends Controller {
 
 	function statistics() {
 		if (!$this->_init('statistics')) { return; }
-		// 1. Get the number of pages from yesterday
-		$this->db->query(
-			"insert into logging values (
-				date_trunc('d', now() - interval '1 day') ,
-				'pages',
-				(select count(*)
-				from page
-				where created between date_trunc('d', now() - interval '1 day')
-						          and date_trunc('d', now() + interval '1 day'))
-			)"
-		);
-
-		// 2. Get the total number of pages scanned
-		$this->db->query(
-			"insert into logging values (
-				date_trunc('d', now() - interval '1 day') ,
-				'total-pages',
-				(select count(*) from page)
-			)"
-		);
-
-		// 3. Get the number of bytes used in the /books/ directory
-		$output = array();
-		$matches = array();
-		exec('df -k '.$this->cfg['data_directory'], $output);
-		$bytes = preg_match('/^.*? +\d+ (\d+)/', $output[1], $matches);
-		$this->db->query(
-			"insert into logging values (
-				date_trunc('d', now() - interval '1 day') ,
-				'disk-usage',
-				".($matches[1] * 1024)."
-			)"
-		);
+		$this->common->run_statistics();
 	}
 
 	function index() {

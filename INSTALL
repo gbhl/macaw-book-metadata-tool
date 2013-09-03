@@ -67,6 +67,7 @@ for your system.
 	$ unzip master.zip
 	$ cp -ri macaw-book-metadata-tool-master/* macaw-book-metadata-tool-master/.htaccess /var/www/htdocs/macaw
    
+   
 2. Configure your webserver
 
 Macaw contains a .htaccess file for the configuration settings that it needs. However you 
@@ -88,13 +89,25 @@ for your system.
 		CustomLog /var/log/apache2/macaw-access.log combined
 	</VirtualHost>
 
-3. Create the PostgreSQL user and database
 
-Macaw requires a UTF-8 encoding on the database. Be sure to remember the password you used to create
-the database. You'll need it during the installation process. 		
+3. Create the database
 
-	$ createuser -U postgres --createdb --no-createrole --no-superuser --pwprompt macaw
-	$ createdb -U macaw --encoding=UTF8 macaw
+	Macaw requires a UTF-8 encoding on the database. Be sure to remember the password you used to create
+	the database. You'll need it during the installation process. 		
+	
+	* PostgreSQL user and database
+		
+		$ createuser -U postgres --createdb --no-createrole --no-superuser --pwprompt macaw
+		$ createdb -U macaw --encoding=UTF8 macaw
+	
+	* MySQL user and database
+	  
+	  Be sure to replace <password> with the password for your newly created macaw user.
+	  
+	  $ mysql -u root -p mysql
+    CREATE DATABASE macaw CHARACTER SET utf8 COLLATE utf8_general_ci;
+    GRANT ALL ON macaw.* To 'macaw'@'localhost' IDENTIFIED BY '<password>';
+	
 
 4. Set file and directory permissions
 
@@ -103,7 +116,8 @@ path to Macaw and user and group that your web server uses. This may be "www", "
 
 	$ chown -R www:www /var/www/htdocs
 
-4. Start Macaw by going to the install.php page
+
+5. Start Macaw by going to the install.php page
 
 	http://www.website.com/install.php
     

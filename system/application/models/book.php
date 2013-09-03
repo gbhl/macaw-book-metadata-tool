@@ -100,7 +100,7 @@ class Book extends Model {
 				$this->pages_found   = $row->pages_found;
 				$this->pages_scanned = $row->pages_scanned;
 				$this->scan_time     = $row->scan_time;
-				$this->date_review_end => $row->date_review_end 
+				$this->date_review_end = $row->date_review_end;
 				
 				if ($row->needs_qa == 't') { 
 					$this->needs_qa = true;
@@ -1173,23 +1173,47 @@ class Book extends Model {
 	 * @since version 1.0
 	 */
 	function get_status_counts() {
-		$q = $this->db->query(
-			"select (select count(*) from item where status_code = 'new') as new,
-			   (select count(*) from item where status_code = 'scanning') as scanning,
-			   (select count(*) from item where status_code = 'scanned') as scanned,
-			   (select count(*) from item where status_code = 'reviewing') as reviewing,
-			   (select count(*) from item where status_code = 'reviewed') as reviewed,
-			   (select count(*) from item where status_code = 'exporting') as exporting,
-			   (select count(*) from item where status_code = 'completed') as completed,
-			   (select count(*) from item where status_code = 'archived') as archived,
-			   (select count(*) from item where status_code = 'error') as error,
-			   (select count(*) from item) as books,
-			   (select count(*) from page) as pages,
-			   (select to_char(avg(age(date_review_end, date_scanning_start)),'fmdd') || 'd ' ||
-			       to_char(avg(age(date_review_end, date_scanning_start)),'fmhh') || 'h ' ||
-			       to_char(avg(age(date_review_end, date_scanning_start)),'fmmi') || 'm' from item) as avg;"
-		);
-		return $q->row();
+		if ($this->db->dbdriver == 'postgre') {
+			$q = $this->db->query(
+				"select (select count(*) from item where status_code = 'new') as new,
+					 (select count(*) from item where status_code = 'scanning') as scanning,
+					 (select count(*) from item where status_code = 'scanned') as scanned,
+					 (select count(*) from item where status_code = 'reviewing') as reviewing,
+					 (select count(*) from item where status_code = 'reviewed') as reviewed,
+					 (select count(*) from item where status_code = 'exporting') as exporting,
+					 (select count(*) from item where status_code = 'completed') as completed,
+					 (select count(*) from item where status_code = 'archived') as archived,
+					 (select count(*) from item where status_code = 'error') as error,
+					 (select count(*) from item) as books,
+					 (select count(*) from page) as pages,
+					 (select to_char(avg(age(date_review_end, date_scanning_start)),'fmdd') || 'd ' ||
+							 to_char(avg(age(date_review_end, date_scanning_start)),'fmhh') || 'h ' ||
+							 to_char(avg(age(date_review_end, date_scanning_start)),'fmmi') || 'm' from item) as avg;"
+			);
+			return $q->row();
+		
+		} elseif ($this->db->dbdriver == 'mysql') {
+			$q = $this->db->query(
+				"select (select count(*) from item where status_code = 'new') as new,
+				(select count(*) from item where status_code = 'scanning') as scanning,
+				(select count(*) from item where status_code = 'scanned') as scanned,
+				(select count(*) from item where status_code = 'reviewing') as reviewing,
+				(select count(*) from item where status_code = 'reviewed') as reviewed,
+				(select count(*) from item where status_code = 'exporting') as exporting,
+				(select count(*) from item where status_code = 'completed') as completed,
+				(select count(*) from item where status_code = 'archived') as archived,
+				(select count(*) from item where status_code = 'error') as error,
+				(select count(*) from item) as books,
+				(select count(*) from page) as pages,
+				(select concat(
+				round(unix_timestamp(date_review_end) - unix_timestamp(date_scanning_start) / 86400), 'd ', 
+				round(unix_timestamp(date_review_end) - unix_timestamp(date_scanning_start) % 86400 / 3600), 'h ',
+				round(unix_timestamp(date_review_end) - unix_timestamp(date_scanning_start) % 86400 % 3600 / 60), 'm'
+				) from item) as avg;"
+			);
+			return $q->row();
+		
+		}
 	}
 
 	function get_last_status() {

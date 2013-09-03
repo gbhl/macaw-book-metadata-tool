@@ -261,51 +261,6 @@ class Main extends Controller {
 	}
 
 	/**
-	 * Update the statistics for the dashboard widgets
-	 *
-	 * Looks to the scanning activity in the page database table to determine
-	 * how many pages were scanned, how many bytes are being used and the total
-	 * pages scanned. These are used for the graphs on the dashboard.
-	 *
-	 */
-	function update_statistics() {
-
-		// 1. Get the number of pages from yesterday
-		$this->db->query(
-			"insert into logging values (
-				date_trunc('d', now() - interval '1 day') ,
-				'pages',
-				(select count(*)
-				from page
-				where created between date_trunc('d', now() - interval '1 day')
-						          and date_trunc('d', now() + interval '1 day'))
-			)"
-		);
-
-		// 2. Get the total number of pages scanned
-		$this->db->query(
-			"insert into logging values (
-				date_trunc('d', now() - interval '1 day') ,
-				'total-pages',
-				(select count(*) from page)
-			)"
-		);
-
-		// 3. Get the number of bytes used in the /books/ directory
-		$output = array();
-		exec('du -sk '.$this->cfg['data_directory'], $output);
-		$bytes = preg_replace('/ +\.$/', '', $output[0]);
-		$this->db->query(
-			"insert into logging values (
-				date_trunc('d', now() - interval '1 day') ,
-				'disk-usage',
-				".($bytes * 1024)."
-			)"
-		);
-
-	}
-
-	/**
 	 * Display the Edit page for an Item
 	 *
 	 * Build the page for editing the item-level metadata for an item. 

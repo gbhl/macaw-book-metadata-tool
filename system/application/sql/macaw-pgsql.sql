@@ -161,6 +161,7 @@ ALTER TABLE ONLY permission ADD CONSTRAINT permission_username_fkey FOREIGN KEY 
 ALTER TABLE ONLY metadata ADD CONSTRAINT metadata_item_fkey FOREIGN KEY (item_id) REFERENCES item(id);
 ALTER TABLE ONLY metadata ADD CONSTRAINT metadata_page_fkey FOREIGN KEY (page_id) REFERENCES page(id);
 ALTER TABLE ONLY item_export_status ADD CONSTRAINT item_export_status_item_id_fkey FOREIGN KEY (item_id) REFERENCES item(id);
+ALTER TABLE settings ADD CONSTRAINT settings_name_key_unique UNIQUE (name);
 
 -- CREATE FUNCTION xpath_list(text, text) RETURNS text
 --     LANGUAGE sql IMMUTABLE STRICT
@@ -183,6 +184,7 @@ INSERT INTO account VALUES (1, 'admin', null, 1, null, now());
 
 INSERT INTO permission VALUES ('admin', 'admin');
 INSERT INTO permission VALUES ('admin', 'scan');
-INSERT INTO settings VALUES ('version', '1.7');
+INSERT INTO settings VALUES ('version', '2.0');
+INSERT INTO settings values ('installed', '1');
 
 SELECT pg_catalog.setval('account_id_seq', 1, true);

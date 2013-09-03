@@ -42,6 +42,7 @@
 </IfModule> 
 
 <IfModule mod_php5.c>
+# Some servers will not allow these to be set here. If they give a 500 Server Error, set them in the PHP.INI file.
 #	php_value upload_max_filesize "32M"
-	php_value short_open_tag "On"
+#	php_value short_open_tag "On"
 </IfModule>

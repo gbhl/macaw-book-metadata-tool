@@ -415,11 +415,18 @@ class Common extends Controller {
 	 */
 	function check_upgrade() {
 		// Check to see if we have the settings table
-		// !!! PostgreSQL-specific
-		$q = $this->CI->db->query("select * from pg_tables where tablename = 'settings';");
-		$row = $q->result();
-		if (count($row) == 0) {
-			$this->CI->db->query("create table settings (name varchar(64), value varchar(64))");
+		if ($this->CI->db->dbdriver == 'postgre') {
+			$q = $this->CI->db->query("select * from pg_tables where tablename = 'settings';");
+			$row = $q->result();
+			if (count($row) == 0) {
+				$this->CI->db->query("create table settings (name varchar(64), value varchar(64))");
+			}		
+		} elseif ($this->CI->db->dbdriver == 'mysql') {
+			$q = $this->CI->db->query("SELECT * FROM information_schema.tables WHERE table_schema = '".$this->CI->db->database."' AND table_name = 'settings' LIMIT 1;");
+			$row = $q->result();
+			if (count($row) == 0) {
+				$this->CI->db->query("create table settings (name varchar(64), value varchar(64))");
+			}		
 		}
 
 		// Do we have a version?
@@ -434,7 +441,12 @@ class Common extends Controller {
 			// We have no version, so we assume that we are version 1.7 
 			// So we upgrade to 1.7 and record that as the version.
 			$this->CI->db->insert('settings', array('name' => 'version', 'value' => '1.7'));
-			$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-pgsql-1.7.sql');
+			$queries = null;
+			if ($this->CI->db->dbdriver == 'postgre') {
+				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-pgsql-1.7.sql');
+			} elseif ($this->CI->db->dbdriver == 'mysql') {
+				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-1.7.sql');
+			}
 			try {
 	 			$result = @$this->CI->db->query($queries);
  			} catch (Exception $e) {
@@ -442,18 +454,28 @@ class Common extends Controller {
  			}
  			
 		} elseif ($version == "1.7") { 
+			$queries = null;
+			if ($this->CI->db->dbdriver == 'postgre') {
 				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-pgsql-2.0.sql');
-				$result = $this->CI->db->query($queries);
-				$this->CI->db->where('name','version');
-				$this->CI->db->set('value', '2.0');
-				$this->CI->db->update('settings');
-				
-		// } elseif ($version == "2.1") {  // FUTURE USE
-			// 	$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-pgsql-1.8.sql');
-			// 	$result = $this->CI->db->query($queries);
-			//	$this->CI->db->where('name','version');
-			//	$this->CI->db->update('settings',array('value', '1.8'));
-			// }
+			} elseif ($this->CI->db->dbdriver == 'mysql') {
+				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-pgsql-2.0.sql');
+			}
+			$result = $this->CI->db->query($queries);
+			$this->CI->db->where('name','version');
+			$this->CI->db->set('value', '2.0');
+			$this->CI->db->update('settings');
+
+// 		} elseif ($version == "2.0") {   // FUTURE USE
+// 			$queries = null;
+// 			if ($this->CI->db->dbdriver == 'postgre') {
+// 				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-pgsql-2.1.sql');
+// 			} elseif ($this->CI->db->dbdriver == 'mysql') {
+// 				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-pgsql-2.1.sql');
+// 			}
+// 			$result = $this->CI->db->query($queries);
+// 			$this->CI->db->where('name','version');
+// 			$this->CI->db->set('value', '2.1');
+// 			$this->CI->db->update('settings');
 		}
 	}
 	
@@ -588,4 +610,134 @@ class Common extends Controller {
 		}
 	}
 
+	/**
+	 * Generate yesterday's statistics
+	 *
+	 * This is called from multiple places, so it abstracted here.
+	 * Calcualtes the number of pages scanned, pages per day and disk space used.
+	 */
+	function run_statistics() {
+
+
+		if ($this->CI->db->dbdriver == 'postgre') {
+			// Has this statistic already been generated
+			$q = $this->CI->db->query("SELECT * FROM (logging) WHERE date = date(now() - interval 1 day) AND statistic = 'pages';");
+			$found = false;
+			foreach ($q->result() as $row) {
+				$found = true; continue;
+			}
+			if (!$found) {
+				// 1. Get the number of pages from yesterday
+				$this->CI->db->query(
+					"insert into logging (date, statistic, value) values (
+						date_trunc('d', now() - interval '1 day') ,
+						'pages',
+						(select count(*)
+						from page
+						where created between date_trunc('d', now() - interval '1 day')
+													and date_trunc('d', now() + interval '1 day'))
+					)"
+				);
+			}
+		
+			// Has this statistic already been generated
+			$q = $this->CI->db->query("SELECT * FROM (logging) WHERE date = date(now() - interval 1 day) AND statistic = 'total-pages';");
+			$found = false;
+			foreach ($q->result() as $row) {
+				$found = true; continue;
+			}
+			if (!$found) {
+				// 2. Get the total number of pages scanned
+				$this->CI->db->query(
+					"insert into logging (date, statistic, value) values (
+						date_trunc('d', now() - interval '1 day') ,
+						'total-pages',
+						(select count(*) from page)
+					)"
+				);
+			}
+		
+			// Has this statistic already been generated
+			$q = $this->CI->db->query("SELECT * FROM (logging) WHERE date = date(now() - interval 1 day) AND statistic = 'disk-usage';");
+			$found = false;
+			foreach ($q->result() as $row) {
+				$found = true; continue;
+			}
+			if (!$found) {
+				// 3. Get the number of bytes used in the /books/ directory
+				$output = array();
+				$matches = array();
+				exec('df -k '.$this->CI->cfg['data_directory'], $output);
+				$bytes = preg_match('/^.*? +\d+ (\d+)/', $output[1], $matches);
+				$this->CI->db->query(
+					"insert into logging (date, statistic, value) values (
+						date_trunc('d', now() - interval '1 day') ,
+						'disk-usage',
+						".($matches[1] * 1024)."
+					)"
+				);
+			}
+		} elseif ($this->CI->db->dbdriver == 'mysql') {
+			// Has this statistic already been generated
+			$q = $this->CI->db->query("SELECT * FROM (logging) WHERE date = date(now() - interval 1 day) AND statistic = 'pages';");
+			$found = false;
+			foreach ($q->result() as $row) {
+				$found = true; continue;
+			}
+			if (!$found) {
+				// 1. Get the number of pages from yesterday
+				$this->CI->db->query(
+					"insert into logging (date, statistic, value) values (
+						date(now() - interval 1 day) ,
+						'pages',
+						(select count(*)
+						from page
+						where created between extract(day from now() - interval 1 day)
+													and extract(day from  now() + interval 1 day))
+					)"
+				);			
+			}
+
+			// Has this statistic already been generated
+			$q = $this->CI->db->query("SELECT * FROM (logging) WHERE date = date(now() - interval 1 day) AND statistic = 'total-pages';");
+			$found = false;
+			foreach ($q->result() as $row) {
+				$found = true; continue;
+			}
+			if (!$found) {
+				// 2. Get the total number of pages scanned
+				$this->CI->db->query(
+					"insert into logging (date, statistic, value) values (
+						date(now() - interval 1 day) ,
+						'total-pages',
+						(select count(*) from page)
+					)"
+				);
+			}
+			
+			// Has this statistic already been generated
+			$q = $this->CI->db->query("SELECT * FROM (logging) WHERE date = date(now() - interval 1 day) AND statistic = 'disk-usage';");
+			$found = false;
+			foreach ($q->result() as $row) {
+				$found = true; continue;
+			}
+			if (!$found) {
+				// 3. Get the number of bytes used in the /books/ directory
+				$output = array();
+				$matches = array();
+				exec('df -k '.$this->CI->cfg['data_directory'], $output);
+				$bytes = preg_match('/^.*? +\d+ (\d+)/', $output[1], $matches);
+				$this->CI->db->query(
+					"insert into logging (date, statistic, value) values (
+						date(now() - interval 1 day) ,
+						'disk-usage',
+						".($matches[1] * 1024)."
+					)"
+				);
+			}
+
+		}
+	}
+	
+	
 }

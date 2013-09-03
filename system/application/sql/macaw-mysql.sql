@@ -1,7 +1,3 @@
-# Converted with pg2mysql-1.9
-# Converted on Wed, 17 Jul 2013 13:58:51 -0400
-# Lightbox Technologies Inc. http://www.lightbox.ca
-
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 SET time_zone="+00:00";
 
@@ -16,8 +12,8 @@ CREATE TABLE account (
     widgets varchar(255) DEFAULT '[[`summary`,`perday`],[`disk`,`pages`]]',
     full_name varchar(128),
     email varchar(128),
-    organization int(11)
-, PRIMARY KEY(`id`)
+    organization int(11), 
+    PRIMARY KEY(`id`)
 ) TYPE=InnoDB;
 
 CREATE TABLE item (
@@ -115,24 +111,19 @@ CREATE TABLE settings (
 ) TYPE=InnoDB;
 
 INSERT INTO account (id, username, password, org_id, last_login, created, modified, widgets, full_name, email, organization) VALUES
-('1','admin',NULL,'1',NULL,'2013-07-17 13:54:38.200205',NULL,'[["summary","perday"],["disk","pages"]]',NULL,NULL,'\N');
+('1','admin',NULL,'1',NULL,now(),NULL,'[["summary","perday"],["disk","pages"]]',NULL,NULL,'\N');
 
 INSERT INTO organization (id, name, person, email, phone, address, address2, city, state, postal, country, created, modified) VALUES
-('1','Default',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2013-07-17 13:54:38.198841','\N');
+('1','Default',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,now(),'\N');
 
-INSERT INTO permission (username, permission) VALUES
-('admin','admin'),
-('admin','scan');
+INSERT INTO permission (username, permission) VALUES ('admin','admin'), ('admin','scan');
 
-INSERT INTO settings (name, value) VALUES
-('version','1.7');
+INSERT INTO settings (name, value) VALUES ('version','1.7');
+INSERT INTO settings (name, value) values ('installed', '1');
 
-ALTER TABLE account
-    ADD CONSTRAINT account_pkey PRIMARY KEY (id);
-ALTER TABLE item
-    ADD CONSTRAINT item_pkey PRIMARY KEY (id);
-ALTER TABLE organization
-    ADD CONSTRAINT organization_pkey PRIMARY KEY (id);
-ALTER TABLE page
-    ADD CONSTRAINT page_pkey PRIMARY KEY (id);
+ALTER TABLE account ADD CONSTRAINT account_pkey PRIMARY KEY (id);
+ALTER TABLE item ADD CONSTRAINT item_pkey PRIMARY KEY (id);
+ALTER TABLE organization ADD CONSTRAINT organization_pkey PRIMARY KEY (id);
+ALTER TABLE page ADD CONSTRAINT page_pkey PRIMARY KEY (id);
+ALTER TABLE settings ADD CONSTRAINT settings_name_key_unique UNIQUE (name);
 ALTER TABLE `metadata` ADD INDEX ( fieldname ) ;

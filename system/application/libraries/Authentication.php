@@ -112,7 +112,11 @@ class Authentication extends Controller {
 	 * We're assuming that people don't keep their browser running for more than that long.
 	 */
 	function clear_sessions() {
-		$q = $this->CI->db->query('DELETE FROM session WHERE last_activity < (extract(epoch from now()) - (86400 * 14));');
+		if ($this->CI->db->dbdriver == 'postgre') {
+			$q = $this->CI->db->query('DELETE FROM session WHERE last_activity < (extract(epoch from now()) - (86400 * 14));');
+		} elseif ($this->CI->db->dbdriver == 'mysql') {
+			$q = $this->CI->db->query('DELETE FROM session WHERE last_activity < (unix_timestamp(now()) - (86400 * 14));');		
+		}
 	}
 
 }

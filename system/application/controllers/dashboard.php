@@ -151,8 +151,17 @@ class Dashboard extends Controller {
 	 *
 	 */
 	function _get_disk_widget() {
-
-		$q = $this->db->query("select to_char(date,'fmmm/fmdd') as day, round(value / 1024 / 1024 / 1024) as megs from logging where statistic = 'disk-usage' and date >= now() - interval '10 days' order by date");
+		$q = null;
+		if ($this->db->dbdriver == 'postgre') {
+			$q = $this->db->query(
+				"select to_char(date,'fmmm/fmdd') as day, round(value / 1024 / 1024 / 1024) as megs from logging where statistic = 'disk-usage' and date >= now() - interval '10 days' order by date"
+			);
+		} elseif ($this->db->dbdriver == 'mysql') {
+			$q = $this->db->query(
+				"select date_format(date,'%c/%d') as day, round(value / 1024 / 1024 / 1024) as megs from logging where statistic = 'disk-usage' and datediff(now(), date) <= 10 order by date"
+			);
+		}
+		
 		$rows = array();
 		foreach ($q->result() as $r) {
 			array_push($rows,$r);
@@ -206,7 +215,13 @@ class Dashboard extends Controller {
 	 *
 	 */
 	function _get_pages_widget() {
-		$q = $this->db->query("select to_char(date,'fmmm/fmdd') as day, value as pages from logging where statistic = 'total-pages' and date >= now() - interval '10 days' order by date");
+		$q = null;
+		if ($this->db->dbdriver == 'postgre') {
+			$q = $this->db->query("select to_char(date,'fmmm/fmdd') as day, value as pages from logging where statistic = 'total-pages' and date >= now() - interval '10 days' order by date");
+		} elseif ($this->db->dbdriver == 'mysql') {
+			$q = $this->db->query("select date_format(date,'%c/%d') as day, value as pages from logging where statistic = 'total-pages' and datediff(now(), date) <= 10 order by date");
+		}
+
 		$rows = array();
 		foreach ($q->result() as $r) {
 			array_push($rows,$r);
@@ -260,7 +275,13 @@ class Dashboard extends Controller {
 	 *
 	 */
 	function _get_perday_widget() {
-		$q = $this->db->query("select to_char(date,'fmmm/fmdd') as day, value as pages from logging where statistic = 'pages' and date >= now() - interval '10 days' order by date");
+		$q = null;
+		if ($this->db->dbdriver == 'postgre') {
+			$q = $this->db->query("select to_char(date,'fmmm/fmdd') as day, value as pages from logging where statistic = 'pages' and date >= now() - interval '10 days' order by date");
+		} elseif ($this->db->dbdriver == 'mysql') {
+			$q = $this->db->query("select date_format(date,'%c/%d') as day, value as pages from logging where statistic = 'pages' and datediff(now(), date) <= 10 order by date");
+		}
+
 		$rows = array();
 		foreach ($q->result() as $r) {
 			array_push($rows,$r);

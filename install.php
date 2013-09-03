@@ -69,20 +69,33 @@
 
 	$continue = false;
 	// determine if we are already installed. We 
-	if (file_exists($db_config)) {
+	if (file_exists($db_config) && $db['default']['hostname'] && $db['default']['username'] && $db['default']['password']) {
 		require_once($db_config);
 
-		$conn = "host=".$db['default']['hostname'].
-			($db['default']['port'] ? " port=".$db['default']['port'] : '').
-			" dbname=".$db['default']['database'].
-			" user=".$db['default']['username'].
-			" password=".$db['default']['password'];
+		$row = null;
+		if ($db['default']['dbdriver'] == 'postgre') {
+			$conn = "host=".$db['default']['hostname'].
+				($db['default']['port'] ? " port=".$db['default']['port'] : '').
+				" dbname=".$db['default']['database'].
+				" user=".$db['default']['username'].
+				" password=".$db['default']['password'];
+			
+			// Connect and query
+			$conn = pg_connect($conn);
+			$result = pg_query('select * from settings where name = \'installed\'');
+			$row = pg_fetch_assoc($result);		
+		}
+		if ($db['default']['dbdriver'] == 'mysql') {
+			$conn = mysql_connect(
+				$db['default']['hostname'].($db['default']['port'] ? ':'.$db['default']['port'] : ''), 
+				$db['default']['username'], 
+				$db['default']['password']
+			);
+			mysql_select_db($db['default']['database'], $conn);
+			$result = mysql_query('select * from settings where name = \'installed\'');
+			$row = mysql_fetch_assoc($result);		
+		}
 		
-		// Connect and query
-		$conn = pg_connect($conn);
-		$result = pg_query('select * from settings where name = \'installed\'');
-		$row = pg_fetch_assoc($result);		
-
 		// Do we have a setting
 		if (isset($row)) {
 			// Is it 1?
@@ -193,11 +206,6 @@
 			$errormessage .= 'PHP <strong>xsl</strong> extension not found. Please install it with apt, yum or other package manager (preferred), or recompile PHP using --with-xsl.<br><br>';
 		}
 	
-		// PHP PgSQL
-		if (!in_array('pgsql', $extensions)) {
-			$errormessage .= 'PHP <strong>pgsql</strong> extension not found. Please install it with apt, yum or other package manager (preferred), or recompile PHP using --with-pgsql.<br><br>';
-		}
-		
 		// PHP Imagick
 		if (!in_array('imagick', $extensions)) {
 			$errormessage .= 'PHP <strong>imagick</strong> extension not found. Please install it with apt, yum or other package manager (preferred) or with PECL. <br><br>';
@@ -250,42 +258,100 @@
 	
 					// Now test the database connection
 					if ($_POST['database_type'] == 'postgre') {
-						$conn = "host=".$_POST['database_host'].
-								($_POST['database_port'] ? " port=".$_POST['database_port'] : '').
-								" dbname=".$_POST['database_name'].
-								" user=".$_POST['database_username'].
-								" password=".$_POST['database_password'];
-						$conn = pg_connect($conn);
-						
-						$db_created	= 0;
-						if ($conn) {
-							$result = @pg_query('select count(*) from account');
-							if (!$result) {
-								// The account table doesn't exist, so we go ahead and create the database
-								$queries = file_get_contents($base_path.'/system/application/sql/macaw-pgsql.sql');
-								$result = @pg_query($conn, $queries);
+						if (!in_array('pgsql', $extensions)) {
+							$errormessage .= 'PHP <strong>pgsql</strong> extension not found. Please install it with apt, yum or other package manager (preferred), or recompile PHP using --with-pgsql.<br><br>';
+						} else {
+							
+							$conn = "host=".$_POST['database_host'].
+									($_POST['database_port'] ? " port=".$_POST['database_port'] : '').
+									" dbname=".$_POST['database_name'].
+									" user=".$_POST['database_username'].
+									" password=".$_POST['database_password'];
+							$conn = pg_connect($conn);
+							
+							$db_created	= 0;
+							if ($conn) {
+								$result = @pg_query('select count(*) from account');
 								if (!$result) {
-									$errormessage = pg_last_error();
-									$success = 0;
+									// The account table doesn't exist, so we go ahead and create the database
+									$queries = file_get_contents($base_path.'/system/application/sql/macaw-pgsql.sql');
+									$result = @pg_query($conn, $queries);
+									if (!$result) {
+										$errormessage = pg_last_error();
+										$success = 0;
+									} else {
+										$db_created = 1;
+										$success = 1;
+										$step += 1;
+										$done = 1;
+									}
 								} else {
-									$db_created = 1;
 									$success = 1;
 									$step += 1;
 									$done = 1;
 								}
 							} else {
-								$success = 1;
-								$step += 1;
-								$done = 1;
-							}
-						} else {
-							$errormessage = pg_last_error();
-							if (!$errormessage) {
-								$errormessage = "Unknown error connecting to database. Is it set up and is it running?";
-							}
-							$success = 0;
-						} // if ($conn)
+								$errormessage = pg_last_error();
+								if (!$errormessage) {
+									$errormessage = "Unknown error connecting to database. Is it set up and is it running?";
+								}
+								$success = 0;
+							} // if ($conn)
+						} // if (!in_array('pgsql', $extensions))
 					} // if ($_POST['database_type'] == 'postgre')
+					
+					if ($_POST['database_type'] == 'mysql') {
+						if (!in_array('mysql', $extensions)) {
+							$errormessage .= 'PHP <strong>mysql</strong> extension not found. Please install it with apt, yum or other package manager (preferred), or recompile PHP using --with-mysql.<br><br>';
+						} else {
+							$dsn = 'mysql:';
+							$dsn .= 'host='.$_POST['database_host'].';';
+							if (!isset($_POST['database_port'])) {
+								$dsn .= 'port='.$_POST['database_port'].';';
+							}
+							$dsn .= 'dbname='.$_POST['database_name'].';';
+							$dsn .= 'charset=utf8';
+
+							$db = new PDO($dsn, $_POST['database_username'], $_POST['database_password']);
+
+							
+							$db_created	= 0;
+							if ($db) {
+								$result = $db->query('select count(*) from account');
+								if ($result) {
+									if ($result->fetchColumn() > 0) {
+										$db_created = 1;
+									}
+								}
+								
+								if (!$db_created) {
+									// The account table doesn't exist, so we go ahead and create the database
+									$queries = file_get_contents($base_path.'/system/application/sql/macaw-mysql.sql');									
+									try {
+										$result = $db->exec($queries);
+									} catch (Exception $e) {
+										$errormessage = $e->getMessage();
+										$success = 0;																		
+									}
+									$db_created = 1;
+									$success = 1;
+									$step += 1;
+									$done = 1;
+								} else {
+									$success = 1;
+									$step += 1;
+									$done = 1;
+								}
+							} else {
+								if (!$errormessage) {
+									$errormessage = "Unknown error connecting to database. Is it set up and is it running?";
+								}
+								$success = 0;
+							} // if ($conn)
+						} // if (!in_array('pgsql', $extensions))
+					} // if ($_POST['database_type'] == 'mysql')
+
+
 				} // if ($_POST['submit'] == 'Next >>')
 			} // if (isset($_POST['submit']))
 		} // if ($step == 1)
@@ -309,7 +375,8 @@
 			require_once($macaw_config);
 	
 			$conn = null;
-	
+			$row = null;
+			
 			if ($db['default']['dbdriver'] == 'postgre') {
 				$conn = "host=".$db['default']['hostname'].
 					($db['default']['port'] ? " port=".$db['default']['port'] : '').
@@ -320,13 +387,23 @@
 				$conn = pg_connect($conn);
 				$result = pg_query('select * from account where id = 1');
 				$row = pg_fetch_assoc($result);
-				// Fill in the fields for the administrator
-				$admin_fullname = $row['full_name'];
-				$admin_username = $row['username'];
-				$admin_email = $config['macaw']['admin_email'];
-				$admin_password = $row['password'];
-				$organization_name = $config['macaw']['organization_name'];
 			}
+
+			if ($db['default']['dbdriver'] == 'mysql') {
+				$conn = mysql_connect(
+					$db['default']['hostname'].($db['default']['port'] ? ':'.$db['default']['port'] : ''), 
+					$db['default']['username'], 
+					$db['default']['password']
+				);
+				mysql_select_db($db['default']['database'], $conn);
+				$result = mysql_query('select * from account where id = 1');
+				$row = mysql_fetch_assoc($result);
+			}
+			$admin_fullname = $row['full_name'];
+			$admin_username = $row['username'];
+			$admin_password = $row['password'];
+			$admin_email = $config['macaw']['admin_email'];
+			$organization_name = $config['macaw']['organization_name'];
 	
 			if (isset($_POST['submit'])) {
 				if ($_POST['submit'] == 'Next >>') {
@@ -334,9 +411,16 @@
 					set_config($macaw_config, "\$config['macaw']['admin_email']", $_POST['admin_email']);
 					set_config($macaw_config, "\$config['macaw']['organization_name']", $_POST['organization_name']);
 	
-	
+
 					// Set the data in the database
-					$result = pg_query_params($conn, 'UPDATE account SET full_name = $1 WHERE id = 1', array($_POST['admin_full_name']));
+					if ($db['default']['dbdriver'] == 'postgre') {
+						$result = pg_query_params($conn, 'UPDATE account SET full_name = $1 WHERE id = 1', array($_POST['admin_full_name']));	
+					}
+
+					if ($db['default']['dbdriver'] == 'mysql') {
+						$result = mysql_query('UPDATE account SET full_name = \''.mysql_real_escape_string($_POST['admin_full_name']).'\' WHERE id = 1', $conn);	
+					}
+
 	
 					// Make sure that we get around the whole concept of null values and "variable not set" errors. Sheesh.
 					if (!isset($_POST['admin_password'])) {$_POST['admin_password'] = '';}
@@ -357,7 +441,14 @@
 								$hasher = new PasswordHash(8, false);
 								$pass_hash = $hasher->HashPassword($_POST['admin_password']);
 								// Set the data in the database
-								$result = pg_query_params($conn, 'UPDATE account SET password = $1 WHERE id = 1', array($pass_hash));
+								// Set the data in the database
+								if ($db['default']['dbdriver'] == 'postgre') {
+									$result = pg_query_params($conn, 'UPDATE account SET password = $1 WHERE id = 1', array($pass_hash));
+								}
+				
+								if ($db['default']['dbdriver'] == 'mysql') {
+									$result = mysql_query('UPDATE account SET password = \''.$pass_hash.'\' WHERE id = 1', $conn);
+								}
 							}
 						}
 					}
@@ -601,6 +692,7 @@
 			require_once($ci_config);
 			require_once($db_config);
 	
+			$row = null;
 			if ($db['default']['dbdriver'] == 'postgre') {
 				$database_driver = 'PostgreSQL';
 				$conn = "host=".$db['default']['hostname'].
@@ -612,15 +704,25 @@
 				$conn = pg_connect($conn);
 				$result = pg_query('select * from account where id = 1');
 				$row = pg_fetch_assoc($result);
-				// Fill in the fields for the administrator
-				$admin_fullname = $row['full_name'];
-				$admin_username = $row['username'];
-				$admin_email = $config['macaw']['admin_email'];
-				$admin_password = $row['password'];
-				
-				$install_file = $config['macaw']['base_directory'].'/install.php';
-				rename($install_file, $install_file.'.delete');
 			}
+
+			if ($db['default']['dbdriver'] == 'mysql') {
+				$conn = mysql_connect(
+					$db['default']['hostname'].($db['default']['port'] ? ':'.$db['default']['port'] : ''), 
+					$db['default']['username'], 
+					$db['default']['password']
+				);
+				mysql_select_db($db['default']['database'], $conn);
+				$result = mysql_query('select * from account where id = 1');
+				$row = mysql_fetch_assoc($result);
+			}
+			$admin_fullname = $row['full_name'];
+			$admin_username = $row['username'];
+			$admin_password = $row['password'];
+			$install_file = $config['macaw']['base_directory'].'/install.php';
+			rename($install_file, $install_file.'.delete');
+			$admin_email = $config['macaw']['admin_email'];
+
 		}
 	}
 	
@@ -796,6 +898,7 @@
 										<td>
 											<select name="database_type">
 													<option value="postgre" <? if ($db_dbdriver == 'postgre') { echo('selected'); } ?>>PostgreSQL</option>
+													<option value="mysql" <? if ($db_dbdriver == 'mysql') { echo('selected'); } ?>>MySQL</option>
 											</select>
 										</td>
 									</tr>
