@@ -448,7 +448,11 @@ class Common extends Controller {
 				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-1.7.sql');
 			}
 			try {
-	 			$result = @$this->CI->db->query($queries);
+				foreach (explode(';', $queries) as $q) {
+					if (preg_match('/[^\s\r\n]+/', $q)) {
+						$result = $this->CI->db->query($q);
+					}
+				}
  			} catch (Exception $e) {
  				echo "Exception";
  			}
@@ -458,24 +462,32 @@ class Common extends Controller {
 			if ($this->CI->db->dbdriver == 'postgre') {
 				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-pgsql-2.0.sql');
 			} elseif ($this->CI->db->dbdriver == 'mysql') {
-				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-pgsql-2.0.sql');
+				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.0.sql');
 			}
-			$result = $this->CI->db->query($queries);
+			foreach (explode(';', $queries) as $q) {
+				if (preg_match('/[^\s\r\n]+/', $q)) {
+					$result = $this->CI->db->query($q);
+				}
+			}
 			$this->CI->db->where('name','version');
 			$this->CI->db->set('value', '2.0');
 			$this->CI->db->update('settings');
 
-// 		} elseif ($version == "2.0") {   // FUTURE USE
-// 			$queries = null;
-// 			if ($this->CI->db->dbdriver == 'postgre') {
-// 				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-pgsql-2.1.sql');
-// 			} elseif ($this->CI->db->dbdriver == 'mysql') {
-// 				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-pgsql-2.1.sql');
-// 			}
-// 			$result = $this->CI->db->query($queries);
-// 			$this->CI->db->where('name','version');
-// 			$this->CI->db->set('value', '2.1');
-// 			$this->CI->db->update('settings');
+		} elseif ($version == "2.0") {
+			$queries = null;
+			if ($this->CI->db->dbdriver == 'postgre') {
+				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-pgsql-2.1.sql');
+			} elseif ($this->CI->db->dbdriver == 'mysql') {
+				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.1.sql');
+			}
+			foreach (explode(';', $queries) as $q) {
+				if (preg_match('/[^\s\r\n]+/', $q)) {
+					$result = $this->CI->db->query($q);
+				}
+			}
+			$this->CI->db->where('name','version');
+			$this->CI->db->set('value', '2.1');
+			$this->CI->db->update('settings');
 		}
 	}
 	
