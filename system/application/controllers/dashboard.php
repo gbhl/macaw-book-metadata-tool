@@ -26,8 +26,14 @@ class Dashboard extends Controller {
 	 */
 	function index() {
 		$this->common->check_session();
-		$data['user_widgets'] = $this->_user_widgets();
-		$this->load->view('dashboard/dashboard_view', $data);
+		
+		$this->user->load($this->session->userdata('username'));
+		if ($this->user->terms_conditions == '0000-00-00 00:00:00') {
+	 		redirect($this->config->item('base_url').'main/terms');			
+		} else {
+			$data['user_widgets'] = $this->_user_widgets();
+			$this->load->view('dashboard/dashboard_view', $data);
+		}
 	}
 
 	/**

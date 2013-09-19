@@ -1998,3 +1998,17 @@ textarea, input {
 #item_deleted table a{
 	text-decoration: underline;
 }
+
+/* ****************************** */
+/* TERMS AND CONDITIONS           */
+/* ****************************** */
+.terms {
+	text-align: center;
+}
+
+.terms textarea {
+	width: 80%;
+	height: 30em;
+	font-family: monospace;
+}
+

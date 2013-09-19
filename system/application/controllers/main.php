@@ -53,6 +53,35 @@ class Main extends Controller {
 		}
 	}
 
+	function terms() {
+		$data['terms'] = read_file($this->cfg['base_directory'].'/terms.txt');
+		$this->load->view('main/terms_view', $data);	
+	}
+	
+	function terms_save() {
+		$agree = false;
+		if (isset($_POST['agree'])) {
+			if ($_POST['agree'] == 1) {
+				$agree = true;
+			}
+		}
+		
+		if ($agree) {
+			// If they agreed to the terms, we mark them as such and redirect
+			$this->user->load($this->session->userdata('username'));
+			$this->user->terms_conditions = date('Y-m-d H:i:s');
+			$this->user->update();
+
+ 			redirect($this->config->item('base_url').'dashboard');
+ 			return;
+		} else {
+			// If not, we send the back to the login page
+ 			redirect($this->config->item('base_url').'login/logout');
+ 			return;
+		}
+	
+	}
+
 	/**
 	 * Obselete function. Now we just redirect to main which handles redirecting to somewhere appropriate.
 	 **/
