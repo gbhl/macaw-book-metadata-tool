@@ -118,7 +118,7 @@ INSERT INTO organization (id, name, person, email, phone, address, address2, cit
 
 INSERT INTO permission (username, permission) VALUES ('admin','admin'), ('admin','scan');
 
-INSERT INTO settings (name, value) VALUES ('version','1.7');
+INSERT INTO settings (name, value) VALUES ('version','2.0');
 INSERT INTO settings (name, value) values ('installed', '1');
 
 ALTER TABLE account ADD CONSTRAINT account_pkey PRIMARY KEY (id);
