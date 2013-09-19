@@ -32,6 +32,7 @@ class User extends Model {
     public $org_id = '';
     public $org_name = '';
     public $permissions = '';
+    public $terms_conditions = '';
 
     private $all_permissions = array('scan', 'QA', 'local_admin', 'admin');
 
@@ -71,16 +72,17 @@ class User extends Model {
 				// property in CI or PHP?
 				$row = $user->row();
 
-				$this->username   = $username;
-				$this->password   = '';
-				$this->last_login = preg_replace('/\.\d+$/', '', $row->last_login);
-				$this->created    = preg_replace('/\.\d+$/', '', $row->created);
-				$this->modified   = preg_replace('/\.\d+$/', '', $row->modified);
-				$this->widgets    = ($row->widgets ? $row->widgets : '[]');
-				$this->full_name  = $row->full_name;
-				$this->email      = $row->email;
-				$this->org_id     = $row->org_id;
-				$this->org_name   = $row->org_name;
+				$this->username					= $username;
+				$this->password					= '';
+				$this->last_login				= preg_replace('/\.\d+$/', '', $row->last_login);
+				$this->created					= preg_replace('/\.\d+$/', '', $row->created);
+				$this->modified					= preg_replace('/\.\d+$/', '', $row->modified);
+				$this->widgets					= ($row->widgets ? $row->widgets : '[]');
+				$this->full_name				= $row->full_name;
+				$this->email						= $row->email;
+				$this->org_id						= $row->org_id;
+				$this->org_name					= $row->org_name;
+				$this->terms_conditions	= $row->terms_conditions;
 			}
 		}
 		// else, we've created a new, blank object WITHOUT a username
@@ -95,16 +97,17 @@ class User extends Model {
 	 * @since Version 1.2
 	 */
  	function _unload() {
-		$this->username    = '';
-		$this->password    = '';
-		$this->last_login  = '';
-		$this->created     = '';
-		$this->modified    = '';
-		$this->widgets     = '';
-		$this->full_name   = '';
-		$this->email   = '';
-		$this->org_id   = '';
-	    $this->permissions = '';
+		$this->username					= '';
+		$this->password					= '';
+		$this->last_login				= '';
+		$this->created					= '';
+		$this->modified					= '';
+		$this->widgets					= '';
+		$this->full_name				= '';
+		$this->email						= '';
+		$this->org_id						= '';
+	  $this->permissions			= '';
+	  $this->terms_conditions = '';
  	}
 
 	/**
@@ -126,6 +129,7 @@ class User extends Model {
 			'org_id' => $this->org_id,
 			'modified' => 'now()',
 			'widgets' => $this->widgets,
+			'terms_conditions' => $this->terms_conditions,
 		);
 
 		// Handle the password, if it was passed in, hash it. We assume that the
@@ -166,6 +170,7 @@ class User extends Model {
 					'full_name' => $this->full_name,
 					'email'     => $this->email,
 					'org_id' => $this->org_id,
+					'terms_conditions' => 0,
 					'created'   => 'now()',
 				);
 
