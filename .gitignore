@@ -30,3 +30,5 @@ plugins/metadata/*
 
 books
 incoming
+system/application/logs
+system/application/logs/books
