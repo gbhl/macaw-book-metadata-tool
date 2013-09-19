@@ -1,0 +1,52 @@
+------------------------------
+Macaw Terms and Conditions
+Last Updated September 1, 2013
+------------------------------
+
+Welcome to the Macaw website hosted by the Smithsonian Libraries, herein known as "Macaw". If you continue past this page, you are agreeing to comply with and be bound by the following terms and conditions of use. If you disagree with any part of these terms and conditions, please do not use this site and contact us separately regarding your concerns. Macaw is offered to the Biodiversity Heritage Library ("BHL") community for use in adding content to the BHL. The term "us" or "we" refers to the owner of this website, the Smithsonian Libraries. The term "you" refers to the user of this website. 
+
+The use of Macaw is subject to the following terms of use:
+
+PRIVACY
+-------
+
+Aside from your username, email addres and organization name, Macaw does not collect personal inforamtion about the users of Macaw. Some information is collected and stored automatically by the system, some of which is required for normal functioning of Macaw. They are:
+
+ - The IP address from which you access Macaw
+ - The name of the domain from which you access the Internet
+ - The type of browser and operating system used to access Macaw
+ - The date and time you access Macaw
+ - The Cookies used to track your login session
+
+
+COPYRIGHT 
+---------
+
+By using Macaw, you affirm that you have the right to upload and use images in accordance with BHL guidelines and that you are either the copyright owner, have gained permission from the owner to create a digital copy, have performed a due dillegence search to determine that the item is in the public domain, or the item is definitively in the public domain. 
+
+
+DURABILITY OF UPLOADED IMAGES
+-----------------------------
+
+Given the size of the images that Macaw may work with, we reserve the right to manage the disk space used by Macaw to maintain the availability of Macaw for the benefit of all users. If an item's images are too large (such as a set of uncompressed TIFF files), Macaw may convert these to JPEG-2000 files to conserve space. 
+
+If an item is not processed in a reasonable amount of time and we have no response from you as to when it will be completed, we reserve the right to delete the images from the server in order to conserve space. A "reasonable amount of time" is about two weeks or ten business days.
+
+Generally it is in your best interest to upload and complete an item as quickly as possible so that it can be exported and removed from the server. If you aren't sure that you will be able to complete an item within ten business days, then we respectfully request that you not upload items until you are ready.
+
+Given the size of the images that will be uploaded, the images will NOT be backed up. Although our IT department strives for 100% uptime, they have been instructed not to provide backups of the image data. Since you are uploading content from your system, you are responsible for backups. Even a successful import of the item to the Internet Archive should not be considered a backup since the images may be compressed before upload.
+
+
+DURABILITY OF METADATA
+----------------------
+
+Separate from the images themselves, the server and database will be backed up by our IT department using industry stanard backup practices. We will ensure that the database including all item and image metadata is backed up on a daily basis. Since Macaw is a metadata collection tool, we will aim to indefinitely keep all metadata once the item has been completed. If the database grows too large over time, we reserve the right to archive the oldest metadata to preserve the size of the database.
+
+
+WARRANTY
+--------
+
+Macaw is provided "AS IS" and "WITH ALL FAULTS," without warranty of any kind, including without limitation the warranties of merchantability, fitness for a particular purpose and non-infringement. We make no warranty thatMacaw is free of defects or is suitable for any particular purpose. In no event shall we be responsible for loss or damages arising from the use of Macaw, including but not limited to any indirect, punitive, special, incidental or consequential damages of any character including, without limitation, damages for loss of goodwill, work stoppage, computer failure or malfunction, or any and all other commercial damages or losses. 
+
+ 
+
