@@ -9,12 +9,15 @@ Basically the commands to set up the server
 yum install httpd httpd-tools
 
 # Setting up php and apache
-yum install php php-cli php-common php-pear php-pgsql php-pdo php-xml
+yum install php php-cli php-common php-pear php-pdo php-xml
 pear channel-update pear.php.net
 pear install Archive_Tar
 
-# Install Postgresql
-yum install postgresql postgresql-libs postgresql-server
+# IF USING POSTGRES: Install Postgresql
+yum install postgresql postgresql-libs postgresql-server php-pgsql
+
+# IF USING MYSQL: Install Mysql
+yum install mysql mysql-server php-mysql
 
 # Install ImageMagick and PHP connectors
 yum install ImageMagick  jasper libjpeg php-pecl-imagick ghostscript ghostscript-fonts libwmf-lite urw-fonts
