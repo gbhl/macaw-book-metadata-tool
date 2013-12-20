@@ -228,7 +228,7 @@ class Main extends Controller {
 	
 				// Redirect depending on status
 				if ($this->book->status == 'new' || $this->book->status == 'scanning'){
-					redirect($this->config->item('base_url').'scan/monitor');
+					redirect($this->config->item('base_url').'scan/upload');
 	
 				} elseif ($this->book->status == 'scanned' || $this->book->status == 'reviewing'){
 					redirect($this->config->item('base_url').'scan/review');
@@ -455,8 +455,58 @@ class Main extends Controller {
 			} catch (Exception $e) {
 				$this->session->set_userdata('errormessage', "Error converting MARCXML to MODS: ".$e->getMessage());
 			}
+
 			$this->book->set_metadata('mods_xml', $mods);
+
+			# Read the MODS to see if we can get the title of this item and save that, too.
+			$xml = simplexml_load_string($mods);
+			$namespaces = $xml->getDocNamespaces();
+			$ns = '';
+			$root = '';
+			if (array_key_exists('mods', $namespaces)) {
+				$ns = 'mods:';
+			} elseif (array_key_exists('', $namespaces)) {
+				// Add empty namespace because xpath is weird
+				$ns = 'ns:';
+				$xml->registerXPathNamespace('ns', $namespaces['']);
+			}
+			$namespaces = $xml->getNamespaces();
+			$ret = ($xml->xpath($ns."mods"));
+			if ($ret && count($ret)) {
+				$root = $ns."mods/";
+			}
+
+			# NOW we can get the title
+			$title = null;
+
+			$ret = ($xml->xpath($root.$ns."titleInfo[not(@type)]/".$ns."nonSort"));
+			if ($ret && count($ret) > 0) {
+				$title = $ret[0];
+			}
+			
+			$ret = ($xml->xpath($root.$ns."titleInfo[not(@type)]/".$ns."title"));
+			if ($ret && count($ret) > 0) {
+				if ($title && substr($title,count($title)-1,1) != ' ') { $title .= ' '; } 
+				$title .= $ret[0];
+			}
+			$this->book->set_metadata('title', $title);			
+
+			# Get the author
+			$creator = null;
+			$ret = ($xml->xpath($root.$ns."name/".$ns."role/".$ns."roleTerm[.='creator']/../../".$ns."namePart"));
+			if ($ret && count($ret) > 0) {
+				$creator = $ret[0];
+			}
+			if (!$creator) {
+				$ret = ($xml->xpath($root.$ns."name/".$ns."namePart"));
+				if ($ret && count($ret) > 0) {
+					$creator = $ret[0];
+				}		
+			}
+			$this->book->set_metadata('author', $creator);			
+	
 		}
+
 
  		$this->book->update();
 
@@ -509,17 +559,18 @@ class Main extends Controller {
 		# 3. Count the number of records we're going to delete.
 		$record_count = 1; 
 
-		$query = $this->db->query('select count(*) from item_export_status where item_id = ?', array($id));
+		$query = $this->db->query('select count(*) as thecount from item_export_status where item_id = ?', array($id));
 		$count = $query->result();
-		$record_count = $record_count + $count[0]->count;
+		
+		$record_count = $record_count + $count[0]->thecount;
 
-		$query = $this->db->query('select count(*) from page where item_id = ?', array($id));
+		$query = $this->db->query('select count(*) as thecount from page where item_id = ?', array($id));
 		$count = $query->result();
-		$record_count = $record_count + $count[0]->count;
+		$record_count = $record_count + $count[0]->thecount;
 
-		$query = $this->db->query('select count(*) from metadata where item_id = ?', array($id));
+		$query = $this->db->query('select count(*) as thecount from metadata where item_id = ?', array($id));
 		$count = $query->result();
-		$record_count = $record_count + $count[0]->count;	
+		$record_count = $record_count + $count[0]->thecount;	
 
 		// Get the amount of information that is about to deleted
 		$data['item_title'] = $this->session->userdata('title');
