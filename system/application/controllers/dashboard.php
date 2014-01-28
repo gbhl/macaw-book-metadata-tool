@@ -160,11 +160,11 @@ class Dashboard extends Controller {
 		$q = null;
 		if ($this->db->dbdriver == 'postgre') {
 			$q = $this->db->query(
-				"select to_char(date,'fmmm/fmdd') as day, round(value / 1024 / 1024 / 1024) as megs from logging where statistic = 'disk-usage' and date >= now() - interval '10 days' order by date"
+				"select to_char(date,'fmmm/fmdd') as day, value from logging where statistic = 'disk-usage' and date >= now() - interval '10 days' order by date"
 			);
 		} elseif ($this->db->dbdriver == 'mysql') {
 			$q = $this->db->query(
-				"select date_format(date,'%c/%d') as day, round(value / 1024 / 1024 / 1024) as megs from logging where statistic = 'disk-usage' and datediff(now(), date) <= 10 order by date"
+				"select date_format(date,'%c/%d') as day, value from logging where statistic = 'disk-usage' and datediff(now(), date) <= 10 order by date"
 			);
 		}
 		
@@ -174,13 +174,13 @@ class Dashboard extends Controller {
 		}
 
 		$data = array();
-		$data['title'] = 'Disk Usage (GB)';
+		$data['title'] = 'Disk Usage (%)';
 		$data['datasourcetype'] = 'YAHOO.util.DataSource.TYPE_JSARRAY';
 		$data['html'] = 'Make sure you have Adboe Flash Version 9.0.4 or better installed. If you are seeing this, you need to <a href="http://get.adobe.com/flashplayer/">install or ugprade</a>.';
 		$data['fields'] = array('day','megs');
 		$data['type'] = 'LineChart';
 		$data['xField'] = 'day';
-		$data['yField'] = 'megs';
+		$data['yField'] = 'value';
 		$data['div_id'] = 'disk_usage';
 		$data['data'] = $rows;
 		$data['column'] = '2';

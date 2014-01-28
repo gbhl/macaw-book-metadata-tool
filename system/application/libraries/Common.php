@@ -668,7 +668,7 @@ class Common extends Controller {
 					)"
 				);
 			}
-		
+			
 			// Has this statistic already been generated
 			$q = $this->CI->db->query("SELECT * FROM (logging) WHERE date = date(now() - interval 1 day) AND statistic = 'disk-usage';");
 			$found = false;
@@ -680,14 +680,25 @@ class Common extends Controller {
 				$output = array();
 				$matches = array();
 				exec('df -k '.$this->CI->cfg['data_directory'], $output);
-				$bytes = preg_match('/^.*? +\d+ (\d+)/', $output[1], $matches);
+				$pct = preg_match('\b([0-9]+)\%', $output[1], $matches);
+				
 				$this->CI->db->query(
 					"insert into logging (date, statistic, value) values (
 						date_trunc('d', now() - interval '1 day') ,
 						'disk-usage',
-						".($matches[1] * 1024)."
+						".$matches[1]."
 					)"
 				);
+				
+// Changed this to use percent, rather than actual bytes.				
+// 				$bytes = preg_match('/^.*? +\d+ (\d+)/', $output[1], $matches);
+// 				$this->CI->db->query(
+// 					"insert into logging (date, statistic, value) values (
+// 						date_trunc('d', now() - interval '1 day') ,
+// 						'disk-usage',
+// 						".($matches[1] * 1024)."
+// 					)"
+// 				);
 			}
 		} elseif ($this->CI->db->dbdriver == 'mysql') {
 			// Has this statistic already been generated
@@ -738,14 +749,25 @@ class Common extends Controller {
 				$output = array();
 				$matches = array();
 				exec('df -k '.$this->CI->cfg['data_directory'], $output);
-				$bytes = preg_match('/^.*? +\d+ (\d+)/', $output[1], $matches);
+				$pct = preg_match('/\b([0-9]+)\%/', $output[1], $matches);
+				
 				$this->CI->db->query(
 					"insert into logging (date, statistic, value) values (
 						date(now() - interval 1 day) ,
 						'disk-usage',
-						".($matches[1] * 1024)."
+						".$matches[1]."
 					)"
 				);
+// 
+// 				exec('df -k '.$this->CI->cfg['data_directory'], $output);
+// 				$bytes = preg_match('/^.*? +\d+ (\d+)/', $output[1], $matches);
+// 				$this->CI->db->query(
+// 					"insert into logging (date, statistic, value) values (
+// 						date(now() - interval 1 day) ,
+// 						'disk-usage',
+// 						".($matches[1] * 1024)."
+// 					)"
+// 				);
 			}
 
 		}
