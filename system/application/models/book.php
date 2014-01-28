@@ -1206,9 +1206,9 @@ class Book extends Model {
 				(select count(*) from item) as books,
 				(select count(*) from page) as pages,
 				(select concat(
-				round(unix_timestamp(date_review_end) - unix_timestamp(date_scanning_start) / 86400), 'd ', 
-				round(unix_timestamp(date_review_end) - unix_timestamp(date_scanning_start) % 86400 / 3600), 'h ',
-				round(unix_timestamp(date_review_end) - unix_timestamp(date_scanning_start) % 86400 % 3600 / 60), 'm'
+				round(avg(unix_timestamp(date_review_end) - unix_timestamp(date_scanning_start)) / 86400), 'd ', 
+				round(avg(unix_timestamp(date_review_end) - unix_timestamp(date_scanning_start)) % 86400 / 3600), 'h ',
+				round(avg(unix_timestamp(date_review_end) - unix_timestamp(date_scanning_start)) % 86400 % 3600 / 60), 'm'
 				) from item) as avg;"
 			);
 			return $q->row();
