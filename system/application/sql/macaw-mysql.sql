@@ -9,7 +9,7 @@ CREATE TABLE account (
     last_login timestamp,
     created timestamp,
     modified timestamp,
-    widgets varchar(255) DEFAULT '[[`summary`,`perday`],[`disk`,`pages`]]',
+    widgets varchar(255) DEFAULT '[["summary","perday"],["disk","pages"]]',
     full_name varchar(128),
     email varchar(128),
     organization int(11), 
