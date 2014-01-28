@@ -234,7 +234,7 @@ class User extends Model {
 			$this->db->where('account.org_id', $org_id);
 		}
 		$this->db->order_by('username');
-		$this->db->join('organization', 'account.org_id = organization.id');
+		$this->db->join('organization', 'account.org_id = organization.id', 'left');
 		$l = $this->db->get('account')->result();
 		for ($i=0; $i < count($l); $i++) {
 			$l[$i]->last_login = preg_replace("/\.(\d+)$/","",$l[$i]->last_login);
