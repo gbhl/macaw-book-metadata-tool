@@ -114,6 +114,7 @@ class Scan extends Controller {
 		$this->common->check_missing_metadata($this->book);
 
 		$data['upload_max_filesize'] = ini_get('upload_max_filesize');
+		$data['item_title'] = $this->session->userdata('title');
 		$data['ip_address'] = $_SERVER['REMOTE_ADDR'];
 		$data['hostname'] = $this->common->_get_host($_SERVER['REMOTE_ADDR']);
 		$data['incoming_path'] = $this->cfg['incoming_directory'].'/'.$barcode;

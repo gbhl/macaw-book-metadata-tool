@@ -85,7 +85,7 @@ class Book extends Model {
 			// Did we get a record?
 			if (!$this->exists($barcode)) {
 				// No record, present an error
-				$this->last_error = "The barcode \"$barcode\" could not be found.";
+				$this->last_error = "The item \"$barcode\" could not be found.";
 				throw new Exception($this->last_error);
 
 			} else {
