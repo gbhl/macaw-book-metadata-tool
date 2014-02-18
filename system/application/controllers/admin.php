@@ -517,16 +517,20 @@ class Admin extends Controller {
 					
 					// Filter the permissions. Only full admins can set the admin flag. 
 					$perms = array();
-					foreach ($this->input->post('permissions') as $perm) {
-						if ($perm == 'admin') {
-							if ($is_admin) {
-								$perms[] = $perm;
+					if ($this->input->post('permissions')) {
+						if (count($this->input->post('permissions')) > 0) {
+							foreach ($this->input->post('permissions') as $perm) {
+								if ($perm == 'admin') {
+									if ($is_admin) {
+										$perms[] = $perm;
+									}
+								} else {
+									$perms[] = $perm;						
+								}						
 							}
-						} else {
-							$perms[] = $perm;						
-						}						
+							$this->user->set_permissions($perms);						
+						}
 					}
-					$this->user->set_permissions($perms);
 				} catch (Exception $e) {
 					// This handles anything strange that might come across while getting the user object.
 					$this->common->ajax_headers();

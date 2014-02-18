@@ -8,32 +8,32 @@
 	<tr>
 		<td>Username:</td>
 		<td><? if ($new) {
-			echo('<input type="text" name="username" value="" size="12">');
+			echo('<input type="text" name="username" value=""  id="username" size="12">');
 		} else {
 			echo($username);
 		}?></td>
 	</tr>
 	<tr>
 		<td>Full Name:</td>
-		<td><input type="text" name="full_name" value="<? if (!$new) { echo($full_name); } ?>" size="20"></td>
+		<td><input type="text" name="full_name" value="<? if (!$new) { echo($full_name); } ?>" id="full_name" size="20"></td>
 		<td class="grey">Last Login:</td>
 		<td class="grey"><? if (!$new) { echo($last_login); } else { echo('N/A'); } ?></td>
 	</tr>
 	<tr>
 		<td>New Password:</td>
-		<td><input type="password" name="password" value="" size="20"></td>
+		<td><input type="password" name="password" value="" size="20" id="password"></td>
 		<td class="grey">Modified:</td>
 		<td class="grey"><? if (!$new) { echo($modified); } else { echo('N/A'); } ?></td>
 	</tr>
 	<tr>
 		<td>Confirm Password:</td>
-		<td><input type="password" name="password_c" value="" size="20"></td>
+		<td><input type="password" name="password_c" value="" size="20" id="password_c"></td>
 		<td class="grey">Created:</td>
 		<td class="grey"><? echo($created); ?></td>
 	</tr>
 	<tr>
 		<td>Email:</td>
-		<td colspan="3"><input type="text" name="email" value="<? if (!$new) { echo($email); } ?>" size="60"></td>
+		<td colspan="3"><input type="text" name="email" value="<? if (!$new) { echo($email); } ?>" size="60" id="email"></td>
 	</tr>
 	<tr>
 		<td>Organization:</td>
@@ -64,8 +64,16 @@
 					echo(($permissions[$p] ? ' checked' : ''));
 					if (!$is_admin && !$is_local_admin || ($p == 'admin' && !$is_admin)) { 
 						echo(' disabled'); 
-					} 
-					echo("> $p&nbsp;&nbsp;&nbsp;&nbsp;");
+					}
+					if ($p == 'scan') {
+						echo("> Edit Metadata &nbsp;&nbsp;&nbsp;&nbsp;");
+					} elseif ($p == 'local_admin') {
+						echo("> Local Admin&nbsp;&nbsp;&nbsp;&nbsp;");
+					} elseif ($p == 'admin') {
+						echo("> Admin&nbsp;&nbsp;&nbsp;&nbsp;");
+					} else {
+						echo("> $p&nbsp;&nbsp;&nbsp;&nbsp;");
+					}
 				}
 			?>
 		</td>

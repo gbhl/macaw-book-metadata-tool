@@ -250,13 +250,26 @@
 			// match and that we have a full name.
 			User.editDialog.validate = function() {
 				var data = this.getData();
-				if ((data.password || data.password_c) && data.password != data.password_c) {
+				if (Dom.get('username') && (data.username == '' || data.username == null || !data.username)){
+					General.showErrorMessage('Please enter a username.');
+					return false;
+				
+				} else if ((data.password || data.password_c) && data.password != data.password_c) {
 					General.showErrorMessage('The passwords you entered do not match.');
 					return false;
+
 				} else if (data.full_name == '' || data.full_name == null || !data.full_name) {
 					General.showErrorMessage('Please enter a full name.');
+					return false;
+
 				} else if (data.email == '' || data.email == null || !data.email) {
 					General.showErrorMessage('Please enter an email address.');
+					return false;
+
+				} else if (data.org_id[0] == '' || data.org_id[0] == null || !data.org_id[0]) {
+					General.showErrorMessage('Please select an organization.');
+					return false;
+
 				} else {
 					return true;
 				}
