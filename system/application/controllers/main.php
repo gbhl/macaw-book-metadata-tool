@@ -129,7 +129,7 @@ class Main extends Controller {
 			$this->session->set_userdata('author', '');
 
 			// Give our response to the user.
-			echo json_encode(array('question' => "The barcode \"$barcode\" could not be found.<br/><br/>Would you like to create it?"));		
+			echo json_encode(array('question' => "The item \"$barcode\" could not be found.<br/><br/>Would you like to create it?"));		
 			return;
 		}
 
@@ -457,56 +457,8 @@ class Main extends Controller {
 			}
 
 			$this->book->set_metadata('mods_xml', $mods);
-
-			# Read the MODS to see if we can get the title of this item and save that, too.
-			$xml = simplexml_load_string($mods);
-			$namespaces = $xml->getDocNamespaces();
-			$ns = '';
-			$root = '';
-			if (array_key_exists('mods', $namespaces)) {
-				$ns = 'mods:';
-			} elseif (array_key_exists('', $namespaces)) {
-				// Add empty namespace because xpath is weird
-				$ns = 'ns:';
-				$xml->registerXPathNamespace('ns', $namespaces['']);
-			}
-			$namespaces = $xml->getNamespaces();
-			$ret = ($xml->xpath($ns."mods"));
-			if ($ret && count($ret)) {
-				$root = $ns."mods/";
-			}
-
-			# NOW we can get the title
-			$title = null;
-
-			$ret = ($xml->xpath($root.$ns."titleInfo[not(@type)]/".$ns."nonSort"));
-			if ($ret && count($ret) > 0) {
-				$title = $ret[0];
-			}
-			
-			$ret = ($xml->xpath($root.$ns."titleInfo[not(@type)]/".$ns."title"));
-			if ($ret && count($ret) > 0) {
-				if ($title && substr($title,count($title)-1,1) != ' ') { $title .= ' '; } 
-				$title .= $ret[0];
-			}
-			$this->book->set_metadata('title', $title);			
-
-			# Get the author
-			$creator = null;
-			$ret = ($xml->xpath($root.$ns."name/".$ns."role/".$ns."roleTerm[.='creator']/../../".$ns."namePart"));
-			if ($ret && count($ret) > 0) {
-				$creator = $ret[0];
-			}
-			if (!$creator) {
-				$ret = ($xml->xpath($root.$ns."name/".$ns."namePart"));
-				if ($ret && count($ret) > 0) {
-					$creator = $ret[0];
-				}		
-			}
-			$this->book->set_metadata('author', $creator);			
-	
+			$this->_read_mods($mods);
 		}
-
 
  		$this->book->update();
 
@@ -519,7 +471,55 @@ class Main extends Controller {
 		//Changed redirect to review with new style and workflow
 		redirect($this->config->item('base_url').'main/edit');	
 	}
+	
+	function _read_mods($mods) {
+		# Read the MODS to see if we can get the title of this item and save that, too.
+		$xml = simplexml_load_string($mods);
+		$namespaces = $xml->getDocNamespaces();
+		$ns = '';
+		$root = '';
+		if (array_key_exists('mods', $namespaces)) {
+			$ns = 'mods:';
+		} elseif (array_key_exists('', $namespaces)) {
+			// Add empty namespace because xpath is weird
+			$ns = 'ns:';
+			$xml->registerXPathNamespace('ns', $namespaces['']);
+		}
+		$namespaces = $xml->getNamespaces();
+		$ret = ($xml->xpath($ns."mods"));
+		if ($ret && count($ret)) {
+			$root = $ns."mods/";
+		}
 
+		# NOW we can get the title
+		$title = null;
+
+		$ret = ($xml->xpath($root.$ns."titleInfo[not(@type)]/".$ns."nonSort"));
+		if ($ret && count($ret) > 0) {
+			$title = $ret[0];
+		}
+		
+		$ret = ($xml->xpath($root.$ns."titleInfo[not(@type)]/".$ns."title"));
+		if ($ret && count($ret) > 0) {
+			if ($title && substr($title,count($title)-1,1) != ' ') { $title .= ' '; } 
+			$title .= $ret[0];
+		}
+		$this->book->set_metadata('title', $title);			
+
+		# Get the author
+		$creator = null;
+		$ret = ($xml->xpath($root.$ns."name/".$ns."role/".$ns."roleTerm[.='creator']/../../".$ns."namePart"));
+		if ($ret && count($ret) > 0) {
+			$creator = $ret[0];
+		}
+		if (!$creator) {
+			$ret = ($xml->xpath($root.$ns."name/".$ns."namePart"));
+			if ($ret && count($ret) > 0) {
+				$creator = $ret[0];
+			}		
+		}
+		$this->book->set_metadata('author', $creator);					
+	}
 	/**
 	 * Confirm that we want to delete the item
 	 *
@@ -796,7 +796,9 @@ class Main extends Controller {
 		// If we got marc_xml but not mods_xml, convert it to mods and save that, too
 		$marc = $this->book->get_metadata('marc_xml');
 		if ($marc && !$this->book->get_metadata('mods_xml')) {
-			$this->book->set_metadata('mods_xml', $this->common->marc_to_mods($marc), true);
+			$mods = $this->common->marc_to_mods($marc);
+			$this->book->set_metadata('mods_xml', $mods, true);
+			$this->_read_mods($mods);
 		}
 
  		$this->book->update();
@@ -812,7 +814,7 @@ class Main extends Controller {
 		$this->logging->log('book', 'info', 'Barcode scanned successfully.', $info['barcode']);
 
 		// SCS Change to redirect to /scan/monitor as this is a new item*/
-		redirect($this->config->item('base_url').'scan/monitor');
+		redirect($this->config->item('base_url').'scan/upload');
 	}
 
 	/**
