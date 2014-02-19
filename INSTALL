@@ -126,22 +126,24 @@ path to Macaw and user and group that your web server uses. This may be "www", "
 EXISTING INSTALLATION
 =====================
 
-An existing installation of Macaw is a bit more complicated to update. The /books and /incoming
-directories should not be modified or overwritten. The books and incoming folders are NOT included 
-in the tarball, but still, it's safer if you overwrite the existing installlation. The commands
-below, especially the "find" command is suitable for replacing macaw's codebase without damaging
-your installation. As usual, be sure to use the correct path to your Macaw installation.
+An existing installation of Macaw is simple to update. The /books and /incoming directories are not 
+included in the ZIP file. The commands below are suitable for updating Macaw without damaging your 
+installation. As usual, be sure to use the correct path to your Macaw installation.
 
 Download the most recent .zip file:
 
+	$ cd /tmp
 	$ curl -O -L https://github.com/cajunjoel/macaw-book-metadata-tool/archive/master.zip
 	$ unzip master.zip
 	$ cd macaw-book-metadata-tool-master
-	$ sudo cp -r * /var/www/htdocs/macaw/.
+
+	# Use the correct directory here!
+	$ sudo cp -r .htaccess * /var/www/htdocs/.
 
 As a reminder, Macaw does not deliver the "incoming" or "books" directories nor does it deliver
 the config.php, macaw.php, or database.php files, therefore the recursive copy is non-destructive.
-Also, be sure to copy the .htaccess being mindful of any changes you may have made in your installation.
+Remember that this overwrites the .htaccess file, so if you have made local changes, be sure to back
+them up before copying the new one.
 
 
 =======================
