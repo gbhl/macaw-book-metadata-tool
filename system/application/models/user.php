@@ -170,7 +170,7 @@ class User extends Model {
 					'full_name' => $this->full_name,
 					'email'     => $this->email,
 					'org_id' => $this->org_id,
-					'terms_conditions' => 0,
+					'terms_conditions' => null,
 					'created'   => 'now()',
 				);
 
