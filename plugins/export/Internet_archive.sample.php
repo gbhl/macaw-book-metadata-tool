@@ -182,6 +182,16 @@ class Internet_archive extends Controller {
 				$bc = $b->barcode;
 				$this->CI->book->load($bc);
 
+				// the keys are now different for each item. We need to get them from our custom table.
+				$this->_get_ia_keys($this->CI->book->org_id);
+				
+				// If we didn't get any keys, we're doomed! Spam the admin and skip this item.
+				if (!$this->access || !$this->secret) {
+					$this->CI->logging->log('book', 'error', 'Organization '.$this->CI->book->org_id.' does not have IA Keys set.', $bc);
+					$this->CI->common->email_error('Organization '.$this->CI->book->org_id.' does not have IA Keys set.'."\n\n"."Identifier:    ".$bc."\n\n");
+					continue;
+				}
+				
 				// If we were given a specific ID, we only upload the book if it's been reviewed or it's already uploaded.
 				// TODO: Remove this, we will unconditionall upload if an ID is provided.
 				if ($sent_id) {
@@ -686,6 +696,11 @@ class Internet_archive extends Controller {
 				$this->CI->common->email_error($message);
 				print "\n\nError Processing. Email sent to administrator.\n";
 			} // try-catch
+			
+			// Clear the access and secret just so we don't accidentally upload things incorrectly.
+			$this->access = '';
+			$this->secret = '';
+			
 		} // foreach ($books as $b)
 	} // function upload($args)
 
@@ -1261,18 +1276,12 @@ class Internet_archive extends Controller {
 		// Get our mods into something we can use. All the info we need is in there.
 		$marc = simplexml_load_string($book->get_metadata('marc_xml'));
 
-		// Add empty namespace because xpath is weird? (not sure why)
-		$namespaces = $marc->getDocNamespaces();
-		$ns = '';
-		if (array_key_exists('marc', $namespaces)) {
-			$ns = 'marc:';
-		} elseif (array_key_exists('', $namespaces)) {
-			$ns = 'ns:';
-			$marc->registerXPathNamespace('ns', '');
+		$height = '';
+		foreach ($marc->datafield as $d) {
+			if ($d['tag'] == '300') {
+				$height = (string)$d->subfield[2];
+			}
 		}
-		$ret = ($marc->xpath($ns."record/".$ns."datafield[@tag='300']/".$ns."subfield[@code='c']"));
-
-		$height = $ret[0].'';
 		$unit = 'cm';
 		// Get the height of the book
 		$matches = array();
@@ -1381,7 +1390,6 @@ class Internet_archive extends Controller {
 		$metadata['x-archive-meta-contributor'] = $this->CI->book->get_contributor();
 
 		// These are almost as easy
-		$metadata['x-archive-meta-uploader'] = $this->email;
 		$metadata['x-archive-meta-sponsor'] = $this->CI->book->get_metadata('sponsor');
 
 		// Handle the collection(s) that the book might be in
@@ -1393,7 +1401,7 @@ class Internet_archive extends Controller {
 		$count = 0;
 		$bhl = 0;
 		foreach ($collections as $c) {
-			if ($c == 'bhl' || $c == 'biodiversity') {
+			if (strtolower($c) == 'bhl' || strtolower($c) == 'biodiversity' || $c == 'Biodiversity Heritage Library') {
 				$metadata['x-archive-meta'.sprintf("%02d", $count).'-collection'] = 'biodiversity';
 				$metadata['x-archive-meta-curation'] = '[curator]biodiversitylibrary.org[/curator][date]'.mdate('%Y%m%d%h%i%s',time()).'[/date][state]approved[/state]';
 				$bhl = 1;
@@ -1891,5 +1899,32 @@ class Internet_archive extends Controller {
 			));
 			$this->CI->dbforge->create_table('custom_internet_archive');
 		}
+		if (!$this->CI->db->table_exists('custom_internet_archive_keys')) {
+			$this->CI->load->dbforge();
+			$this->CI->dbforge->add_field(array(
+				'org_id' =>    array( 'type' => 'int'),
+				'access_key' => array( 'type' => 'varchar', 'constraint' => '64' ),
+				'secret' => array( 'type' => 'varchar', 'constraint' => '64' )
+			));
+			$this->CI->dbforge->create_table('custom_internet_archive_keys');
+		}
 	}
+	
+	// ----------------------------
+	// Function: _get_ia_keys()
+	//
+	// Parameters:
+	//
+	// Given an organization ID, go to the custom IA table and get the access keys for
+	// uploading to IA.
+	// ----------------------------
+	function _get_ia_keys($org_id) {
+		$query = $this->CI->db->query('select access_key, secret from custom_internet_archive_keys where org_id = '.$org_id);
+		foreach ($query->result() as $row) {
+			$this->access = $row->access_key;
+			$this->secret = $row->secret;
+			return;
+		}
+	}
+
 }
