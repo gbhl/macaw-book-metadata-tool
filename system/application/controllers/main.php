@@ -429,16 +429,16 @@ class Main extends Controller {
 					$c = $matches[1];
 					if (isset($_REQUEST['new_fieldname_'.$c]) && isset($_REQUEST['new_value_'.$c]) && $_REQUEST['new_value_'.$c] != '') {
 						// We got a value from the plain text field.
-						$this->book->set_metadata($_REQUEST['new_fieldname_'.$c], $_REQUEST['new_value_'.$c], false);
+						$this->book->set_metadata(trim($_REQUEST['new_fieldname_'.$c]), $_REQUEST['new_value_'.$c], false);
 					} elseif ($_REQUEST['new_fieldname_'.$c] && array_key_exists('new_value_'.$c.'_file', $_FILES)) {
 						// We didn't get a value, so let's see if we got a file upload
 						$string = read_file($_FILES['new_value_'.$c.'_file']['tmp_name']);
-						$this->book->set_metadata($_REQUEST['new_fieldname_'.$c], $string, false);
+						$this->book->set_metadata(trim($_REQUEST['new_fieldname_'.$c]), $string, false);
 					}
 				} else {
 					if (is_array($val)) {
 						foreach ($val as $v) {
-							$this->book->set_metadata($field, $v, false);
+							$this->book->set_metadata(trim($field), $v, false);
 						}
 					}
 				}
@@ -775,16 +775,16 @@ class Main extends Controller {
 					$c = $matches[1];
 					if (isset($_REQUEST['new_fieldname_'.$c]) && isset($_REQUEST['new_value_'.$c]) && $_REQUEST['new_value_'.$c] != '') {
 						// We got a value from the plain text field.
-						$this->book->set_metadata($_REQUEST['new_fieldname_'.$c], $_REQUEST['new_value_'.$c], false);
+						$this->book->set_metadata(trim($_REQUEST['new_fieldname_'.$c]), $_REQUEST['new_value_'.$c], false);
 					} elseif ($_REQUEST['new_fieldname_'.$c] && array_key_exists('new_value_'.$c.'_file', $_FILES)) {
 						// We didn't get a value, so let's see if we got a file upload
 						$string = read_file($_FILES['new_value_'.$c.'_file']['tmp_name']);
-						$this->book->set_metadata($_REQUEST['new_fieldname_'.$c], $string, false);
+						$this->book->set_metadata(trim($_REQUEST['new_fieldname_'.$c]), $string, false);
 					}
 				} else {
 					if (is_array($val)) {
 						foreach ($val as $v) {
-							$this->book->set_metadata($field, $v, false);
+							$this->book->set_metadata(trim($field), $v, false);
 						}
 					}
 				}
