@@ -1398,14 +1398,25 @@ class Internet_archive extends Controller {
 			$collections = array($collections);
 		}
 
+		// Combine the "collection" (singular) metadata because, well, people get confused.
+		$collection = $this->CI->book->get_metadata('collection'); // Returns an array for multiple valies OR a string
+		if (!is_array($collection)) {
+			$collections[] = $collection;
+		} else {
+			foreach ($collection as $c) {
+				$collections[] = $c;
+			}
+		}
+
+		// Now we add the collections to the metadata
 		$count = 0;
 		$bhl = 0;
 		foreach ($collections as $c) {
-			if (strtolower($c) == 'bhl' || strtolower($c) == 'biodiversity' || $c == 'Biodiversity Heritage Library') {
+			if (strtolower($c) == 'bhl' || strtolower($c) == 'biodiversity' || strtolower($c) == 'biodiversity heritage library') {
 				$metadata['x-archive-meta'.sprintf("%02d", $count).'-collection'] = 'biodiversity';
 				$metadata['x-archive-meta-curation'] = '[curator]biodiversitylibrary.org[/curator][date]'.mdate('%Y%m%d%h%i%s',time()).'[/date][state]approved[/state]';
 				$bhl = 1;
-			} elseif ($c == 'sil' || $c == 'smithsonian' || $c == 'Smithsonian') {
+			} elseif (strtolower($c) == 'sil' || strtolower($c) == 'smithsonian') {
 				$metadata['x-archive-meta'.sprintf("%02d", $count).'-collection'] = 'smithsonian';
 			} else {
 				$metadata['x-archive-meta'.sprintf("%02d", $count).'-collection'] = $c;
