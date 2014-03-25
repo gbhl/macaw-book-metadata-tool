@@ -118,6 +118,13 @@ class Scan extends Controller {
 		$data['ip_address'] = $_SERVER['REMOTE_ADDR'];
 		$data['hostname'] = $this->common->_get_host($_SERVER['REMOTE_ADDR']);
 		$data['incoming_path'] = $this->cfg['incoming_directory'].'/'.$barcode;
+
+		// Make sure the path exists
+		if (!file_exists($data['incoming_path'])) {
+			mkdir($data['incoming_path']);
+			$this->logging->log('access', 'info', 'Created incoming directory: '.$data['incoming_path']);
+		}
+
 		$data['remote_path'] = $this->cfg['incoming_directory_remote'].'/'.$barcode;
 		$status = $this->book->status;
 		if ($status == 'new' || $status == 'scanning') {
@@ -125,8 +132,7 @@ class Scan extends Controller {
 		} else {
 			$data['book_has_missing_pages'] = true;		
 		}		
-		$this->load->view('scan/upload_view', $data);
-		
+		$this->load->view('scan/upload_view', $data);		
 	}
 	
 	/**
@@ -140,6 +146,13 @@ class Scan extends Controller {
 		$remotepath= $this->cfg['incoming_directory_remote'].'/'.$barcode;
 		$data['remotepath'] = $remotepath;
 		$data['incomingpath'] = $incomingpath;
+
+		// Make sure the path exists
+		if (!file_exists($data['incomingpath'])) {
+			mkdir($data['incomingpath']);
+			$this->logging->log('book', 'info', 'Created incoming directory: '.$data['incomingpath'], $barcode);
+		}
+
 		foreach ($_FILES as $fieldName => $file) {
 			move_uploaded_file($file['tmp_name'], $incomingpath.strip_tags(basename($file['name'])));
 			$this->logging->log('book', 'info', 'Uploaded '.$incomingpath.strip_tags(basename($file['name'])), $barcode);
