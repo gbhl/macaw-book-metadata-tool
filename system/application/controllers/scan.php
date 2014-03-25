@@ -262,7 +262,7 @@ class Scan extends Controller {
 			foreach ($files as $f) {
 				$info = get_file_info($incoming.'/'.$bc.'/'.$f, 'size');
 				$pages[] = array(
-					'filebase' => preg_replace('/\.(.+)$/', '', $f),
+					'filebase' => preg_replace('/^(.+)\.(.*?)$/', "$1", $f),
 					'size' => $info['size'],
 					'status' => 'New',
 				);

@@ -545,7 +545,7 @@ class Book extends Model {
 	 */
 	function add_page($filename = '', $width = 0, $height = 0, $bytes = 0, $status = 'Processed') {
 		// Create the filebase
-		$filebase = preg_replace('/\.(.+)$/', '', $filename);
+		$filebase = preg_replace('/(.+)\.(.*?)$/', "$1", $filename);
 
 		// Calculate the file extension.
 		$extension = pathinfo($filename, PATHINFO_EXTENSION);
@@ -1249,7 +1249,16 @@ class Book extends Model {
 					$files = get_filenames($incoming_dir.'/'.$this->barcode);
 						$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->barcode);
 					// Filter out files we want to ignore
+					setlocale(LC_ALL, 'en_US.UTF-8');
 					foreach ($files as $f) {
+						// Make sure the filename is ASCII, rename if necessary
+						$f_clean = iconv('utf-8', 'ASCII//TRANSLIT//IGNORE', $f);							
+						if ($f_clean != $f) {
+							// Rename the file
+							rename($incoming_dir.'/'.$this->barcode.'/'.$f, $incoming_dir.'/'.$this->barcode.'/'.$f_clean);
+							$f = $f_clean;
+						}
+						
 						if (preg_match("/\.(pdf|PDF)$/i", $f)) {							
 							$fname = $incoming_dir.'/'.$this->barcode.'/'.$f;	
 							$fnamenew = $book_dir.$f;
@@ -1274,6 +1283,7 @@ class Book extends Model {
 							// read page 1
 						}
 					}
+					
 					// Filter out files we want to ignore
 					$good_files = array();
 					$files = get_filenames($incoming_dir.'/'.$this->barcode);
@@ -1371,7 +1381,7 @@ class Book extends Model {
 		}
 
 		// Get the base of the filename
-		$filebase = preg_replace('/\.(.+)$/', '', $filename);
+		$filebase = preg_replace('/^(.+)\.(.*?)$/', "$1", $filename);
 		$dest = $this->cfg['data_directory'].'/'.$barcode;
 
 		// Create the preview JPEG
