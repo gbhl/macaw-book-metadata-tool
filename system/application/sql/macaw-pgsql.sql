@@ -88,7 +88,7 @@ CREATE TABLE page (
     id integer NOT NULL,
     item_id integer NOT NULL,
     sequence_number integer,
-    filebase character varying(64) NOT NULL,
+    filebase character varying(128) NOT NULL,
     status character varying(16) NOT NULL,
     created timestamp with time zone DEFAULT now() NOT NULL,
     bytes integer,
