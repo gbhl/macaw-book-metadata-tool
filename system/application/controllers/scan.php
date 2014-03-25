@@ -657,7 +657,7 @@ class Scan extends Controller {
 			$this->book->update();
 			$this->session->set_userdata('message', 'Changes saved! ');
 
-			header("Content-Type: application/json");
+			header("Content-Type: application/json; charset=utf-8");
 			echo json_encode(array('redirect' => $this->config->item('base_url').'main/listitems'));
 			$this->logging->log('access', 'info', 'Scanning review completed for '.$this->session->userdata('barcode').'.');
 
@@ -838,7 +838,7 @@ class Scan extends Controller {
 					$this->book->set_status('scanned');
 				} 
 
-				header("Content-Type: application/json");
+				header("Content-Type: application/json; charset=utf-8");
 				echo json_encode(array('redirect' => $this->config->item('base_url').'scan/review/'));
 				$this->logging->log('access', 'info', 'Missing pages inserted for '.$this->session->userdata('barcode').'.');
 				$this->logging->log('book', 'info', 'Missing pages inserted.', $this->session->userdata('barcode'));

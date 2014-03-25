@@ -274,7 +274,7 @@ class Common extends Controller {
 	 * @access public
 	 */
 	function ajax_headers() {
-        header("Content-Type: application/json");
+        header("Content-Type: application/json; charset=utf-8");
         header("Pragma: no-cache");
         header("Cache-Control: no-cache");
         header("Expires: ".standard_date('DATE_RFC822', time()));
