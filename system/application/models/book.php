@@ -837,14 +837,23 @@ class Book extends Model {
 				if (!isset($this->CI->user->username) || !$this->CI->user->username) {
 					$this->CI->user->load('admin');
 				}
-				$data = array(
-					'barcode' => $info['barcode'],
-					'status_code' => 'new',
-					'date_created' => 'now()',
-					'org_id' => $this->CI->user->org_id,
-					'needs_qa' => (($info['needs_qa'] == 1 || substr(strtolower($info['needs_qa']),0,1) == 'y') ? 't' : 'f')
-
-				);
+				if ($this->db->dbdriver == 'postgre') {
+					$data = array(
+						'barcode' => $info['barcode'],
+						'status_code' => 'new',
+						'date_created' => date('Y-m-d H:i:s'),
+						'org_id' => $this->CI->user->org_id,
+						'needs_qa' => (($info['needs_qa'] == 1 || substr(strtolower($info['needs_qa']),0,1) == 'y') ? 't' : 'f')
+					);				
+				} elseif ($this->db->dbdriver == 'mysql') {
+					$data = array(
+						'barcode' => $info['barcode'],
+						'status_code' => 'new',
+						'date_created' => date('Y-m-d H:i:s'),
+						'org_id' => $this->CI->user->org_id,
+						'needs_qa' => (($info['needs_qa'] == 1 || substr(strtolower($info['needs_qa']),0,1) == 'y') ? 1 : 0)
+					);				
+				}
 				$this->db->insert('item', $data);
 				$item_id = $this->db->insert_id();
 
@@ -911,12 +920,23 @@ class Book extends Model {
 	 */
 	function update() {
 		// Update the ITEM table
-		$data = array(
-			'pages_found' => $this->pages_found,
-			'pages_scanned' => $this->pages_scanned,
-			'scan_time' => $this->scan_time,
-			'needs_qa' => ($this->needs_qa ? 't' : 'f')
-		);
+		if ($this->db->dbdriver == 'postgre') {
+			$data = array(
+				'pages_found' => $this->pages_found,
+				'pages_scanned' => $this->pages_scanned,
+				'scan_time' => $this->scan_time,
+				'needs_qa' => ($this->needs_qa ? 't' : 'f')
+			);
+		} elseif ($this->db->dbdriver == 'mysql') {
+			$data = array(
+				'pages_found' => $this->pages_found,
+				'pages_scanned' => $this->pages_scanned,
+				'scan_time' => $this->scan_time,
+				'needs_qa' => ($this->needs_qa ? 1 : 0)
+			);
+		}
+
+
 		// Just in case, let's reset the org_id if it's empty. 
 		if (!$this->org_id) {
 			$data['org_id'] = $this->CI->user->org_id;
