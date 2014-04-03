@@ -4,7 +4,7 @@
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
 	<title>Admin | Macaw</title>
-	<? $this->load->view('global/head_view') ?>
+	<?php $this->load->view('global/head_view') ?>
 	<script type="text/javascript">
 		/* Initialization script, called when the page is ready */
 		function init() {
@@ -28,7 +28,7 @@
 	</script>
 </head>
 <body id="manualbody" class="yui-skin-sam">
-	<? $this->load->view('global/header_view') ?>
+	<?php $this->load->view('global/header_view') ?>
 			<div class="actionlist">
 			<div class="action-one">
 				<button type="button" id="btnCronNewItems">New Items</button>
@@ -38,6 +38,6 @@
 			</div>
 		</div>
 
-		<? $this->load->view('global/footer_view') ?>
+		<?php $this->load->view('global/footer_view') ?>
 </body>
 </html>

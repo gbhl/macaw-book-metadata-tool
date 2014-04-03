@@ -4,11 +4,11 @@
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
 	<title>Help | Macaw</title>
-	<? $this->load->view('global/head_view') ?>
+	<?php $this->load->view('global/head_view') ?>
 </head>
 <body class="yui-skin-sam">
 	<h2>Macaw Missing Pages Help</h2>
 
-	<a href="<? echo $this->config->item('base_url'); ?>help">&lt;&lt; Help Index</a>
+	<a href="<?php echo $this->config->item('base_url'); ?>help">&lt;&lt; Help Index</a>
 </body>
 </html>

@@ -4,7 +4,7 @@
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
 	<title>Review | Macaw</title>
-	<? $this->load->view('global/head_view') ?>
+	<?php $this->load->view('global/head_view') ?>
 	<style type="text/css" id="macaw_thumbs_css">
 		.thumb {
 			width: 75.5px;
@@ -44,8 +44,8 @@
 	</style>
 </head>
 <body class="yui-skin-sam">
-	<hidden name="bookid" value="<? echo  ?>"/>
-	<? $this->load->view('global/header_view') ?>
-	<h1><? echo $incomingpath?></h1>
+	<hidden name="bookid" value="<?php echo  ?>"/>
+	<?php $this->load->view('global/header_view') ?>
+	<h1><?php echo $incomingpath?></h1>
 </body>
 </html>

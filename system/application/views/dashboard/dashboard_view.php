@@ -4,15 +4,15 @@
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
 	<title>Dashboard | Macaw</title>
-	<? $this->load->view('global/head_view') ?>
+	<?php $this->load->view('global/head_view') ?>
 	<script type="text/javascript">
-		eval('var user_widgets = <? echo($user_widgets) ?>;');
+		eval('var user_widgets = <?php echo($user_widgets) ?>;');
 
 		YAHOO.util.Event.onDOMReady(YAHOO.macaw.Dashboard.init);
 	</script>
 </head>
 <body class="yui-skin-sam">
-	<? $this->load->view('global/header_view') ?>
+	<?php $this->load->view('global/header_view') ?>
 	<h1>Statistics</h1>
 	<div id="dashboard">
 
@@ -23,7 +23,7 @@
 		<div class="clear"><!-- --></div>
 	</div>
 
-	<? $this->load->view('global/footer_view') ?>
+	<?php $this->load->view('global/footer_view') ?>
 	<script type="text/javascript">
 		YAHOO.util.Dom.get("txtBarcode").focus();
 	</script>

@@ -4,10 +4,10 @@
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
 	<title>Scan | Monitor | Macaw</title>
-	<? $this->load->view('global/head_view') ?>
+	<?php $this->load->view('global/head_view') ?>
 </head>
 <body class="yui-skin-sam">
-	<? $this->load->view('global/header_view') ?>
+	<?php $this->load->view('global/header_view') ?>
 
 
 	<div id="scan_progress">
@@ -17,17 +17,17 @@
 			<div class="numberedinstructions">
 				<div class="instructionrow">
 					<div class="number">1</div>
-				<? if ($book_has_missing_pages) { ?>
+				<?php if ($book_has_missing_pages) { ?>
 					<div class="text"><p>Scan all of your missing pages first.</p></div>
-				<? } else { ?>
+				<?php } else { ?>
 					<div class="text"><p>Scan all of your pages.</p></div>
-				<? } ?>
+				<?php } ?>
 				</div>
 				<div class="instructionrow">
 					<div class="number">2</div>
 					<div class="text">
 						<p>Copy the scans to this network location:</p>
-						<strong><?=$remote_path?></strong>
+						<strong><?php =$remote_path?></strong>
 					</div>
 				</div>
 				<div class="instructionrow">
@@ -35,7 +35,7 @@
 					<div class="text">
 						<p>Start the import:</p>
 					
-						<button id="btnStartImport">Start Import</button> <? if ($book_has_missing_pages) { ?><button id="btnSkipImport">Skip Import</button> <? } else { ?><button id="btnSkipImport">Skip Import</button> <? } ?>
+						<button id="btnStartImport">Start Import</button> <?php if ($book_has_missing_pages) { ?><button id="btnSkipImport">Skip Import</button> <?php } else { ?><button id="btnSkipImport">Skip Import</button> <?php } ?>
 						<br><br>
 						While the scans will be copied to the server, you can monitor the progress on the right.
 					</div>
@@ -46,29 +46,29 @@
 
 			<div id="finished" style="display:none;">
 				<h3>The import is finished!</h3>
-				<? if ($book_has_missing_pages) { ?>
+				<?php if ($book_has_missing_pages) { ?>
 					<script type="text/javascript">Scanning.missingPages = true;</script>
 					<button id="btnInsertMissingPages">Insert Missing Pages</button>
-				<? } else {?>
+				<?php } else {?>
 					<button id="btnReviewNow">Review Now!</button>
-				<? } ?>
+				<?php } ?>
 			</div>
 
 			<script type="text/javascript">YAHOO.util.Event.onDOMReady(Scanning.initMonitor);</script>
 		</div>
 		<div id="progresswrapper">
-			<? if($book_has_missing_pages) { ?>
+			<?php if($book_has_missing_pages) { ?>
 		<h1>Missing Page Import</h1>
-	<? } else {?>
+	<?php } else {?>
 		<h1>Scanned Page Import</h1>
-	<? }?>	</div>
+	<?php }?>	</div>
 		<div id="progress">	
 		</div>
 		
 		<div class="clear"><!-- --></div>
 	</div>
 
-	<? $this->load->view('global/footer_view') ?>
+	<?php $this->load->view('global/footer_view') ?>
 	<script type="text/javascript">
 		YAHOO.util.Event.onDOMReady(function () { 
 			MessageBox.init();

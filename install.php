@@ -831,15 +831,15 @@
 		<div id="hd" role="banner">
 			<img src="images/logo.png" alt="logo.png" width="110" height="110" border="0" align="left" id="logo">
 			<div id="title">
-				<? if ($version_rev == 'VERSION_GOES_HERE') { ?>
+				<?php if ($version_rev == 'VERSION_GOES_HERE') { ?>
 					<h1>Macaw <div style="color:#C60;float:right;">DEVELOPMENT VERSION</div></h1>
 					<h2>Metadata Collection and Workflow System</h2>
 					<h3>Demo / Development Version</h3>
-				<? } else { ?>
+				<?php } else { ?>
 					<h1>Macaw</h1>
 					<h2>Metadata Collection and Workflow System</h2>
-					<h3>Version <? echo($version_rev); ?> / <? echo($version_date); ?></h3>
-				<? } ?>
+					<h3>Version <?php echo($version_rev); ?> / <?php echo($version_date); ?></h3>
+				<?php } ?>
 			</div>
 		</div>
 		<div id="bd" role="main" style="min-height:auto">
@@ -850,21 +850,21 @@
 							Installation Steps
 						</div>
 						<div class="bd" style="background-color: #f2f2f2;">
-							<div class="step<? if($step == 1) {echo(" active");} ?>">1. Database Connection</div>
-							<div class="step<? if($step == 2) {echo(" active");} ?>">2. Database Initialization</div>
-							<div class="step<? if($step == 3) {echo(" active");} ?>">3. Administrator Setup</div>
-							<div class="step<? if($step == 4) {echo(" active");} ?>">4. Administrator Review</div>
-							<div class="step<? if($step == 5) {echo(" active");} ?>">5. File and URL Locations</div>
-							<div class="step<? if($step == 6) {echo(" active");} ?>">6. File Locations Review</div>
-							<div class="step<? if($step == 7) {echo(" active");} ?>">7. Finished</div>
+							<div class="step<?php if($step == 1) {echo(" active");} ?>">1. Database Connection</div>
+							<div class="step<?php if($step == 2) {echo(" active");} ?>">2. Database Initialization</div>
+							<div class="step<?php if($step == 3) {echo(" active");} ?>">3. Administrator Setup</div>
+							<div class="step<?php if($step == 4) {echo(" active");} ?>">4. Administrator Review</div>
+							<div class="step<?php if($step == 5) {echo(" active");} ?>">5. File and URL Locations</div>
+							<div class="step<?php if($step == 6) {echo(" active");} ?>">6. File Locations Review</div>
+							<div class="step<?php if($step == 7) {echo(" active");} ?>">7. Finished</div>
 						</div>
 					</div>
 				</div>
 				<div class="yui-u">
-					<div class="yui-module yui-overlay yui-panel" <? if ($step != 0) {echo('style="display: none;"');} ?>>
+					<div class="yui-module yui-overlay yui-panel" <?php if ($step != 0) {echo('style="display: none;"');} ?>>
 						<div class="hd">Preliminary Checkup</div>
 						<div class="bd">
-							<?
+							<?php
 							if ($errormessage) {
 								echo ('<div class="errormessage">'.$errormessage.'</div>');
 							} elseif ($message) {
@@ -873,10 +873,10 @@
 							?>
 						</div>
 					</div>
-					<div class="yui-module yui-overlay yui-panel" <? if ($step != 1) {echo('style="display: none;"');} ?>>
+					<div class="yui-module yui-overlay yui-panel" <?php if ($step != 1) {echo('style="display: none;"');} ?>>
 						<div class="hd">Step 1: Database Connection</div>
 						<div class="bd">
-							<?
+							<?php
 							if ($errormessage) {
 								echo ('<div class="errormessage">'.$errormessage.'</div>');
 							} elseif ($message) {
@@ -897,30 +897,30 @@
 										<td>Database Type:</td>
 										<td>
 											<select name="database_type">
-													<option value="postgre" <? if ($db_dbdriver == 'postgre') { echo('selected'); } ?>>PostgreSQL</option>
-													<option value="mysql" <? if ($db_dbdriver == 'mysql') { echo('selected'); } ?>>MySQL</option>
+													<option value="postgre" <?php if ($db_dbdriver == 'postgre') { echo('selected'); } ?>>PostgreSQL</option>
+													<option value="mysql" <?php if ($db_dbdriver == 'mysql') { echo('selected'); } ?>>MySQL</option>
 											</select>
 										</td>
 									</tr>
 									<tr>
 										<td>Database Name:</td>
-										<td><input type="text" name="database_name" value="<? echo($db_database); ?>" maxlength="64"></td>
+										<td><input type="text" name="database_name" value="<?php echo($db_database); ?>" maxlength="64"></td>
 									</tr>
 									<tr>
 										<td>Database Username:</td>
-										<td><input type="text" name="database_username" value="<? echo($db_username); ?>" maxlength="64"></td>
+										<td><input type="text" name="database_username" value="<?php echo($db_username); ?>" maxlength="64"></td>
 									</tr>
 									<tr>
 										<td>Database Password:</td>
-										<td><input type="password" name="database_password" value="<? echo($db_password); ?>" maxlength="64"></td>
+										<td><input type="password" name="database_password" value="<?php echo($db_password); ?>" maxlength="64"></td>
 									</tr>
 									<tr>
 										<td>Database Host:</td>
-										<td><input type="text" name="database_host" value="<? echo($db_hostname); ?>" maxlength="64"></td>
+										<td><input type="text" name="database_host" value="<?php echo($db_hostname); ?>" maxlength="64"></td>
 									</tr>
 									<tr>
 										<td>Database Port:</td>
-										<td><input type="text" name="database_port" value="<? echo($db_port); ?>" maxlength="64"> (optional)</td>
+										<td><input type="text" name="database_port" value="<?php echo($db_port); ?>" maxlength="64"> (optional)</td>
 									</tr>
 								</table>
 								<div style="float:right">
@@ -930,45 +930,45 @@
 							</form>
 						</div>
 					</div>
-					<div class="yui-module yui-overlay yui-panel" <? if ($step != 2) {echo('style="display: none;"');} ?>>
+					<div class="yui-module yui-overlay yui-panel" <?php if ($step != 2) {echo('style="display: none;"');} ?>>
 						<div class="hd">Step 2: Database Initialization</div>
 						<div class="bd">
 							<form action="install.php" method="post">
 								<input type="hidden" name="step" value="2">
 								<div style="margin-bottom: 10px">
-									<? if ($success) { ?>
+									<?php if ($success) { ?>
 										<p class="success">Success!</p>
-										<? if ($db_created) { ?>
+										<?php if ($db_created) { ?>
 											<p>Your database was created successfully.</p>
-										<? } else { ?>
+										<?php } else { ?>
 											<p>We were able to connect to your database successfully. Your database already exists, so there's nothing
 											more that we need to do here.</p>
-										<? } ?>
-									<?  } else { ?>
+										<?php } ?>
+									<?php  } else { ?>
 										<p class="failure">We had a problem...</p>
 										<p>We had some trouble connecting to or creating your database. The exact message is:</p>
 										<div class="errormessage">
-											<? echo($errormessage) ?>
+											<?php echo($errormessage) ?>
 										</div>
-									<? } ?>
+									<?php } ?>
 									<br>
 								</div>
 								<div style="float:left">
 									<input type="submit" name="submit" value="&lt;&lt; Back">
 								</div>
-								<? if($success) { ?>
+								<?php if($success) { ?>
 								<div style="float:right">
 									<input type="submit" name="submit" value="Next &gt;&gt;">
 								</div>
-								<? } ?>
+								<?php } ?>
 								<div class="clear"><!-- --></div>
 							</form>
 						</div>
 					</div>
-					<div class="yui-module yui-overlay yui-panel" <? if ($step != 3) {echo('style="display: none;"');} ?>>
+					<div class="yui-module yui-overlay yui-panel" <?php if ($step != 3) {echo('style="display: none;"');} ?>>
 						<div class="hd">Step 3: Additional Information and Administrator Setup</div>
 						<div class="bd">
-							<? if ($errormessage) {
+							<?php if ($errormessage) {
 									echo ('<div class="errormessage">'.$errormessage.'</div>');
 								} ?>
 							<p>Next, let's entering some information about the you and your organization.</p>
@@ -977,19 +977,19 @@
 								<table border="0" cellspacing="0" cellpadding="2">
 									<tr>
 										<td>Organization Name:</td>
-										<td><input type="text" name="organization_name" value="<? echo($organization_name); ?>" maxlength="64"></td>
+										<td><input type="text" name="organization_name" value="<?php echo($organization_name); ?>" maxlength="64"></td>
 									</tr>
 									<tr>
 										<td>Full Name:</td>
-										<td><input type="text" name="admin_full_name" value="<? echo($admin_fullname); ?>" maxlength="64"></td>
+										<td><input type="text" name="admin_full_name" value="<?php echo($admin_fullname); ?>" maxlength="64"></td>
 									</tr>
 									<tr>
 										<td>Email Address:</td>
-										<td><input type="text" name="admin_email" value="<? echo($admin_email); ?>" maxlength="64"></td>
+										<td><input type="text" name="admin_email" value="<?php echo($admin_email); ?>" maxlength="64"></td>
 									</tr>
 									<tr>
 										<td>Username:</td>
-										<td><? echo($admin_username); ?></td>
+										<td><?php echo($admin_username); ?></td>
 									</tr>
 									<tr>
 										<td>Password:</td>
@@ -1003,46 +1003,46 @@
 								<div style="float:left">
 									<input type="submit" name="submit" value="&lt;&lt; Back">
 								</div>
-								<? if($success) { ?>
+								<?php if($success) { ?>
 								<div style="float:right">
 									<input type="submit" name="submit" value="Next &gt;&gt;">
 								</div>
-								<? } ?>
+								<?php } ?>
 								<div class="clear"><!-- --></div>
 							</form>
 						</div>
 					</div>
-					<div class="yui-module yui-overlay yui-panel" <? if ($step != 4) {echo('style="display: none;"');} ?>>
+					<div class="yui-module yui-overlay yui-panel" <?php if ($step != 4) {echo('style="display: none;"');} ?>>
 						<div class="hd">Step 4: Administrator Review</div>
 						<div class="bd">
 							<form action="install.php" method="post">
 								<input type="hidden" name="step" value="4">
 								<div style="margin-bottom: 10px">
-									<? if ($success) { ?>
+									<?php if ($success) { ?>
 										<p class="success">Success!</p>
 										<p>Administrator settings were saved correctly.</p>
-									<?  } else { ?>
+									<?php  } else { ?>
 										<p class="failure">We had a problem...</p>
 										<p>We had some trouble saving the administrator settings.</p>
 										<div class="errormessage">
-											<? echo($errormessage) ?>
+											<?php echo($errormessage) ?>
 										</div>
-									<? } ?>
+									<?php } ?>
 									<br>
 								</div>
 								<div style="float:left">
 									<input type="submit" name="submit" value="&lt;&lt; Back">
 								</div>
-								<? if($success) { ?>
+								<?php if($success) { ?>
 								<div style="float:right">
 									<input type="submit" name="submit" value="Next &gt;&gt;">
 								</div>
-								<? } ?>
+								<?php } ?>
 								<div class="clear"><!-- --></div>
 							</form>
 						</div>
 					</div>
-					<div class="yui-module yui-overlay yui-panel" <? if ($step != 5) {echo('style="display: none;"');} ?>>
+					<div class="yui-module yui-overlay yui-panel" <?php if ($step != 5) {echo('style="display: none;"');} ?>>
 						<div class="hd">Step 5: File and URL Locations</div>
 						<div class="bd">
 							Please verify the following information.<br><br>
@@ -1052,21 +1052,21 @@
 									<tr>
 										<td valign="top">Base Path:</td>
 										<td>
-											<input type="text" name="base_path" value="<? echo($base_path); ?>" maxlength="1024" style="width: 450px;">
+											<input type="text" name="base_path" value="<?php echo($base_path); ?>" maxlength="1024" style="width: 450px;">
 											<div class="grey">This should already be correct and should not be changed.</div>
 										</td>
 									</tr>
 									<tr>
 										<td valign="top">Base URL:</td>
 										<td>
-											<input type="text" name="base_url" value="<? echo($base_url); ?>" maxlength="1024" style="width: 450px">
+											<input type="text" name="base_url" value="<?php echo($base_url); ?>" maxlength="1024" style="width: 450px">
 											<div class="grey">Must include "http://". This is accurate but it may need to be updated to a fully-qualified domain name.</div>
 										</td>
 									</tr>
 									<tr>
 										<td valign="top">Incoming Directory:</td>
 										<td>
-											<input type="text" name="incoming_path" value="<? echo($incoming_path); ?>" maxlength="1024" style="width: 450px">
+											<input type="text" name="incoming_path" value="<?php echo($incoming_path); ?>" maxlength="1024" style="width: 450px">
 											<div class="grey">This is where Macaw will look for new pages for books. Must be an absolute path on the server.</div>
 										</td>
 									</tr>
@@ -1074,89 +1074,89 @@
 								<div style="float:left">
 									<input type="submit" name="submit" value="&lt;&lt; Back">
 								</div>
-								<? if($success) { ?>
+								<?php if($success) { ?>
 								<div style="float:right">
 									<input type="submit" name="submit" value="Next &gt;&gt;">
 								</div>
-								<? } ?>
+								<?php } ?>
 								<div class="clear"><!-- --></div>
 							</form>
 						</div>
 					</div>
-					<div class="yui-module yui-overlay yui-panel" <? if ($step != 6) {echo('style="display: none;"');} ?>>
+					<div class="yui-module yui-overlay yui-panel" <?php if ($step != 6) {echo('style="display: none;"');} ?>>
 						<div class="hd">Step 6: File Locations Review</div>
 						<div class="bd">
 							<form action="install.php" method="post">
 								<input type="hidden" name="step" value="6">
 								<div style="margin-bottom: 10px">
-									<? foreach ($paths as $p) { ?>
+									<?php foreach ($paths as $p) { ?>
 										<p>
-											<strong><? echo($p['name']) ?>:</strong> <? echo($p['path']) ?><br>
+											<strong><?php echo($p['name']) ?>:</strong> <?php echo($p['path']) ?><br>
 											<strong>Status: </strong>
-											<span class="<? echo($p['success'] ? 'success' : 'failure')?> small"><? echo($p['message']) ?></span>
+											<span class="<?php echo($p['success'] ? 'success' : 'failure')?> small"><?php echo($p['message']) ?></span>
 										</p>
-									<? } ?>
+									<?php } ?>
 									<br>
 								</div>
 								<div style="float:left">
 									<input type="submit" name="submit" value="&lt;&lt; Back">
 								</div>
-								<? if($success) { ?>
+								<?php if($success) { ?>
 								<div style="float:right">
 									<input type="submit" name="submit" value="Next &gt;&gt;">
 								</div>
-								<? } else {?>
+								<?php } else {?>
 								<div style="float:right">
 									<input type="submit" name="submit" value="Retry &gt;&gt;">
 								</div>
 								
-								<? } ?>
+								<?php } ?>
 								<div class="clear"><!-- --></div>
 							</form>
 						</div>
 					</div>
-					<div class="yui-module yui-overlay yui-panel" <? if ($step != 7) {echo('style="display: none;"');} ?>>
+					<div class="yui-module yui-overlay yui-panel" <?php if ($step != 7) {echo('style="display: none;"');} ?>>
 						<div class="hd">Setup Complete!</div>
 						<div class="bd">
 							<div style="margin-bottom: 10px">
 								<div class="success">Macaw is set up and ready to go!</div>
 
-								<h1><a href="<? echo($config['base_url']); ?>"><? echo($config['base_url']); ?></a></h1>
+								<h1><a href="<?php echo($config['base_url']); ?>"><?php echo($config['base_url']); ?></a></h1>
 
 								<p>
 									Below is a summary of the settings you made. Other settings may be adjusted in the <strong>/system/application/config/macaw.php</strong> file.
 									<blockquote>
 										<h3>Administrator Information</h3>
 										<blockquote>
-											<strong>Full Name:</strong> <? echo($admin_fullname); ?><br>
+											<strong>Full Name:</strong> <?php echo($admin_fullname); ?><br>
 											<strong>Username:</strong> admin<br>
 											<strong>Password:</strong> **********
 										</blockquote>
 
 										<h3>Databsase Information</h3>
 										<blockquote>
-											<strong>Type:</strong> <? echo($database_driver); ?><br>
-											<strong>Host:</strong> <? echo($db['default']['hostname']); ?> <br>
-											<strong>Port:</strong> <? echo($db['default']['port'] ? $db['default']['port'] : 5432); ?> <br>
-											<strong>Database Name:</strong> <? echo($db['default']['database']); ?><br>
-											<strong>Username:</strong> <? echo($db['default']['username']); ?><br>
+											<strong>Type:</strong> <?php echo($database_driver); ?><br>
+											<strong>Host:</strong> <?php echo($db['default']['hostname']); ?> <br>
+											<strong>Port:</strong> <?php echo($db['default']['port'] ? $db['default']['port'] : 5432); ?> <br>
+											<strong>Database Name:</strong> <?php echo($db['default']['database']); ?><br>
+											<strong>Username:</strong> <?php echo($db['default']['username']); ?><br>
 											<strong>Password:</strong> **********
 										</blockquote>
 
 										<h3>Paths</h3>
 										<blockquote>
-											<strong>Base URL:</strong> <? echo($config['base_url']); ?><br>
-											<strong>Base Directory:</strong> <? echo($config['macaw']['base_directory']); ?><br>
-											<strong>Data Directory:</strong> <? echo($config['macaw']['data_directory']); ?><br>
-											<strong>Incoming Directory:</strong> <? echo($config['macaw']['incoming_directory']); ?><br>
-											<strong>Logs Directory:</strong> <? echo($config['macaw']['logs_directory']); ?><br>
+											<strong>Base URL:</strong> <?php echo($config['base_url']); ?><br>
+											<strong>Base Directory:</strong> <?php echo($config['macaw']['base_directory']); ?><br>
+											<strong>Data Directory:</strong> <?php echo($config['macaw']['data_directory']); ?><br>
+											<strong>Incoming Directory:</strong> <?php echo($config['macaw']['incoming_directory']); ?><br>
+											<strong>Logs Directory:</strong> <?php echo($config['macaw']['logs_directory']); ?><br>
 										</blockquote>
 									</blockquote>
 								</p>
 
 								<div class="warning">
-									<span style="color:#990000;font-weight:bold;">IMPORTANT:</span> The file <strong><? echo($config['macaw']['base_directory']); ?>/install.php</strong> has been deleted for security reasons.<br><br>
-									You may also remove write permissions to the configuration directory: <strong><? echo($config['macaw']['base_directory']); ?>/system/application/config</strong>
+									<span style="color:#990000;font-weight:bold;">IMPORTANT:</span> The file <strong><?php echo($config['macaw']['base_directory']); ?>/install.php</strong> has been deleted for security reasons.<br><br>
+									You may also remove write permissions to the configuration directory: <strong><?php echo($config['macaw']['base_directory']); ?>/system/application/config</strong>
 								</div>
 
 							</div>

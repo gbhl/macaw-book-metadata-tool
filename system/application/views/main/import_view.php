@@ -4,12 +4,12 @@
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
 	<title>Macaw</title>
-	<? $this->load->view('global/head_view') ?>
+	<?php $this->load->view('global/head_view') ?>
 	<script type="text/javascript">YAHOO.util.Event.onDOMReady(Import.init);</script>
 </head>
 <body class="yui-skin-sam">
-	<? $this->load->view('global/header_view') ?>
-	<? $this->load->view('global/error_messages_view') ?>
+	<?php $this->load->view('global/header_view') ?>
+	<?php $this->load->view('global/error_messages_view') ?>
 	<div id="import">
 		<h1>Import CSV File</h1>
 		<form id="upload_form" enctype="multipart/form-data" name="upload_form">
@@ -21,6 +21,6 @@
 			<div id="message"></div>
 		</div>
 	</div>
-	<? $this->load->view('global/footer_view') ?>
+	<?php $this->load->view('global/footer_view') ?>
 </body>
 </html>

@@ -1,4 +1,4 @@
-<?
+<?php
 	// Reminder: The site configuration is available in the $config variable.
 	$page_types =array(
 		'Appendix', 'Article start', 'Article end', 'Blank', 'Bibliography', 'Copyright', 'Cover', 'Fold Out',
@@ -33,11 +33,11 @@
 							<input type="text" name="page_prefix" id="page_prefix" value="" onChange="YAHOO.macaw.Standard_Metadata.metadataChange(this);" onFocus="focusOn(this);" onBlur="focusOff();" title="Page Number Prefix">
 							<input type="text" name="page_number" id="page_number" value="" onChange="YAHOO.macaw.Standard_Metadata.metadataChange(this);" onFocus="focusOn(this);" onBlur="focusOff();" title="Page Number Value">
 							<input type="checkbox" name="page_number_implicit" id="page_number_implicit" value="" onChange="YAHOO.macaw.Standard_Metadata.metadataChange(this);" onFocus="focusOn(this);" onBlur="focusOff();" title="Implied Page Number?"> <em id="page_number_implicit_text">impl.</em>
-							<img src="<? echo $this->config->item('base_url'); ?>images/icons/application_form_edit.png" id="btnShowPagesDlg" class="icon">&nbsp;<img src="<? echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearPageNumber" class="icon" onMouseOver="this.src='<? echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<? echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';">
+							<img src="<?php echo $this->config->item('base_url'); ?>images/icons/application_form_edit.png" id="btnShowPagesDlg" class="icon">&nbsp;<img src="<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearPageNumber" class="icon" onMouseOver="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';">
 						</td>
 					</tr>
 					<tr>
-						<td nowrap><label for="page_type">Page&nbsp;Type:&nbsp;<img src="<? echo $this->config->item('base_url'); ?>images/icons/add.png" id="btnShowAddPageTypeDlg" class="icon">&nbsp;<img src="<? echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearPageType" class="icon" onMouseOver="this.src='<? echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<? echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';"></label></td>
+						<td nowrap><label for="page_type">Page&nbsp;Type:&nbsp;<img src="<?php echo $this->config->item('base_url'); ?>images/icons/add.png" id="btnShowAddPageTypeDlg" class="icon">&nbsp;<img src="<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearPageType" class="icon" onMouseOver="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';"></label></td>
 						<td>
 							<div id="page_types"></div>
 							<div class="clear"><!-- --></div>
@@ -46,17 +46,17 @@
 					<tr>
 						<td><label for="year">Year:</label></td>
 						<td>
-							<input type="text" name="year" id="year" value="" onChange="YAHOO.macaw.Standard_Metadata.metadataChange(this);" onFocus="focusOn(this);" onBlur="focusOff();">&nbsp;<img src="<? echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearYear" class="icon" onMouseOver="this.src='<? echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<? echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';">
+							<input type="text" name="year" id="year" value="" onChange="YAHOO.macaw.Standard_Metadata.metadataChange(this);" onFocus="focusOn(this);" onBlur="focusOff();">&nbsp;<img src="<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearYear" class="icon" onMouseOver="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';">
 						</td>
 					</tr>
 					<tr>
 						<td><label for="volume">Volume:</label></td>
 						<td id="tdYearVolume">
-							<input type="text" name="volume" id="volume" value="" onChange="YAHOO.macaw.Standard_Metadata.metadataChange(this);" onFocus="focusOn(this);" onBlur="focusOff();">&nbsp;<img src="<? echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearVolume" class="icon" onMouseOver="this.src='<? echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<? echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';">
+							<input type="text" name="volume" id="volume" value="" onChange="YAHOO.macaw.Standard_Metadata.metadataChange(this);" onFocus="focusOn(this);" onBlur="focusOff();">&nbsp;<img src="<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearVolume" class="icon" onMouseOver="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';">
 						</td>
 					</tr>
 					<tr>
-						<td nowrap><label for="piece">Piece:&nbsp;<img src="<? echo $this->config->item('base_url'); ?>images/icons/add.png" id="btnShowAddPieceDlg" class="icon">&nbsp;<img src="<? echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearPiece" class="icon" onMouseOver="this.src='<? echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<? echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';"></label></td>
+						<td nowrap><label for="piece">Piece:&nbsp;<img src="<?php echo $this->config->item('base_url'); ?>images/icons/add.png" id="btnShowAddPieceDlg" class="icon">&nbsp;<img src="<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearPiece" class="icon" onMouseOver="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';"></label></td>
 						<td>
 							<div id="pieces"></div>
 							<div class="clear"><!-- --></div>
@@ -67,8 +67,8 @@
 						<td>
 							<select id="page_side" onChange="YAHOO.macaw.Standard_Metadata.metadataChange(this);" onFocus="focusOn(this);" onBlur="focusOff();">
 								<option value=""></option>
-								<? echo(implode('', array_map('option', $page_sides))); ?>
-							</select>&nbsp;<img src="<? echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearPageSide" class="icon" onMouseOver="this.src='<? echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<? echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';">
+								<?php echo(implode('', array_map('option', $page_sides))); ?>
+							</select>&nbsp;<img src="<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearPageSide" class="icon" onMouseOver="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';">
 						</td>
 					</tr>
 				</table>
@@ -101,14 +101,14 @@
 	<div id="dlgHTMLSelectPageType" style="display: none">
 		Type: <select id="selPageType" onChange="YAHOO.macaw.Standard_Metadata.evtAddPageType(this);" onFocus="focusOn(this);" onBlur="focusOff();">
 			<option value=""></option>
-			<? echo(implode('', array_map('option', $page_types))); ?>
+			<?php echo(implode('', array_map('option', $page_types))); ?>
 		</select>
 	</div>
 	<div id="dlgHTMLSelectPiece" style="display: none">
 		<div style="float:right;font-size: 80%; color: #999;margin-left: 5px;">(Type Enter<br>to Save)</div>
 		Piece: <select id="selPiece" onFocus="focusOn(this);" onBlur="focusOff();">
 			<option value=""></option>
-			<? echo(implode('', array_map('option', $piece_types))); ?>
+			<?php echo(implode('', array_map('option', $piece_types))); ?>
 		</select>
 		Value: <input id="txtPieceExtra" type="text" size="3" maxlength="20" onKeyPress="YAHOO.macaw.Standard_Metadata.evtAddPiece(getKeyCode(event));" onFocus="focusOn(this);" onBlur="focusOff();">
 	</div>

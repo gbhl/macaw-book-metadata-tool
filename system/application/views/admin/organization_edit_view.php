@@ -1,9 +1,9 @@
-<form action="<? echo $this->config->item('base_url'); ?>admin/organization_save/" method="post">
-<? if ($new) { ?>
+<form action="<?php echo $this->config->item('base_url'); ?>admin/organization_save/" method="post">
+<?php if ($new) { ?>
 <input type="hidden" name="new" value="1">
-<? } else { ?>
-<input type="hidden" name="id" value="<? echo($id); ?>">
-<? }?>
+<?php } else { ?>
+<input type="hidden" name="id" value="<?php echo($id); ?>">
+<?php }?>
 <table border="0" cellspacing="5" cellpadding="5">
 	<tr>
 		<td>Organization Name:</td>
