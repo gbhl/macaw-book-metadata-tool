@@ -222,6 +222,12 @@ class Internet_archive extends Controller {
 				echo 'IDENTIFIER IS '.$id.' ('.$bc.")\n";
 				if ($id == null || $id == '00') {
 					echo '(exporting) Could not get an identifier for item with barcode '.$bc.'. Check the metadata.'."\n";
+
+					$message = "Error processing export.\n\n".
+						"Identifier:    ".$bc."\n\n".
+						"IA Identifier: ".$id."\n\n".
+						"Error Message: Could not get an identifier for item with barcode ".$bc.". Check the metadata.\n";
+					$this->CI->common->email_error($message);
 					continue;
 				}
 
@@ -560,7 +566,7 @@ class Internet_archive extends Controller {
 						"Identifier:    ".$bc."\n\n".
 						"IA Identifier: ".$id."\n\n".
 						"Error Message: Bucket at Internet Archive not created after 15 minutes. Will try again later.\n".
-						"Command: \n\n".$cmd."\n\n";
+						"Command: \n\n".$cmd."\n\n".
 						"Output: \n\n".$output_text."\n\n";
 					$this->CI->common->email_error($message);
 					continue;
