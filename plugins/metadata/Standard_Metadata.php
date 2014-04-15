@@ -3,7 +3,7 @@
 	$page_types =array(
 		'Appendix', 'Article start', 'Article end', 'Blank', 'Bibliography', 'Copyright', 'Cover', 'Fold Out',
 		'Illustration', 'Index', 'Issue Start', 'Issue End', 'Map', 'Table of Contents', 'Text', 'Title Page',
-		'Suppress', 'Tissue', 'White card', 'Color card'
+		'Specimen', 'Suppress', 'Tissue', 'White card', 'Color card'
 	);
 	$piece_types = array('Issue', 'No.', 'Part');
 	$page_sides = array('Left (verso)', 'Right (recto)');
