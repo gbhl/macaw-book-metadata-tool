@@ -4,12 +4,12 @@
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
 	<title>Admin | Macaw</title>
-	<? $this->load->view('global/head_view') ?>
+	<?php $this->load->view('global/head_view') ?>
 
 </head>
 <body class="yui-skin-sam">
-	<? $this->load->view('global/header_view') ?>
+	<?php $this->load->view('global/header_view') ?>
 	<p>Select a function from the tabs above</p>
-		<? $this->load->view('global/footer_view') ?>
+		<?php $this->load->view('global/footer_view') ?>
 </body>
 </html>

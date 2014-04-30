@@ -6,7 +6,7 @@
 	<title>Review | Macaw</title>
 	<!-- 29/05/12 temp insert to retain old style -->
 	<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/combo?2.9.0/build/reset-fonts-grids/reset-fonts-grids.css&2.9.0/build/base/base-min.css&2.9.0/build/assets/skins/sam/skin.css"> 
-	<? $this->load->view('global/head_view') ?>
+	<?php $this->load->view('global/head_view') ?>
 	<style type="text/css" id="macaw_thumbs_css">
 		.thumb {
 			width: 75.5px;
@@ -46,7 +46,7 @@
 	</style>
 </head>
 <body id="bodyreview" class="yui-skin-sam">
-	<? $this->load->view('global/header_view') ?>
+	<?php $this->load->view('global/header_view') ?>
 
 		<div class="yui-gc">
 			<div class="yui-u first" id="metathumbsection">
@@ -69,21 +69,21 @@
 							<input id="btnToggleThumbs" type="radio" name="list_or_thumbs" value="Th" checked title="Thumbnail View"><input id="btnToggleList" type="radio" name="list_or_thumbs" value="Ls" title="List View">
 						</div>
 						<div id="slider">
-							<div class="icon"><img src="<? echo $this->config->item('base_url'); ?>images/icons/picture.png" border="0" height="16" width="16" title="Zoom Out"></div>
-							<div id="sliderbg"><div id="sliderthumb"><img src="<? echo $this->config->item('base_url'); ?>images/icons/slider-thumb-n.gif"></div></div>
-							<div class="icon"><img src="<? echo $this->config->item('base_url'); ?>images/icons/bullet_picture.png" border="0" height="16" width="16" title="Zoom In"></div>
+							<div class="icon"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/picture.png" border="0" height="16" width="16" title="Zoom Out"></div>
+							<div id="sliderbg"><div id="sliderthumb"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/slider-thumb-n.gif"></div></div>
+							<div class="icon"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/bullet_picture.png" border="0" height="16" width="16" title="Zoom In"></div>
 						</div>
 					</div>
 				</div>
 				<div id="metadata" class="yui-gc">
 					<div class="yui-u first" style="width: 100%">
-						<? $this->load->view('scan/metadata_form_view') ?>
+						<?php $this->load->view('scan/metadata_form_view') ?>
 					</div>
 				</div>
 			</div>
 			<div id="preview" class="yui-u" style="width: 31.5%; margin-left: 0; margin-right:.5em;">
 				
-				<a href="#" onClick="return General.showMagnifier();"><img src="<? echo $this->config->item('base_url'); ?>images/spacer.gif" border="0" id="preview_img" style="height: 100%; width: 100%;"></a>
+				<a href="#" onClick="return General.showMagnifier();"><img src="<?php echo $this->config->item('base_url'); ?>images/spacer.gif" border="0" id="preview_img" style="height: 100%; width: 100%;"></a>
 				
 			</div>
 			<div id="save_buttons"> 
@@ -91,15 +91,15 @@
 				<button id="btnFinished">Review Complete</button>
 			</div>
 			<div id="splitter" class="yui-u">
-				<img src="<? echo $this->config->item('base_url'); ?>images/icons/resultset_next.png" border="0" height="16" width="16" id="btnToggle" alt="Hide preview and metadata">
+				<img src="<?php echo $this->config->item('base_url'); ?>images/icons/resultset_next.png" border="0" height="16" width="16" id="btnToggle" alt="Hide preview and metadata">
 			</div>
 		</div>
-	<? $this->load->view('global/footer_view') ?>
-	<? foreach ($metadata_modules as $m) {
+	<?php $this->load->view('global/footer_view') ?>
+	<?php foreach ($metadata_modules as $m) {
 		echo '<script type="text/javascript" src="'.$this->config->item('base_url').'plugins/metadata/'.$m.'.js"></script>'."\n";
 	} ?>
 	<script type="text/javascript">
-		<? foreach ($metadata_modules as $m) {echo 'Scanning.metadataModules.push(\''.$m.'\');'."\n";} ?>
+		<?php foreach ($metadata_modules as $m) {echo 'Scanning.metadataModules.push(\''.$m.'\');'."\n";} ?>
 		YAHOO.util.Event.onContentReady("preview_img", Scanning.initReview);
 		var styleSheet = YAHOO.util.StyleSheet('macaw_thumbs_css');
 	</script>

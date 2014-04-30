@@ -1,4 +1,4 @@
-<? 
+<?php 
 $CI = get_instance();
 $CI->load->library('clicheck');
 if ($CI->clicheck->isCli()) { 
@@ -36,4 +36,4 @@ if ($CI->clicheck->isCli()) {
 </body>
 </html>
 
-<? } ?>
+<?php } ?>

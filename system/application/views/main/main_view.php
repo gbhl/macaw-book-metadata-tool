@@ -4,7 +4,7 @@
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
 	<title>Macaw</title>
-	<? $this->load->view('global/head_view') ?>
+	<?php $this->load->view('global/head_view') ?>
 	<script type="text/javascript">
 		/* Initialization script, called when the page is ready */
 		function init() {
@@ -26,23 +26,23 @@
 	</script>
 </head>
 <body class="yui-skin-sam">
-	<? $this->load->view('global/header_view') ?>
+	<?php $this->load->view('global/header_view') ?>
 	
 	<!-- removed messaging and put it in the headerview -->
 
 	<div id="main">
-		<? 		if ($this->session->userdata('barcode')) {
+		<?php 		if ($this->session->userdata('barcode')) {
 			$this->book->load($this->session->userdata('barcode'));
 			$status = $this->book->status;
 			if ($status == "reviewed"){ ?>
 				<h2> Review Complete</h2>
-				<? if ($this->book->needs_qa){ ?>
+				<?php if ($this->book->needs_qa){ ?>
 					<p class="note">This item is awaiting QA </p>
-				<? } else { ?>
+				<?php } else { ?>
 					<p class="note">This item is completed and will be upload or exported at the next scheduled time.</p>
-				<? } ?>
-			<? } } ?>
+				<?php } ?>
+			<?php } } ?>
 	</div>
-	<? $this->load->view('global/footer_view') ?>
+	<?php $this->load->view('global/footer_view') ?>
 </body>
 </html>

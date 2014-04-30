@@ -14,7 +14,7 @@ CREATE TABLE account (
     email varchar(128),
     organization int(11), 
     PRIMARY KEY(`id`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB;
 
 CREATE TABLE item (
     id int(11) auto_increment NOT NULL,
@@ -35,21 +35,21 @@ CREATE TABLE item (
     date_completed timestamp,
     date_archived timestamp
 , PRIMARY KEY(`id`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB;
 
 CREATE TABLE item_export_status (
     item_id int(11),
     export_module varchar(64),
     status_code varchar(32),
     date timestamp
-) TYPE=InnoDB;
+) ENGINE=InnoDB;
 
 CREATE TABLE logging (
     date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
     statistic varchar(16),
     value bigint,
     value_text varchar(128)
-) TYPE=InnoDB;
+) ENGINE=InnoDB;
 
 CREATE TABLE metadata (
     item_id int(11) NOT NULL,
@@ -58,7 +58,7 @@ CREATE TABLE metadata (
     counter int(11) DEFAULT 1,
     value text,
     value_large text
-) TYPE=InnoDB;
+) ENGINE=InnoDB;
 
 CREATE TABLE organization (
     id int(11) auto_increment NOT NULL,
@@ -75,7 +75,7 @@ CREATE TABLE organization (
     created timestamp,
     modified timestamp
 , PRIMARY KEY(`id`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB;
 
 CREATE TABLE page (
     id int(11) auto_increment NOT NULL,
@@ -90,12 +90,12 @@ CREATE TABLE page (
     height int(11),
     is_missing bool
 , PRIMARY KEY(`id`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB;
 
 CREATE TABLE permission (
     username varchar(32),
     permission varchar(32)
-) TYPE=InnoDB;
+) ENGINE=InnoDB;
 
 CREATE TABLE session (
     session_id varchar(40) DEFAULT '0',
@@ -103,12 +103,12 @@ CREATE TABLE session (
     user_agent varchar(50) NOT NULL,
     last_activity bigint DEFAULT 0 NOT NULL,
     user_data text
-) TYPE=InnoDB;
+) ENGINE=InnoDB;
 
 CREATE TABLE settings (
     name varchar(64),
     value varchar(64)
-) TYPE=InnoDB;
+) ENGINE=InnoDB;
 
 INSERT INTO account (id, username, password, org_id, last_login, created, modified, widgets, full_name, email, organization) VALUES
 ('1','admin',NULL,'1',NULL,now(),NULL,'[["summary","perday"],["disk","pages"]]',NULL,NULL,'\N');

@@ -294,8 +294,8 @@ if ( ! function_exists('highlight_code'))
 
 		// The highlight_string function requires that the text be surrounded
 		// by PHP tags, which we will remove later
-		$str = '<?php '.$str.' ?>'; // <?
-
+		$str = '<?php '.$str.' ?>'; 
+		
 		// All the magic happens here, baby!	
 		$str = highlight_string($str, TRUE);
 

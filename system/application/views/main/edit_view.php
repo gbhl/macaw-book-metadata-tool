@@ -4,7 +4,7 @@
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
 	<title>Macaw</title>
-	<? $this->load->view('global/head_view') ?>
+	<?php $this->load->view('global/head_view') ?>
 	<script type="text/javascript">
 		/* Initialization script, called when the page is ready */
 		function init() {
@@ -13,11 +13,11 @@
 			var obtnSave = new YAHOO.widget.Button("btnSave");
 			obtnSave.on('click', FIELDS.submit, 'save');
 
-			<? // HERE COMES SOME PHP CODE! ?>
-			<? if (($is_admin || $is_local_admin) && !$new) { ?>
+			<?php // HERE COMES SOME PHP CODE! ?>
+			<?php if (($is_admin || $is_local_admin) && !$new) { ?>
 			var obtnDelete = new YAHOO.widget.Button("btnDelete");
 			obtnDelete.on('click', FIELDS.submit, 'delete');
-			<? } ?>
+			<?php } ?>
 			
 			var obtnAddField = new YAHOO.widget.Button("btnAddField");
 			obtnAddField.on('click', FIELDS.addField);
@@ -188,46 +188,46 @@
 	</script>
 </head>
 <body class="yui-skin-sam">
-	<? $this->load->view('global/header_view') ?>
-	<? $this->load->view('global/error_messages_view') ?>
+	<?php $this->load->view('global/header_view') ?>
+	<?php $this->load->view('global/error_messages_view') ?>
 
 	<div id="edit">
-		<? if ($new) { ?>
+		<?php if ($new) { ?>
 			<h1 >Add Item</h1>
-			<form action="<? echo $this->config->item('base_url'); ?>main/add_save" method="post" id="edit_form" enctype="multipart/form-data">
-		<? } else { ?>
+			<form action="<?php echo $this->config->item('base_url'); ?>main/add_save" method="post" id="edit_form" enctype="multipart/form-data">
+		<?php } else { ?>
 			<h1>Edit Item</h1>
-			<form action="<? echo $this->config->item('base_url'); ?>main/edit_save" method="post" id="edit_form" enctype="multipart/form-data">
-			<input type="hidden" name="id" value="<? echo($id) ?>">
+			<form action="<?php echo $this->config->item('base_url'); ?>main/edit_save" method="post" id="edit_form" enctype="multipart/form-data">
+			<input type="hidden" name="id" value="<?php echo($id) ?>">
 			<input type="hidden" name="action" id="save_action" value="save">
-		<? } ?>
+		<?php } ?>
 
 			<table id="newfields">
 				<tr class="row">
 					<td class="fieldname">Identifier:</td>
 					<td>
-					<? if ($new) { ?>
-						<input type="text" name="identifier"  value="<? echo($identifier) ?>">
-					<? } else { ?>
-						<? echo($identifier) ?>
-					<? } ?>
+					<?php if ($new) { ?>
+						<input type="text" name="identifier"  value="<?php echo($identifier) ?>">
+					<?php } else { ?>
+						<?php echo($identifier) ?>
+					<?php } ?>
 					</td>
 				</tr>
 				<tr class="row">
 					<td class="fieldname">Organization:</td>
-					<td><? echo($organization) ?></td>
+					<td><?php echo($organization) ?></td>
 				</tr>
-				<? if ($is_qa_user) { ?>
+				<?php if ($is_qa_user) { ?>
 				<tr class="row">
 					<td class="fieldname">Needs QA: </td>
-					<td><input type="checkbox" name="needs_qa" id="needs_qa" value="1" <? if ($needs_qa) { echo("checked"); } ?>> This item will be reviewed for Quality Assurance</td>
+					<td><input type="checkbox" name="needs_qa" id="needs_qa" value="1" <?php if ($needs_qa) { echo("checked"); } ?>> This item will be reviewed for Quality Assurance</td>
 				</tr>
-				<? } else { ?>
+				<?php } else { ?>
 				<tr class="row">
 					<td class="fieldname">Needs QA:</td>
-					<td>This item <? if ($needs_qa) { echo("will"); } else { echo("will not"); } ?> be reviewed for Quality Assurance</td>
+					<td>This item <?php if ($needs_qa) { echo("will"); } else { echo("will not"); } ?> be reviewed for Quality Assurance</td>
 				</tr>
-				<? } ?>
+				<?php } ?>
 				<tr class="row">
 					<td class="fieldname">Copyright:</td>
 					<td>
@@ -249,43 +249,43 @@
 					</td>
 				</tr>
 					
-				<?  $c = 0;
+				<?php  $c = 0;
 					foreach ($metadata as $i) { ?>
-					<tr class="row" id="existing_field_<? echo($c) ?>">
-						<td class="fieldname"><? echo($i['fieldname']); ?>:</td>
+					<tr class="row" id="existing_field_<?php echo($c) ?>">
+						<td class="fieldname"><?php echo($i['fieldname']); ?>:</td>
 						<td>
-						<? if (strlen($i['value']) > 100) { ?>
-						<textarea name="<? echo($i['fieldname']); ?>[]" rows="5" cols="83" class="txt-fieldvalue"><? echo(htmlspecialchars($i['value'])); ?></textarea>
+						<?php if (strlen($i['value']) > 100) { ?>
+						<textarea name="<?php echo($i['fieldname']); ?>[]" rows="5" cols="83" class="txt-fieldvalue"><?php echo(htmlspecialchars($i['value'])); ?></textarea>
 					</td>
 					<td>
-						<a href="javascript:FIELDS.deleteField('existing_field_<? echo($c); ?>')"><img src="<? echo $this->config->item('base_url'); ?>images/icons/delete.png" title="Delete field"></a>
-						<? } else { ?>
-						<input type="text" name="<? echo($i['fieldname']); ?>[]"  value="<? echo(htmlspecialchars($i['value'])); ?>" class="txt-fieldvalue">
+						<a href="javascript:FIELDS.deleteField('existing_field_<?php echo($c); ?>')"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/delete.png" title="Delete field"></a>
+						<?php } else { ?>
+						<input type="text" name="<?php echo($i['fieldname']); ?>[]"  value="<?php echo(htmlspecialchars($i['value'])); ?>" class="txt-fieldvalue">
 					</td>
 					<td>
-						<a href="javascript:FIELDS.deleteField('existing_field_<? echo($c); ?>')"><img src="<? echo $this->config->item('base_url'); ?>images/icons/delete.png" title="Delete field"></a>
-						<? } ?>
+						<a href="javascript:FIELDS.deleteField('existing_field_<?php echo($c); ?>')"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/delete.png" title="Delete field"></a>
+						<?php } ?>
 						</td>
 					</tr>
-				<?  $c++;
+				<?php  $c++;
 						}
 					$counter = 900;
 					foreach ($missing_metadata as $mod => $fields) {
 						foreach ($fields as $f) {
 							$counter++;
 				?>
-						<tr class="row" id="newfields_<? echo($counter); ?>">
-							<td class="fieldname"><input type="text" name="new_fieldname_<? echo($counter); ?>" maxlength="32" value="<? echo($f); ?>" class="txt-fieldname"></td>
+						<tr class="row" id="newfields_<?php echo($counter); ?>">
+							<td class="fieldname"><input type="text" name="new_fieldname_<?php echo($counter); ?>" maxlength="32" value="<?php echo($f); ?>" class="txt-fieldname"></td>
 							<td>
-								<input type="text" name="new_value_<? echo($counter); ?>"	   id="new_value_<? echo($counter); ?>"  value="" class="txt-fieldvalue">
-								<input type="file" name="new_value_<? echo($counter); ?>_file"  id="new_value_<? echo($counter); ?>_file" style="display:none" class="txt-fieldvalue">
+								<input type="text" name="new_value_<?php echo($counter); ?>"	   id="new_value_<?php echo($counter); ?>"  value="" class="txt-fieldvalue">
+								<input type="file" name="new_value_<?php echo($counter); ?>_file"  id="new_value_<?php echo($counter); ?>_file" style="display:none" class="txt-fieldvalue">
 							</td>
 							<td>
-								<a href="javascript:FIELDS.toggleNewField('<? echo($counter); ?>')"><img src="<? echo $this->config->item('base_url'); ?>images/icons/page_add.png" title="Upload File" id="upload_toggle_<? echo($counter); ?>"></a>
-								<a href="javascript:FIELDS.deleteField('newfields_<? echo($counter); ?>')"><img src="<? echo $this->config->item('base_url'); ?>images/icons/delete.png" title="Delete field"></a>
+								<a href="javascript:FIELDS.toggleNewField('<?php echo($counter); ?>')"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/page_add.png" title="Upload File" id="upload_toggle_<?php echo($counter); ?>"></a>
+								<a href="javascript:FIELDS.deleteField('newfields_<?php echo($counter); ?>')"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/delete.png" title="Delete field"></a>
 							</td>
 						</tr>
-				<?
+				<?php
 						}
 				} ?>
 				<tr class="row" id="newfields_1">
@@ -295,7 +295,7 @@
 						<input type="file" name="new_value_1_file"  id="new_value_1_file" style="display:none" class="txt-fieldvalue">
 					</td>
 					<td>
-						<a href="javascript:FIELDS.toggleNewField('1')"><img src="<? echo $this->config->item('base_url'); ?>images/icons/page_add.png" title="Upload File" id="upload_toggle_1"></a><a href="javascript:FIELDS.deleteField('newfields_1')"><img src="<? echo $this->config->item('base_url'); ?>images/icons/delete.png" title="Delete field"></a>
+						<a href="javascript:FIELDS.toggleNewField('1')"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/page_add.png" title="Upload File" id="upload_toggle_1"></a><a href="javascript:FIELDS.deleteField('newfields_1')"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/delete.png" title="Delete field"></a>
 					</td>
 				</tr>
 			</table> <!-- close of div = newfields -->
@@ -303,12 +303,12 @@
 		</form>
 		<div class="savebutton">
 			<button id="btnSave">Save</button>
-			<? if (($is_admin || $is_local_admin) && !$new) { ?>
+			<?php if (($is_admin || $is_local_admin) && !$new) { ?>
 			<button id="btnDelete">Delete Item</button>
-			<? } ?>
+			<?php } ?>
 		</div>
 
 	</div>
-	<? $this->load->view('global/footer_view') ?>
+	<?php $this->load->view('global/footer_view') ?>
 </body>
 </html>

@@ -3,13 +3,13 @@
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
 	<title>Scan | Upload | Macaw</title>
 
-	<? $this->load->view('global/head_view') ?>
+	<?php $this->load->view('global/head_view') ?>
 
 </head>
 <body>	
-<? $this->load->view('global/header_view') ?>
+<?php $this->load->view('global/header_view') ?>
 <form name="placeholder">
-	<hidden name="bookid" value="<? echo( $this->session->userdata('barcode')); ?>"></hidden>
+	<hidden name="bookid" value="<?php echo( $this->session->userdata('barcode')); ?>"></hidden>
 </form>
 
 <div id="uploadcontrols">

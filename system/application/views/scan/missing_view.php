@@ -5,7 +5,7 @@
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
 	<title>Insert Missing | Macaw</title>
 
-	<? $this->load->view('global/head_view') ?>
+	<?php $this->load->view('global/head_view') ?>
 	<style type="text/css" id="macaw_thumbs_css">
 		.thumb {
 			width: 75.5px;
@@ -45,7 +45,7 @@
 	</style>
 </head>
 <body class="yui-skin-sam">
-	<? $this->load->view('global/header_view') ?>
+	<?php $this->load->view('global/header_view') ?>
 	<div class="yui-g" id="new_thumbs_header">
 		<h2>Missing Pages</h2>
 		<h3>Drag-drop the missing pages to their correct location below.</h3>
@@ -70,19 +70,19 @@
 				<button id="btnFinished">Finished!</button>
 			</div>
 			<div id="slider">
-				<div class="icon"><img src="<? echo $this->config->item('base_url'); ?>images/icons/picture.png" border="0" height="16" width="16" title="Zoom Out"></div>
-				<div id="sliderbg"><div id="sliderthumb"><img src="<? echo $this->config->item('base_url'); ?>images/icons/slider-thumb-n.gif"></div></div>
-				<div class="icon"><img src="<? echo $this->config->item('base_url'); ?>images/icons/bullet_picture.png" border="0" height="16" width="16" title="Zoom In"></div>
+				<div class="icon"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/picture.png" border="0" height="16" width="16" title="Zoom Out"></div>
+				<div id="sliderbg"><div id="sliderthumb"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/slider-thumb-n.gif"></div></div>
+				<div class="icon"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/bullet_picture.png" border="0" height="16" width="16" title="Zoom In"></div>
 			</div>
 		</div>
 	</div>
 
-	<? $this->load->view('global/footer_view') ?>
-	<? foreach ($metadata_modules as $m) {
+	<?php $this->load->view('global/footer_view') ?>
+	<?php foreach ($metadata_modules as $m) {
 		echo '<script type="text/javascript" src="'.$this->config->item('base_url').'plugins/metadata/'.$m.'.js"></script>'."\n";
 	} ?>
 	<script type="text/javascript">
-		<? foreach ($metadata_modules as $m) {echo 'Scanning.metadataModules.push(\''.$m.'\');'."\n";} ?>
+		<?php foreach ($metadata_modules as $m) {echo 'Scanning.metadataModules.push(\''.$m.'\');'."\n";} ?>
 		YAHOO.util.Event.onContentReady("btnFinished", Scanning.initInsertMissing);
 		var styleSheet = YAHOO.util.StyleSheet('macaw_thumbs_css');
 		MessageBox.init();
