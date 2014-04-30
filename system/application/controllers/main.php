@@ -457,7 +457,14 @@ class Main extends Controller {
 			}
 
 			$this->book->set_metadata('mods_xml', $mods);
-			$this->_read_mods($mods);
+			$ret = $this->book->_read_mods($md);
+			
+			if (isset($ret['title'])) {
+				$this->book->set_metadata('title', $ret['title']);
+			}
+			if (isset($ret['author'])) {
+				$this->book->set_metadata('author', $ret['author']);
+			}
 		}
 
  		$this->book->update();
@@ -472,54 +479,6 @@ class Main extends Controller {
 		redirect($this->config->item('base_url').'main/edit');	
 	}
 	
-	function _read_mods($mods) {
-		# Read the MODS to see if we can get the title of this item and save that, too.
-		$xml = simplexml_load_string($mods);
-		$namespaces = $xml->getDocNamespaces();
-		$ns = '';
-		$root = '';
-		if (array_key_exists('mods', $namespaces)) {
-			$ns = 'mods:';
-		} elseif (array_key_exists('', $namespaces)) {
-			// Add empty namespace because xpath is weird
-			$ns = 'ns:';
-			$xml->registerXPathNamespace('ns', $namespaces['']);
-		}
-		$namespaces = $xml->getNamespaces();
-		$ret = ($xml->xpath($ns."mods"));
-		if ($ret && count($ret)) {
-			$root = $ns."mods/";
-		}
-
-		# NOW we can get the title
-		$title = null;
-
-		$ret = ($xml->xpath($root.$ns."titleInfo[not(@type)]/".$ns."nonSort"));
-		if ($ret && count($ret) > 0) {
-			$title = $ret[0];
-		}
-		
-		$ret = ($xml->xpath($root.$ns."titleInfo[not(@type)]/".$ns."title"));
-		if ($ret && count($ret) > 0) {
-			if ($title && substr($title,count($title)-1,1) != ' ') { $title .= ' '; } 
-			$title .= $ret[0];
-		}
-		$this->book->set_metadata('title', $title);			
-
-		# Get the author
-		$creator = null;
-		$ret = ($xml->xpath($root.$ns."name/".$ns."role/".$ns."roleTerm[.='creator']/../../".$ns."namePart"));
-		if ($ret && count($ret) > 0) {
-			$creator = $ret[0];
-		}
-		if (!$creator) {
-			$ret = ($xml->xpath($root.$ns."name/".$ns."namePart"));
-			if ($ret && count($ret) > 0) {
-				$creator = $ret[0];
-			}		
-		}
-		$this->book->set_metadata('author', $creator);					
-	}
 	/**
 	 * Confirm that we want to delete the item
 	 *
@@ -798,7 +757,7 @@ class Main extends Controller {
 		if ($marc && !$this->book->get_metadata('mods_xml')) {
 			$mods = $this->common->marc_to_mods($marc);
 			$this->book->set_metadata('mods_xml', $mods, true);
-			$this->_read_mods($mods);
+			$this->book->_read_mods($mods);
 		}
 
  		$this->book->update();
@@ -854,7 +813,7 @@ class Main extends Controller {
 		}
 
 		// Get a temporary filename
-		$tempfilename = tempnam($dir, 'import-');		
+		$tempfilename = tempnam($dir, 'import-item-');		
 		rename($tempfilename, $tempfilename.'.csv');
 		$tempfilename .= '.csv';
 		
@@ -866,7 +825,7 @@ class Main extends Controller {
 		$this->load->library('upload', $config);
 
 		$this->common->ajax_headers();
-		if (!$this->upload->do_upload()) {			
+		if (!$this->upload->do_upload('itemdata')) {			
 			// Something bad happened	
 			echo json_encode(array(
 				'error' => $this->upload->display_errors(),
@@ -877,9 +836,21 @@ class Main extends Controller {
 			rename($data['full_path'], $tempfilename);
 			$fname = basename($tempfilename);
 
+			$fname2 = '';
+			if ($this->upload->do_upload('pagedata')) {	
+				$tempfilename = tempnam($dir, 'import-page-');		
+				rename($tempfilename, $tempfilename.'.csv');
+				$tempfilename .= '.csv';
+	
+				// Rename the file we uploaded
+				$data = $this->upload->data();
+				rename($data['full_path'], $tempfilename);
+				$fname2 = basename($tempfilename);
+			}
+
 			// Spawn the import process (php index.php utils csv_import FILENAME.CSV)
 			chdir($this->cfg['base_directory']);
-			$cmd = PHP_BINDIR.'/php index.php utils csvimport '.$fname.' > /dev/null 2>&1 &'; 
+			$cmd = PHP_BINDIR.'/php index.php utils csvimport '.$fname.' '.$fname2.' > /dev/null 2>&1 &'; 
 			system($cmd);
 
 			// Give the filename back to the page.

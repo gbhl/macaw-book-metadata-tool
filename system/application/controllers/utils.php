@@ -331,10 +331,18 @@ class Utils extends Controller {
 	 *
 	 * @since Version 1.6
 	 */
-	function csvimport($filename) {
+	function csvimport($filename, $filename2 = null) {
 		// Import the file
 
 		$fname = $this->cfg['data_directory'].'/import_export/'.$filename;
+
+
+		$items_imported = 0;
+		$items_skipped = 0;
+		$pages_imported = 0;
+		$pages_skipped = 0;
+		$orig_fname = $fname;
+		
 		if (file_exists($fname)) {
 			$lc = @exec("wc -l $fname");
 			
@@ -347,7 +355,7 @@ class Utils extends Controller {
 				// For whatever reason, couldn't open the file.
 				// Umm... Didn't we just save the file?
 				echo "Could not open import file for reading.\n";
-				$this->_save_import_status($fname, 0, 'Could not open import file for reading.');
+				$this->_save_import_status($orig_fname, 0, 'Could not open import file for reading.');
 				return;		
 			} 
 	
@@ -355,14 +363,14 @@ class Utils extends Controller {
 			$fieldnames = @fgetcsv($infile, 8000, ',', '"');		
 			if ($fieldnames == FALSE) {
 				echo "Could not read the import file.\n";
-				$this->_save_import_status($fname, 0, 'Could not read the import file.');
+				$this->_save_import_status($orig_fname, 0, 'Could not read the import file.');
 				return;		
 			}
 			
 			// Is the first item in the first row the word "identifier"?
 			if (strtolower($fieldnames[0]) != 'identifier' && strtolower($fieldnames[0]) != 'barcode') {
 				echo "Invalid format. Identifier column is not supplied.\n";
-				$this->_save_import_status($fname, 0, 'Invalid format. Identifier column is not supplied.');
+				$this->_save_import_status($orig_fname, 0, 'Invalid format. Identifier column is not supplied.');
 				return;
 			}
 			
@@ -370,30 +378,27 @@ class Utils extends Controller {
 			// If so, error out or we'll crash hard when the DB rejects the entry (duplicate counter)
 			
 			// Do the import
-			$fieldnames[0] = 'barcode';
 			$info = array();
-			$imported = 0;
-			$skipped = 0;
 			while (($data = fgetcsv($infile, 8000, ',', '"')) !== FALSE) {
-				$row++;
 				if ($data && $data[0] != '') {
 					if (!$this->book->exists($data[0])) {
 						// Massage the data into the correct format
-						array_push($info, array_combine($fieldnames, $data));
-						$imported++;
+						array_push($info, $this->_array_combine($fieldnames, $data));
+						$items_imported++;
 					} else {
-						$skipped++;
+						$items_skipped++;
 					}
-					$val = round($row/$lc*100);
 					// While importing, write our progress to "$filename.txt"
-					$this->_save_import_status($fname, $val);
 				}
 			}
 
 			$errorcount = 0;
+			$c = 1;
+			$max = count($info);
 			foreach ($info as $b) {
 				try {
 					$this->book->add($b);
+					$this->_save_import_status($orig_fname, round(($c++)/$max*100), 'Loading Items...');
 				} catch (Exception $e) {
 					$errorcount++;
 				}
@@ -403,16 +408,125 @@ class Utils extends Controller {
 			// When done, delete the import file
 			// Do not delete the status file
 			unlink($fname);
-			$this->_save_import_status(
-				$fname, 
-				100, 
-				'<h3 class="finished">Import complete!</h3>'.$imported.' items imported. '.$skipped.' items skipped.'.
-				($errorcount ? $errorcount.' failed.' : 0), 
-				1
-			);
 		} else {
 			echo "File not found: $fname\n";
 		}
+
+
+		if ($filename2) {
+			$fname = $this->cfg['data_directory'].'/import_export/'.$filename2;
+			if (file_exists($fname)) {
+				$message = '';
+				$value = '';
+				$fieldnames = array();
+				
+				if (($infile = @fopen($fname, "r")) == FALSE) {
+					// For whatever reason, couldn't open the file.
+					// Umm... Didn't we just save the file?
+					echo "Could not open pages import file for reading.\n";
+					$this->_save_import_status($orig_fname, 0, 'Could not open import file for reading.');
+					return;		
+				} 
+		
+				// Can we get the fieldnames on the first row?
+				$fieldnames = @fgetcsv($infile, 8000, ',', '"');		
+				if ($fieldnames == FALSE) {
+					echo "Could not read the pagesimport file.\n";
+					$this->_save_import_status($orig_fname, 0, 'Could not read the import file.');
+					return;		
+				}
+				
+				// Is the first item in the first row the word "identifier"?
+				if (strtolower($fieldnames[0]) != 'identifier' && strtolower($fieldnames[0]) != 'barcode') {
+					echo "Invalid format. Identifier column is not supplied.\n";
+					$this->_save_import_status($orig_fname, 0, 'Invalid format. Identifier column is not supplied.');
+					return;
+				}
+				
+				// TODO: make sure no fieldnames are repeated in the $fieldnames array
+				// If so, error out or we'll crash hard when the DB rejects the entry (duplicate counter)
+				
+				// Do the import
+				$info = array();
+				$c = 1;
+				$max = @exec("wc -l $fname");
+				while (($data = fgetcsv($infile, 8000, ',', '"')) !== FALSE) {
+					if ($data && $data[0] != '') {
+				
+						$data = $this->_array_combine($fieldnames, $data);
+						if (isset($data['barcode'])) {
+							$data['identifier'] = $data['barcode'];
+						}
+						
+						$this->book->load($data['identifier']);
+						if (!$this->book->page_exists($data['filename'])) {
+							// Massage the data into the correct format
+							array_push($info, $data);
+							$pages_imported++;
+							$this->_save_import_status($orig_fname, round(($c++)/$max*100), 'Checking for existing pages...');
+						} else {
+							$pages_skipped++;
+						}
+							
+					}
+				}
+				
+				$c = 1;
+				$max = count($info);
+				foreach ($info as $p) {
+					try {
+						$this->book->load($p['identifier']);
+						$this->book->add_page($p['filename'], 0, 0, 0, 'Data loaded');
+	
+						$filebase = preg_replace('/(.+)\.(.*?)$/', "$1", $p['filename']);
+						
+						$this->db->select('id');
+						$this->db->where('filebase', $filebase);
+						$this->db->where('item_id', $this->book->id);
+						$page = $this->db->get('page');
+						$row = $page->row();
+						
+						foreach (array_keys($p) as $k) {
+							if ($k != 'identifier' && $k != 'filename') {
+								$this->book->set_page_metadata($row->id, $k, $p[$k], 1);
+							}
+						}
+						// While importing, write our progress to "$filename.txt"
+						$this->_save_import_status($orig_fname, round(($c++)/$max*100), 'Loading Pages...');
+						
+					} catch (Exception $e) {
+						$errorcount++;
+					}
+				}
+	
+				fclose($infile);
+				// When done, delete the import file
+				// Do not delete the status file
+				unlink($fname);
+			} else {
+				echo "File not found: $fname\n";
+			}
+		}
+
+		$this->_save_import_status(
+			$orig_fname, 
+			100, 
+			'<h4 class="finished">Import complete!</h4>'.
+			$items_imported.' items imported. ('.$items_skipped.' skipped)<br>'.
+			$pages_imported.' pages imported. ('.$pages_skipped.' skipped)'.
+			($errorcount ? '<br><br>'.$errorcount.' errors.' : ''), 
+			1
+		);
+
+	}
+
+	function _array_combine($keys, $values) {
+			$result = array();
+			foreach ($keys as $i => $k) {
+					$result[$k][] = $values[$i];
+			}
+			array_walk($result, create_function('&$v', '$v = (count($v) == 1)? array_pop($v): $v;'));
+			return $result;
 	}
 	
 	function _save_import_status($file = '', $value = 1, $message = '', $finished = 0) {
@@ -426,7 +540,6 @@ class Utils extends Controller {
 			);
 		}
 	}
-
 
 	/**
 	 * Delete an entire item from Macaw

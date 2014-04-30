@@ -398,6 +398,7 @@ class Common extends Controller {
 			return $tx;										// Transform the MARC to MODS
 		} else {
 			throw new Exception("Unable to parse MARCXML data");
+			print "Unable to parse MARCXML data\n";
 			return null;
 		}
 	}

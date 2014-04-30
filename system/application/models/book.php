@@ -138,6 +138,23 @@ class Book extends Model {
 		return false;
 	}
 
+
+	function page_exists($filename) {
+		$filebase = preg_replace('/(.+)\.(.*?)$/', "$1", $filename);
+
+		// Query the database for the barcode
+		$this->db->where('item_id', $this->id);
+		$this->db->where('filebase', $filebase);
+		$page = $this->db->get('page');
+		
+		// Did we get a record?
+		if ($page->num_rows() > 0) {
+			return true;
+		}	
+		return false;
+	
+	}
+	
 	/**
 	 * Set the status of a book
 	 *
@@ -815,7 +832,10 @@ class Book extends Model {
 	 * At a minimum, "barcode" must found in the array.
 	 *
 	 */
-	function add($info) {
+	function add($info) {		
+		if (isset($info['identifier'])) {
+			$info['barcode'] = $info['identifier'];
+		}
 		if ($info['barcode']) {
 			// If we have a barcode, let's make sure it doesn't already exist
 			$this->db->where('barcode', $info['barcode']);
@@ -833,6 +853,12 @@ class Book extends Model {
 				if (!array_key_exists('needs_qa', $info)) {
 					$info['needs_qa'] = 0;
 				}
+				if (!array_key_exists('collections', $info)) {
+					if (array_key_exists('collection', $info)) {
+						$info['collections'] = $info['collection'];
+					}
+				}
+
 				// Create the item record in the database
 				if (!isset($this->CI->user->username) || !$this->CI->user->username) {
 					$this->CI->user->load('admin');
@@ -845,31 +871,37 @@ class Book extends Model {
 					'needs_qa' => (($info['needs_qa'] == 1 || substr(strtolower($info['needs_qa']),0,1) == 'y') ? 't' : 'f')
 
 				);
+
 				$this->db->insert('item', $data);
 				$item_id = $this->db->insert_id();
 
+				$marc = array();
 				// This is a simple associative array
 				foreach (array_keys($info) as $i) {
-					if ($i != 'barcode') {
-						// If we got an array of data, we loop through 
-						// the items and add them to the metadata.
-						if (is_array($info[$i])) {
-							$c = 1;
-							foreach ($info[$i] as $m) {
+					if (preg_match('/^marc/i', $i)) {
+						$marc[$i] = $info[$i];
+					} else {
+						if ($i != 'barcode' && $i != 'identifier') {
+							// If we got an array of data, we loop through 
+							// the items and add them to the metadata.
+							if (is_array($info[$i])) {
+								$c = 1;
+								foreach ($info[$i] as $m) {
+									$this->db->insert('metadata', array(
+										'item_id'   => $item_id,
+										'fieldname' => $i,
+										'counter'   => $c++,
+										((strlen($m) > 1000) ? 'value_large' : 'value') => ($m.'')
+									));									
+								}
+							} else {
 								$this->db->insert('metadata', array(
 									'item_id'   => $item_id,
 									'fieldname' => $i,
-									'counter'   => $c++,
-									((strlen($m) > 1000) ? 'value_large' : 'value') => ($m.'')
-								));									
+									'counter'   => 1,
+									((strlen($info[$i]) > 1000) ? 'value_large' : 'value') => ($info[$i].'')
+								));
 							}
-						} else {
-							$this->db->insert('metadata', array(
-								'item_id'   => $item_id,
-								'fieldname' => $i,
-								'counter'   => 1,
-								((strlen($info[$i]) > 1000) ? 'value_large' : 'value') => ($info[$i].'')
-							));
 						}
 					}
 				}
@@ -881,22 +913,91 @@ class Book extends Model {
 				if (!file_exists($path.'/thumbs')) { mkdir($path.'/thumbs', 0775); }
 				if (!file_exists($path.'/preview')) { mkdir($path.'/preview', 0775); }
 
-				// Create the the marc.xml and item.xml file,
-				if ($md = $this->get_metadata('marc_xml')) {
-					write_file($path.'/marc.xml', $md);
-					chmod($path.'/marc.xml', 0775);
-				}
-				if ($md = $this->get_metadata('mods_xml')) {
-					write_file($path.'/mods.xml', $md);
-					chmod($path.'/mods.xml', 0775);
-				}
+				// If we have a marc array, we create a Marc record
 
+				$this->logging->log('access', null, "MARC:".count($marc));
+				if (count($marc) > 0) {
+
+					$x = $this->_generate_marc($marc, $info['barcode']);
+					if ($x) {
+						$this->db->insert('metadata', array(
+							'item_id'   => $item_id,
+							'fieldname' => 'marc_xml',
+							'counter'   => 1,
+							'value_large' => $x['marc']
+						));				
+	
+						$this->db->insert('metadata', array(
+							'item_id'   => $item_id,
+							'fieldname' => 'mods_xml',
+							'counter'   => 1,
+							'value_large' => $x['mods']
+						));
+	
+						// Create the the marc.xml and item.xml file,
+						write_file($path.'/marc.xml', $x['marc']);
+						chmod($path.'/marc.xml', 0775);
+	
+						write_file($path.'/mods.xml', $x['mods']);
+						chmod($path.'/mods.xml', 0775);
+
+						$this->logging->log('access', 'info', "MODS: ".$x['mods']);
+						
+						$ret = $this->_read_mods($x['mods']);
+						$this->logging->log('access', 'info', "MODS RET: ".print_r($ret, true));
+
+						
+						if (isset($ret['title'])) {
+							$this->db->insert('metadata', array(
+								'item_id'   => $item_id,
+								'fieldname' => 'title',
+								'counter'   => 1,
+								'value'     => $ret['title']
+							));							
+						}
+						if (isset($ret['author'])) {
+							$this->db->insert('metadata', array(
+								'item_id'   => $item_id,
+								'fieldname' => 'author',
+								'counter'   => 1,
+								'value'     => $ret['author']
+							));							
+						}
+					}
+				}
+				
 				return $item_id;
 			}
 		} else {
 			$this->last_error = "A barcode was not supplied for the new item.";
 			throw new Exception($this->last_error);
 		}
+	}
+	
+	function _generate_marc($marc, $barcode) {
+		$marc_xml = '<'.'?'.'xml version="1.0" encoding="UTF-8" ?'.'>'."\r\n".
+			'<record xmlns="http://www.loc.gov/MARC21/slim" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">'."\r\n".
+			'  <leader>     ntm  2200000   4500</leader>'."\r\n";
+		foreach ($marc as $fieldname => $value) {
+			$value = preg_replace('/[\x00-\x1F]/', '', $value); // Strip all low-ascii control characters
+			if (strlen($value) > 0) {
+				$matches = array();
+				$x = preg_match('/^marc(\d{3})(.?)(-?\d*?)$/', $fieldname, $matches);
+				$marc_xml .= 
+					'  <datafield tag="'.$matches[1].'" ind1=" " ind2=" ">'."\r\n".
+					'    <subfield code="'.$matches[2].'">'.$value.'</subfield>'."\r\n".
+					'  </datafield>'."\r\n";
+			}
+		}
+		$marc_xml .= '</record>'."\r\n";
+		try {
+			$mods_xml = $this->common->marc_to_mods($marc_xml);
+		} catch(Exception $e) {
+			$this->logging->log('book', 'error', "Error creating MARCXML and MODS: ".$e->getMessage(), $barcode);
+			print "Error creating MARCXML and MODS: ".$e->getMessage()."\n";
+			return null;
+		}
+		return array('marc' => $marc_xml, 'mods' => $mods_xml);
 	}
 
 	/**
@@ -970,6 +1071,23 @@ class Book extends Model {
 			if (file_exists($path)) {
 				write_file($path.'/mods.xml', $md);
 				chmod($path.'/mods.xml', 0775);
+			}
+			$ret = $this->_read_mods($md);
+			if (isset($ret['title'])) {
+				$this->db->insert('metadata', array(
+					'item_id'   => $this->id,
+					'fieldname' => 'title',
+					'counter'   => 1,
+					'value'     => $ret['title']
+				));							
+			}
+			if (isset($ret['author'])) {
+				$this->db->insert('metadata', array(
+					'item_id'   => $this->id,
+					'fieldname' => 'author',
+					'counter'   => 1,
+					'value'     => $ret['author']
+				));							
 			}
 		}
 	}
@@ -1516,6 +1634,63 @@ class Book extends Model {
 		}
 
 		return $results;
+	}
+
+	// See if we can get title and author from the MODS
+	//
+	// Since Version 2.0
+
+	function _read_mods($mods) {
+		$return = array();
+
+		# Read the MODS to see if we can get the title of this item and save that, too.
+		$xml = simplexml_load_string($mods);
+		$namespaces = $xml->getDocNamespaces();
+		$ns = '';
+		$root = '';
+		if (array_key_exists('mods', $namespaces)) {
+			$ns = 'mods:';
+		} elseif (array_key_exists('', $namespaces)) {
+			// Add empty namespace because xpath is weird
+			$ns = 'ns:';
+			$xml->registerXPathNamespace('ns', $namespaces['']);
+		}
+		$namespaces = $xml->getNamespaces();
+		$ret = ($xml->xpath($ns."mods"));
+		if ($ret && count($ret)) {
+			$root = $ns."mods/";
+		}
+
+		# NOW we can get the title
+		$title = null;
+
+		$ret = ($xml->xpath($root.$ns."titleInfo[not(@type)]/".$ns."nonSort"));
+		if ($ret && count($ret) > 0) {
+			$title = $ret[0];
+		}
+		
+		$ret = ($xml->xpath($root.$ns."titleInfo[not(@type)]/".$ns."title"));
+		if ($ret && count($ret) > 0) {
+			if ($title && substr($title,count($title)-1,1) != ' ') { $title .= ' '; } 
+			$title .= $ret[0];
+		}
+		$return['title'] = (string)$title;
+
+		# Get the author
+		$creator = null;
+		$ret = ($xml->xpath($root.$ns."name/".$ns."role/".$ns."roleTerm[.='creator']/../../".$ns."namePart"));
+		if ($ret && count($ret) > 0) {
+			$creator = $ret[0];
+		}
+		if (!$creator) {
+			$ret = ($xml->xpath($root.$ns."name/".$ns."namePart"));
+			if ($ret && count($ret) > 0) {
+				$creator = $ret[0];
+			}		
+		}
+		$return['author'] = (string)$creator;
+	
+		return $return;
 	}
 
 }

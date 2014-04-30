@@ -99,8 +99,10 @@
 					} else {
 						Import.progressBar.set('value', parseInt(r.value));
 						Dom.get('message').innerHTML = '';
+						Dom.get('message').style.display = 'none';
 						if (r.message != '') {
 							Dom.get('message').innerHTML = r.message;
+							Dom.get('message').style.display = 'block';
 						}
 						if (r.finished == 1) {
 							Import.enableForm();
@@ -121,7 +123,8 @@
 		// ----------------------------
 		enableForm: function() {
 			Import.obtnImport.set('disabled', false);
-			Dom.get('userfile').disabled = false;
+			Dom.get('itemdata').disabled = false;
+			Dom.get('pagedata').disabled = false;
 		},
 
 		// ----------------------------
@@ -130,7 +133,8 @@
 		// ----------------------------
 		disableForm: function() {
 			Import.obtnImport.set('disabled', true);
-			Dom.get('userfile').disabled = true;
+			Dom.get('itemdata').disabled = true;
+			Dom.get('pagedata').disabled = true;
 		}
 	
 	};

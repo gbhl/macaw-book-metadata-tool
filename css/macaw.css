@@ -1627,6 +1627,20 @@ textarea, input {
 #import {
 	text-align: center;
 }
+#import form {
+	width: 50%;
+	margin: 10px auto;
+}
+
+#import form #fields {
+	text-align: left;
+}
+#import form label {
+	width: 120px;
+	display: inline-block;
+	font-weight: bold;
+}
+
 #import #bar {
 	width: 400px;
 	margin: 0 auto;

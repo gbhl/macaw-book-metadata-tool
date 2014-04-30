@@ -13,12 +13,19 @@
 	<div id="import">
 		<h1>Import CSV File</h1>
 		<form id="upload_form" enctype="multipart/form-data" name="upload_form">
-			<input type="file" id="userfile" name="userfile"><button id="btnImport">Go</button>
+			<div id="fields">
+				<label for="itemdata">Item Level CSV</label> 
+				<input type="file" id="itemdata" name="itemdata"><br><br>
+
+				<label for="pagedata">Page Level CSV</label> 
+				<input type="file" id="pagedata" name="pagedata"> (optional) <br><br>
+			</div>
+			<button id="btnImport">Go</button>
 		</form>
 		<div id="progress" style="display:none">
-			Please wait while the file is imported...
+			Please wait while the file(s) are imported...
 			<div id="bar"></div>
-			<div id="message"></div>
+			<div id="message" class="message-overlay" style="display:none"></div>
 		</div>
 	</div>
 	<? $this->load->view('global/footer_view') ?>
