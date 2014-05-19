@@ -599,7 +599,11 @@ class Common extends Controller {
 	 *
 	 * @param string [$message] The message of the email. 
 	 */
-	function email_error($message = '') {
+	function email_error($message) {
+		$this->email_admin($message, 'Error Notification', true);
+	}
+	
+	function email_admin($message = '', $subject = 'Notification', $error = false) {
 		if ($message != '') {
 			$this->CI->load->library('email');
 	
@@ -614,11 +618,13 @@ class Common extends Controller {
 			$this->CI->email->initialize($config);
 			$this->CI->email->from($this->cfg['admin_email'], 'MACAW Admin');
 			$this->CI->email->to($this->cfg['admin_email']);
-			$this->CI->email->subject('[Macaw] Error Notification');
-			$this->CI->email->message(
-				'This is a message from the MACAW server located at: '.$this->CI->config->item('base_url')."\r\n\r\n".
-				'The following error occurred, most likely during a cron run: '."\r\n\r\n".$message
-			);
+			$this->CI->email->subject('[Macaw] '.$subject);
+			$msg = 'This is a message from the MACAW server located at: '.$this->CI->config->item('base_url')."\r\n\r\n";
+			if ($error) {
+				$msg .= 'The following error occurred, most likely during a cron run: '."\r\n\r\n";
+			}
+			$msg .= $message;
+			$this->CI->email->message($msg);
 			$this->CI->email->send();
 		}
 	}
@@ -630,7 +636,6 @@ class Common extends Controller {
 	 * Calcualtes the number of pages scanned, pages per day and disk space used.
 	 */
 	function run_statistics() {
-
 
 		if ($this->CI->db->dbdriver == 'postgre') {
 			// Has this statistic already been generated
@@ -681,7 +686,7 @@ class Common extends Controller {
 				$output = array();
 				$matches = array();
 				exec('df -k '.$this->CI->cfg['data_directory'], $output);
-				$pct = preg_match('\b([0-9]+)\%', $output[1], $matches);
+				$pct = preg_match('/\b([0-9]+)\%/', $output[1], $matches);
 				
 				$this->CI->db->query(
 					"insert into logging (date, statistic, value) values (
@@ -771,6 +776,15 @@ class Common extends Controller {
 // 				);
 			}
 
+		}
+		$matches = array();
+
+		exec('df -k '.$this->CI->cfg['data_directory'], $output);
+
+		$pct = preg_match('/\b([0-9]+)\%/', $output[1], $matches);
+
+		if ((int)$matches[1] > 80) {
+			$this->email_admin('DISK USAGE IS AT '.$matches[1].' PERCENT!', 'Disk Space Notification');
 		}
 	}
 	
