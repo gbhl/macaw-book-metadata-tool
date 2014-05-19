@@ -27,7 +27,7 @@
 					<div class="number">2</div>
 					<div class="text">
 						<p>Copy the scans to this network location:</p>
-						<strong><?php =$remote_path?></strong>
+						<strong><?php echo($remote_path) ?></strong>
 					</div>
 				</div>
 				<div class="instructionrow">
