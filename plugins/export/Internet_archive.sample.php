@@ -1441,6 +1441,9 @@ class Internet_archive extends Controller {
 		if ($this->CI->book->get_metadata('copyright') == '0' || strtoupper($this->CI->book->get_metadata('copyright')) == 'F' ) {
 			if ($bhl == 1) {
 				$metadata['x-archive-meta-possible-copyright-status'] = "Public domain. The BHL considers that this work is no longer under copyright protection.";
+				if (isset($metadata['x-archive-meta-licenseurl'])) {
+					unset($metadata['x-archive-meta-licenseurl']);
+				}
 			} else {
 				$metadata['x-archive-meta-possible-copyright-status'] = "Public domain. The Library considers that this work is no longer under copyright protection";
 			}
@@ -1455,6 +1458,9 @@ class Internet_archive extends Controller {
 		} elseif ($this->CI->book->get_metadata('copyright') == '2') {
 			$metadata['x-archive-meta-possible-copyright-status'] = "No known copyright restrictions as determined by scanning institution.";
 			$metadata['x-archive-meta-due-dillegence'] = 'http://biodiversitylibrary.org/permissions';
+			if (isset($metadata['x-archive-meta-licenseurl'])) {
+				unset($metadata['x-archive-meta-licenseurl']);
+			}
 
 		// Handle copyright - Default, we hope we never hit this
 		} else {
