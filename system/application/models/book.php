@@ -1401,15 +1401,15 @@ class Book extends Model {
 							$fname = $incoming_dir.'/'.$this->barcode.'/'.$f;	
 							$fnamenew = $book_dir.$f;
 							rename($fname, $fnamenew );			
-							$outname = $incoming_dir.'/'.$this->barcode.'/'.preg_replace('/\.(.+)$/', '', $f).'_%04d.jpg';
-							//$outname = $incoming_dir.'/'.$this->barcode.'/single%03d.jpg';
+							$outname = $incoming_dir.'/'.$this->barcode.'/'.preg_replace('/\.(.+)$/', '', $f).'_%04d.png';
 							$this->logging->log('book', 'info', 'About to split  '.$fnamenew.' to '.$outname.' via convert.', $this->barcode);
-							//$exec = "convert -quality 100 -density 300x300 $fnamenew $outname";
 							$gs = 'gs';
 							if (isset($this->cfg['gs_exe'])) {
 								$gs = $this->cfg['gs_exe'];
 							}
-							$exec = "$gs -sDEVICE=jpeg -dJPEGQ=100 -r450x450 -o $outname $fnamenew";
+							// $exec = "$gs -sDEVICE=jpeg -dJPEGQ=100 -r450x450 -o $outname $fnamenew";
+							// Switched to using PNG. The files are smaller. Quality is maintained compared tp jpeg2000
+							$exec = "$gs -sDEVICE=png16m -r450x450 -dSAFER -dBATCH -dNOPAUSE -dTextAlphaBits=4 -sOutputFile=$outname $fnamenew";
 							$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->barcode);
 							exec($exec, $output);
 							
