@@ -567,6 +567,9 @@ class Main extends Controller {
 		}
 
 		
+		if ($_REQUEST['action'] == 'cancel') {
+			return $this->edit();
+		}
 		// Get our book and current user
 		$barcode = $this->session->userdata('barcode');
 		$this->book->load($barcode);
