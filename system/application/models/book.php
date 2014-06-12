@@ -1107,21 +1107,25 @@ class Book extends Model {
 				chmod($path.'/mods.xml', 0775);
 			}
 			$ret = $this->_read_mods($md);
-			if (isset($ret['title'])) {
-				$this->db->insert('metadata', array(
-					'item_id'   => $this->id,
-					'fieldname' => 'title',
-					'counter'   => 1,
-					'value'     => $ret['title']
-				));							
+			if (!$this->get_metadata('title')) {
+				if (isset($ret['title'])) {
+					$this->db->insert('metadata', array(
+						'item_id'   => $this->id,
+						'fieldname' => 'title',
+						'counter'   => 1,
+						'value'     => $ret['title']
+					));							
+				}
 			}
-			if (isset($ret['author'])) {
-				$this->db->insert('metadata', array(
-					'item_id'   => $this->id,
-					'fieldname' => 'author',
-					'counter'   => 1,
-					'value'     => $ret['author']
-				));							
+			if (!$this->get_metadata('author')) {
+				if (isset($ret['author'])) {
+					$this->db->insert('metadata', array(
+						'item_id'   => $this->id,
+						'fieldname' => 'author',
+						'counter'   => 1,
+						'value'     => $ret['author']
+					));							
+				}
 			}
 		}
 	}
