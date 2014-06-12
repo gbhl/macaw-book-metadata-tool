@@ -1439,7 +1439,7 @@ class Book extends Model {
 					$good_files = array();
 					$files = get_filenames($incoming_dir.'/'.$this->barcode);
 					foreach ($files as $f) {
-						if (preg_match("/\.(tif|tiff|jpg|jpeg|jp2|gif|png|bmp)$/i", $f)) {
+						if (preg_match("/\.(tif|tiff|jpg|jpeg|jp2|jpf|gif|png|bmp)$/i", $f)) {
 							array_push($good_files, $f);
 						}
 					}
