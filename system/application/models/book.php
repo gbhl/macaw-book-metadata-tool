@@ -987,18 +987,32 @@ class Book extends Model {
 		$marc_xml = '<'.'?'.'xml version="1.0" encoding="UTF-8" ?'.'>'."\r\n".
 			'<record xmlns="http://www.loc.gov/MARC21/slim" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">'."\r\n".
 			'  <leader>     ntm  2200000   4500</leader>'."\r\n";
+		$prev_tag = 0;
 		foreach ($marc as $fieldname => $value) {
-			$value = preg_replace('/[\x00-\x1F]/', '', $value); // Strip all low-ascii control characters
+//			$marc_xml .= '<!--  Top: '.$prev_tag.' -->'."\r\n";
+			$value = trim(preg_replace('/[\x00-\x1F]/', '', $value)); // Strip all low-ascii control characters
 			if (strlen($value) > 0) {
 				$matches = array();
 				$x = preg_match('/^marc(\d{3})(.?)(-?\d*?)$/', $fieldname, $matches);
-				$marc_xml .= 
-					'  <datafield tag="'.$matches[1].'" ind1=" " ind2=" ">'."\r\n".
-					'    <subfield code="'.$matches[2].'">'.$value.'</subfield>'."\r\n".
-					'  </datafield>'."\r\n";
+				if (!isset($matches[3])) { $matches[3] = ''; }
+
+				 
+				if ($prev_tag != $matches[1].$matches[3]) {
+					if ($prev_tag != 0) { $marc_xml .= '  </datafield>'."\r\n"; }
+					$marc_xml .= '  <datafield tag="'.$matches[1].'" ind1=" " ind2=" ">'."\r\n";
+				}
+				$marc_xml .= '    <subfield code="'.$matches[2].'">'.$value.'</subfield>'."\r\n";
+//				$marc_xml .= '<!-- Prev: '.$prev_tag.' -->'."\r\n";
+//				$marc_xml .= '<!-- Curr: '.$matches[1].$matches[3].' -->'."\r\n";
+				if ($prev_tag != $matches[1].$matches[3]) {
+					$prev_tag = $matches[1].$matches[3];
+//					$marc_xml .= '<!-- Now: '.$matches[1].$matches[3].' -->'."\r\n";
+				}
 			}
 		}
+		$marc_xml .= '  </datafield>'."\r\n";
 		$marc_xml .= '</record>'."\r\n";
+		
 		try {
 			$mods_xml = $this->common->marc_to_mods($marc_xml);
 		} catch(Exception $e) {
@@ -1385,7 +1399,6 @@ class Book extends Model {
 					//If it does, scan the files
 					// TODO: This is probably broken since PATH is often blank. We should handle it more gracefully.
 					$files = get_filenames($incoming_dir.'/'.$this->barcode);
-						$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->barcode);
 					// Filter out files we want to ignore
 					setlocale(LC_ALL, 'en_US.UTF-8');
 					foreach ($files as $f) {
