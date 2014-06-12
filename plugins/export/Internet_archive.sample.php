@@ -1125,12 +1125,20 @@ class Internet_archive extends Controller {
 			$output .= '    </altPageTypes>'."\n";
 
 			// Alternate Page Numbers (we only have one here right now, but we can send the prefix)
-			if (property_exists($p, 'page_prefix') && property_exists($p, 'page_number')) {
-				if ($p->page_prefix) {
-					$output .= '    <altPageNumbers>'."\n";
-					$output .= '      <altPageNumber prefix="'.$p->page_prefix.'">'.$p->page_number.'</altPageNumber>'."\n";
-					$output .= '    </altPageNumbers>'."\n";
+			if (property_exists($p, 'page_number')) {
+				$implied = false;
+				if (property_exists($p, 'page_number_implicit')) {
+					$implied = ($p->page_number_implicit == 1);  
 				}
+				
+				$prefix = '';
+				if (property_exists($p, 'page_prefix')) {
+					$prefix = $p->page_prefix;  
+				}
+				
+				$output .= '    <altPageNumbers>'."\n";
+				$output .= '      <altPageNumber prefix="'.$prefix.'"'.($implied ? ' implied="1"' : '').'>'.$p->page_number.'</altPageNumber>'."\n";
+				$output .= '    </altPageNumbers>'."\n";
 			}
 
 			// Volume
@@ -1406,7 +1414,7 @@ class Internet_archive extends Controller {
 
 		// Combine the "collection" (singular) metadata because, well, people get confused.
 		$collection = $this->CI->book->get_metadata('collection'); // Returns an array for multiple valies OR a string
-		if (!is_array($collection)) {
+		if (!is_array($collection) && $collection) {
 			$collections[] = $collection;
 		} else {
 			foreach ($collection as $c) {
@@ -1458,6 +1466,7 @@ class Internet_archive extends Controller {
 		} elseif ($this->CI->book->get_metadata('copyright') == '2') {
 			$metadata['x-archive-meta-possible-copyright-status'] = "No known copyright restrictions as determined by scanning institution.";
 			$metadata['x-archive-meta-due-dillegence'] = 'http://biodiversitylibrary.org/permissions';
+			$metadata['x-archive-meta-duedillegence'] = 'http://biodiversitylibrary.org/permissions';
 			if (isset($metadata['x-archive-meta-licenseurl'])) {
 				unset($metadata['x-archive-meta-licenseurl']);
 			}
@@ -1488,7 +1497,8 @@ class Internet_archive extends Controller {
 		$ret = ($mods->xpath($root.$ns."subject[@authority='lcsh']/".$ns."topic"));
 		$c = 0;
 		// If we didn't get anything in topic, let's check genre, not sure if this is correct
-		if ($ret && count($ret) > 0) {
+		// JMR 6/4/14 - Fixed the logic for this. 'twas backwards.
+		if (!$ret || count($ret) == 0) {
 			$ret = ($mods->xpath($root.$ns."subject[@authority='lcsh']/".$ns."genre"));
 		}
 		if (is_array($ret)) {
@@ -1496,6 +1506,18 @@ class Internet_archive extends Controller {
 				$metadata['x-archive-meta'.sprintf("%02d", $c).'-subject'] = str_replace('"', "'", $r).'';
 				$c++;
 			}
+		}
+
+		// Genre
+		$ret = ($mods->xpath($root.$ns."genre"));
+		if ($ret && count($ret) > 0) {
+			$metadata['x-archive-meta-genre'] = str_replace("'", "&quot;", str_replace('"', "'", $ret[0].''));
+		}
+
+		// Abstract
+		$ret = ($mods->xpath($root.$ns."abstract"));
+		if ($ret && count($ret) > 0) {
+			$metadata['x-archive-meta-abstract'] = str_replace("'", "&quot;", str_replace('"', "'", $ret[0].''));
 		}
 
 		//modified JC 4/2/12
@@ -1556,16 +1578,64 @@ class Internet_archive extends Controller {
 				} else {
 					$str = $r.'';
 				}
-				$metadata['x-archive-meta'.sprintf("%02d", $c).'-description'] = str_replace('"', '\\"', $str);
-				$c++;
+				if ($str) {
+					$metadata['x-archive-meta'.sprintf("%02d", $c).'-description'] = str_replace('"', '\\"', $str);
+					$c++;
+				}
 			}
 		}
 		
 		$tm = time();
-		if (isset($this->CI->book->date_review_end)) {
+		if (isset($this->CI->book->date_review_end) && $this->CI->book->date_review_end != '0000-00-00 00:00:00') {
 			$tm = strtotime($this->CI->book->date_review_end);
+		} else if (isset($this->CI->book->date_created) && $this->CI->book->date_created != '0000-00-00 00:00:00') {
+			$tm = strtotime($this->CI->book->date_created);		
 		}
-		$metadata['x-archive-scandate'] = date('YmdHis', $tm);
+		if ($tm > 0) {
+			$metadata['x-archive-scandate'] = date('YmdHis', $tm);
+		} else {
+		
+		}
+
+		// Some data comes from MARC
+		$marc = simplexml_load_string($this->CI->book->get_metadata('marc_xml'));
+		$namespaces = $marc->getDocNamespaces();
+		$ns = '';
+		$root = '/';
+		if (array_key_exists('marc', $namespaces)) {
+			$ns = 'marc:';
+		} elseif (array_key_exists('', $namespaces)) {
+			// Add empty namespace because xpath is weird
+			$ns = 'ns:';
+			$marc->registerXPathNamespace('ns', $namespaces['']);
+		}
+		$namespaces = $marc->getNamespaces();
+		$ret = ($marc->xpath($ns."marc"));
+		if ($ret && count($ret)) {
+				$root = '/'.$ns."marc/";
+		}
+
+		// location
+// 		$ret = ($marc->xpath($root.$ns."record/".$ns."datafield[@tag='852']/".$ns."subfield[@code='a']"));
+// 		print_r($ret);
+// 		die;
+
+		$ret = ($marc->xpath($root.$ns."record/".$ns."datafield[@tag='852']/".$ns."subfield[@code='a']"));
+		if ($ret && count($ret) > 0) {
+			$metadata['x-archive-meta-location'] = str_replace("'", "&quot;", str_replace('"', "'", $ret[0].''));
+		}
+
+		// collection-number
+		$ret = ($marc->xpath($root.$ns."record/".$ns."datafield[@tag='852']/".$ns."subfield[@code='b']"));
+		if ($ret && count($ret) > 0) {
+			$metadata['x-archive-meta-collection-number'] = str_replace("'", "&quot;", str_replace('"', "'", $ret[0].''));
+		}
+
+		// sublocation
+		$ret = ($marc->xpath($root.$ns."record/".$ns."datafield[@tag='852']/".$ns."subfield[@code='c']"));
+		if ($ret && count($ret) > 0) {
+			$metadata['x-archive-meta-sublocation'] = str_replace("'", "&quot;", str_replace('"', "'", $ret[0].''));
+		}
 
 		return $metadata;
 	}
