@@ -274,7 +274,7 @@ $config['macaw']['metadata_fields'] = array('identifier', 'name', 'title', 'auth
 $config['macaw']['copyright_values'] = array(
 	array('title' => 'Not in Copyright', 'value' => 0),
 	array('title' => 'In Copyright, Permission Granted', 'value' => 1),
-	array('title' => 'In Copyright, Due Dilligence', 'value' => 2)
+	array('title' => 'No known copyright, Due Diligence', 'value' => 2)
 );
 
 // ------------------------------
