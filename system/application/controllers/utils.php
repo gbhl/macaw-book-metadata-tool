@@ -331,11 +331,18 @@ class Utils extends Controller {
 	 *
 	 * @since Version 1.6
 	 */
-	function csvimport($filename, $filename2 = null) {
+	function csvimport($filename, $filename2 = null, $username = 'admin') {
 		// Import the file
 
 		$fname = $this->cfg['data_directory'].'/import_export/'.$filename;
 
+		// Load the effective user. This is probably a huge security hole.
+		$this->user->load($username);
+
+		// Just in case we didn't have a second filename make sure it's null and not "null"
+		if ($filename2 == 'null') {
+			$filename2 = null;
+		}
 
 		$items_imported = 0;
 		$items_skipped = 0;
@@ -502,7 +509,7 @@ class Utils extends Controller {
 				fclose($infile);
 				// When done, delete the import file
 				// Do not delete the status file
-				unlink($fname);
+				// unlink($fname);
 			} else {
 				echo "File not found: $fname\n";
 			}

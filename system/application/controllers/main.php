@@ -839,7 +839,7 @@ class Main extends Controller {
 			rename($data['full_path'], $tempfilename);
 			$fname = basename($tempfilename);
 
-			$fname2 = '';
+			$fname2 = 'null';
 			if ($this->upload->do_upload('pagedata')) {	
 				$tempfilename = tempnam($dir, 'import-page-');		
 				rename($tempfilename, $tempfilename.'.csv');
@@ -851,9 +851,11 @@ class Main extends Controller {
 				$fname2 = basename($tempfilename);
 			}
 
+			$username = $this->session->userdata('username');
 			// Spawn the import process (php index.php utils csv_import FILENAME.CSV)
 			chdir($this->cfg['base_directory']);
-			$cmd = PHP_BINDIR.'/php index.php utils csvimport '.$fname.' '.$fname2.' > /dev/null 2>&1 &'; 
+			$cmd = PHP_BINDIR.'/php index.php utils csvimport '.$fname.' '.$fname2.' '.$username.' > /dev/null 2>&1 &'; 
+			$this->logging->log('access', 'info', 'Importing CSV file(s): '.$fname.' and '.$fname2);
 			system($cmd);
 
 			// Give the filename back to the page.

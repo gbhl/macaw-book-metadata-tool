@@ -950,11 +950,7 @@ class Book extends Model {
 						write_file($path.'/mods.xml', $x['mods']);
 						chmod($path.'/mods.xml', 0775);
 
-						$this->logging->log('access', 'info', "MODS: ".$x['mods']);
-						
 						$ret = $this->_read_mods($x['mods']);
-						$this->logging->log('access', 'info', "MODS RET: ".print_r($ret, true));
-
 						
 						if (isset($ret['title'])) {
 							$this->db->insert('metadata', array(
