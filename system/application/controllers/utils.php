@@ -414,7 +414,7 @@ class Utils extends Controller {
 			fclose($infile);
 			// When done, delete the import file
 			// Do not delete the status file
-			unlink($fname);
+			// unlink($fname);
 		} else {
 			echo "File not found: $fname\n";
 		}
@@ -530,7 +530,7 @@ class Utils extends Controller {
 	function _array_combine($keys, $values) {
 			$result = array();
 			foreach ($keys as $i => $k) {
-					$result[$k][] = $values[$i];
+					$result[$k][] = mb_convert_encoding($values[$i], 'UTF-8');;
 			}
 			array_walk($result, create_function('&$v', '$v = (count($v) == 1)? array_pop($v): $v;'));
 			return $result;
