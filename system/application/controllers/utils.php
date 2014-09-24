@@ -326,9 +326,12 @@ class Utils extends Controller {
 	 * CLI: Given a filename of a CSV file (which should exist in the /import_export/ directory
 	 * create items from the CSV. Do not update items if they already exist. Do not warn if
 	 * items already exist. Create a .txt file to report on the progress (JSON) 
+	 * 
+	 * May also send a tab-separated file with the file extension .txt
 	 *
 	 * Usage: php index.php utils csvimport import-62p7ac.csv
 	 *
+	 * 
 	 * @since Version 1.6
 	 */
 	function csvimport($filename, $filename2 = null, $username = 'admin') {
@@ -357,6 +360,14 @@ class Utils extends Controller {
 			$message = '';
 			$value = '';
 			$fieldnames = array();
+			$sep = ',';
+			$ext = pathinfo($filename, PATHINFO_EXTENSION);
+			$utf16 = false;
+			
+			if ($ext == 'txt') {
+				$sep = "\t";
+			}
+
 			
 			if (($infile = @fopen($fname, "r")) == FALSE) {
 				// For whatever reason, couldn't open the file.
@@ -365,9 +376,14 @@ class Utils extends Controller {
 				$this->_save_import_status($orig_fname, 0, 'Could not open import file for reading.');
 				return;		
 			} 
-	
 			// Can we get the fieldnames on the first row?
-			$fieldnames = @fgetcsv($infile, 8000, ',', '"');		
+			$fieldnames = @fgets($infile, 80000);
+			if ($this->common->is_utf16($fieldnames)) {
+				$fieldnames = strtolower($this->common->utf16_to_utf8($fieldnames));
+				$utf16 = true;
+			}
+			$fieldnames = str_getcsv($fieldnames, $sep, '"');
+
 			if ($fieldnames == FALSE) {
 				echo "Could not read the import file.\n";
 				$this->_save_import_status($orig_fname, 0, 'Could not read the import file.');
@@ -386,8 +402,12 @@ class Utils extends Controller {
 			
 			// Do the import
 			$info = array();
-			while (($data = fgetcsv($infile, 8000, ',', '"')) !== FALSE) {
-				if ($data && $data[0] != '') {
+			while (($line = fgets($infile, 80000)) !== FALSE) {
+				if ($utf16) {
+					$line = iconv('UTF-16', 'UTF-8//TRANSLIT', $line);
+				}
+				$data = str_getcsv($line, $sep, '"');
+				if ($data && $data[0] != '' && strlen($data[0]) > 1) {
 					if (!$this->book->exists($data[0])) {
 						// Massage the data into the correct format
 						array_push($info, $this->_array_combine($fieldnames, $data));
@@ -398,7 +418,7 @@ class Utils extends Controller {
 					// While importing, write our progress to "$filename.txt"
 				}
 			}
-
+			
 			$errorcount = 0;
 			$c = 1;
 			$max = count($info);
@@ -426,7 +446,13 @@ class Utils extends Controller {
 				$message = '';
 				$value = '';
 				$fieldnames = array();
-				
+				$utf16 = false;
+				$sep = ',';
+				$ext = pathinfo($filename2, PATHINFO_EXTENSION);
+				if ($ext == 'txt') {
+					$sep = "\t";
+				}
+
 				if (($infile = @fopen($fname, "r")) == FALSE) {
 					// For whatever reason, couldn't open the file.
 					// Umm... Didn't we just save the file?
@@ -436,7 +462,13 @@ class Utils extends Controller {
 				} 
 		
 				// Can we get the fieldnames on the first row?
-				$fieldnames = @fgetcsv($infile, 8000, ',', '"');		
+				$fieldnames = @fgets($infile, 80000);
+				if ($this->common->is_utf16($fieldnames)) {
+					$fieldnames = strtolower($this->common->utf16_to_utf8($fieldnames));
+					$utf16 = true;
+				}
+				$fieldnames = str_getcsv($fieldnames, $sep, '"');
+	
 				if ($fieldnames == FALSE) {
 					echo "Could not read the pagesimport file.\n";
 					$this->_save_import_status($orig_fname, 0, 'Could not read the import file.');
@@ -457,8 +489,12 @@ class Utils extends Controller {
 				$info = array();
 				$c = 1;
 				$max = @exec("wc -l $fname");
-				while (($data = fgetcsv($infile, 8000, ',', '"')) !== FALSE) {
-					if ($data && $data[0] != '') {
+				while (($line = fgets($infile, 80000)) !== FALSE) {
+					if ($utf16) {
+						$line = iconv('UTF-16', 'UTF-8//TRANSLIT', $line);
+					}
+					$data = str_getcsv($line, $sep, '"');
+					if ($data && $data[0] != '' && strlen($data[0]) > 1) {
 				
 						$data = $this->_array_combine($fieldnames, $data);
 						if (isset($data['barcode'])) {
@@ -530,15 +566,28 @@ class Utils extends Controller {
 	function _array_combine($keys, $values) {
 			$result = array();
 			foreach ($keys as $i => $k) {
-					$result[$k][] = mb_convert_encoding($values[$i], 'UTF-8');;
+				if (isset($values[$i])) {
+					$result[$k][] = $this->common->utf16_to_utf8($values[$i]);
+				}
 			}
 			array_walk($result, create_function('&$v', '$v = (count($v) == 1)? array_pop($v): $v;'));
 			return $result;
 	}
+
+// 	function _array_combine($keys, $values) {
+// 			$result = array();
+// 			foreach ($keys as $i => $k) {
+// 					$k = $this->common->utf16_to_utf8($k);
+// 					$result[$k][] = mb_convert_encoding($values[$i], 'UTF-8');;
+// 			}
+// 			array_walk($result, create_function('&$v', '$v = (count($v) == 1)? array_pop($v): $v;'));
+// 			return $result;
+// 	}
+
 	
 	function _save_import_status($file = '', $value = 1, $message = '', $finished = 0) {
 		if ($file != '') {
-			write_file($file.'.txt', 
+			write_file($file.'.log', 
 				json_encode(array(
 					'message' => $message,
 					'finished' => $finished,

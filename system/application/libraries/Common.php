@@ -788,5 +788,80 @@ class Common extends Controller {
 		}
 	}
 	
+
+	function trim_utf8_bom($data){ 
+		if(substr($data, 0, 3) == pack('CCC', 239, 187, 191)) {
+			return substr($data, 3);
+		}
+		return $data;
+	}
+
+	function trim_utf16_bom($data){ 
+		$bom = pack("CCC", 0xef, 0xbb, 0xbf);
+		if (0 === strncmp($data, $bom, 3)) {
+				$return = substr($data, 3);
+		}	
+		return $data;
+	}
+
+	function trim_bom($data){ 
+		if (ord(substr($data,0)) == 255 && ord(substr($data,1)) == 254) {
+				$data = substr($data, 2);
+		}
+		return $data;
+	}
+
+	function is_utf16($str) {
+		if (strlen($str) > 2) {
+			$c0 = ord($str[0]);
+			$c1 = ord($str[1]);
 	
+			if ($c0 == 0xFE && $c1 == 0xFF) {
+					return true;
+			} else if ($c0 == 0xFF && $c1 == 0xFE) {
+					return true;
+			}
+		}	
+		return false;
+	}
+	
+	
+	function utf16_to_utf8($str) {
+		if (strlen($str) > 2) {
+			$c0 = ord($str[0]);
+			$c1 = ord($str[1]);
+		
+			if ($c0 == 0xFE && $c1 == 0xFF) {
+				$be = true;
+			} else if ($c0 == 0xFF && $c1 == 0xFE) {
+				$be = false;
+			} else {
+				return $str;
+			}
+		
+			$str = substr($str, 2);
+			$len = strlen($str);
+			$dec = '';
+			for ($i = 0; $i < $len; $i += 2) {
+				if (isset($str[$i]) && isset($str[$i + 1])) {
+					$c = ($be) ? ord($str[$i]) << 8 | ord($str[$i + 1]) : ord($str[$i + 1]) << 8 | ord($str[$i]);
+					if ($c >= 0x0001 && $c <= 0x007F) {
+						$dec .= chr($c);
+					} else if ($c > 0x07FF) {
+						$dec .= chr(0xE0 | (($c >> 12) & 0x0F));
+						$dec .= chr(0x80 | (($c >>  6) & 0x3F));
+						$dec .= chr(0x80 | (($c >>  0) & 0x3F));
+					} else {
+						$dec .= chr(0xC0 | (($c >>  6) & 0x1F));
+						$dec .= chr(0x80 | (($c >>  0) & 0x3F));
+					}
+				}
+			}
+			return $dec;
+		} 
+		return $str;
+	}
+
 }
+
+

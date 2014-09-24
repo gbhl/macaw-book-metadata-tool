@@ -815,11 +815,6 @@ class Main extends Controller {
 			mkdir($dir);
 		}
 
-		// Get a temporary filename
-		$tempfilename = tempnam($dir, 'import-item-');		
-		rename($tempfilename, $tempfilename.'.csv');
-		$tempfilename .= '.csv';
-		
 		// Receive the CSV file 
 		$config['upload_path'] = $dir;
 		$config['allowed_types'] = 'csv|text|txt';
@@ -834,16 +829,21 @@ class Main extends Controller {
 				'error' => $this->upload->display_errors(),
 			));
 		} else {
-			// Rename the file we uploaded
 			$data = $this->upload->data();
+
+			// Get a temporary filename
+			$ext = pathinfo($data['file_name'], PATHINFO_EXTENSION);
+	
+			$tempfilename = tempnam($dir, 'import-item-').'.'.$ext;					
+			// Rename the file we uploaded
 			rename($data['full_path'], $tempfilename);
 			$fname = basename($tempfilename);
 
 			$fname2 = 'null';
 			if ($this->upload->do_upload('pagedata')) {	
-				$tempfilename = tempnam($dir, 'import-page-');		
-				rename($tempfilename, $tempfilename.'.csv');
-				$tempfilename .= '.csv';
+				$tempfilename = tempnam($dir, 'import-page-');
+				rename($tempfilename, $tempfilename.'.'.$ext);
+				$tempfilename .= '.'.$ext;
 	
 				// Rename the file we uploaded
 				$data = $this->upload->data();
