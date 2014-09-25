@@ -1629,12 +1629,11 @@ class Book extends Model {
 	// Since Version 1.6
 
 	function get_contributor() {
-		$ret = $this->org_name;
 		if ($this->get_metadata('contributor')) {
 			return $this->get_metadata('contributor');
 
-		} elseif ($ret != 'Default') {
-			return $ret;
+		} elseif ($this->org_name != 'Default') {
+			return $this->org_name;
 
 		} else {
 			return $this->cfg['organization_name'];
