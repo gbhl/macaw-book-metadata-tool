@@ -102,7 +102,7 @@ class Book extends Model {
 				$this->scan_time     = $row->scan_time;
 				$this->date_review_end = $row->date_review_end;
 				
-				if ($row->needs_qa == 't') { 
+				if ($row->needs_qa == 't' || $row->needs_qa == '1') { 
 					$this->needs_qa = true;
 				} else {
 					$this->needs_qa = false;
