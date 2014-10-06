@@ -85,7 +85,7 @@ YAHOO.macaw.Page = function(parent, data, mdModules) {
 		new_thumb.appendChild(new_info);
 		new_thumb.appendChild(new_img);
 		new_thumb.appendChild(new_caption);
-		new_thumb.title = data.filebase.'.jpg';
+		new_thumb.title = data.filebase+'.jpg';
 		this.parent.parent.elemThumbnails.appendChild(new_thumb);
 
 		// Remeber some stuff
