@@ -644,18 +644,20 @@ class Scan extends Controller {
 				if ($this->user->has_permission('QA')) {
 					// Only a QA person can finish a book that's marked for QA
 					$this->book->set_status('reviewed');
+					$this->session->set_userdata('message', 'Changes saved! ');
 				} else {
 					// Leave the book open
 					$this->book->set_status('reviewing');
 					// Email the QA staff that it needs to be reviewed
-					$this->_notify_qa();
+					$this->_notify_qa($this->book->org_id);
+					$this->session->set_userdata('message', 'Changes saved and item sent for QA review!');
 				}
 			} else {
 				// Otherwise, we just treat the book normally and finish it.
 				$this->book->set_status('reviewed');
+				$this->session->set_userdata('message', 'Changes saved! ');
 			}
 			$this->book->update();
-			$this->session->set_userdata('message', 'Changes saved! ');
 
 			header("Content-Type: application/json; charset=utf-8");
 			echo json_encode(array('redirect' => $this->config->item('base_url').'main/listitems'));
@@ -676,12 +678,12 @@ class Scan extends Controller {
 	 *
 	 * @since Version 1.4
 	 */
-	function _notify_qa() {
+	function _notify_qa($org_id = -1) {
 
 
 		// Get a list of all QA users and their email addresses
 		$qa_users = array();
-		$this->db->where('username in (select username from permission where permission = \'QA\');');
+		$this->db->where('username in (select username from permission where permission = \'QA\' and org_id = '.$org_id.');');
 		$this->db->select('email');
 		$query = $this->db->get('account');
 		foreach ($query->result() as $row) {
@@ -703,6 +705,7 @@ class Scan extends Controller {
 			$this->load->library('email');
 	
 			$config['protocol'] = 'smtp';
+			$config['mailtype'] = 'html';
 			$config['crlf'] = '\r\n';
 			$config['newline'] = '\r\n';
 			$config['smtp_host'] = $this->cfg['email_smtp_host'];
@@ -716,12 +719,15 @@ class Scan extends Controller {
 			$this->email->bcc($this->cfg['admin_email']);
 			$this->email->subject('[Macaw] QA Notification');
 			$this->email->message(
-				'This is a message from the MACAW server located at: '.$this->config->item('base_url')."\r\n\r\n".
-				'The following item is now ready for QA review: '."\r\n\r\n".
-				'Title: '.$this->book->get_metadata('title')."\r\n".
-				'Barcode: ' .$this->book->barcode."\r\n".
-				'Edited By: '.$this->session->userdata('full_name').' ('.$this->session->userdata('username').')'."\r\n\r\n".
-				'To review this item, log into Macaw and enter the barcode above.'
+				'<html><body><font size="+1">This is a message from the MACAW server located at: '.$this->config->item('base_url')."<br><br>\r\n\r\n".
+				'The following item is now ready for QA review: '."<br><br>\r\n\r\n".
+				'<strong>Title:</strong> '.$this->book->get_metadata('title')."<br>\r\n".
+				'<strong>Identifier:</strong> <a href="'.$this->config->item('base_url').'/main/managebarcode/'.$this->book->barcode.'">'.$this->book->barcode."</a><br>\r\n".
+				'<strong>Edited By:</strong> '.$this->session->userdata('full_name').' ('.$this->session->userdata('username').')'."<br><br>\r\n\r\n".
+				'To review this item: <br><br>'.
+				'<em>If you are logged in</em>, click the Identifier link above. <br>'.
+				'If not, log in and enter the identifier in the search box at the top.<br>'.
+				'<br><br></font></body></html>'
 			);
 			error_reporting(0);
 			if (!$this->email->send()) {
