@@ -10,6 +10,12 @@
 |
 */
 
+$hook['pre_system'][] = array(
+	'class'    => 'PHPFatalError',
+	'function' => 'setHandler',
+	'filename' => 'PHPFatalError.php',
+	'filepath' => 'hooks'
+);
 
 
 /* End of file hooks.php */

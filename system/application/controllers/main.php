@@ -346,7 +346,7 @@ class Main extends Controller {
 		$data['missing_metadata'] = $this->book->get_missing_metadata(false);
 		$data['metadata'] = $md;
 		$data['is_qa_user'] = false;
-		if ($this->user->has_permission('qa') || $this->user->has_permission('admin')) {
+		if ($this->user->has_permission('qa') || $this->user->has_permission('admin') || $this->user->has_permission('local+admin')) {
 			$data['is_qa_user'] = true;
 		}
 		$data['needs_qa'] = $this->book->needs_qa;
@@ -455,15 +455,18 @@ class Main extends Controller {
 			} catch (Exception $e) {
 				$this->session->set_userdata('errormessage', "Error converting MARCXML to MODS: ".$e->getMessage());
 			}
-
-			$this->book->set_metadata('mods_xml', $mods);
-			$ret = $this->book->_read_mods($mods);
 			
-			if (isset($ret['title'])) {
-				$this->book->set_metadata('title', $ret['title']);
-			}
-			if (isset($ret['author'])) {
-				$this->book->set_metadata('author', $ret['author']);
+			if ($mods) {
+				$this->book->set_metadata('mods_xml', $mods);
+				$ret = $this->book->_read_mods($mods);
+				
+				if (isset($ret['title'])) {
+					$this->book->set_metadata('title', $ret['title']);
+				}
+				if (isset($ret['author'])) {
+					$this->book->set_metadata('author', $ret['author']);
+				}
+				$this->session->set_userdata('errormessage', "Error converting MARCXML to MODS: Unable to parse MARC data.");
 			}
 		}
 
@@ -494,14 +497,6 @@ class Main extends Controller {
 	 */
 	function delete_confirm() {
 		$this->common->check_session();
-
-		// Permission Checking
-		if (!$this->user->has_permission('admin') && !$this->user->has_permission('local_admin')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
-			redirect($this->config->item('base_url').'main');
-			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
-			return;
-		}
 
 		// Get our book
 		$this->book->load($this->session->userdata('barcode'));
@@ -557,15 +552,6 @@ class Main extends Controller {
 	 */
 	function delete() {
 		$this->common->check_session();
-
-		// Permission Checking
-		if (!$this->user->has_permission('admin') && !$this->user->has_permission('local_admin')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
-			redirect($this->config->item('base_url').'main');
-			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
-			return;
-		}
-
 		
 		if ($_REQUEST['action'] == 'cancel') {
 			return $this->edit();
@@ -575,17 +561,13 @@ class Main extends Controller {
 		$this->book->load($barcode);
 		$this->user->load($this->session->userdata('username'));
 
-		// Who are we?
-		$is_local_admin = $this->user->has_permission('local_admin');
-		
 		// Make sure we can access this item
 		// (either we are admin or we are local admin and the book is in our org_id)
-		if ($is_local_admin && $this->user->org_id != $this->book->org_id) {
+		if ($this->user->org_id != $this->book->org_id) {
 			$this->session->set_userdata('errormessage', 'Unable to delete the item with identifier "'.$barcode.'". It does not belong to your organization!');
 			redirect($this->config->item('base_url').'main/listitems');
 			return;		
 		}
-
 
 		// Do we want to backup the item?
 		$path = '';

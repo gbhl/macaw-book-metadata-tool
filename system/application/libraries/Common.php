@@ -391,6 +391,8 @@ class Common extends Controller {
 		$xsl = new DOMDocument;
 		$proc = new XSLTProcessor;
 		$ret = $xml->loadXML($text, LIBXML_NOERROR | LIBXML_NOWARNING);    // Load the MARC XML to convert to MODS
+		
+		
 		if ($ret) {
 			$xsl->load('inc/xslt/MARC21slim2MODS3-3.xsl');	// Get our XSL file from the LOC
 			$proc->importStyleSheet($xsl); 					// attach the xsl rules
@@ -398,7 +400,6 @@ class Common extends Controller {
 			return $tx;										// Transform the MARC to MODS
 		} else {
 			throw new Exception("Unable to parse MARCXML data");
-			print "Unable to parse MARCXML data\n";
 			return null;
 		}
 	}

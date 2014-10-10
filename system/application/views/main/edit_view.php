@@ -13,11 +13,8 @@
 			var obtnSave = new YAHOO.widget.Button("btnSave");
 			obtnSave.on('click', FIELDS.submit, 'save');
 
-			<?php // HERE COMES SOME PHP CODE! ?>
-			<?php if (($is_admin || $is_local_admin) && !$new) { ?>
 			var obtnDelete = new YAHOO.widget.Button("btnDelete");
 			obtnDelete.on('click', FIELDS.submit, 'delete');
-			<?php } ?>
 			
 			var obtnAddField = new YAHOO.widget.Button("btnAddField");
 			obtnAddField.on('click', FIELDS.addField);
@@ -303,9 +300,7 @@
 		</form>
 		<div class="savebutton">
 			<button id="btnSave">Save</button>
-			<?php if (($is_admin || $is_local_admin) && !$new) { ?>
 			<button id="btnDelete">Delete Item</button>
-			<?php } ?>
 		</div>
 
 	</div>
