@@ -346,7 +346,7 @@ class Main extends Controller {
 		$data['missing_metadata'] = $this->book->get_missing_metadata(false);
 		$data['metadata'] = $md;
 		$data['is_qa_user'] = false;
-		if ($this->user->has_permission('qa') || $this->user->has_permission('admin') || $this->user->has_permission('local+admin')) {
+		if ($this->user->has_permission('qa') || $this->user->has_permission('admin') || $this->user->has_permission('local_admin')) {
 			$data['is_qa_user'] = true;
 		}
 		$data['needs_qa'] = $this->book->needs_qa;
