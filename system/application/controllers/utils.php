@@ -352,9 +352,16 @@ class Utils extends Controller {
 		$pages_imported = 0;
 		$pages_skipped = 0;
 		$orig_fname = $fname;
+
+		$errorcount = 0;
 		
 		if (file_exists($fname)) {
 			$lc = @exec("wc -l $fname");
+			
+			// Read the entire file to check the encoding
+			$all_file = file_get_contents($fname);
+			$encoding = mb_detect_encoding($all_file, mb_list_encodings(), true);
+			unset($all_file);
 			
 			$row = 1;
 			$message = '';
@@ -362,13 +369,10 @@ class Utils extends Controller {
 			$fieldnames = array();
 			$sep = ',';
 			$ext = pathinfo($filename, PATHINFO_EXTENSION);
-			$utf16 = false;
 			
 			if ($ext == 'txt') {
 				$sep = "\t";
-			}
-
-			
+			}			
 			if (($infile = @fopen($fname, "r")) == FALSE) {
 				// For whatever reason, couldn't open the file.
 				// Umm... Didn't we just save the file?
@@ -378,9 +382,8 @@ class Utils extends Controller {
 			} 
 			// Can we get the fieldnames on the first row?
 			$fieldnames = @fgets($infile, 80000);
-			if ($this->common->is_utf16($fieldnames)) {
-				$fieldnames = strtolower($this->common->utf16_to_utf8($fieldnames));
-				$utf16 = true;
+			if ($encoding != 'UTF-8') {
+				$fieldnames = mb_convert_encoding($fieldnames, $encoding, 'UTF-8');
 			}
 			$fieldnames = str_getcsv($fieldnames, $sep, '"');
 
@@ -403,9 +406,11 @@ class Utils extends Controller {
 			// Do the import
 			$info = array();
 			while (($line = fgets($infile, 80000)) !== FALSE) {
-				if ($utf16) {
-					$line = iconv('UTF-16', 'UTF-8//TRANSLIT', $line);
+
+				if ($encoding != 'UTF-8') {
+					$line = mb_convert_encoding($line, $encoding, 'UTF-8');
 				}
+				
 				$data = str_getcsv($line, $sep, '"');
 				if ($data && $data[0] != '' && strlen($data[0]) > 1) {
 					if (!$this->book->exists($data[0])) {
@@ -419,7 +424,6 @@ class Utils extends Controller {
 				}
 			}
 			
-			$errorcount = 0;
 			$c = 1;
 			$max = count($info);
 			foreach ($info as $b) {
@@ -446,12 +450,17 @@ class Utils extends Controller {
 				$message = '';
 				$value = '';
 				$fieldnames = array();
-				$utf16 = false;
 				$sep = ',';
 				$ext = pathinfo($filename2, PATHINFO_EXTENSION);
 				if ($ext == 'txt') {
 					$sep = "\t";
 				}
+
+				// Read the entire file to check the encoding
+				$all_file = file_get_contents($fname);
+				$encoding = mb_detect_encoding($all_file, mb_list_encodings(), true);
+				unset($all_file);
+	
 
 				if (($infile = @fopen($fname, "r")) == FALSE) {
 					// For whatever reason, couldn't open the file.
@@ -463,9 +472,8 @@ class Utils extends Controller {
 		
 				// Can we get the fieldnames on the first row?
 				$fieldnames = @fgets($infile, 80000);
-				if ($this->common->is_utf16($fieldnames)) {
-					$fieldnames = strtolower($this->common->utf16_to_utf8($fieldnames));
-					$utf16 = true;
+				if ($encoding != 'UTF-8') {
+					$fieldnames = mb_convert_encoding($fieldnames, $encoding, 'UTF-8');
 				}
 				$fieldnames = str_getcsv($fieldnames, $sep, '"');
 	
@@ -490,9 +498,11 @@ class Utils extends Controller {
 				$c = 1;
 				$max = @exec("wc -l $fname");
 				while (($line = fgets($infile, 80000)) !== FALSE) {
-					if ($utf16) {
-						$line = iconv('UTF-16', 'UTF-8//TRANSLIT', $line);
+
+					if ($encoding != 'UTF-8') {
+						$line = mb_convert_encoding($line, $encoding, 'UTF-8');
 					}
+
 					$data = str_getcsv($line, $sep, '"');
 					if ($data && $data[0] != '' && strlen($data[0]) > 1) {
 				
@@ -550,7 +560,6 @@ class Utils extends Controller {
 				echo "File not found: $fname\n";
 			}
 		}
-
 		$this->_save_import_status(
 			$orig_fname, 
 			100, 
@@ -567,22 +576,12 @@ class Utils extends Controller {
 			$result = array();
 			foreach ($keys as $i => $k) {
 				if (isset($values[$i])) {
-					$result[$k][] = $this->common->utf16_to_utf8($values[$i]);
+					$result[$k][] = $values[$i];
 				}
 			}
 			array_walk($result, create_function('&$v', '$v = (count($v) == 1)? array_pop($v): $v;'));
 			return $result;
 	}
-
-// 	function _array_combine($keys, $values) {
-// 			$result = array();
-// 			foreach ($keys as $i => $k) {
-// 					$k = $this->common->utf16_to_utf8($k);
-// 					$result[$k][] = mb_convert_encoding($values[$i], 'UTF-8');;
-// 			}
-// 			array_walk($result, create_function('&$v', '$v = (count($v) == 1)? array_pop($v): $v;'));
-// 			return $result;
-// 	}
 
 	
 	function _save_import_status($file = '', $value = 1, $message = '', $finished = 0) {

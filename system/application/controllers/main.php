@@ -812,23 +812,26 @@ class Main extends Controller {
 			));
 		} else {
 			$data = $this->upload->data();
-
 			// Get a temporary filename
-			$ext = pathinfo($data['file_name'], PATHINFO_EXTENSION);
-	
-			$tempfilename = tempnam($dir, 'import-item-').'.'.$ext;					
+			$ext = pathinfo($data['file_name'], PATHINFO_EXTENSION);	
+			$tempfilename = tempnam($dir, 'import-item-');
+			rename($tempfilename, $tempfilename.'.'.$ext);
+			$tempfilename .= '.'.$ext;
+
 			// Rename the file we uploaded
 			rename($data['full_path'], $tempfilename);
 			$fname = basename($tempfilename);
 
 			$fname2 = 'null';
 			if ($this->upload->do_upload('pagedata')) {	
-				$tempfilename = tempnam($dir, 'import-page-');
+				$data = $this->upload->data();
+				// Get a temporary filename
+				$ext = pathinfo($data['file_name'], PATHINFO_EXTENSION);	
+				$tempfilename = tempnam($dir, 'import-page-'); // this creates a file
 				rename($tempfilename, $tempfilename.'.'.$ext);
 				$tempfilename .= '.'.$ext;
 	
 				// Rename the file we uploaded
-				$data = $this->upload->data();
 				rename($data['full_path'], $tempfilename);
 				$fname2 = basename($tempfilename);
 			}
@@ -838,6 +841,7 @@ class Main extends Controller {
 			chdir($this->cfg['base_directory']);
 			$cmd = PHP_BINDIR.'/php index.php utils csvimport '.$fname.' '.$fname2.' '.$username.' > /dev/null 2>&1 &'; 
 			$this->logging->log('access', 'info', 'Importing CSV file(s): '.$fname.' and '.$fname2);
+			$this->logging->log('access', 'info', 'Command: '.$cmd);
 			system($cmd);
 
 			// Give the filename back to the page.
@@ -865,7 +869,7 @@ class Main extends Controller {
 		}
 		
 		$dir = $this->cfg['data_directory'].'/import_export';
-		$fname = $dir.'/'.$filename.'.txt';
+		$fname = $dir.'/'.$filename.'.log';
 
 		// Get the progress of the file
 		$string = read_file($fname); 

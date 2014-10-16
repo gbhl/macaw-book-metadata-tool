@@ -1008,7 +1008,7 @@ class Book extends Model {
 		}
 		$marc_xml .= '  </datafield>'."\r\n";
 		$marc_xml .= '</record>'."\r\n";
-		
+
 		try {
 			$mods_xml = $this->common->marc_to_mods($marc_xml);
 		} catch(Exception $e) {

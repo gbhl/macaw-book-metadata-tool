@@ -390,8 +390,7 @@ class Common extends Controller {
 		$xml = new DOMDocument;
 		$xsl = new DOMDocument;
 		$proc = new XSLTProcessor;
-		$ret = $xml->loadXML($text, LIBXML_NOERROR | LIBXML_NOWARNING);    // Load the MARC XML to convert to MODS
-		
+		$ret = $xml->loadXML($text);    // Load the MARC XML to convert to MODS
 		
 		if ($ret) {
 			$xsl->load('inc/xslt/MARC21slim2MODS3-3.xsl');	// Get our XSL file from the LOC
