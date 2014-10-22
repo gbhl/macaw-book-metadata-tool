@@ -214,17 +214,10 @@
 					<td class="fieldname">Organization:</td>
 					<td><?php echo($organization) ?></td>
 				</tr>
-				<?php if ($is_qa_user) { ?>
 				<tr class="row">
 					<td class="fieldname">Needs QA: </td>
 					<td><input type="checkbox" name="needs_qa" id="needs_qa" value="1" <?php if ($needs_qa) { echo("checked"); } ?>> This item will be reviewed for Quality Assurance</td>
 				</tr>
-				<?php } else { ?>
-				<tr class="row">
-					<td class="fieldname">Needs QA:</td>
-					<td>This item <?php if ($needs_qa) { echo("will"); } else { echo("will not"); } ?> be reviewed for Quality Assurance</td>
-				</tr>
-				<?php } ?>
 				<tr class="row">
 					<td class="fieldname">Copyright:</td>
 					<td>
