@@ -601,6 +601,11 @@ class Main extends Controller {
 			$this->session->set_userdata('errormessage', 'Unable to delete the the item.<br>'.$e->getMessage());			
 		}
 
+		if (file_exists($this->cfg['incoming_directory'].'/'.$barcode)) {
+			delete_files($this->cfg['incoming_directory'].'/'.$barcode, TRUE);
+			rmdir($this->cfg['incoming_directory'].'/'.$barcode);
+		}
+
 		if ($path) {
 			$data['path'] = str_replace($this->cfg['base_directory'], '', $path);
 			$data['filename'] = basename($path);
