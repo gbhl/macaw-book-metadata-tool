@@ -438,7 +438,10 @@ class Main extends Controller {
 				} else {
 					if (is_array($val)) {
 						foreach ($val as $v) {
-							$this->book->set_metadata(trim($field), $v, false);
+							// Don't save an empty value.
+							if (isset($v) && $v != '') {
+								$this->book->set_metadata(trim($field), $v, false);
+							}
 						}
 					}
 				}
