@@ -185,13 +185,22 @@ class Book extends Model {
 					'status_code' => $status,
 				);
 
-				if ($status == 'scanning'  && !$q[0]->date_scanning_start) { $data['date_scanning_start'] = 'now()'; }
-				if ($status == 'scanned'   && !$q[0]->date_scanning_end)   { $data['date_scanning_end']   = 'now()'; }
-				if ($status == 'reviewing' && !$q[0]->date_review_start)   { $data['date_review_start']   = 'now()'; }
-				if ($status == 'reviewed'  && !$q[0]->date_review_end)     { $data['date_review_end']     = 'now()'; }
-				if ($status == 'completed' && !$q[0]->date_completed)      { $data['date_completed']      = 'now()'; }
-				if ($status == 'exporting' && !$q[0]->date_export_start)   { $data['date_export_start']   = 'now()'; }
-				if ($status == 'archived'  && !$q[0]->date_archived)       { $data['date_archived']       = 'now()'; }
+				// mysql is stupid. So we need to handle it special when the date field is empty.				
+				if ($q[0]->date_scanning_start == '0000-00-00 00:00:00') {$q[0]->date_scanning_start = null;}
+				if ($q[0]->date_scanning_end == '0000-00-00 00:00:00')   {$q[0]->date_scanning_end = null;}
+				if ($q[0]->date_review_start == '0000-00-00 00:00:00')   {$q[0]->date_review_start = null;}
+				if ($q[0]->date_review_end == '0000-00-00 00:00:00')     {$q[0]->date_review_end = null;}
+				if ($q[0]->date_completed == '0000-00-00 00:00:00')      {$q[0]->date_completed = null;}
+				if ($q[0]->date_export_start == '0000-00-00 00:00:00')   {$q[0]->date_export_start = null;}
+				if ($q[0]->date_archived == '0000-00-00 00:00:00')       {$q[0]->date_archived = null;}
+
+				if ($status == 'scanning'  && !$q[0]->date_scanning_start) { $data['date_scanning_start'] = date('Y-m-d H:i:s'); }
+				if ($status == 'scanned'   && !$q[0]->date_scanning_end)   { $data['date_scanning_end']   = date('Y-m-d H:i:s'); }
+				if ($status == 'reviewing' && !$q[0]->date_review_start)   { $data['date_review_start']   = date('Y-m-d H:i:s'); }
+				if ($status == 'reviewed'  && !$q[0]->date_review_end)     { $data['date_review_end']     = date('Y-m-d H:i:s'); }
+				if ($status == 'completed' && !$q[0]->date_completed)      { $data['date_completed']      = date('Y-m-d H:i:s'); }
+				if ($status == 'exporting' && !$q[0]->date_export_start)   { $data['date_export_start']   = date('Y-m-d H:i:s'); }
+				if ($status == 'archived'  && !$q[0]->date_archived)       { $data['date_archived']       = date('Y-m-d H:i:s'); }
 
 				$this->db->set($data);
 				$this->db->update('item');
