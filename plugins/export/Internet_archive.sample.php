@@ -179,6 +179,7 @@ class Internet_archive extends Controller {
 		// Cycle through these items
 		foreach ($books as $b) {
 			try {
+				print "Exporting ".$b->barcode."...\n";
 				$bc = $b->barcode;
 				$this->CI->book->load($bc);
 
@@ -211,9 +212,20 @@ class Internet_archive extends Controller {
 
 				// Get an identifier for this book
 				$metadata = $this->_get_metadata();
-				$id = $this->identifier($b, $metadata);
-				$metadata['x-archive-meta-identifier'] = $id;
-
+				$id = null;
+				if ($metadata) {
+					$id = $this->identifier($b, $metadata);
+					$metadata['x-archive-meta-identifier'] = $id;
+				} else {
+					$message = "Error processing export.\n\n".
+						"Identifier:    ".$bc."\n\n".
+						"IA Identifier: ".$id."\n\n".
+						"Error Message: Could not get metadata for item with barcode ".$bc.". Check the MARC or MODS data.\n\n".
+						print_r($metadata, true);
+					$this->CI->common->email_error($message);
+					continue;				
+				}
+				
 				if ($id == '') {
 					$this->CI->book->set_status('error');
 					$this->CI->logging->log('book', 'error', 'Could not get an identifier for the book.', $bc);
@@ -735,24 +747,36 @@ class Internet_archive extends Controller {
 		// Cycle through these items
 		foreach ($books as $b) {
 			// Load the book
+			print "Verifying Upload ".$b->barcode."...\n";
 			$this->CI->book->load($b->barcode);
 
 			// We check the ID, but we really REALLY should have one.
 			$metadata = $this->_get_metadata();
-			$id = $this->identifier($b, $metadata);
-			$metadata['x-archive-meta-identifier'] = $id;
+			$id = null;
+			if ($metadata) {
+				$id = $this->identifier($b, $metadata);
+				$metadata['x-archive-meta-identifier'] = $id;
+			} else {
+				$message = "Error processing export.\n\n".
+					"Identifier:    ".$b->barcode."\n\n".
+					"IA Identifier: ".$id."\n\n".
+					"Error Message: Could not get metadata for item with barcode ".$b->barcode.". Check the MARC or MODS data.\n";
+				$this->CI->common->email_error($message);
+				continue;				
+			}
+
+			$status = $this->CI->book->get_export_status('Internet_archive');
 
 			if ($id) {
-				$status = $this->CI->book->get_export_status('Internet_archive');
 				if ($status != 'uploaded') {
 					echo '(verify upload) The item with id #'.$b->id.' is not marked as uploaded and cannot be verified. (status is '.$status.')'."\n";
 					continue;
 				}
 			}
 
-			if ($id == '') {
+			if ($id == '' && $status) {
 				$this->CI->book->set_status('error');
-				$this->CI->logging->log('book', 'error', 'This item is uploaded but it does not have an indentifier. This is bad.', $b->barcode);
+				$this->CI->logging->log('book', 'error', 'During Verify Upload the item does not have an identifier.', $b->barcode);
 				continue;
 			}
 			// Log that we are checking the status at Internet Archive
@@ -812,24 +836,35 @@ class Internet_archive extends Controller {
 
 		// Cycle through these items
 		foreach ($books as $b) {
+			print "Verifying Derive ".$b->barcode."...\n";
 			$this->CI->book->load($b->barcode);
 
 			// We check the ID, but we really REALLY should have one.
 			$metadata = $this->_get_metadata();
-			$id = $this->identifier($b, $metadata);
-			$metadata['x-archive-meta-identifier'] = $id;
+			$id = null;
+			if ($metadata) {
+				$id = $this->identifier($b, $metadata);
+				$metadata['x-archive-meta-identifier'] = $id;
+			} else {
+				$message = "Error processing export.\n\n".
+					"Identifier:    ".$b->barcode."\n\n".
+					"IA Identifier: ".$id."\n\n".
+					"Error Message: Could not get metadata for item with barcode ".$b->barcode.". Check the MARC or MODS data.\n";
+				$this->CI->common->email_error($message);
+				continue;				
+			}
 
+			$status = $this->CI->book->get_export_status('Internet_archive');
 			if ($id) {
-				$status = $this->CI->book->get_export_status('Internet_archive');
 				if ($status != 'verified_upload') {
 					echo '(verify derive) The item with id #'.$b->id.' is not marked as verified for upload and cannot be verified for derivation. (status is '.$status.')'."\n";
 					continue;
 				}
 			}
 
-			if ($id == '') {
+			if ($id == '' && $status) {
 				$this->CI->book->set_status('error');
-				$this->CI->logging->log('book', 'error', 'This item is uploaded but it does not have an indentifier. This is bad.', $b->barcode);
+				$this->CI->logging->log('book', 'error', 'During Verify Derived the item does not have an identifier.', $b->barcode);
 				continue;
 			}
 			// Log that we are checking the status at Internet Archive
@@ -905,24 +940,35 @@ class Internet_archive extends Controller {
 
 		// Cycle through these items
 		foreach ($books as $b) {
+			print "Harvesting ".$b->barcode."...\n";
 			$this->CI->book->load($b->barcode);
 
 			// We check the ID, but we really REALLY should have one.
 			$metadata = $this->_get_metadata();
-			$id = $this->identifier($b, $metadata);
-			$metadata['x-archive-meta-identifier'] = $id;
+			$id = null;
+			if ($metadata) {
+				$id = $this->identifier($b, $metadata);
+				$metadata['x-archive-meta-identifier'] = $id;
+			} else { 
+				$message = "Error processing export.\n\n".
+					"Identifier:    ".$b->barcode."\n\n".
+					"IA Identifier: ".$id."\n\n".
+					"Error Message: Could not get metadata for item with barcode ".$b->barcode.". Check the MARC or MODS data.\n";
+				$this->CI->common->email_error($message);
+				continue;				
+			}
 
+			$status = $this->CI->book->get_export_status('Internet_archive');
 			if ($id) {
-				$status = $this->CI->book->get_export_status('Internet_archive');
 				if ($status != 'verified_derive') {
 					echo '(harvesting) The item with id #'.$b->id.' is not marked as verified_derive and cannot be harvested. (status is '.$status.')'."\n";
 					continue;
 				}
 			}
 
-			if ($id == '') {
+			if ($id == '' && $status) {
 				$this->CI->book->set_status('error');
-				$this->CI->logging->log('book', 'error', 'This item is uploaded and verified but it does not have an indentifier. This is really bad.', $b->barcode);
+				$this->CI->logging->log('book', 'error', 'During Harvest the item does not have an identifier.', $b->barcode);
 				continue;
 			}
 
@@ -1288,8 +1334,11 @@ class Internet_archive extends Controller {
 	// ----------------------------
 	function _get_dpi($book, $pages) {
 		// Get our mods into something we can use. All the info we need is in there.
-		$marc = simplexml_load_string($book->get_metadata('marc_xml'));
+		$marc = $this->_get_marc($book->get_metadata('marc_xml'));
 
+		if ($marc === false) {
+			return 450;
+		}
 		$height = '';
 		foreach ($marc->datafield as $d) {
 			if ($d['tag'] == '300') {
@@ -1369,6 +1418,14 @@ class Internet_archive extends Controller {
 		return $return;
 	}
 
+	function _get_marc($marcxml) {
+		$marc = simplexml_load_string($marcxml);
+		if ($marc === false) {
+			return false;
+		} else {
+			return $marc;
+		}
+	}
 	// ----------------------------
 	// Function: _get_metadata()
 	//
@@ -1417,8 +1474,10 @@ class Internet_archive extends Controller {
 		if (!is_array($collection) && $collection) {
 			$collections[] = $collection;
 		} else {
-			foreach ($collection as $c) {
-				$collections[] = $c;
+			if (isset($collection)) {
+				foreach ($collection as $c) {
+					$collections[] = $c;
+				}
 			}
 		}
 
@@ -1465,8 +1524,8 @@ class Internet_archive extends Controller {
 		// Handle copyright - Due Dillegene Performed to determine public domain status
 		} elseif ($this->CI->book->get_metadata('copyright') == '2') {
 			$metadata['x-archive-meta-possible-copyright-status'] = "No known copyright restrictions as determined by scanning institution.";
-			$metadata['x-archive-meta-due-dillegence'] = 'http://biodiversitylibrary.org/permissions';
-			$metadata['x-archive-meta-duedillegence'] = 'http://biodiversitylibrary.org/permissions';
+			$metadata['x-archive-meta-due-diligence'] = 'http://biodiversitylibrary.org/permissions';
+			$metadata['x-archive-meta-duediligence'] = 'http://biodiversitylibrary.org/permissions';
 			if (isset($metadata['x-archive-meta-licenseurl'])) {
 				unset($metadata['x-archive-meta-licenseurl']);
 			}
@@ -1593,48 +1652,47 @@ class Internet_archive extends Controller {
 		}
 		if ($tm > 0) {
 			$metadata['x-archive-scandate'] = date('YmdHis', $tm);
-		} else {
-		
 		}
 
 		// Some data comes from MARC
-		$marc = simplexml_load_string($this->CI->book->get_metadata('marc_xml'));
-		$namespaces = $marc->getDocNamespaces();
-		$ns = '';
-		$root = '/';
-		if (array_key_exists('marc', $namespaces)) {
-			$ns = 'marc:';
-		} elseif (array_key_exists('', $namespaces)) {
-			// Add empty namespace because xpath is weird
-			$ns = 'ns:';
-			$marc->registerXPathNamespace('ns', $namespaces['']);
-		}
-		$namespaces = $marc->getNamespaces();
-		$ret = ($marc->xpath($ns."marc"));
-		if ($ret && count($ret)) {
-				$root = '/'.$ns."marc/";
-		}
-
-		// location
-// 		$ret = ($marc->xpath($root.$ns."record/".$ns."datafield[@tag='852']/".$ns."subfield[@code='a']"));
-// 		print_r($ret);
-// 		die;
-
-		$ret = ($marc->xpath($root.$ns."record/".$ns."datafield[@tag='852']/".$ns."subfield[@code='a']"));
-		if ($ret && count($ret) > 0) {
-			$metadata['x-archive-meta-location'] = str_replace("'", "&quot;", str_replace('"', "'", $ret[0].''));
-		}
-
-		// collection-number
-		$ret = ($marc->xpath($root.$ns."record/".$ns."datafield[@tag='852']/".$ns."subfield[@code='b']"));
-		if ($ret && count($ret) > 0) {
-			$metadata['x-archive-meta-collection-number'] = str_replace("'", "&quot;", str_replace('"', "'", $ret[0].''));
-		}
-
-		// sublocation
-		$ret = ($marc->xpath($root.$ns."record/".$ns."datafield[@tag='852']/".$ns."subfield[@code='c']"));
-		if ($ret && count($ret) > 0) {
-			$metadata['x-archive-meta-sublocation'] = str_replace("'", "&quot;", str_replace('"', "'", $ret[0].''));
+		$marc = $this->_get_marc($this->CI->book->get_metadata('marc_xml'));
+		if ($marc !== false) {
+			$namespaces = $marc->getDocNamespaces();
+			$ns = '';
+			$root = '/';
+			if (array_key_exists('marc', $namespaces)) {
+				$ns = 'marc:';
+			} elseif (array_key_exists('', $namespaces)) {
+				// Add empty namespace because xpath is weird
+				$ns = 'ns:';
+				$marc->registerXPathNamespace('ns', $namespaces['']);
+			}
+			$namespaces = $marc->getNamespaces();
+			$ret = ($marc->xpath($ns."marc"));
+			if ($ret && count($ret)) {
+					$root = '/'.$ns."marc/";
+			}
+	
+			// location
+			$ret = ($marc->xpath($root.$ns."record/".$ns."datafield[@tag='852']/".$ns."subfield[@code='a']"));
+			if ($ret && count($ret) > 0) {
+				$metadata['x-archive-meta-location'] = str_replace("'", "&quot;", str_replace('"', "'", $ret[0].''));
+			}
+	
+			// collection-number
+			$ret = ($marc->xpath($root.$ns."record/".$ns."datafield[@tag='852']/".$ns."subfield[@code='b']"));
+			if ($ret && count($ret) > 0) {
+				$metadata['x-archive-meta-collection-number'] = str_replace("'", "&quot;", str_replace('"', "'", $ret[0].''));
+			}
+	
+			// sublocation
+			$ret = ($marc->xpath($root.$ns."record/".$ns."datafield[@tag='852']/".$ns."subfield[@code='c']"));
+			if ($ret && count($ret) > 0) {
+				$metadata['x-archive-meta-sublocation'] = str_replace("'", "&quot;", str_replace('"', "'", $ret[0].''));
+			}
+			return $metadata;
+		} else {
+			return null;
 		}
 
 		return $metadata;
@@ -1694,9 +1752,11 @@ class Internet_archive extends Controller {
 
 		// A counter to help make things unique
 		$count = 0;
+		$count2 = 0;
 
 		// Get the title and author from MODS, sometimes it's not available on the book's metadata
 		// Process the title
+		
 		$title = $this->_utf8_clean($metadata['x-archive-meta-title']);
 		$title = preg_replace('/\b(the|a|an|and|or|of|for|to|in|it|is|are|at|of|by)\b/i', '', $title);
 		$title = preg_replace('/[^a-zA-Z0-9]/', '', $title);
@@ -1706,65 +1766,73 @@ class Internet_archive extends Controller {
 		$author = $this->_utf8_clean($metadata['x-archive-meta-creator']);
 		$author = substr(preg_replace('/[^a-zA-Z0-9]/', '', $author), 0, 4);
 
-
-		while ($count <= 26) {
-			// If we got to this point, we don't have an identifier. Make a new one.
-			$number = '00';
-			$pages = $this->CI->book->get_pages();
-			// Get the volume number of the book
-			foreach ($pages as $p) {
-				if (property_exists($p, "volume") && $p->volume) {
-					$number = $p->volume;
-					break;
+		while ($count2 <= 26) {
+			while ($count <= 26) {			
+				// If we got to this point, we don't have an identifier. Make a new one.
+				$number = '00';
+				$pages = $this->CI->book->get_pages();
+				// Get the volume number of the book
+				foreach ($pages as $p) {
+					if (property_exists($p, "volume") && $p->volume) {
+						$number = $p->volume;
+						break;
+					}
 				}
-			}
-			$number = substr(preg_replace('/[^a-zA-Z0-9]/', '', $number), 0, 4);
-
-//			// We didn't get a volume, so let's check for a year
-// 			if ($number == '') {
-// 				foreach ($pages as $p) {
-// 					if ($p->year) {
-// 						// Add a couple of zeros and we'll take the last two digits, just to be safe
-// 						if (preg_match('/.+(\d{2,})$/', '00'.$p->year, $m)) { // get the last two digits of the number
-// 							$number = sprintf("%02d",$m[1]);
-// 						}
-// 						break;
-// 					}
-// 				}
-// 			}
-
-			$identifier = $title.$number.$author;
-			if ($count > 0) {
-				$identifier = $title.$number.$author.chr($count+64);
-			}
-
-			// Make sure the identifier doesn't already exist in our custom table
-			$this->CI->db->where('identifier', $identifier);
-			$this->CI->db->from('custom_internet_archive');
-			if ($this->CI->db->count_all_results() == 0) {
-				// We didn't find it in our database, so....
-				// Make sure the identifier doesn't exist at IA
-				if (!$this->_bucket_exists($identifier)) {
-					// Save the identifier to the database
-					$this->CI->db->insert(
-						'custom_internet_archive',
-						array(
-							'item_id' => $book->id,
-							'identifier' => $identifier
-						)
-					);
-					// OK! Return the identifier
-					return $identifier;
-
+				$number = substr(preg_replace('/[^a-zA-Z0-9]/', '', $number), 0, 4);
+	
+	//			// We didn't get a volume, so let's check for a year
+	// 			if ($number == '') {
+	// 				foreach ($pages as $p) {
+	// 					if ($p->year) {
+	// 						// Add a couple of zeros and we'll take the last two digits, just to be safe
+	// 						if (preg_match('/.+(\d{2,})$/', '00'.$p->year, $m)) { // get the last two digits of the number
+	// 							$number = sprintf("%02d",$m[1]);
+	// 						}
+	// 						break;
+	// 					}
+	// 				}
+	// 			}
+	
+				$identifier = $title.$number.$author;
+	
+				if ($count2 > 0) {
+					$identifier .= chr($count2+64);
+				}
+				if ($count > 0) {
+					$identifier .= chr($count+64);
+				}
+	
+				// Make sure the identifier doesn't already exist in our custom table
+				$this->CI->db->where('identifier', $identifier);
+				$this->CI->db->from('custom_internet_archive');
+				if ($this->CI->db->count_all_results() == 0) {
+					// We didn't find it in our database, so....
+					// Make sure the identifier doesn't exist at IA
+					if (!$this->_bucket_exists($identifier)) {
+						// Save the identifier to the database
+						$this->CI->db->insert(
+							'custom_internet_archive',
+							array(
+								'item_id' => $book->id,
+								'identifier' => $identifier
+							)
+						);
+						// OK! Return the identifier
+						return $identifier;
+	
+					} else {
+						// Otherwise, keep looking
+						$count++;
+					}
+	
 				} else {
 					// Otherwise, keep looking
 					$count++;
 				}
-
-			} else {
-				// Otherwise, keep looking
-				$count++;
+							
 			}
+			$count2++;
+			$count = 0;
 		}
 		return '';
 	}
