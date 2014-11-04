@@ -466,7 +466,8 @@ class Main extends Controller {
 				if (isset($ret['author'])) {
 					$this->book->set_metadata('author', $ret['author']);
 				}
-				$this->session->set_userdata('errormessage', "Error converting MARCXML to MODS: Unable to parse MARC data.");
+			} else {
+				$this->session->set_userdata('errormessage', "Error converting MARCXML to MODS: Unable to parse MARC data.");			
 			}
 		}
 
