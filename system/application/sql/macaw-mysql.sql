@@ -126,4 +126,12 @@ ALTER TABLE item ADD CONSTRAINT item_pkey PRIMARY KEY (id);
 ALTER TABLE organization ADD CONSTRAINT organization_pkey PRIMARY KEY (id);
 ALTER TABLE page ADD CONSTRAINT page_pkey PRIMARY KEY (id);
 ALTER TABLE settings ADD CONSTRAINT settings_name_key_unique UNIQUE (name);
+
+ALTER TABLE `account` ADD INDEX (username);
 ALTER TABLE `metadata` ADD INDEX ( fieldname ) ;
+ALTER TABLE `metadata` ADD INDEX ( item_id, page_id ) ;
+ALTER TABLE `logging` ADD INDEX (date, statistic);
+ALTER TABLE `metadata` ADD INDEX ( item_id, page_id, fieldname, counter ) ;
+ALTER TABLE `permission` ADD INDEX (username, permission);
+ALTER TABLE `item` ADD INDEX (barcode);
+
