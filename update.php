@@ -567,7 +567,7 @@
 <body class="yui-skin-sam"> 
 	<div id="doc3" class="yui-t7">
 		<div id="hd" role="banner">
-			<img src="/images/si_logo_large.png" alt="si_logo_large.png" width="110" height="110" border="0" align="left" id="logo">
+			<img src="<?php echo $this->config->item('base_url'); ?>images/si_logo_large.png" alt="si_logo_large.png" width="110" height="110" border="0" align="left" id="logo">
 			<div id="title">
 				<h2>Smithsonian Institution Libraries</h2>
 				<h3>Atherton Seidell Endowment Fund</h3>

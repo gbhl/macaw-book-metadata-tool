@@ -16,10 +16,10 @@
 		<div id="accounts"></div>
 		<div id="key">
 			<h3>Legend</h3>
-			<div><img src="/images/icons/book_open.png" height="16" width="16"> Edit and Review</div>
-			<div><img src="/images/icons/tick.png" height="16" width="16"> Quality Assurance</div>
-			<div><img src="/images/icons/building_wizard.png" height="16" width="16"> Local Admin</div>
-			<div><img src="/images/icons/wizard_hat.png" height="16" width="16"> Super Admin</div>
+			<div><img src="<?php echo $this->config->item('base_url'); ?>images/icons/book_open.png" height="16" width="16"> Edit and Review</div>
+			<div><img src="<?php echo $this->config->item('base_url'); ?>images/icons/tick.png" height="16" width="16"> Quality Assurance</div>
+			<div><img src="<?php echo $this->config->item('base_url'); ?>images/icons/building_wizard.png" height="16" width="16"> Local Admin</div>
+			<div><img src="<?php echo $this->config->item('base_url'); ?>images/icons/wizard_hat.png" height="16" width="16"> Super Admin</div>
 		</div>
 		<div id="wrapper"><button id="btnAddAccount">Add Account</button></div>
 	</div>

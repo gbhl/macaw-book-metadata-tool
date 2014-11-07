@@ -1,6 +1,7 @@
 <html lang="en">
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=9" />
 	<title>Scan | Upload | Macaw</title>
 
 	<?php $this->load->view('global/head_view') ?>
@@ -56,7 +57,7 @@
 	var totalFileUploaded = 0;
 	
 	// Custom URL for the uploader swf file (same folder).
-	YAHOO.widget.Uploader.SWFURL = "/inc/swf/uploader.swf";
+	YAHOO.widget.Uploader.SWFURL = sBaseUrl + "/inc/swf/uploader.swf";
 	
 	// Instantiate the uploader and write it to its placeholder div.
 	var uploader = new YAHOO.widget.Uploader( "uploaderOverlay" );
@@ -125,7 +126,7 @@
 			//Should disable upload and select files at this point.
 			
 			uploader.setSimUploadLimit(parseInt(document.getElementById("simulUploads").value));
-			uploader.uploadAll("/scan/do_batch_upload", "POST", postvariable, "Filedata");			
+			uploader.uploadAll(sBaseUrl + "/scan/do_batch_upload", "POST", postvariable, "Filedata");			
 		}	
 	}
 	
@@ -212,7 +213,7 @@
 		totalFileUploaded = totalFileUploaded + 1;
 		if (totalFileUploaded == totalFiles){		
 			if (document.getElementById("chkStartImport").checked){
-				window.location.replace("/scan/monitor?start=1");
+				window.location.replace(sBaseUrl + "/scan/monitor?start=1");
 			} else {
 				alert("All Files Uploaded");
 			}	

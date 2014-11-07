@@ -343,7 +343,7 @@ YAHOO.macaw.Book = function() {
 			General.divDelete('message_c');
 			
 			// Get the index into the array of the page we are deleting
-			idx = oBook.pages.find('id', LIid);
+			var idx = oBook.pages.find('id', LIid);
 			// Remove the elements from the page. This also marks it as deleted.
 			oBook.pages.pages[idx].delete();
 			// When we save, the page will be deleted from the database.

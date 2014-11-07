@@ -9,6 +9,7 @@
 <html lang="en">
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=9" />
 	<title>Login | Macaw</title>
 	<?php $this->load->view('global/head_view') ?>
 	<script type="text/javascript">
@@ -20,7 +21,7 @@
 	<div id="logincontainerborder">
 	<div id="logincontainer">
 		<div id="loginheader">
-		<img id="hero" width="318" height="483" alt="Rosellas" src="/images/rosellas_macaw_login.png">
+		<img id="hero" width="318" height="483" alt="Rosellas" src="<?php echo $this->config->item('base_url'); ?>images/rosellas_macaw_login.png">
 				<h1>Macaw</h1>
 				<h2>Metadata Collection and Workflow System</h2>
 				<hr>

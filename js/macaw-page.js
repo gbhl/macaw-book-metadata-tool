@@ -105,13 +105,13 @@ YAHOO.macaw.Page = function(parent, data, mdModules) {
 			this.highlight(); // Seems redundant, but it works
 		}
 
-	}
+	};
 
 	this.delete = function() {
 		this.deleted = true;
 		General.divDelete(this.elemThumbnailLI.id);
 		Scanning.log(this.pageID, 'PageDeleted', 'DELETED');
-	}
+	};
 	// ----------------------------
 	// Function: select()
 	//
@@ -135,7 +135,7 @@ YAHOO.macaw.Page = function(parent, data, mdModules) {
 			// Highlight myself
 			this.highlight();
 		}
-	}
+	};
 
 	// ----------------------------
 	// Function: unselect()
@@ -156,7 +156,7 @@ YAHOO.macaw.Page = function(parent, data, mdModules) {
 			// Unhighlight myself, possibly leaving others highlighted
 			this.unhighlight();
 		}
-	}
+	};
 
 	// ----------------------------
 	// Function: highlight()
@@ -182,7 +182,7 @@ YAHOO.macaw.Page = function(parent, data, mdModules) {
 		if (this.parent.parent.objDataTable) {
 			this.parent.parent.objDataTable.selectRow(this.dataTableID) // Select the table row
 		}
-	}
+	};
 
 	// ----------------------------
 	// Function: unhighlight()
@@ -207,7 +207,7 @@ YAHOO.macaw.Page = function(parent, data, mdModules) {
 		if (this.parent.parent.objDataTable) {
 			this.parent.parent.objDataTable.unselectRow(this.dataTableID) // Select the table row
 		}
-	}
+	};
 
 	this.hide = function() {
 		this.unselect();
@@ -217,7 +217,7 @@ YAHOO.macaw.Page = function(parent, data, mdModules) {
 		Dom.setStyle(this.dataTableID, 'display', 'none');
 		// Mark ourselves as hidden because we don't want to highlight/select ourself when we're hidden
 		this.hidden = true;
-	}
+	};
 
 	this.unhide = function() {
 		// get the DOM element for the thumbnail for this page
@@ -226,7 +226,7 @@ YAHOO.macaw.Page = function(parent, data, mdModules) {
 		Dom.setStyle(this.dataTableID, 'display', 'table-row');
 		// Mark ourselves as not hidden so we can play with everyone else again.
 		this.hidden = false;
-	}
+	};
 	
 	
 	// ----------------------------
@@ -256,6 +256,6 @@ YAHOO.macaw.Page = function(parent, data, mdModules) {
 			}
 		}
 		return ret;
-	}
+	};
 }
 

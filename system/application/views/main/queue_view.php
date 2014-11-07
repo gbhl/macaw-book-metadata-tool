@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=9" />
 	<title>Main | Items | Macaw</title>
 	<?php $this->load->view('global/head_view') ?>
 	<script type="text/javascript">YAHOO.util.Event.onDOMReady(ListItems.init);</script>

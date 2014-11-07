@@ -393,12 +393,13 @@ class Common extends Controller {
 		$ret = $xml->loadXML($text);    // Load the MARC XML to convert to MODS
 		
 		if ($ret) {
-			$xsl->load('inc/xslt/MARC21slim2MODS3-3.xsl');	// Get our XSL file from the LOC
+			$xsl->load($this->CI->config->item('base_url').'inc/xslt/MARC21slim2MODS3-3.xsl');	// Get our XSL file from the LOC
 			$proc->importStyleSheet($xsl); 					// attach the xsl rules
 			$tx = $proc->transformToXML($xml);
 			return $tx;										// Transform the MARC to MODS
 		} else {
 			throw new Exception("Unable to parse MARCXML data");
+			print "Unable to parse MARCXML data\n";
 			return null;
 		}
 	}

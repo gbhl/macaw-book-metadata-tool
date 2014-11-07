@@ -81,7 +81,7 @@
 				previousPageLinkLabel: '&lt;',
 				nextPageLinkLabel: '&gt;',
 				lastPageLinkLabel: '&gt;&gt;',
-				containers : [ "details-pages" ],
+				containers : [ "details-pages" ]
 			});
 
 			Log.tblLogDetails = new YAHOO.widget.DataTable("details", myColumnDefs, myDataSource, {
@@ -134,7 +134,7 @@
 		
 			YAHOO.widget.DataTable.formatLink = function(elLiner, oRecord, oColumn, oData) { 
 				var barcode = YAHOO.lang.escapeHTML(oData); 
-				elLiner.innerHTML = "<a href=\"/main/managebarcode/" + barcode + "/\">" + barcode + "</a>"; 
+				elLiner.innerHTML = "<a href=\"" + sBaseUrl + "/main/managebarcode/" + barcode + "/\">" + barcode + "</a>"; 
 			};
 			
 			var myColumnDefs = [
@@ -172,7 +172,7 @@
 
 
 		}
-	}
+	};
 	
 	//derived from Queues to list items for Main
 	ListItems = {
@@ -202,7 +202,7 @@
 
 			YAHOO.util.Event.addListener("queue-filter", "change", ListItems.updateData);
 			
-			var transaction = YAHOO.util.Connect.asyncRequest('GET', '/admin/user_queue_data', loadDataCallback);
+			var transaction = YAHOO.util.Connect.asyncRequest('GET', sBaseUrl + '/admin/user_queue_data', loadDataCallback);
 			MessageBox.init();
 
 		},
@@ -223,7 +223,7 @@
 				
 			YAHOO.widget.DataTable.formatLink = function(elLiner, oRecord, oColumn, oData) { 
 				var barcode = YAHOO.lang.escapeHTML(oData); 
-				elLiner.innerHTML = "<a href=\"/main/managebarcode/" + barcode + "/\">" + barcode + "</a>"; 
+				elLiner.innerHTML = "<a href=\"" + sBaseUrl + "/main/managebarcode/" + barcode + "/\">" + barcode + "</a>"; 
 			};
 			
 			var myColumnDefs = [

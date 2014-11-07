@@ -1,3 +1,4 @@
+<meta http-equiv="X-UA-Compatible" content="IE=9" />
 <!-- Combo-handled YUI CSS files: -->
 <!-- <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/combo?2.9.0/build/reset-fonts-grids/reset-fonts-grids.css&2.9.0/build/base/base-min.css&2.9.0/build/assets/skins/sam/skin.css">   -->
 <link rel="stylesheet" type="text/css" href="<?php echo $this->config->item('base_url'); ?>css/yui-combo.css">  

@@ -12,12 +12,12 @@ if ($CI->clicheck->isCli()) {
 <head>
 	<title>Error</title>
 	<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/combo?2.9.0/build/reset-fonts-grids/reset-fonts-grids.css&2.9.0/build/base/base-min.css">
-	<link rel="stylesheet" type="text/css" href="/css/macaw.css" id="macaw_css" />
+	<link rel="stylesheet" type="text/css" href="<?php echo $CI->config->item('base_url'); ?>css/macaw.css" id="macaw_css" />
 </head>
 <body class="yui-skin-sam">
 <div id="doc3">
 	<div id="hd">
-		<img src="/images/logo.png" alt="logo.png" width="110" height="110" border="0" align="left" id="logo">
+		<img src="<?php echo $CI->config->item('base_url'); ?>images/logo.png" alt="logo.png" width="110" height="110" border="0" align="left" id="logo">
 		<div id="title">
 			<h2>Macaw</h2>
 			<h3>Metadata Collection and Workflow System</h3>
