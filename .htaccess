@@ -2,7 +2,7 @@
     RewriteEngine On
     RewriteBase /
 
-    RewriteCond %{REQUEST_URI} !(/index\.php|/install\.php|/robots\.txt|/favicon\.ico|/assets/|/images/|/js/|/css/|/books/|/plugins/|/inc/)
+    RewriteCond %{REQUEST_URI} !(/index\.php|/image\.php|/install\.php|/robots\.txt|/favicon\.ico|/assets/|/images/|/js/|/css/|/books/|/plugins/|/inc/)
     RewriteRule ^(.*)$ index.php/$1 [L]
 
     #Removes access to the system folder by users.

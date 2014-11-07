@@ -1,9 +1,10 @@
 <?php
 	header('Content-Type: image/' . $_GET['ext']);
+
 	$type = $_GET['type'];
 	$barcode = $_GET['code'];
-	$baseDir = '/BHL_STG/books'; // to be fast, baseDir is hardcoded
-        $img = urldecode($_GET['img']);
+	$baseDir = 'books'; // to be fast, baseDir is hardcoded 
+	$img = urldecode($_GET['img']);
 	$path = '';
 	if ($type == 'thumbnail') {
 		$path = $baseDir . '/BARCODE/thumbs';
