@@ -904,7 +904,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				$marc = array();
 				// This is a simple associative array
 				foreach (array_keys($info) as $i) {
-					if (preg_match('/^marc/i', $i)) {
+					if (preg_match('/^marc/i', $i) && !preg_match('/^marc_xml$/i', $i)) {
 						$marc[$i] = $info[$i];
 					} else {
 						if ($i != 'barcode' && $i != 'identifier') {
@@ -939,19 +939,21 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				if (!file_exists($path.'/thumbs')) { mkdir($path.'/thumbs', 0775); }
 				if (!file_exists($path.'/preview')) { mkdir($path.'/preview', 0775); }
 
-				// If we have a marc array, we create a Marc record
-
-				$this->logging->log('access', null, "MARC:".count($marc));
+				$marc_data = null;
+				$mods_data = null;
+				
+				// If we get the MARC data in separate fields? we create a Marc record
 				if (count($marc) > 0) {
 
-					$x = $this->_generate_marc($marc, $info['barcode']);
+					$x = $this->_generate_marc($marc, $info['barcode']); // Also generates mods
 					if ($x) {
 						$this->db->insert('metadata', array(
 							'item_id'   => $item_id,
 							'fieldname' => 'marc_xml',
 							'counter'   => 1,
 							'value_large' => $x['marc']
-						));				
+						));
+						$marc_data = $x['marc'];
 	
 						$this->db->insert('metadata', array(
 							'item_id'   => $item_id,
@@ -959,35 +961,52 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 							'counter'   => 1,
 							'value_large' => $x['mods']
 						));
-	
-						// Create the the marc.xml and item.xml file,
-						write_file($path.'/marc.xml', $x['marc']);
-						chmod($path.'/marc.xml', 0775);
-	
-						write_file($path.'/mods.xml', $x['mods']);
-						chmod($path.'/mods.xml', 0775);
-
-						$ret = $this->_read_mods($x['mods']);
-						
-						if (isset($ret['title'])) {
-							$this->db->insert('metadata', array(
-								'item_id'   => $item_id,
-								'fieldname' => 'title',
-								'counter'   => 1,
-								'value'     => $ret['title']
-							));							
-						}
-						if (isset($ret['author'])) {
-							$this->db->insert('metadata', array(
-								'item_id'   => $item_id,
-								'fieldname' => 'author',
-								'counter'   => 1,
-								'value'     => $ret['author']
-							));							
-						}
+						$mods_data = $x['mods'];
 					}
 				}
 				
+				// Did we get the MARC XML uploaded in a CSV field all at once?
+				// If so, we need to make and save the MODS
+				if (isset($info['marc_xml'])) {
+					$marc_data = $info['marc_xml'];
+
+					$mods_data = $this->common->marc_to_mods($marc_data);
+					$this->db->insert('metadata', array(
+						'item_id'   => $item_id,
+						'fieldname' => 'mods_xml',
+						'counter'   => 1,
+						'value_large' => $mods_data
+					));
+				}
+				
+				if ($marc_data) {
+					// Create the the marc.xml and item.xml file,
+					write_file($path.'/marc.xml', $marc_data);
+					chmod($path.'/marc.xml', 0775);
+
+					write_file($path.'/mods.xml', $mods_data);
+					chmod($path.'/mods.xml', 0775);
+
+					$ret = $this->_read_mods($mods_data);
+					
+					if (isset($ret['title'])) {
+						$this->db->insert('metadata', array(
+							'item_id'   => $item_id,
+							'fieldname' => 'title',
+							'counter'   => 1,
+							'value'     => $ret['title']
+						));							
+					}
+					if (isset($ret['author'])) {
+						$this->db->insert('metadata', array(
+							'item_id'   => $item_id,
+							'fieldname' => 'author',
+							'counter'   => 1,
+							'value'     => $ret['author']
+						));							
+					}
+				}
+
 				return $item_id;
 			}
 		} else {
@@ -1002,7 +1021,6 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 			'  <leader>     ntm  2200000   4500</leader>'."\r\n";
 		$prev_tag = 0;
 		foreach ($marc as $fieldname => $value) {
-//			$marc_xml .= '<!--  Top: '.$prev_tag.' -->'."\r\n";
 			$value = trim(preg_replace('/[\x00-\x1F]/', '', $value)); // Strip all low-ascii control characters
 			if (strlen($value) > 0) {
 				$matches = array();
@@ -1015,11 +1033,8 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 					$marc_xml .= '  <datafield tag="'.$matches[1].'" ind1=" " ind2=" ">'."\r\n";
 				}
 				$marc_xml .= '    <subfield code="'.$matches[2].'">'.$value.'</subfield>'."\r\n";
-//				$marc_xml .= '<!-- Prev: '.$prev_tag.' -->'."\r\n";
-//				$marc_xml .= '<!-- Curr: '.$matches[1].$matches[3].' -->'."\r\n";
 				if ($prev_tag != $matches[1].$matches[3]) {
 					$prev_tag = $matches[1].$matches[3];
-//					$marc_xml .= '<!-- Now: '.$matches[1].$matches[3].' -->'."\r\n";
 				}
 			}
 		}

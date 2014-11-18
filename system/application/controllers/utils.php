@@ -356,8 +356,6 @@ class Utils extends Controller {
 		$errorcount = 0;
 		
 		if (file_exists($fname)) {
-			$lc = @exec("wc -l $fname");
-			
 			// Read the entire file to check the encoding
 			$all_file = file_get_contents($fname);
 			$encoding = mb_detect_encoding($all_file, mb_list_encodings(), true);
@@ -366,79 +364,37 @@ class Utils extends Controller {
 			$row = 1;
 			$message = '';
 			$value = '';
-			$fieldnames = array();
-			$sep = ',';
-			$ext = pathinfo($filename, PATHINFO_EXTENSION);
-			
+			$ext = pathinfo($fname, PATHINFO_EXTENSION);
+
+			// Parse the CSV file
+			include APPPATH . 'classes/ParseCSV.php';
+			$csv = new parseCSV();		
+	    $csv->delimiter = ",";
 			if ($ext == 'txt') {
-				$sep = "\t";
+		    $csv->delimiter = "\t";
 			}			
-			if (($infile = @fopen($fname, "r")) == FALSE) {
-				// For whatever reason, couldn't open the file.
-				// Umm... Didn't we just save the file?
-				echo "Could not open import file for reading.\n";
-				$this->_save_import_status($orig_fname, 0, 'Could not open import file for reading.');
-				return;		
-			} 
-			// Can we get the fieldnames on the first row?
-			$fieldnames = @fgets($infile, 80000);
-			if ($encoding != 'UTF-8') {
-				$fieldnames = mb_convert_encoding($fieldnames, $encoding, 'UTF-8');
-			}
-			$fieldnames = str_getcsv($fieldnames, $sep, '"');
+			$csv->encoding($encoding, 'UTF-8');
+			$csv->parse($fname);
+			$info = $csv->data;
 
-			if ($fieldnames == FALSE) {
-				echo "Could not read the import file.\n";
-				$this->_save_import_status($orig_fname, 0, 'Could not read the import file.');
-				return;		
-			}
-			
-			// Is the first item in the first row the word "identifier"?
-			if (strtolower($fieldnames[0]) != 'identifier' && strtolower($fieldnames[0]) != 'barcode') {
-				echo "Invalid format. Identifier column is not supplied.\n";
-				$this->_save_import_status($orig_fname, 0, 'Invalid format. Identifier column is not supplied.');
-				return;
-			}
-			
-			// TODO: make sure no fieldnames are repeated in the $fieldnames array
-			// If so, error out or we'll crash hard when the DB rejects the entry (duplicate counter)
-			
-			// Do the import
-			$info = array();
-			while (($line = fgets($infile, 80000)) !== FALSE) {
-
-				if ($encoding != 'UTF-8') {
-					$line = mb_convert_encoding($line, $encoding, 'UTF-8');
-				}
-				
-				$data = str_getcsv($line, $sep, '"');
-				if ($data && $data[0] != '' && strlen($data[0]) > 1) {
-					if (!$this->book->exists($data[0])) {
-						// Massage the data into the correct format
-						array_push($info, $this->_array_combine($fieldnames, $data));
-						$items_imported++;
-					} else {
-						$items_skipped++;
-					}
-					// While importing, write our progress to "$filename.txt"
-				}
-			}
-			
+			// Insert the data into the database
 			$c = 1;
 			$max = count($info);
 			foreach ($info as $b) {
-				try {
-					$this->book->add($b);
-					$this->_save_import_status($orig_fname, round(($c++)/$max*100), 'Loading Items...');
-				} catch (Exception $e) {
-					$errorcount++;
+				// Is this book already in our database?
+				if (!$this->book->exists($b['identifier'])) {
+					try {			
+						// Add the book
+						$this->book->add($b);
+						$items_imported++;
+						$this->_save_import_status($orig_fname, round(($c++)/$max*100), 'Loading Items...');
+					} catch (Exception $e) {
+						$errorcount++;
+					}
+				} else {
+					$items_skipped++;
 				}
 			}
-			
-			fclose($infile);
-			// When done, delete the import file
-			// Do not delete the status file
-			// unlink($fname);
 		} else {
 			echo "File not found: $fname\n";
 		}
@@ -450,103 +406,51 @@ class Utils extends Controller {
 				$message = '';
 				$value = '';
 				$fieldnames = array();
-				$sep = ',';
-				$ext = pathinfo($filename2, PATHINFO_EXTENSION);
-				if ($ext == 'txt') {
-					$sep = "\t";
-				}
 
 				// Read the entire file to check the encoding
 				$all_file = file_get_contents($fname);
 				$encoding = mb_detect_encoding($all_file, mb_list_encodings(), true);
 				unset($all_file);
-	
 
-				if (($infile = @fopen($fname, "r")) == FALSE) {
-					// For whatever reason, couldn't open the file.
-					// Umm... Didn't we just save the file?
-					echo "Could not open pages import file for reading.\n";
-					$this->_save_import_status($orig_fname, 0, 'Could not open import file for reading.');
-					return;		
-				} 
-		
-				// Can we get the fieldnames on the first row?
-				$fieldnames = @fgets($infile, 80000);
-				if ($encoding != 'UTF-8') {
-					$fieldnames = mb_convert_encoding($fieldnames, $encoding, 'UTF-8');
-				}
-				$fieldnames = str_getcsv($fieldnames, $sep, '"');
-	
-				if ($fieldnames == FALSE) {
-					echo "Could not read the pagesimport file.\n";
-					$this->_save_import_status($orig_fname, 0, 'Could not read the import file.');
-					return;		
-				}
-				
-				// Is the first item in the first row the word "identifier"?
-				if (strtolower($fieldnames[0]) != 'identifier' && strtolower($fieldnames[0]) != 'barcode') {
-					echo "Invalid format. Identifier column is not supplied.\n";
-					$this->_save_import_status($orig_fname, 0, 'Invalid format. Identifier column is not supplied.');
-					return;
-				}
-				
-				// TODO: make sure no fieldnames are repeated in the $fieldnames array
-				// If so, error out or we'll crash hard when the DB rejects the entry (duplicate counter)
-				
-				// Do the import
-				$info = array();
-				$c = 1;
-				$max = @exec("wc -l $fname");
-				while (($line = fgets($infile, 80000)) !== FALSE) {
+				// Parse the CSV file
+				$csv = new parseCSV();		
+				$csv->delimiter = ",";
+				if ($ext == 'txt') {
+					$csv->delimiter = "\t";
+				}			
+				$csv->encoding($encoding, 'UTF-8');
+				$csv->parse($fname);
+				$info = $csv->data;
 
-					if ($encoding != 'UTF-8') {
-						$line = mb_convert_encoding($line, $encoding, 'UTF-8');
-					}
-
-					$data = str_getcsv($line, $sep, '"');
-					if ($data && $data[0] != '' && strlen($data[0]) > 1) {
-				
-						$data = $this->_array_combine($fieldnames, $data);
-						if (isset($data['barcode'])) {
-							$data['identifier'] = $data['barcode'];
-						}
-						
-						$this->book->load($data['identifier']);
-						if (!$this->book->page_exists($data['filename'])) {
-							// Massage the data into the correct format
-							array_push($info, $data);
-							$pages_imported++;
-							$this->_save_import_status($orig_fname, round(($c++)/$max*100), 'Checking for existing pages...');
-						} else {
-							$pages_skipped++;
-						}
-							
-					}
-				}
-				
+				// Process the lines from the CSV
 				$c = 1;
 				$max = count($info);
 				foreach ($info as $p) {
 					try {
 						$this->book->load($p['identifier']);
-						$this->book->add_page($p['filename'], 0, 0, 0, 'Data loaded');
-	
-						$filebase = preg_replace('/(.+)\.(.*?)$/', "$1", $p['filename']);
-						
-						$this->db->select('id');
-						$this->db->where('filebase', $filebase);
-						$this->db->where('item_id', $this->book->id);
-						$page = $this->db->get('page');
-						$row = $page->row();
-						
-						foreach (array_keys($p) as $k) {
-							if ($k != 'identifier' && $k != 'filename') {
-								$this->book->set_page_metadata($row->id, $k, $p[$k], 1);
+						if (!$this->book->page_exists($p['filename'])) {
+
+							$this->book->add_page($p['filename'], 0, 0, 0, 'Data loaded');
+							$pages_imported++;
+		
+							$filebase = preg_replace('/(.+)\.(.*?)$/', "$1", $p['filename']);
+							
+							$this->db->select('id');
+							$this->db->where('filebase', $filebase);
+							$this->db->where('item_id', $this->book->id);
+							$page = $this->db->get('page');
+							$row = $page->row();
+							
+							foreach (array_keys($p) as $k) {
+								if ($k != 'identifier' && $k != 'filename') {
+									$this->book->set_page_metadata($row->id, $k, $p[$k], 1);
+								}
 							}
+							// While importing, write our progress to "$filename.txt"
+							$this->_save_import_status($orig_fname, round(($c++)/$max*100), 'Loading Pages...');
+						} else {
+							$pages_skipped++;						
 						}
-						// While importing, write our progress to "$filename.txt"
-						$this->_save_import_status($orig_fname, round(($c++)/$max*100), 'Loading Pages...');
-						
 					} catch (Exception $e) {
 						$errorcount++;
 					}
