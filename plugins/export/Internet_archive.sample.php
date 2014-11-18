@@ -701,6 +701,9 @@ class Internet_archive extends Controller {
 				$this->CI->book->set_export_status('uploaded');
 				$this->CI->logging->log('book', 'info', 'Item successfully uploaded to internet archive.', $bc);
 				$this->CI->logging->log('access', 'info', 'Item with barcode '.$bc.' uploaded to internet archive.');
+				$this->CI->book->set_metadata('ia_identifier', $id);
+				$this->CI->book->update();
+				
 				if ($id) {
 					echo 'The item with id #'.$b->id.' was successfully uploaded to internet archive.'."\n";
 				}
@@ -1185,6 +1188,13 @@ class Internet_archive extends Controller {
 				$output .= '    <altPageNumbers>'."\n";
 				$output .= '      <altPageNumber prefix="'.$prefix.'"'.($implied ? ' implied="1"' : '').'>'.$p->page_number.'</altPageNumber>'."\n";
 				$output .= '    </altPageNumbers>'."\n";
+			}
+
+			// Caption, because we can
+			if (property_exists($p, 'caption')) {
+				if ($p->caption) {
+					$output .= '    <caption>'.$p->caption.'</caption>'."\n";
+				}
 			}
 
 			// Volume
