@@ -161,12 +161,27 @@
 				/* Determine the kind of chart to show */
 				switch (l_widget.type) {
 					case 'LineChart':
-						l_widget.cht = new YAHOO.widget.LineChart( data_id, l_widget.ds, {
-							xField: l_widget.xField,
-							yField: l_widget.yField,
-							wmode: "transparent",
-							expressInstall: sBaseUrl+"/inc/swf/expressInstall.swf"
-						});
+						if (l_widget.div_id == 'disk_usage') {
+							var percentAxis = new YAHOO.widget.NumericAxis();
+							percentAxis.minimum = 0;
+							percentAxis.maximum = 100;
+							percentAxis.majorUnit = 20;
+
+							l_widget.cht = new YAHOO.widget.LineChart( data_id, l_widget.ds, {
+								xField: l_widget.xField,
+								yField: l_widget.yField,
+								yAxis: percentAxis,
+								wmode: "transparent",
+								expressInstall: sBaseUrl+"/inc/swf/expressInstall.swf"
+							});						
+						} else {
+							l_widget.cht = new YAHOO.widget.LineChart( data_id, l_widget.ds, {
+								xField: l_widget.xField,
+								yField: l_widget.yField,
+								wmode: "transparent",
+								expressInstall: sBaseUrl+"/inc/swf/expressInstall.swf"
+							});
+						}
 						break;
 					case 'ColumnChart':
 						l_widget.cht = new YAHOO.widget.ColumnChart( data_id, l_widget.ds, {
