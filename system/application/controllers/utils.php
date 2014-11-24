@@ -455,11 +455,6 @@ class Utils extends Controller {
 						$errorcount++;
 					}
 				}
-	
-				fclose($infile);
-				// When done, delete the import file
-				// Do not delete the status file
-				// unlink($fname);
 			} else {
 				echo "File not found: $fname\n";
 			}
