@@ -640,7 +640,7 @@ class Common extends Controller {
 
 		if ($this->CI->db->dbdriver == 'postgre') {
 			// Has this statistic already been generated
-			$q = $this->CI->db->query("SELECT * FROM (logging) WHERE date = date(now() - interval 1 day) AND statistic = 'pages';");
+			$q = $this->CI->db->query("SELECT * FROM logging WHERE date = date(now() - interval '1 day') AND statistic = 'pages';");
 			$found = false;
 			foreach ($q->result() as $row) {
 				$found = true; continue;
@@ -660,7 +660,7 @@ class Common extends Controller {
 			}
 		
 			// Has this statistic already been generated
-			$q = $this->CI->db->query("SELECT * FROM (logging) WHERE date = date(now() - interval 1 day) AND statistic = 'total-pages';");
+			$q = $this->CI->db->query("SELECT * FROM logging WHERE date = date(now() - interval '1 day') AND statistic = 'total-pages';");
 			$found = false;
 			foreach ($q->result() as $row) {
 				$found = true; continue;
@@ -677,7 +677,7 @@ class Common extends Controller {
 			}
 			
 			// Has this statistic already been generated
-			$q = $this->CI->db->query("SELECT * FROM (logging) WHERE date = date(now() - interval 1 day) AND statistic = 'disk-usage';");
+			$q = $this->CI->db->query("SELECT * FROM logging WHERE date = date(now() - interval '1 day') AND statistic = 'disk-usage';");
 			$found = false;
 			foreach ($q->result() as $row) {
 				$found = true; continue;
