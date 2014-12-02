@@ -331,7 +331,7 @@ class Main extends Controller {
 			} else {
 				$array_counts[$i['fieldname']] = 1;
 			}
-			if ($i['fieldname'] != 'needs_qa' && $i['fieldname'] != 'copyright' && $i['fieldname'] != 'cc_license') {
+			if ($i['fieldname'] != 'needs_qa' && $i['fieldname'] != 'ia_ready_images' && $i['fieldname'] != 'copyright' && $i['fieldname'] != 'cc_license') {
 				array_push($md, array(
 					'fieldnamex' => $i['fieldname'].'_'.$array_counts[$i['fieldname']],
 					'fieldname' => $i['fieldname'],
@@ -350,6 +350,7 @@ class Main extends Controller {
 			$data['is_qa_user'] = true;
 		}
 		$data['needs_qa'] = $this->book->needs_qa;
+		$data['ia_ready_images'] = $this->book->ia_ready_images;
 		$data['id'] = $this->book->id;
 		$data['organization'] = $this->book->org_name;
 		if (isset($this->cfg['copyright_values'])) {
@@ -423,7 +424,7 @@ class Main extends Controller {
 		$this->book->unset_metadata('', true); // Wipe all all item metadata
 		
 		foreach ($_REQUEST as $field => $val) {
-			if ($field != 'id' && $field != 'needs_qa' && $field != 'idenitifer') {
+			if ($field != 'id' && $field != 'needs_qa' && $field != 'ia_ready_images' && $field != 'idenitifer') {
 				$matches = array();
 				if (preg_match('/^new_fieldname_(\d+)$/', $field, $matches)) {
 					$c = $matches[1];
@@ -449,6 +450,7 @@ class Main extends Controller {
 		}
 		
  		$this->book->needs_qa = (array_key_exists('needs_qa', $_POST) ? true : false);
+ 		$this->book->ia_ready_images = (array_key_exists('ia_ready_images', $_POST) ? true : false);
 
 		// If we got marc_xml but not mods_xml, convert it to mods and save that, too
 		$marc = $this->book->get_metadata('marc_xml');
@@ -644,6 +646,7 @@ class Main extends Controller {
 		$data['identifier'] = $barcode;
 		$data['missing_metadata'] = $this->book->get_missing_metadata(false);
 		$data['needs_qa'] = false;
+		$data['ia_ready_images'] = false;
 		if (array_key_exists('identifier', $_REQUEST)) {
 			$data['identifier'] = $_REQUEST['identifier'];
 		}
@@ -710,6 +713,7 @@ class Main extends Controller {
 			$data['metadata'] = array();
 			$data['identifier'] = '';
 			$data['needs_qa'] = false;
+			$data['ia_ready_images'] = false;
 			$data['is_qa_user'] = false;
 			$this->session->set_userdata('errormessage', $e->getMessage().' Please go back and try again.');
 			$this->load->view('main/edit_view', $data);
@@ -722,7 +726,7 @@ class Main extends Controller {
 		
 		// Apply the metadata
 		foreach ($_REQUEST as $field => $val) {
-			if ($field != 'id' && $field != 'needs_qa' && $field != 'idenitifer') {
+			if ($field != 'id' && $field != 'needs_qa' && $field != 'ia_ready_images' && $field != 'idenitifer') {
 				$matches = array();
 				if (preg_match('/^new_fieldname_(\d+)$/', $field, $matches)) {
 					$c = $matches[1];
@@ -745,6 +749,7 @@ class Main extends Controller {
 		}
 		
  		$this->book->needs_qa = ((array_key_exists('needs_qa', $_POST) && $_POST['needs_qa'] == 1) ? true : false);
+ 		$this->book->ia_ready_images = ((array_key_exists('ia_ready_images', $_POST) && $_POST['ia_ready_images'] == 1) ? true : false);
 
 		// If we got marc_xml but not mods_xml, convert it to mods and save that, too
 		$marc = $this->book->get_metadata('marc_xml');

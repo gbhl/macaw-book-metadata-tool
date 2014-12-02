@@ -35,6 +35,7 @@ class Book extends Model {
 	 * @var string [$pages_scanned]
 	 * @var string [$scan_time]
 	 * @var string [$needs_qa]
+	 * @var string [$ia_ready_images]
 	 * @internal string [$cfg] The Macaw configuration object
 	 */
 	public $id = '';
@@ -48,6 +49,7 @@ class Book extends Model {
 	public $last_error = '';
 	public $org_name = '';
 	public $date_review_end = '';
+	public $ia_ready_images = '';
 	
 	var $metadata_array = array();
 
@@ -106,6 +108,11 @@ class Book extends Model {
 					$this->needs_qa = true;
 				} else {
 					$this->needs_qa = false;
+				}
+				if ($row->ia_ready_images == 't' || $row->ia_ready_images == '1') { 
+					$this->ia_ready_images = true;
+				} else {
+					$this->ia_ready_images = false;
 				}
 				$this->metadata_array      = $this->_populate_metadata();
 			}
@@ -870,6 +877,10 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				if (!array_key_exists('needs_qa', $info)) {
 					$info['needs_qa'] = 0;
 				}
+				// Default this to something in case we don't have it
+				if (!array_key_exists('ia_ready_images', $info)) {
+					$info['ia_ready_images'] = 0;
+				}
 				if (!array_key_exists('collections', $info)) {
 					if (array_key_exists('collection', $info)) {
 						$info['collections'] = $info['collection'];
@@ -886,7 +897,8 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 						'status_code' => 'new',
 						'date_created' => date('Y-m-d H:i:s'),
 						'org_id' => $this->CI->user->org_id,
-						'needs_qa' => (($info['needs_qa'] == 1 || substr(strtolower($info['needs_qa']),0,1) == 'y') ? 't' : 'f')
+						'needs_qa' => (($info['needs_qa'] == 1 || substr(strtolower($info['needs_qa']),0,1) == 'y') ? 't' : 'f'),
+						'ia_ready_images' => (($info['ia_ready_images'] == 1 || substr(strtolower($info['ia_ready_images']),0,1) == 'y') ? 't' : 'f')
 					);				
 				} elseif ($this->db->dbdriver == 'mysql') {
 					$data = array(
@@ -894,7 +906,8 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 						'status_code' => 'new',
 						'date_created' => date('Y-m-d H:i:s'),
 						'org_id' => $this->CI->user->org_id,
-						'needs_qa' => (($info['needs_qa'] == 1 || substr(strtolower($info['needs_qa']),0,1) == 'y') ? 1 : 0)
+						'needs_qa' => (($info['needs_qa'] == 1 || substr(strtolower($info['needs_qa']),0,1) == 'y') ? 1 : 0),
+						'ia_ready_images' => (($info['ia_ready_images'] == 1 || substr(strtolower($info['ia_ready_images']),0,1) == 'y') ? 1 : 0)
 					);				
 				}
 
@@ -907,7 +920,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 					if (preg_match('/^marc/i', $i) && !preg_match('/^marc_xml$/i', $i)) {
 						$marc[$i] = $info[$i];
 					} else {
-						if ($i != 'barcode' && $i != 'identifier') {
+						if ($i != 'barcode' && $i != 'identifier' && $i != 'needs_qa' && $i != 'ia_ready_images') {
 							// If we got an array of data, we loop through 
 							// the items and add them to the metadata.
 							if (is_array($info[$i])) {
@@ -1068,14 +1081,16 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				'pages_found' => $this->pages_found,
 				'pages_scanned' => $this->pages_scanned,
 				'scan_time' => $this->scan_time,
-				'needs_qa' => ($this->needs_qa ? 't' : 'f')
+				'needs_qa' => ($this->needs_qa ? 't' : 'f'),
+				'ia_ready_images' => ($this->ia_ready_images ? 't' : 'f')
 			);
 		} elseif ($this->db->dbdriver == 'mysql') {
 			$data = array(
 				'pages_found' => $this->pages_found,
 				'pages_scanned' => $this->pages_scanned,
 				'scan_time' => $this->scan_time,
-				'needs_qa' => ($this->needs_qa ? 1 : 0)
+				'needs_qa' => ($this->needs_qa ? 1 : 0),
+				'ia_ready_images' => ($this->ia_ready_images ? 1 : 0)
 			);
 		}
 

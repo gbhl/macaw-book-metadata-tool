@@ -220,6 +220,10 @@
 					<td><input type="checkbox" name="needs_qa" id="needs_qa" value="1" <?php if ($needs_qa) { echo("checked"); } ?>> This item will be reviewed for Quality Assurance</td>
 				</tr>
 				<tr class="row">
+					<td class="fieldname">IA Ready Images: </td>
+					<td><input type="checkbox" name="ia_ready_images" id="ia_ready_images" value="1" <?php if ($ia_ready_images) { echo("checked"); } ?>> The images uploaded for this item are Internet-Archive-ready JPEG-2000 images.</td>
+				</tr>
+				<tr class="row">
 					<td class="fieldname">Copyright:</td>
 					<td>
 						<select name="copyright[]">

@@ -351,6 +351,7 @@ class Internet_archive extends Controller {
 						echo "SCAN ".$p->scan_filename."...";
 						if ($this->timing) { echo "TIMING (start): 0.0000\n"; }
 						$preview = new Imagick($scanspath.'/'.$p->scan_filename);
+
 						if ($this->timing) { echo "TIMING (open image): ".round((microtime(true) - $start_time), 5)."\n"; }
 
 						// TIFFs can contain multiple images, we want the largest thing in there
@@ -392,8 +393,8 @@ class Internet_archive extends Controller {
 							if ($this->timing) { echo "TIMING (add profile XMP): ".round((microtime(true) - $start_time), 5)."\n"; }
 						}
 
-						$preview->setImageCompression(imagick::COMPRESSION_JPEG2000);
 						if ($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') {
+							$preview->setImageCompression(imagick::COMPRESSION_JPEG2000);
 							$preview->setImageCompressionQuality(70);
 							// Write the jp2 out to the local directory
 							echo " created $new_filebase_orig".".jp2";
@@ -401,11 +402,20 @@ class Internet_archive extends Controller {
 							if ($this->timing) { echo "TIMING (write): ".round((microtime(true) - $start_time), 5)."\n"; }
 						}
 						if ($this->send_orig_jp2 == 'no' || $this->send_orig_jp2 == 'both') {
-							$preview->setImageCompressionQuality(15);
-							// Write the jp2 out to the local directory
-							echo " created $new_filebase".".jp2";
-							$preview->writeImage($jp2path.'/'.$new_filebase.'.jp2');
-							if ($this->timing) { echo "TIMING (write): ".round((microtime(true) - $start_time), 5)."\n"; }
+							// If the images are IA-ready, we don't recompress. 
+							if (!$this->CI->book->ia_ready_images || !preg_match("/\.jp[2f]$/", $p->scan_filename) ) {
+								echo " (compressing) ";
+								$preview->setImageCompression(imagick::COMPRESSION_JPEG2000);
+								$preview->setImageCompressionQuality(15);
+								echo " created $new_filebase".".jp2";
+								$preview->writeImage($jp2path.'/'.$new_filebase.'.jp2');
+								if ($this->timing) { echo "TIMING (write): ".round((microtime(true) - $start_time), 5)."\n"; }							
+							} else {
+								// Write the jp2 out to the local directory
+								echo " copied $new_filebase".".jp2";
+								copy($scanspath.'/'.$p->scan_filename, $jp2path.'/'.$new_filebase.'.jp2');
+								if ($this->timing) { echo "TIMING (copy): ".round((microtime(true) - $start_time), 5)."\n"; }							
+							}
 						}
 						if ($this->timing) { echo "TIMING (set compression): ".round((microtime(true) - $start_time), 5)."\n"; }
 

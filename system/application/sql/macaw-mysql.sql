@@ -33,7 +33,8 @@ CREATE TABLE item (
     date_review_end timestamp,
     date_export_start timestamp,
     date_completed timestamp,
-    date_archived timestamp
+    date_archived timestamp,
+    ia_ready_images bool default false not null
 , PRIMARY KEY(`id`)
 ) ENGINE=InnoDB;
 

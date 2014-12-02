@@ -81,7 +81,8 @@ CREATE TABLE item (
     date_review_end timestamp with time zone,
     date_export_start timestamp with time zone,
     date_completed timestamp with time zone,
-    date_archived timestamp with time zone
+    date_archived timestamp with time zone,
+    ia_ready_images boolean DEFAULT false NOT NULL
 );
 
 CREATE TABLE page (
