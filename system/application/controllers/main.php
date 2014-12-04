@@ -454,6 +454,9 @@ class Main extends Controller {
 
 		// If we got marc_xml but not mods_xml, convert it to mods and save that, too
 		$marc = $this->book->get_metadata('marc_xml');
+		$marc = $this->common->validate_marc($marc);
+		$this->book->set_metadata('marc_xml', $marc);
+
 		if ($marc && !$this->book->get_metadata('mods_xml')) {
 			try {
 				$mods = $this->common->marc_to_mods($marc);
@@ -753,6 +756,9 @@ class Main extends Controller {
 
 		// If we got marc_xml but not mods_xml, convert it to mods and save that, too
 		$marc = $this->book->get_metadata('marc_xml');
+		$marc = $this->common->validate_marc($marc);
+		$this->book->set_metadata('marc_xml',$marc);
+
 		if ($marc && !$this->book->get_metadata('mods_xml')) {
 			$mods = $this->common->marc_to_mods($marc);
 			$this->book->set_metadata('mods_xml', $mods, true);

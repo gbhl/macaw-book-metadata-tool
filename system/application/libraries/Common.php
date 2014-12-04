@@ -379,6 +379,50 @@ class Common extends Controller {
 		}
 	}
 
+
+	/**
+	 * Validate that the MARC XML data is something we can recognize.
+	 *
+	 * Check to see if we have a marc: namespace, or that we have a defined namespace on the first tag.
+	 *
+	 * @param string [$text] The MARC XML to be checked
+	 */
+	function validate_marc($marc) {
+		// Do we have a marc namspace on the tags? If yes, we're ok.
+		if (!preg_match("/\<marc:/", $marc)) {
+			// Do we have plain <collection> and <record> tags?
+			if (preg_match("/\<collection>/", $marc) && preg_match("/\<record>/", $marc) && !preg_match("/http:\/\/www.loc.gov\/MARC21\/slim\/", $marc)) {
+				// No, add the namespace to the collection tag.
+				$marc = preg_replace("/<collection>/", "<collection xmlns=\"http://www.loc.gov/MARC21/slim\">", $marc);
+
+			// Do we have just the <record> tags?
+			} else if (!preg_match("/<collection>/", $marc) && preg_match("/\<record>/", $marc) && !preg_match("/http:\/\/www.loc.gov\/MARC21\/slim\/", $marc)) {
+				// No, add the namespace to the record tag.
+				$marc = preg_replace("/\<record>/", "<record xmlns=\"http://www.loc.gov/MARC21/slim\">", $marc);
+			}
+
+			// Now decide if we have a clean XML declaration			
+			
+			// Does the declaration begin at they very start of the fime?
+			if (!preg_match("/^<\?xml version=\"1\.0\" encoding=\"UTF\-8\"\?\>/",$marc)) {
+				// No, do we have a colleciton and record tag?
+				if (preg_match("/\<collection/", $marc) && preg_match("/\<record/", $marc)) {
+					// Remove everything up to the collection tag
+					$marc = preg_replace("/^.+\<collection/", "<collection", $marc);
+	
+				} else if (!preg_match("/\<collection/", $marc) && preg_match("/\<record/", $marc)) {
+					// Remove everything up to the record tag
+					$marc = preg_replace("/^.+\<record/", "<record", $marc);
+	
+				}
+				// Re-add the declaration
+				$marc = '<?xml version="1.0" encoding="UTF-8"?>'.$marc;
+			}
+			
+		}
+		return $marc;
+	}
+
 	/**
 	 * Convert MARC XML to MODS XML
 	 *
