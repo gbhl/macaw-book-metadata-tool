@@ -692,7 +692,7 @@ class Scan extends Controller {
 		
 		// If we didn't get any QA users, let's send to the admin users
 		if (count($qa_users) == 0) {
-			$this->db->where('username in (select username from permission where permission = \'admin\');');
+			$this->db->where('id = 1');
 			$this->db->select('email');
 			$query = $this->db->get('account');
 			foreach ($query->result() as $row) {
