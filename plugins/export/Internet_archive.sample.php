@@ -1107,6 +1107,11 @@ class Internet_archive extends Controller {
 		$output .= '  <bookId>'.$id.'</bookId>'."\n";
 		$output .= '  <leafCount>'.count($pages).'</leafCount>'."\n";
 		$output .= '  <dpi>'.$dpi.'</dpi>'."\n";
+		if ($book->page_progression == 'rtl') {
+			$output .= '  <globalHandedness>',
+			$output .= '  <page-progression>rl</page-progression>',
+			$output .= '  <scanned-right-to-left>true</scanned-right-to-left>',
+		}
 		$output .= '  <pageNumData>'."\n";
 		$c = 1;
 		foreach ($pages as $p) {

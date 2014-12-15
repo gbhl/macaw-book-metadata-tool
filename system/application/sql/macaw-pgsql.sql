@@ -82,7 +82,8 @@ CREATE TABLE item (
     date_export_start timestamp with time zone,
     date_completed timestamp with time zone,
     date_archived timestamp with time zone,
-    ia_ready_images boolean DEFAULT false NOT NULL
+    ia_ready_images boolean DEFAULT false NOT NULL,
+    page_progression varchar(3) default 'ltr'
 );
 
 CREATE TABLE page (

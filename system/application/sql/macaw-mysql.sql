@@ -34,7 +34,8 @@ CREATE TABLE item (
     date_export_start timestamp,
     date_completed timestamp,
     date_archived timestamp,
-    ia_ready_images bool default false not null
+    ia_ready_images bool default false not null,
+    page_progression varchar(3) default 'ltr'
 , PRIMARY KEY(`id`)
 ) ENGINE=InnoDB;
 

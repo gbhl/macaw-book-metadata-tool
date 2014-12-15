@@ -36,6 +36,7 @@ class Book extends Model {
 	 * @var string [$scan_time]
 	 * @var string [$needs_qa]
 	 * @var string [$ia_ready_images]
+	 * @var string [$page_progression]
 	 * @internal string [$cfg] The Macaw configuration object
 	 */
 	public $id = '';
@@ -50,6 +51,7 @@ class Book extends Model {
 	public $org_name = '';
 	public $date_review_end = '';
 	public $ia_ready_images = '';
+	public $page_progression = '';
 	
 	var $metadata_array = array();
 
@@ -114,6 +116,7 @@ class Book extends Model {
 				} else {
 					$this->ia_ready_images = false;
 				}
+				$this->page_progression    = $row->page_progression;
 				$this->metadata_array      = $this->_populate_metadata();
 			}
 
@@ -881,6 +884,12 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				if (!array_key_exists('ia_ready_images', $info)) {
 					$info['ia_ready_images'] = 0;
 				}
+				if (!array_key_exists('page_progression', $info)) {
+					$info['page_progression'] = 'ltr';
+				}
+				if ($info['page_progression'] != 'ltr' && $info['page_progression'] != 'rtl') {
+					$info['page_progression'] = 'ltr';				
+				}
 				if (!array_key_exists('collections', $info)) {
 					if (array_key_exists('collection', $info)) {
 						$info['collections'] = $info['collection'];
@@ -898,7 +907,8 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 						'date_created' => date('Y-m-d H:i:s'),
 						'org_id' => $this->CI->user->org_id,
 						'needs_qa' => (($info['needs_qa'] == 1 || substr(strtolower($info['needs_qa']),0,1) == 'y') ? 't' : 'f'),
-						'ia_ready_images' => (($info['ia_ready_images'] == 1 || substr(strtolower($info['ia_ready_images']),0,1) == 'y') ? 't' : 'f')
+						'ia_ready_images' => (($info['ia_ready_images'] == 1 || substr(strtolower($info['ia_ready_images']),0,1) == 'y') ? 't' : 'f'),
+						'page_progression' => $info['page_progression']
 					);				
 				} elseif ($this->db->dbdriver == 'mysql') {
 					$data = array(
@@ -907,7 +917,8 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 						'date_created' => date('Y-m-d H:i:s'),
 						'org_id' => $this->CI->user->org_id,
 						'needs_qa' => (($info['needs_qa'] == 1 || substr(strtolower($info['needs_qa']),0,1) == 'y') ? 1 : 0),
-						'ia_ready_images' => (($info['ia_ready_images'] == 1 || substr(strtolower($info['ia_ready_images']),0,1) == 'y') ? 1 : 0)
+						'ia_ready_images' => (($info['ia_ready_images'] == 1 || substr(strtolower($info['ia_ready_images']),0,1) == 'y') ? 1 : 0),
+						'page_progression' => $info['page_progression']
 					);				
 				}
 
@@ -920,7 +931,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 					if (preg_match('/^marc/i', $i) && !preg_match('/^marc_xml$/i', $i)) {
 						$marc[$i] = $info[$i];
 					} else {
-						if ($i != 'barcode' && $i != 'identifier' && $i != 'needs_qa' && $i != 'ia_ready_images') {
+						if ($i != 'barcode' && $i != 'identifier' && $i != 'needs_qa' && $i != 'ia_ready_images' && $i != 'page_progression') {
 							// If we got an array of data, we loop through 
 							// the items and add them to the metadata.
 							if (is_array($info[$i])) {
@@ -1082,7 +1093,8 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				'pages_scanned' => $this->pages_scanned,
 				'scan_time' => $this->scan_time,
 				'needs_qa' => ($this->needs_qa ? 't' : 'f'),
-				'ia_ready_images' => ($this->ia_ready_images ? 't' : 'f')
+				'ia_ready_images' => ($this->ia_ready_images ? 't' : 'f'),
+				'page_progression' => $this->page_progression
 			);
 		} elseif ($this->db->dbdriver == 'mysql') {
 			$data = array(
@@ -1090,7 +1102,8 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				'pages_scanned' => $this->pages_scanned,
 				'scan_time' => $this->scan_time,
 				'needs_qa' => ($this->needs_qa ? 1 : 0),
-				'ia_ready_images' => ($this->ia_ready_images ? 1 : 0)
+				'ia_ready_images' => ($this->ia_ready_images ? 1 : 0),
+				'page_progression' => $this->page_progression
 			);
 		}
 

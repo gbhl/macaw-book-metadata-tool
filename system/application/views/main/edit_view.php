@@ -224,6 +224,15 @@
 					<td><input type="checkbox" name="ia_ready_images" id="ia_ready_images" value="1" <?php if ($ia_ready_images) { echo("checked"); } ?>> The images uploaded for this item are Internet-Archive-ready JPEG-2000 images.</td>
 				</tr>
 				<tr class="row">
+					<td class="fieldname">Text Direction:</td>
+					<td>
+						<select name="page_progression[]">
+							<option value="ltr" <?php echo ($page_progression == 'ltr' ? 'selected' : ''); ?>>Left to Right (default)</option>
+							<option value="rtl" <?php echo ($page_progression == 'rtl' ? 'selected' : ''); ?>>Right to Left</option>
+						</select>
+					</td>
+				</tr>
+				<tr class="row">
 					<td class="fieldname">Copyright:</td>
 					<td>
 						<select name="copyright[]">
