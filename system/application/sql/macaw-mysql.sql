@@ -102,7 +102,7 @@ CREATE TABLE permission (
 CREATE TABLE session (
     session_id varchar(40) DEFAULT '0',
     ip_address varchar(16) DEFAULT '0',
-    user_agent varchar(50) NOT NULL,
+    user_agent varchar(120) NOT NULL,
     last_activity bigint DEFAULT 0 NOT NULL,
     user_data text
 ) ENGINE=InnoDB;

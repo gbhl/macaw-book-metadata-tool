@@ -112,7 +112,7 @@ CREATE TABLE metadata (
 CREATE TABLE session (
     session_id character varying(40) DEFAULT '0'::character varying NOT NULL,
     ip_address character varying(16) DEFAULT '0'::character varying NOT NULL,
-    user_agent character varying(50) NOT NULL,
+    user_agent character varying(120) NOT NULL,
     last_activity bigint DEFAULT 0 NOT NULL,
     user_data text
 );
