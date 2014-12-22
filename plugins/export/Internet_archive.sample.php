@@ -1108,9 +1108,12 @@ class Internet_archive extends Controller {
 		$output .= '  <leafCount>'.count($pages).'</leafCount>'."\n";
 		$output .= '  <dpi>'.$dpi.'</dpi>'."\n";
 		if ($book->page_progression == 'rtl') {
-			$output .= '  <globalHandedness>',
-			$output .= '  <page-progression>rl</page-progression>',
-			$output .= '  <scanned-right-to-left>true</scanned-right-to-left>',
+			$output .= '  <globalHandedness>'."\n";
+			$output .= '    <page-progression>rl</page-progression>'."\n";
+			$output .= '    <scanned-right-to-left>true</scanned-right-to-left>'."\n";
+			$output .= '    <scanned-upside-down>false</scanned-upside-down>'."\n";
+			$output .= '    <needs-rectification>false</needs-rectification>'."\n";
+			$output .= '  </globalHandedness>'."\n";
 		}
 		$output .= '  <pageNumData>'."\n";
 		$c = 1;
@@ -1522,6 +1525,11 @@ class Internet_archive extends Controller {
 			$count++;
 		}
 
+		// Handle right-to-left pagination
+		if ($this->CI->book->page_progression == 'rtl') {
+			$metadata['x-archive-page-progression'] = 'rl';
+		}
+		
 		// If we have explicitly set a CC license, let's use it.
 		$cc_license = $this->CI->book->get_metadata('cc_license');
 		if (isset($cc_license)) {
@@ -1543,7 +1551,7 @@ class Internet_archive extends Controller {
 		// Handle copyright - Permission Granted to Scan
 		} elseif ($this->CI->book->get_metadata('copyright') == '1'  || strtoupper($this->CI->book->get_metadata('copyright')) == 'T' ) {
 			$metadata['x-archive-meta-possible-copyright-status'] = "In copyright. Digitized with the permission of the rights holder.";
-			$metadata['x-archive-meta-licenseurl'] = 'http://creativecommons.org/licenses/by-nc-sa/3.0/';
+			$metadata['x-archive-meta-licenseurl'] = 'http://creativecommons.org/licenses/by-nc-sa/4.0/';
 			$metadata['x-archive-meta-rights'] = 'http://biodiversitylibrary.org/permissions';
 
 		// Handle copyright - Due Dillegene Performed to determine public domain status
