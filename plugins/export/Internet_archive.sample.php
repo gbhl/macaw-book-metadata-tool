@@ -406,8 +406,14 @@ class Internet_archive extends Controller {
 							if (!$this->CI->book->ia_ready_images || !preg_match("/\.jp[2f]$/", $p->scan_filename) ) {
 								echo " (compressing) ";
 								$preview->setImageCompression(imagick::COMPRESSION_JPEG2000);
-								$preview->setImageCompressionQuality(15);
-								echo " created $new_filebase".".jp2";
+								// If we got our images from a PDF, we use the highest quality we can
+								if ($this->CI->book->get_metadata('from_pdf') == 'yes') {
+									$preview->setImageCompressionQuality(100);							
+									echo " created $new_filebase".".jp2 (Q=100%, From PDF)";
+								} else {
+									$preview->setImageCompressionQuality(15);							
+									echo " created $new_filebase".".jp2";
+								}
 								$preview->writeImage($jp2path.'/'.$new_filebase.'.jp2');
 								if ($this->timing) { echo "TIMING (write): ".round((microtime(true) - $start_time), 5)."\n"; }							
 							} else {
