@@ -1487,6 +1487,9 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 							exec($exec, $output);
 							
 							$this->logging->log('book', 'info', 'After splitting '.$fnamenew.', "gs" output is '.count($output), $this->barcode);
+							
+							$this->set_metadata('from_pdf','yes',true);
+							$this->update();
 							// Output from exec is '.$output
 							//	foreach ($output as $val){
 							//	$this->logging->log('book', 'info', 'Output from exec is '.$val, $this->barcode);
