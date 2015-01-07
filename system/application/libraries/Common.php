@@ -416,7 +416,9 @@ class Common extends Controller {
 	
 				}
 				// Re-add the declaration
-				$marc = '<?xml version="1.0" encoding="UTF-8"?'.'>'.$marc;
+				if (!preg_match("/<\?xml.*?\>/is", $marc)) {
+					$marc = '<?xml version="1.0" encoding="UTF-8" ?'.'>'."\n".$marc;
+				}
 			}
 			
 		}
