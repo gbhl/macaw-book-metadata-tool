@@ -398,6 +398,7 @@ class Internet_archive extends Controller {
 							$preview->setImageCompressionQuality(70);
 							// Write the jp2 out to the local directory
 							echo " created $new_filebase_orig".".jp2";
+							$preview->setImageDepth(8);
 							$preview->writeImage($jp2path_orig.'/'.$new_filebase_orig.'.jp2');
 							if ($this->timing) { echo "TIMING (write): ".round((microtime(true) - $start_time), 5)."\n"; }
 						}
@@ -408,12 +409,13 @@ class Internet_archive extends Controller {
 								$preview->setImageCompression(imagick::COMPRESSION_JPEG2000);
 								// If we got our images from a PDF, we use the highest quality we can
 								if ($this->CI->book->get_metadata('from_pdf') == 'yes') {
-									$preview->setImageCompressionQuality(100);							
-									echo " created $new_filebase".".jp2 (Q=100%, From PDF)";
+									$preview->setImageCompressionQuality(50);							
+									echo " created $new_filebase".".jp2 (Q=50, From PDF)";
 								} else {
 									$preview->setImageCompressionQuality(15);							
 									echo " created $new_filebase".".jp2";
 								}
+								$preview->setImageDepth(8);
 								$preview->writeImage($jp2path.'/'.$new_filebase.'.jp2');
 								if ($this->timing) { echo "TIMING (write): ".round((microtime(true) - $start_time), 5)."\n"; }							
 							} else {
@@ -443,6 +445,8 @@ class Internet_archive extends Controller {
 
 				// Export the TAR and/or ZIP files.
 				if ($file == '' || $file == 'scans') {
+					print "Sleeping 2 minutes to be safe.";
+					sleep(120);
 					if (($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') && (!file_exists($archive_file_orig) || !$id)) {
 						// Create the TAR file
 						$tar = new Archive_Tar($archive_file_orig); // name of archive
@@ -1369,54 +1373,64 @@ class Internet_archive extends Controller {
 	function _get_dpi($book, $pages) {
 		// Get our mods into something we can use. All the info we need is in there.
 		$marc = $this->_get_marc($book->get_metadata('marc_xml'));
+		
+		if ($marc !== false) {
+			$namespaces = $marc->getDocNamespaces();
+			$ns = '';
+			if (array_key_exists('marc', $namespaces)) {
+				$ns = 'marc:';
+			} elseif (array_key_exists('', $namespaces)) {
+				// Add empty namespace because xpath is weird
+				$ns = 'ns:';
+				$marc->registerXPathNamespace('ns', $namespaces['']);
+			}
+	
+			// location
+			$ret = ($marc->xpath($ns."record/".$ns."datafield[@tag='300']/".$ns."subfield[@code='c']"));
+			if ($ret && count($ret) > 0) {
+				$height = (string)$ret[0];
+				$unit = 'cm';
+				// Get the height of the book
+				$matches = array();
+				print_r($marc);
+				
+				print "height is $height\n";
+				if (preg_match('/(\d+) ?(cm|in)/', $height, $matches)) {
+					// 45 cm.
+					// 35cm.
+					$height = $matches[1];
+					$unit = $matches[2];
+				} elseif (preg_match('/(\d+)-(\d+) ?(cm|in)/', $height, $matches)) {
+					// 48-51 cm.
+					// 24-26 cm. and atlases of plates (part col.) 42 cm.
+					$height = $matches[2];
+					$unit = $matches[3];
+				} elseif (preg_match('/(\d+) ?x ?(\d+) ?(cm|in)/', $height, $matches)) {
+					// 25 x 38 cm.
+					// 25x38 cm.
+					$height = $matches[1];
+					$unit = $matches[3];
+				} elseif (preg_match('/(\d+)-(\d+) ?x ?(\d+) ?(cm|in)/', $height, $matches)) {
+					// 25-43 x 38 cm.
+					// 25-43x38 cm.
+					$height = $matches[2];
+					$unit = $matches[4];
+				} elseif (preg_match('/(\d+)/', $height, $matches)) {
+					// Fallback, take the first number we can find.
+					$height = $matches[1];
+				}
 
-		if ($marc === false) {
-			return 450;
-		}
-		$height = '';
-		foreach ($marc->datafield as $d) {
-			if ($d['tag'] == '300') {
-				$height = (string)$d->subfield[2];
+				if ($unit == 'in') {
+					return round($pages[0]->height / $height);
+				} else {
+					return round($pages[0]->height / $height / 0.393700787);
+				}
+
 			}
 		}
-		$unit = 'cm';
-		// Get the height of the book
-		$matches = array();
-		if (preg_match('/(\d+) ?(cm|in)/', $height, $matches)) {
-			// 45 cm.
-			// 35cm.
-			$height = $matches[1];
-			$unit = $matches[2];
-		} elseif (preg_match('/(\d+)-(\d+) ?(cm|in)/', $height, $matches)) {
-			// 48-51 cm.
-			// 24-26 cm. and atlases of plates (part col.) 42 cm.
-			$height = $matches[2];
-			$unit = $matches[3];
-		} elseif (preg_match('/(\d+) ?x ?(\d+) ?(cm|in)/', $height, $matches)) {
-			// 25 x 38 cm.
-			// 25x38 cm.
-			$height = $matches[1];
-			$unit = $matches[3];
-		} elseif (preg_match('/(\d+)-(\d+) ?x ?(\d+) ?(cm|in)/', $height, $matches)) {
-			// 25-43 x 38 cm.
-			// 25-43x38 cm.
-			$height = $matches[2];
-			$unit = $matches[4];
-		} elseif (preg_match('/(\d+)/', $height, $matches)) {
-			// Fallback, take the first number we can find.
-			$height = $matches[1];
-		} else {
-			// Last resort, we'll default to returning 450 DPI for this item
-			return 450;
-		}
+		// As a default, return 300 
+		return 300;
 
-		// Get the pixel height of the first page and divide by our size
-
-		if ($unit == 'in') {
-			return round($pages[0]->height / $height);
-		} else {
-			return round($pages[0]->height / $height / 0.393700787);
-		}
 	}
 
 
@@ -1530,7 +1544,32 @@ class Internet_archive extends Controller {
 			}
 			$count++;
 		}
+		
+		// Handle the subcollection(s) that the book might be in
+		$subcollections = $this->CI->book->get_metadata('subcollections'); // Returns an array for multiple valies OR a string
+		if (!is_array($subcollections)) {
+			$subcollections = array($subcollections);
+		}
 
+		// Combine the "subcollection" (singular) metadata because, well, people get confused.
+		$subcollection = $this->CI->book->get_metadata('subcollection'); // Returns an array for multiple valies OR a string
+		if (!is_array($subcollection) && $subcollection) {
+			$subcollections[] = $subcollection;
+		} else {
+			if (isset($subcollection)) {
+				foreach ($subcollection as $c) {
+					$subcollections[] = $c;
+				}
+			}
+		}
+
+		// Now we add the subcollections to the metadata
+		$count = 0;
+		foreach ($subcollections as $s) {
+			$metadata['x-archive-meta'.sprintf("%02d", $count).'-subcollection'] = $s;
+			$count++;
+		}
+			
 		// Handle right-to-left pagination
 		if ($this->CI->book->page_progression == 'rtl') {
 			$metadata['x-archive-page-progression'] = 'rl';
@@ -1750,11 +1789,11 @@ class Internet_archive extends Controller {
 	function _create_marc_xml() {
 		// Just get the MARC XML from the book and format the XML file properly
 		$marc = $this->CI->book->get_metadata('marc_xml');
-		if (!preg_match("/<\?xml.*?\>/is", $marc)) {
-			return '<?xml version="1.0" encoding="UTF-8" ?'.'>'."\n".$marc;
-		} else {
+// 		if (!preg_match("/<\?xml.*?\/>/", $marc)) {
+// 			return '<?xml version="1.0" encoding="UTF-8" ?'.'>'."\n".$marc;
+// 		} else {
 			return $marc;
-		}
+// 		}
 	}
 
 	// ----------------------------
