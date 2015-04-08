@@ -106,6 +106,9 @@ class CSRF_Protection
 			return;
 		}
 		
+		if (!isset($_SERVER['REQUEST_URI'])) {
+			return;
+		}
 		// Do not validate when editing pages, and it may take time sessions might timeout
 		if (strpos($_SERVER['REQUEST_URI'], '/scan/') !== false) {
 			return;

@@ -390,7 +390,8 @@ class Admin extends Controller {
 				$data['modified'] = date($datestring, strtotime($this->user->modified));
 				$data['last_login'] = date($datestring, strtotime($this->user->last_login));
 				$data['permissions'] = $this->user->get_permissions();
-				
+				$data['token'] = $this->session->userdata('li_token');
+
 				if ($is_admin) {
 					$data['locked_org_id'] = false;
 					$data['organizations'] = $this->organization->get_list();
@@ -406,7 +407,7 @@ class Admin extends Controller {
 
 				$data['org_name'] = $this->user->org_name;
 				$data['org_id'] = $this->user->org_id;
-	
+				
 				// Display the page
 				$content = $this->load->view('admin/account_edit_view', $data, true);
 
@@ -458,7 +459,8 @@ class Admin extends Controller {
 		$datestring = "M d, Y h:i a";
 		$data['created'] = date($datestring, time());
 		$data['permissions'] = $this->user->get_permissions();
-
+		$data['token'] = $this->session->userdata('li_token');
+		
 		if ($is_admin) {
 			$data['locked_org_id'] = false;
 			$data['organizations'] = $this->organization->get_list();
@@ -806,6 +808,7 @@ class Admin extends Controller {
 			$data['country'] = $this->organization->country;
 			$data['created'] = $this->organization->created;
 			$data['modified'] = $this->organization->modified;
+			$data['token'] = $this->session->userdata('li_token');
 
 			// Display the page
 			$content = $this->load->view('admin/organization_edit_view', $data, true);
@@ -853,6 +856,7 @@ class Admin extends Controller {
 		$data['created'] = '';
 		$data['modified'] = '';
 		$data['id'] = 0;
+		$data['token'] = $this->session->userdata('li_token');
 
 		// Display the page
 		$content = $this->load->view('admin/organization_edit_view', $data, true);

@@ -1,4 +1,5 @@
 <form action="<?php echo $this->config->item('base_url'); ?>admin/account_save/" method="post">
+<input type="hidden" name="li_token" value="<?php echo($token); ?>">
 <?php if ($new) { ?>
 <input type="hidden" name="new" value="1">
 <?php } else { ?>

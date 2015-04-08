@@ -88,7 +88,7 @@ $config['charset'] = "UTF-8";
 | setting this variable to TRUE (boolean).  See the user guide for details.
 |
 */
-$config['enable_hooks'] = FALSE;
+$config['enable_hooks'] = TRUE;
 
 
 /*
@@ -310,6 +310,18 @@ $config['time_reference'] = 'local';
 |
 */
 $config['rewrite_short_tags'] = FALSE;
+
+
+
+/*
+|--------------------------------------------------------------------------
+| Use CRRF Protection
+|--------------------------------------------------------------------------
+|
+| Place tokens on the forms to prevent cross-site request forgeries?
+|
+*/
+$config['linkigniter.enable_csrf_protection'] = TRUE;
 
 
 /*

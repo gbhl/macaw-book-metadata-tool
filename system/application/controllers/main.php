@@ -757,7 +757,7 @@ class Main extends Controller {
 		
  		$this->book->needs_qa = ((array_key_exists('needs_qa', $_POST) && $_POST['needs_qa'] == 1) ? true : false);
  		$this->book->ia_ready_images = ((array_key_exists('ia_ready_images', $_POST) && $_POST['ia_ready_images'] == 1) ? true : false);
- 		$this->book->ia_ready_images = $_POST['page_progression'][0];
+ 		$this->book->page_progression = $_POST['page_progression'][0];
 
 		// If we got marc_xml but not mods_xml, convert it to mods and save that, too
 		$marc = $this->book->get_metadata('marc_xml');
@@ -799,8 +799,10 @@ class Main extends Controller {
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 			return;
 		}
-
-		$this->load->view('main/import_view');
+		
+		$data = array();
+		$data['token'] = $this->session->userdata('li_token');
+		$this->load->view('main/import_view', $data);
 	}
 
 	/**
