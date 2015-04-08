@@ -222,7 +222,7 @@
 		loadTables: function(data) {
 				
 			YAHOO.widget.DataTable.formatLink = function(elLiner, oRecord, oColumn, oData) { 
-				var barcode = YAHOO.lang.escapeHTML(oData); 
+				var barcode = YAHOO.lang.escapeHTML(oData.replace(/\\'/g, "'")); 
 				elLiner.innerHTML = "<a href=\"" + sBaseUrl + "/main/managebarcode/" + barcode + "/\">" + barcode + "</a>"; 
 			};
 			
