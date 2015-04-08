@@ -183,6 +183,14 @@ class Internet_archive extends Controller {
 				$bc = $b->barcode;
 				$this->CI->book->load($bc);
 
+				// Are we suppressing this from Internet Archive
+				if ($this->CI->book->get_metadata('no_ia_upload') == 1) {
+					// Yes, skip it.
+					// TODO: Later we need to do something where we stop seeing this item all the time. 
+					// e.g. Set the item_export_status to Completed
+					// e.g. Set the prefix to "NOT UPLOADED" or something like that.
+					continue;
+				}
 				// the keys are now different for each item. We need to get them from our custom table.
 				$this->_get_ia_keys($this->CI->book->org_id);
 				
@@ -1022,11 +1030,7 @@ class Internet_archive extends Controller {
 
 							// Save the data from the URL to the file. We use some broad error trapping here, just because.
 							try {
-								$ch = curl_init($urls[0].'/'.$id.$e);
-								$fh = fopen($path.$b->barcode.$e, "w");
-								curl_setopt($ch, CURLOPT_FILE, $fh);
-								curl_exec($ch);
-								curl_close($ch);
+								file_put_contents($path.$b->barcode.$e, fopen($urls[0].'/'.$id.$e, 'r'));
 							} catch (Exception $e) {
 								// Something horrible went wrong, log it and let's have a human look at the book.
 								$this->CI->logging->log('book', 'error', 'Unable to save derivarive file: '.$b->barcode.$e, $b->barcode);
@@ -1658,7 +1662,10 @@ class Internet_archive extends Controller {
 		}
 
 		//modified JC 4/2/12
-		if ($this->CI->book->get_metadata('pub_date')) {
+		if ($this->CI->book->get_metadata('year')) {
+			$metadata['x-archive-meta-date'] = $this->CI->book->get_metadata('year').'';
+			$metadata['x-archive-meta-year'] = $this->CI->book->get_metadata('year').'';
+		} elseif ($this->CI->book->get_metadata('pub_date')) {
 			$metadata['x-archive-meta-date'] = $this->CI->book->get_metadata('pub_date').'';
 			$metadata['x-archive-meta-year'] = $this->CI->book->get_metadata('pub_date').'';
 		} else {
@@ -2018,48 +2025,20 @@ class Internet_archive extends Controller {
 	// Parameters:
 	//    $id - The Internet Archive ID of the book in question
 	//
-	// Gets a list of all of the files on the "HTTP" page for the book.
-	// The URL is usually of the form:
-	//      http://ia600407.us.archive.org/26/items/Notessurlesmoll00Heud/
-	// But we need to get that URL from the main page here:
-	//      http://www.archive.org/details/Notessurlesmoll00Heud
+	// Gets a list of all of the files from the IDENTIFIER_files.xml file
+	// and determines the "base" of the URL, which is now always
+	//   http://www.archive.org/download/IDENTIFIER
 	// ----------------------------
 	function _get_derivative_urls($id) {
-		// Get the content of the details page.
-		try {
-			$content = file_get_contents("http://www.archive.org/details/$id");
-		} catch (Exception $e) {
-			$message = "Error connecting to Internet Archive.\n\n".
-				"IA Identifier: ".$id."\n\n".
-				"URL: http://www.archive.org/details/".$id."\n\n".
-				"Error Message: Could not connect.\n".
-				"Output: \n\n".$e->getMessage()."\n\n";
-			$this->CI->common->email_error($message);
-			print "Error connecting to the Internet Archive. ".$e->getMessage()."\n\n";
+		$base = "https://archive.org/download/$id";
+		$files = array();
+		$xml = file_get_contents($base.'/'.$id."_files.xml");
+		$xml = simplexml_load_string($xml);
+		foreach ($xml->file as $f) {
+			$attrs = $f->attributes();
+			$files[] = (string)$attrs['name'];
 		}
-		// Search for the "HTTP" URL and get that href
-		$matches = array();
-		$base = '';
-
-		if (preg_match('/<b>All Files: <\/b><a href="(.*?\/items\/'.$id.')">HTTPS?<\/a>/', $content, $matches)) {
-			$base = $matches[1];
-			try {
-				$content = file_get_contents($base);
-			} catch (Exception $e) {
-				$message = "Error connecting to Internet Archive.\n\n".
-					"IA Identifier: ".$id."\n\n".
-					"URL: ".$base."\n\n".
-					"Error Message: Could not connect.\n".
-					"Output: \n\n".$e->getMessage()."\n\n";
-				$this->CI->common->email_error($message);
-			print "Error connecting to the Internet Archive. ".$e->getMessage()."\n\n";
-			}
-			if (preg_match_all('<a href="(.*?)">', $content, $matches)) {
-				return array($base, $matches[1]);
-			}
-		}
-		// Just in case, return nothing, which is an error.
-		return array($base, array());
+		return array($base, $files);		
 	}
 
 	// ----------------------------
