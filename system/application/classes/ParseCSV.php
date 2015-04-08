@@ -1160,6 +1160,25 @@ class parseCSV {
             }
 
             $data = fread($fh, filesize($file));
+
+						$bom = pack("CCC", 0xef, 0xbb, 0xbf);
+						if (0 === strncmp($data, $bom, 3)) {
+								// echo "BOM detected - file is UTF-8\n";
+								$data = substr($data, 3);
+						}            
+
+						$bom = pack("CC", 0xfe, 0xff);
+						if (0 === strncmp($data, $bom, 2)) {
+								// echo "BOM detected - file is UTF-16\n";
+								$data = substr($data, 2);
+						}            
+
+						$bom = pack("CC", 0xff, 0xfe);
+						if (0 === strncmp($data, $bom, 2)) {
+								// echo "BOM detected - file is UTF-16 Little Endian\n";
+								$data = substr($data, 2);
+						}            
+						
             fclose($fh);
             return $data;
         }
