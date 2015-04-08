@@ -1115,11 +1115,10 @@ YAHOO.macaw.Standard_Metadata.setPageNumbering = function(prefix_only) {
 	var stl = sel.options[sel.selectedIndex].value;
 	var start = parseInt(Dom.get('page_number_start').value);
 	var inc = parseInt(Dom.get('page_number_increment').value);
+	var perimg = parseInt(Dom.get('pages_per_image').value);
 	var impl = Dom.get('implicit').checked;
 
 	var pgs = oBook.pages.arrayHighlighted();
-
-
 
 	// ----------------------------
 	// Function: romanize()
@@ -1160,30 +1159,55 @@ YAHOO.macaw.Standard_Metadata.setPageNumbering = function(prefix_only) {
 		return Array(+digits.join("") + 1).join("M") + roman;
 	}
 
-
+	var _make_list = function(items) {
+		if (items.length == 0) {
+			return null;
+		}
+		if (items.length == 1) {
+			return items[0];
+		}
+		if (items.length == 2) {
+			return items[0]+' and '+items[1];
+		}
+		if (items.length == 3) {
+			return items[0]+', '+items[1]+' and '+items[2];
+		}
+		if (items.length == 4) {
+			return items[0]+', '+items[1]+', '+items[2]+' and '+items[3];
+		}
+	}
+	
 	// We are numbering automatically. Always.
 	var i;
 	for (var i in pgs) {
-		var n = start;
-		if (stl == 'roman') {
-			n = _romanize(n);
-		} else if (stl == 'roman_lower') {
-			n = _romanize(n).toLowerCase();
-		} else if (stl == 'roman_long') {
-			n = _romanize_long(n);
-		} else if (stl == 'roman_lower_long') {
-			n = _romanize_long(n).toLowerCase();
+		nums = new Array();
+		ct = perimg;
+		while (ct > 0) {
+			var n = start;
+			if (stl == 'roman') {
+				n = _romanize(n);
+			} else if (stl == 'roman_lower') {
+				n = _romanize(n).toLowerCase();
+			} else if (stl == 'roman_long') {
+				n = _romanize_long(n);
+			} else if (stl == 'roman_lower_long') {
+				n = _romanize_long(n).toLowerCase();
+			}
+			nums.push(n);
+			ct = ct - 1;
+			start = start + inc;
 		}
+
 		if (prefix_only) {
 			if (!isBlank(pfx)) {
 				pgs[i].metadata.callFunction('set', 'pagePrefix', pfx + ' ' + pgs[i].metadata.pagePrefix);
 			}
 		} else {
 			pgs[i].metadata.callFunction('set', 'pagePrefix', pfx);
-			pgs[i].metadata.callFunction('set', 'pageNumber', n);
+			pgs[i].metadata.callFunction('set', 'pageNumber', _make_list(nums));
 			pgs[i].metadata.callFunction('set', 'pageNumberImplicit', impl);
 		}
-		start = start + inc;
+		nums = null;
 	}
 	oBook._updateDataTableRecordset();
 	if (pgs.length == 1) {

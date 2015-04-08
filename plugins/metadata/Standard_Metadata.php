@@ -31,7 +31,7 @@
 						<td ><label for="page_number">Page&nbsp;Prefix&nbsp;/&nbsp;Num:</label></td>
 						<td  id="tdPagePrefix">
 							<input type="text" name="page_prefix" id="page_prefix" value="" onChange="YAHOO.macaw.Standard_Metadata.metadataChange(this);" onFocus="focusOn(this);" onBlur="focusOff();" title="Page Number Prefix">
-							<input type="text" name="page_number" id="page_number" value="" onChange="YAHOO.macaw.Standard_Metadata.metadataChange(this);" onFocus="focusOn(this);" onBlur="focusOff();" title="Page Number Value">
+							<input type="text" style="width:4em;" name="page_number" id="page_number" value="" onChange="YAHOO.macaw.Standard_Metadata.metadataChange(this);" onFocus="focusOn(this);" onBlur="focusOff();" title="Page Number Value">
 							<input type="checkbox" name="page_number_implicit" id="page_number_implicit" value="" onChange="YAHOO.macaw.Standard_Metadata.metadataChange(this);" onFocus="focusOn(this);" onBlur="focusOff();" title="Implied Page Number?"> <em id="page_number_implicit_text">impl.</em>
 							<img src="<?php echo $this->config->item('base_url'); ?>images/icons/application_form_edit.png" id="btnShowPagesDlg" class="icon">&nbsp;<img src="<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearPageNumber" class="icon" onMouseOver="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';">
 						</td>
@@ -137,6 +137,7 @@
 						<td><input type="text" id="page_number_increment" size="3" maxlength="5" value="1"></td>
 					</tr>
 				</table>
+				<input type="hidden" id="pages_per_image" value="1">
 			</blockquote>
 		</div>
 
