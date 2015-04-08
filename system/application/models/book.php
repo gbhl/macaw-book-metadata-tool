@@ -78,6 +78,8 @@ class Book extends Model {
 	 * @param string [$barcode] The barcode of the item in question
 	 */
 	function load($barcode = '') {
+		// Prevent Blind SQL Injection
+		$barcode = $this->db->escape_str($barcode);
 		if (isset($barcode)) {
 
 			// Query the database for the barcode
@@ -137,6 +139,7 @@ class Book extends Model {
 	 * @param string [$barcode] The barcode of the item in question
 	 */
 	function exists($barcode) {
+		$barcode = $this->db->escape_str($barcode);
 		// Query the database for the barcode
 		$this->db->where('barcode', "$barcode");
 		$item = $this->db->get('item');
@@ -859,7 +862,11 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 	 * At a minimum, "barcode" must found in the array.
 	 *
 	 */
-	function add($info) {		
+	function add($info) {
+		// Prevent Blind SQL Injection
+		if (isset($info['barcode'])) {
+			$info['barcode'] = $this->db->escape_str($info['barcode']);
+		}
 		if (isset($info['identifier'])) {
 			$info['barcode'] = $info['identifier'];
 		}
@@ -1049,13 +1056,15 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 			if (strlen($value) > 0) {
 				$matches = array();
 				$x = preg_match('/^marc(\d{3})(.?)(-?\d*?)$/', $fieldname, $matches);
+				if (!isset($matches[1])) { $matches[1] = ''; }
+				if (!isset($matches[2])) { $matches[2] = ''; }
 				if (!isset($matches[3])) { $matches[3] = ''; }
 
-				 
 				if ($prev_tag != $matches[1].$matches[3]) {
 					if ($prev_tag != 0) { $marc_xml .= '  </datafield>'."\r\n"; }
 					$marc_xml .= '  <datafield tag="'.$matches[1].'" ind1=" " ind2=" ">'."\r\n";
 				}
+				$value = preg_replace('/\&/', '&amp;', $value);
 				$marc_xml .= '    <subfield code="'.$matches[2].'">'.$value.'</subfield>'."\r\n";
 				if ($prev_tag != $matches[1].$matches[3]) {
 					$prev_tag = $matches[1].$matches[3];
@@ -1064,7 +1073,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 		}
 		$marc_xml .= '  </datafield>'."\r\n";
 		$marc_xml .= '</record>'."\r\n";
-
+		
 		try {
 			$mods_xml = $this->common->marc_to_mods($marc_xml);
 		} catch(Exception $e) {
