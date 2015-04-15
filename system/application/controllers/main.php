@@ -467,7 +467,7 @@ class Main extends Controller {
 			}
 			
 			if ($mods) {
-				$this->book->set_metadata('mods_xml', $mods);
+				$this->book->set_metadata('mods_xml', $mods, true);
 				$ret = $this->book->_read_mods($mods);
 				
 				if (isset($ret['title'])) {
