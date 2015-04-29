@@ -567,6 +567,22 @@ class Common extends Controller {
 			$this->CI->db->where('name','version');
 			$this->CI->db->set('value', '2.3');
 			$this->CI->db->update('settings');
+			
+		} elseif ($version == "2.3") {
+			$queries = null;
+			if ($this->CI->db->dbdriver == 'postgre') {
+				return;
+			} elseif ($this->CI->db->dbdriver == 'mysql') {
+				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.4.sql');
+			}
+			foreach (explode(';', $queries) as $q) {
+				if (preg_match('/[^\s\r\n]+/', $q)) {
+					$result = $this->CI->db->query($q);
+				}
+			}
+			$this->CI->db->where('name','version');
+			$this->CI->db->set('value', '2.4');
+			$this->CI->db->update('settings');
 		}
 	}
 	
