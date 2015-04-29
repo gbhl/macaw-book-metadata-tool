@@ -1161,12 +1161,20 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 		// it was first added to the database. And yes, this is a long comment. :)
 		$path = $this->cfg['data_directory'].'/'.$this->barcode;
 		if ($md = $this->get_metadata('marc_xml')) {
+			// doubly make sure that we don't have an array
+			if (is_array($md)) {
+				$md = $md[0];
+			}
 			if (file_exists($path)) {
 				write_file($path.'/marc.xml', $md);
 				chmod($path.'/marc.xml', 0775);
 			}
 		}
 		if ($md = $this->get_metadata('mods_xml')) {
+			// doubly make sure that we don't have an array
+			if (is_array($md)) {
+				$md = $md[0];
+			}
 			if (file_exists($path)) {
 				write_file($path.'/mods.xml', $md);
 				chmod($path.'/mods.xml', 0775);
@@ -1748,6 +1756,10 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 		$return = array();
 
 		# Read the MODS to see if we can get the title of this item and save that, too.
+		// doubly make sure that we don't have an array
+		if (is_array($mods)) {
+			$mods = $mods[0];
+		}
 		$xml = simplexml_load_string($mods);
 		$namespaces = $xml->getDocNamespaces();
 		$ns = '';
