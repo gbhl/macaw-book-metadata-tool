@@ -73,8 +73,6 @@ class Internet_archive extends Controller {
 	// This info is from account at Internet Archive. Change one, change them all.
 	private $access = '';
 	private $secret = '';
-	private $email  = '';
-	private $pwd    = '';
 
 	private $send_orig_jp2 = "no"; // "yes", "no", or "both" This creates faster uploads when false (larger files/slower uploads when true)
 	private $timing = false; // This makes more noise about how long things are taking.
@@ -102,12 +100,6 @@ class Internet_archive extends Controller {
 		}
 		if (array_key_exists('internet_archive_secret', $this->cfg)) {
 			$this->secret = $this->cfg['internet_archive_secret'];
-		}
-		if (array_key_exists('internet_archive_email', $this->cfg)) {
-			$this->email = $this->cfg['internet_archive_email'];
-		}
-		if (array_key_exists('internet_archive_password', $this->cfg)) {
-			$this->pwd = $this->cfg['internet_archive_password'];
 		}
 	}
 
@@ -453,8 +445,6 @@ class Internet_archive extends Controller {
 
 				// Export the TAR and/or ZIP files.
 				if ($file == '' || $file == 'scans') {
-					print "Sleeping 2 minutes to be safe.";
-					sleep(120);
 					if (($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') && (!file_exists($archive_file_orig) || !$id)) {
 						// Create the TAR file
 						$tar = new Archive_Tar($archive_file_orig); // name of archive
@@ -1149,7 +1139,6 @@ class Internet_archive extends Controller {
 		$c = 1;
 
 		foreach ($pages as $p) {
-
 			$output .= '  <page leafNum="'.$c.'">'."\n";
 			// Basic Info
 			if ($c == 1) {
@@ -1240,17 +1229,17 @@ class Internet_archive extends Controller {
 			// These are in order of importance. Issue, Number, then Part
 			if (property_exists($p, 'piece')) {
 				if (count($p->piece)) {
-					$i = array_search('Issue', $p->piece_text);
-					if ($i) {
-						$output .= '          <piece prefix="'.$p->piece_text[$i].'">'.$p->piece[$i].'</piece>'."\n";
+					$i = array_search('Issue', $p->piece);
+					if (isset($i)) {
+						$output .= '    <piece prefix="'.$p->piece[$i].'">'.$p->piece_text[$i].'</piece>'."\n";
 					} else {
-						$i = array_search('No.', $p->piece_text);
-						if ($i) {
-							$output .= '          <piece prefix="'.$p->piece_text[$i].'">'.$p->piece[$i].'</piece>'."\n";
+						$i = array_search('No.', $p->piece);
+						if (isset($i)) {
+							$output .= '    <piece prefix="'.$p->piece[$i].'">'.$p->piece_text[$i].'</piece>'."\n";
 						} else {
-							$i = array_search('Part', $p->piece_text);
-							if ($i) {
-								$output .= '          <piece prefix="'.$p->piece_text[$i].'">'.$p->piece[$i].'</piece>'."\n";
+							$i = array_search('Part', $p->piece);
+							if (isset($i)) {
+								$output .= '    <piece prefix="'.$p->piece[$i].'">'.$p->piece_text[$i].'</piece>'."\n";
 							}
 						}
 					}
@@ -1848,9 +1837,12 @@ class Internet_archive extends Controller {
 		$title = substr($title, 0, 15);
 
 		// Process the author
-		$author = $this->_utf8_clean($metadata['x-archive-meta-creator']);
-		$author = substr(preg_replace('/[^a-zA-Z0-9]/', '', $author), 0, 4);
-
+		$author = '';
+		if (isset($metadata['x-archive-meta-creator'])) {
+			$author = $this->_utf8_clean($metadata['x-archive-meta-creator']);
+			$author = substr(preg_replace('/[^a-zA-Z0-9]/', '', $author), 0, 4);
+		}
+		
 		while ($count2 <= 26) {
 			while ($count <= 26) {			
 				// If we got to this point, we don't have an identifier. Make a new one.
@@ -1936,87 +1928,42 @@ class Internet_archive extends Controller {
 	// bucket is created before uploading additional items to it.
 	// ----------------------------
 	function _bucket_exists($id) {
-		$this->_IA_Login();
-
 		if (!isset($this->curl)) {
 			$this->curl = curl_init();
 		}
-		echo "\nChecking ".'http://archive.org/catalog.php?history=1&identifier='.$id."...";
-		curl_setopt($this->curl, CURLOPT_URL, 'http://www.archive.org/catalog.php?history=1&identifier='.$id);
-		curl_setopt($this->curl, CURLOPT_COOKIE, 'test-cookie=1');
-		curl_setopt($this->curl, CURLOPT_COOKIEJAR, $this->cookie_jar);
+
+		echo "\nChecking https://archive.org/services/check_identifier.php?identifier=$id ...";
+		curl_setopt($this->curl, CURLOPT_URL, "https://archive.org/services/check_identifier.php?identifier=".$id);
 		curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($this->curl, CURLOPT_HTTPGET, true);
 		curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, true);
 		$output = curl_exec($this->curl);
-
-		if (!preg_match('/No historical tasks/', $output) && !preg_match('/No outstanding tasks/', $output)) {
-			echo "Found!\n";
-			return 1;
+		$output = simplexml_load_string($output);
+		$attr = 'type';
+		$success = (string)$output->attributes()->$attr;
+		if ($success == 'success') {
+			$attr = 'code';
+			$code = (string)$output->attributes()->$attr;
+			if ($code == 'not_available') {
+				echo "Found!\n";
+				return true;
+			}
+			if ($code == 'available') {
+				echo "Not Found!\n";
+				return false;
+			}
 		}
 
-		// Now we check to see if the /details/ page exists. Because a new error is happening where
-		// the bucket doesn't exist on the second upload.
-		echo "\nChecking ".'http://archive.org/details/'.$id."...";
-		curl_setopt($this->curl, CURLOPT_URL, 'http://www.archive.org/details/'.$id);
-		curl_setopt($this->curl, CURLOPT_COOKIE, 'test-cookie=1');
-		curl_setopt($this->curl, CURLOPT_COOKIEJAR, $this->cookie_jar);
-		curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($this->curl, CURLOPT_HTTPGET, true);
-		curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, true);
-		$output = curl_exec($this->curl);
-		if (preg_match('/<b>All Files: <\/b>/', $output)) {
-			echo "Found!\n";
-			return 1;
-		} else {
-			echo "Not found.\n";
-			return 0;
-		}
-	}
+		// <result type="success" code="not_available">
+		// <message>The identifier you have chosen is not available</message>
+		// <identifier>physicalgeograp00maur</identifier>
+		// </result>
+		// 
+		// <result type="success" code="available">
+		// <message>The identifier you have chosen is available</message>
+		// <identifier>physicalgeograp00maurAA</identifier>
+		// </result>
 
-	function _IA_Login() {
-		// All we really care about here is filling the cookie jar.
-		if (!isset($this->cookie_jar) || !file_exists($this->cookie_jar)) {
-			echo "Logging into IA...\n";
-			$this->cookie_jar = tempnam(sys_get_temp_dir(), 'Macaw');
-
-			// Gather our POST fields
-			$fields = array(
-				'username'  => urlencode($this->email),
-				'password'  => urlencode($this->pwd),
-				'openid'  => '',
-				'remember'  => 'CHECKED',
-				'referer'  => urlencode('http://www.archive.org/account/login.php'),
-				'submit'  => urlencode('Log in')
-			);
-
-			$post_data = '';
-			//url-ify the data for the POST
-			foreach($fields as $key=>$value) {
-				$post_data .= $key.'='.$value.'&';
-			}
-			rtrim($post_data, '&');
-
-			// Do POST
-			if (!isset($this->curl)) {
-				$this->curl = curl_init();
-			}
-			curl_setopt($this->curl, CURLOPT_URL,	           'http://archive.org/account/login.php');
-			curl_setopt($this->curl, CURLOPT_POST,	         count($fields));
-			curl_setopt($this->curl, CURLOPT_POSTFIELDS,     $post_data);
-			curl_setopt($this->curl, CURLOPT_COOKIEJAR,      $this->cookie_jar);
-			curl_setopt($this->curl, CURLOPT_COOKIE,	       'test-cookie=1');
-			curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, true);
-
-			//execute post
-			$output = curl_exec($this->curl);
-			if (preg_match('/Invalid password or username/', $output)) {
-				echo "Invalid password or username.\n";
-				die;
-			}
-			echo "\n";
-		}
 	}
 
 	// ----------------------------
