@@ -127,7 +127,7 @@ class User extends Model {
 			'full_name' => $this->full_name,
 			'email' => $this->email,
 			'org_id' => $this->org_id,
-			'modified' => 'now()',
+			'modified' => date('Y-m-d H:i:s'),
 			'widgets' => $this->widgets,
 			'terms_conditions' => $this->terms_conditions,
 		);
@@ -171,7 +171,7 @@ class User extends Model {
 					'email'     => $this->email,
 					'org_id' => $this->org_id,
 					'terms_conditions' => null,
-					'created'   => 'now()',
+					'created'   => date('Y-m-d H:i:s'),
 				);
 
 				if ($this->widgets) {
@@ -360,6 +360,19 @@ class User extends Model {
 				/* We don't care about any likely to be duplicate key erros */
 			}
 		} // if ($this->username == 'admin')
+	}
+	
+	function org_has_qa() {
+		// Get a list of all QA users and their email addresses
+		$qa_users = array();
+		$this->db->where('username in (select username from permission where permission = \'QA\' and org_id = '.$this->org_id.');');
+		$this->db->select('email');
+		$query = $this->db->get('account');
+		foreach ($query->result() as $row) {
+			array_push($qa_users, $row->email);
+		}
+		return (count($qa_users) > 0);
+		
 	}
 }
 

@@ -349,6 +349,10 @@ class Main extends Controller {
 		if ($this->user->has_permission('qa') || $this->user->has_permission('admin') || $this->user->has_permission('local_admin')) {
 			$data['is_qa_user'] = true;
 		}
+		$data['org_has_qa'] = false;
+		if ($this->user->org_has_qa()) {
+			$data['org_has_qa'] = true;
+		}
 		$data['needs_qa'] = $this->book->needs_qa;
 		$data['ia_ready_images'] = $this->book->ia_ready_images;
 		$data['page_progression'] = $this->book->page_progression;

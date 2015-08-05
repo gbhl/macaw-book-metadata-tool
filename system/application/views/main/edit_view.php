@@ -216,8 +216,13 @@
 					<td><?php echo($organization) ?></td>
 				</tr>
 				<tr class="row">
-					<td class="fieldname">Needs QA: </td>
-					<td><input type="checkbox" name="needs_qa" id="needs_qa" value="1" <?php if ($needs_qa) { echo("checked"); } ?>> This item will be reviewed for Quality Assurance</td>
+				  <?php if ($org_has_qa) { ?>
+					<td class="fieldname">Needs QA:</td>
+						<td><input type="checkbox" name="needs_qa" id="needs_qa" value="1" <?php if ($needs_qa) { echo("checked"); } ?>> This item will be reviewed for Quality Assurance</td>
+					<?php } else { ?>
+						<td style="color:#ccc" class="fieldname">Needs QA:</td>
+						<td style="color:#ccc"><input type="checkbox" name="needs_qa" id="needs_qa" value="1" disabled > This item will be NOT reviewed for Quality Assurance. Organization has no QA user.</td>
+					<?php } ?>
 				</tr>
 				<tr class="row">
 					<td class="fieldname">IA Ready Images: </td>
@@ -249,7 +254,8 @@
 						<?php	foreach ($cc_licenses as $c) {?>
 							<option value="<?php echo($c['value']) ?>" <?php echo ($c['value'] == $cc_license ? 'selected' : ''); ?>><?php echo($c['title']) ?></option>
 						<?php } ?>
-						</select>
+						</select> (Applies only if Copyright is set to "In Copyright, Permission Granted")
+
 					</td>
 				</tr>
 					
