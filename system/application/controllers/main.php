@@ -349,10 +349,6 @@ class Main extends Controller {
 		if ($this->user->has_permission('qa') || $this->user->has_permission('admin') || $this->user->has_permission('local_admin')) {
 			$data['is_qa_user'] = true;
 		}
-		$data['org_has_qa'] = false;
-		if ($this->user->org_has_qa()) {
-			$data['org_has_qa'] = true;
-		}
 		$data['needs_qa'] = $this->book->needs_qa;
 		$data['ia_ready_images'] = $this->book->ia_ready_images;
 		$data['page_progression'] = $this->book->page_progression;
@@ -387,6 +383,10 @@ class Main extends Controller {
 		}
 		$data['cc_license'] = $this->book->get_metadata('cc_license');
 
+		$data['org_has_qa'] = false;
+		if ($this->user->org_has_qa()) {
+			$data['org_has_qa'] = true;
+		}
 		$this->load->view('main/edit_view', $data);
 	}
 	
@@ -689,6 +689,10 @@ class Main extends Controller {
 			);
 		}
 		$data['cc_license'] = '';
+		$data['org_has_qa'] = false;
+		if ($this->user->org_has_qa()) {
+			$data['org_has_qa'] = true;
+		}
 		$this->load->view('main/edit_view', $data);
 	}
 
@@ -727,6 +731,10 @@ class Main extends Controller {
 			$data['page_progression'] = 'ltr';
 			$data['is_qa_user'] = false;
 			$this->session->set_userdata('errormessage', $e->getMessage().' Please go back and try again.');
+			$data['org_has_qa'] = false;
+			if ($this->user->org_has_qa()) {
+				$data['org_has_qa'] = true;
+			}
 			$this->load->view('main/edit_view', $data);
 			return;
 		}
