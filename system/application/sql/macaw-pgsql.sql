@@ -56,7 +56,7 @@ CREATE TABLE account (
     widgets text DEFAULT '[["summary","perday"],["disk","pages"]]'::text,
     full_name character varying(128),
     email character varying(128),
-    organization integer
+    terms_conditions timestamp without time zone
 );
 
 CREATE TABLE permission (

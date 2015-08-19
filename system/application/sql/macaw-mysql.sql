@@ -12,8 +12,8 @@ CREATE TABLE account (
     widgets varchar(255) DEFAULT '[["summary","perday"],["disk","pages"]]',
     full_name varchar(128),
     email varchar(128),
-    organization int(11), 
-    PRIMARY KEY(`id`)
+    PRIMARY KEY(`id`),
+		terms_conditions TIMESTAMP   
 ) ENGINE=InnoDB CHARACTER SET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE item (
@@ -112,15 +112,15 @@ CREATE TABLE settings (
     value varchar(64)
 ) ENGINE=InnoDB CHARACTER SET=utf8 COLLATE=utf8_unicode_ci;
 
-INSERT INTO account (id, username, password, org_id, last_login, created, modified, widgets, full_name, email, organization) VALUES
-('1','admin',NULL,'1',NULL,now(),NULL,'[["summary","perday"],["disk","pages"]]',NULL,NULL,'\N');
+INSERT INTO account (id, username, password, org_id, last_login, created, modified, widgets, full_name, email) VALUES
+('1','admin',NULL,'1',NULL,now(),NULL,'[["summary","perday"],["disk","pages"]]',NULL,NULL);
 
 INSERT INTO organization (id, name, person, email, phone, address, address2, city, state, postal, country, created, modified) VALUES
-('1','Default',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,now(),'\N');
+('1','Default',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,now(),NULL);
 
 INSERT INTO permission (username, permission) VALUES ('admin','admin'), ('admin','scan');
 
-INSERT INTO settings (name, value) VALUES ('version','2.0');
+INSERT INTO settings (name, value) VALUES ('version','2.4');
 INSERT INTO settings (name, value) values ('installed', '1');
 
 ALTER TABLE account ADD CONSTRAINT account_pkey PRIMARY KEY (id);
