@@ -221,7 +221,6 @@ class Internet_archive extends Controller {
 						"Identifier:    ".$bc."\n\n".
 						"IA Identifier: ".$id."\n\n".
 						"Error Message: Could not get metadata for item with barcode ".$bc.". Check the MARC or MODS data.\n\n".
-						print_r($metadata, true);
 					$this->CI->common->email_error($message);
 					continue;				
 				}
@@ -412,7 +411,7 @@ class Internet_archive extends Controller {
 									$preview->setImageCompressionQuality(50);							
 									echo " created $new_filebase".".jp2 (Q=50, From PDF)";
 								} else {
-									$preview->setImageCompressionQuality(15);							
+									$preview->setImageCompressionQuality(32);
 									echo " created $new_filebase".".jp2";
 								}
 								$preview->setImageDepth(8);
@@ -1385,7 +1384,6 @@ class Internet_archive extends Controller {
 				$unit = 'cm';
 				// Get the height of the book
 				$matches = array();
-				print_r($marc);
 				
 				print "height is $height\n";
 				if (preg_match('/(\d+) ?(cm|in)/', $height, $matches)) {
@@ -1441,6 +1439,7 @@ class Internet_archive extends Controller {
 		$ch = curl_init($urls[0].'/'.$id."_meta.xml");
 		$fh = fopen($filename, "w");
 		curl_setopt($ch, CURLOPT_FILE, $fh);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 		curl_exec($ch);
 		curl_close($ch);
 
@@ -1558,14 +1557,16 @@ class Internet_archive extends Controller {
 
 		// Now we add the subcollections to the metadata
 		$count = 0;
-		foreach ($subcollections as $s) {
-			$metadata['x-archive-meta'.sprintf("%02d", $count).'-subcollection'] = $s;
-			$count++;
+		foreach ($subcollections as $s) { 
+			if ($s) {
+				$metadata['x-archive-meta'.sprintf("%02d", $count).'-subcollection'] = $s;
+				$count++;
+			}
 		}
 			
 		// Handle right-to-left pagination
 		if ($this->CI->book->page_progression == 'rtl') {
-			$metadata['x-archive-page-progression'] = 'rl';
+			$metadata['x-archive-meta-page-progression'] = 'rl';
 		}
 		
 		// If we have explicitly set a CC license, let's use it.
