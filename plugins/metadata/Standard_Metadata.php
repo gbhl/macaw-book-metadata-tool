@@ -1,8 +1,8 @@
 <?php
 	// Reminder: The site configuration is available in the $config variable.
 	$page_types =array(
-		'Appendix', 'Article start', 'Article end', 'Blank', 'Bibliography', 'Copyright', 'Cover', 'Fold Out',
-		'Illustration', 'Index', 'Issue Start', 'Issue End', 'Map', 'Table of Contents', 'Text', 'Title Page',
+		'Appendix', 'Article start', 'Article end', 'Blank', 'Bibliography', 'Bookplate', 'Copyright', 'Cover', 'Drawing', 'Fold Out',
+		'Illustration', 'Index', 'Issue Start', 'Issue End', 'List of Illustrations', 'Map', 'Photograph', 'Table', 'Table of Contents', 'Text', 'Title Page',
 		'Specimen', 'Suppress', 'Tissue', 'White card', 'Color card'
 	);
 	$piece_types = array('Issue', 'No.', 'Part');
