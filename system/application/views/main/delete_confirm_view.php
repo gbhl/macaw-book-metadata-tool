@@ -64,7 +64,7 @@
 				<h4>Are you sure you want to continue?</h4>
 
 				<p>
-					<input type="checkbox" name="backup" value="1" checked> Make a backup of the item before deleting.<br><br>
+					<input type="checkbox" name="backup" value="1" checked id="make-backup"> <label for="make-backup">Make a backup of the item before deleting.</label><br><br>
 					You will be able to download the item on the next page.<br><br>
 					For more than 30 files, the backup <strong>will take a long time</strong>.<br>
 					Please be patient! If you close your browser window, you<br>
