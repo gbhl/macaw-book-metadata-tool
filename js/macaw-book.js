@@ -662,7 +662,7 @@ YAHOO.macaw.Book = function() {
 			this.pages.highlight(idx);
 			this.pages.selectBetween(); // Highlight everything in between
 
-		} else if (keyAlt) { // Was Alt pressed,
+		} else if (keyAlt || keyCmd || keyCtrl) { // Was Alt pressed,
 			if (this.pages.selected(idx)) {
 				this.pages.unselect(idx);
 

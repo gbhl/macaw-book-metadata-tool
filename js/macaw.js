@@ -112,19 +112,20 @@ function focusOff() {
 var keyCtrl = false;
 var keyShift = false;
 var keyAlt = false;
+var keyCmd = false;
 
 // ----------------------------
 // Function: checkKey()
 //
 // Event handler - When a key is pressed, we see if it's one we are interested in
-// (shift, alt, ctrl) and set flags based on the value. Presumably we can do this
+// (shift, alt, ctrl, command) and set flags based on the value. Presumably we can do this
 // for arrow keys, too.
 //
 // Arguments
 //    e - the Event that triggered the action
 //
 // Return Value / Effect
-//    Variables keyCtrl, keyShift and/or keyAlt are set appropriately
+//    Variables keyCtrl, keyShift, keyAlt and/or keyMeta are set appropriately
 // ----------------------------
 function checkKey(e) {
 	// returns true if the Ctrl key was pressed with the last key
@@ -157,9 +158,19 @@ function checkKey(e) {
 		return false;
 	}
 
+	function isCmd(e) {
+		if (window.event) {
+			return (window.event.metaKey);
+		} else {
+			return (e.metaKey);
+		}
+		return false;
+	}
+
 	keyAlt = isAlt(e);
 	keyCtrl = isCtrl(e);
 	keyShift = isShift(e);
+	keyCmd = isCmd(e);
 }
 
 if (document.layers) {
