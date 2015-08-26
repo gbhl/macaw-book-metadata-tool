@@ -433,7 +433,7 @@ class Book extends Model {
 		foreach ($pages as $p) {
 			if (preg_match('/archive\.org\/download/', $p->filebase)) {
 				$p->thumbnail = $p->filebase.'_thumb.'.$p->extension;
-				$p->preview = $p->filebase.'_medium.'.$p->extension;
+				$p->preview = $p->filebase.'_large.'.$p->extension;
 			} else {
 				// Take the filebase and convert it into the proper filenames for preview and thumbnail files
 				#$p->thumbnail = $thumb_path.'/'.$p->filebase.'.'.$this->cfg['thumbnail_format'];
@@ -1048,9 +1048,55 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 	
 	function _generate_marc($marc, $barcode) {
 		$marc_xml = '<'.'?'.'xml version="1.0" encoding="UTF-8" ?'.'>'."\r\n".
-			'<record xmlns="http://www.loc.gov/MARC21/slim" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">'."\r\n".
-			'  <leader>     ntm  2200000   4500</leader>'."\r\n";
+			'<record xmlns="http://www.loc.gov/MARC21/slim" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">'."\r\n";
 		$prev_tag = 0;
+		// Build the Leader
+		// Default values (index is starting position in the field)
+		$field_leader = array(6 => 'a', 7 => 'm', 8 => '#', 19 => '#');
+		foreach ($marc as $fieldname => $value) {
+			$value = trim(preg_replace('/[\x00-\x1F]/', '', $value)); // Strip all low-ascii control characters
+			if (strlen($value) > 0) {
+				$matches = array();
+				if (preg_match('/^marcLeader\/(\d*?)$/', $fieldname, $matches)) {
+					unset($marc[$fieldname]);
+					$field_leader[(int)$matches[1]] = $value;
+				}
+			}	
+		}
+		$marc_xml .= '  <leader>00000n'.$field_leader[6].$field_leader[7].$field_leader[8].'a2200000u#'.$field_leader[19].'4500</leader>'."\r\n";
+
+		// Build the 008
+		$field008 = array(0 => date('ymd'), 6 => 'm', 7 => 'uuuu', 11 => 'uuuu', 15 => 'xx#', 35 => '###');
+		foreach ($marc as $fieldname => $value) {
+			$value = trim(preg_replace('/[\x00-\x1F]/', '', $value)); // Strip all low-ascii control characters
+			if (strlen($value) > 0) {
+				$matches = array();
+				if (preg_match('/^marc008\/(\d*?)$/', $fieldname, $matches)) {
+					unset($marc[$fieldname]);
+					// Get value and save for 008
+					$field008[(int)$matches[1]] = $value;
+				}
+				// Did we encounter a 260. If so, it overrides anything else. Maybe. 
+				// (Depends on the order of the fields in the CSV.)
+				if (preg_match('/^marc260c$/', $fieldname, $matches)) {
+					if (preg_match('/^(.*?)-(.*?)$/', $value, $matches)) {
+						// Get start date and end date, make sure exactly 4 chars
+						$field008[7] = substr($matches[1].'uuuu',0,4);
+						$field008[11] = substr($matches[2].'uuuu',0,4);
+
+					} else if (preg_match('/^(.*?)$/', $value, $matches)) {
+						// Get start date, make sure exactly 4 chars
+						$field008[7] = substr($matches[1].'uuuu',0,4);
+					}
+				}
+				if (preg_match('/^marc041a$/', $fieldname, $matches)) {
+						$field008[35] = substr($value.'###',0,3);				
+				}
+			}	
+		}
+		$marc_xml .= '  <datafield tag="008">'.$field008[0].$field008[6].$field008[7].$field008[11].$field008[15].'||||g######00||0|'.$field008[35].'||</datafield>'."\r\n";
+
+		// Handle the other fields
 		foreach ($marc as $fieldname => $value) {
 			$value = trim(preg_replace('/[\x00-\x1F]/', '', $value)); // Strip all low-ascii control characters
 			if (strlen($value) > 0) {
@@ -1060,14 +1106,17 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				if (!isset($matches[2])) { $matches[2] = ''; }
 				if (!isset($matches[3])) { $matches[3] = ''; }
 
-				if ($prev_tag != $matches[1].$matches[3]) {
-					if ($prev_tag != 0) { $marc_xml .= '  </datafield>'."\r\n"; }
-					$marc_xml .= '  <datafield tag="'.$matches[1].'" ind1=" " ind2=" ">'."\r\n";
-				}
-				$value = preg_replace('/\&/', '&amp;', $value);
-				$marc_xml .= '    <subfield code="'.$matches[2].'">'.$value.'</subfield>'."\r\n";
-				if ($prev_tag != $matches[1].$matches[3]) {
-					$prev_tag = $matches[1].$matches[3];
+				// 008 and Leader handled special above. Skip 'em here.
+				if ($matches[1] != '008' && $matches[1] != 'Leader' && $matches[1] != '') {
+					if ($prev_tag != $matches[1].$matches[3]) {
+						if ($prev_tag != 0) { $marc_xml .= '  </datafield>'."\r\n"; }
+						$marc_xml .= '  <datafield tag="'.$matches[1].'" ind1=" " ind2=" ">'."\r\n";
+					}
+					$value = preg_replace('/\&/', '&amp;', $value);
+					$marc_xml .= '    <subfield code="'.$matches[2].'">'.$value.'</subfield>'."\r\n";
+					if ($prev_tag != $matches[1].$matches[3]) {
+						$prev_tag = $matches[1].$matches[3];
+					}
 				}
 			}
 		}
