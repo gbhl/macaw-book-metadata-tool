@@ -138,7 +138,7 @@
 					</tr>
 					<tr>
 						<td>Pages Per Image: </td>
-						<td><input type="hidden" id="pages_per_image" size="3" maxlength="5" value="1"></td>
+						<td><input type="text" id="pages_per_image" size="3" maxlength="5" value="1"></td>
 					</tr>
 				</table>
 				<input type="hidden" id="pages_per_image" value="1">
