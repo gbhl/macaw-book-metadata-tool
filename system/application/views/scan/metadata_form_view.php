@@ -1,5 +1,5 @@
 <form action="#" method="post" id="metadata_form" onSubmit="oBook.metadataChange(this); return false;">
-	<h3>Metadata <span id="sequence_number"></span></h3>
+	<h3>Page Metadata <span id="sequence_number"></span></h3>
 	<div id="metadata_overlay"></div>
 
 	<?php if (count($metadata_modules) > 1) { ?>
