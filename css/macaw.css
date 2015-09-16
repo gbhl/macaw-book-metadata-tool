@@ -71,6 +71,11 @@ td, .yui-skin-sam .yui-dt td {
 	text-align: left;
 	font-weight: normal;
 }
+
+.yui-dt-col-date {
+	width: 100px;
+}
+
 th a{
 	color:#fff;
 	text-decoration: none;
@@ -836,9 +841,19 @@ td.yui-dt-last {
 }
 #instructions .instructionrow{
 	display:block;
-	clear:both;
-	
+	clear:both;	
 }
+
+#instructions.disabled .numberedinstructions,
+#instructions.disabled h2 {
+	color: #bbb;
+}
+
+#instructions.disabled .number {
+	background-color: #bbb;
+}
+
+
 /* ****************************** */
 /* Review Page */
 /* ****************************** */
@@ -851,13 +866,17 @@ td.yui-dt-last {
 .yui-skin-sam .yui-button {
 	background: none;
 	background-color: #426A80;
-	border: 1px solid #265858;
+	border: 0;
   border-radius: 4px 4px 4px 4px;
+}
+.yui-skin-sam .yui-button-disabled {
+	background: none;
+	background-color: #ccc;
+	border: 0;
 }
 .yui-skin-sam .yui-button button {
 	color: white;
-	border: 0
-}
+	border: 0;
 }
 #preview_img {
 	display: block;
@@ -981,7 +1000,7 @@ td.yui-dt-last {
 }
 #metadata_form textarea {
 	width: 100%;
-	height: 2.5em;
+	height: 4.5em;
 	padding: 2px;
 	resize: none;
 }
@@ -1306,7 +1325,6 @@ td.yui-dt-last {
 	background-image: -moz-linear-gradient(center top , #6A92A9, #426A80);
 	border: 1px solid #265858;
 	border-radius: 3px 3px 3px 3px;
-	box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.2);
 	color: #FFFFFF;
 	font-family: Georgia;
 	font-size: 100%;
@@ -1318,7 +1336,6 @@ td.yui-dt-last {
 	background-image: -moz-linear-gradient(center top , #6A92A9, #426A80);
 	border: 1px solid #265858;
 	border-radius: 3px 3px 3px 3px;
-	box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.2);
 	color: #FFFFFF;
 	font-family: Georgia;
 	font-size: 100%;
@@ -1330,13 +1347,19 @@ td.yui-dt-last {
 	background-image: -moz-linear-gradient(center top , #6A92A9, #426A80);
 	border: 1px solid #265858;
 	border-radius: 3px 3px 3px 3px;
-	box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.2);
 	color: #FFFFFF;
 	font-family: Georgia;
 	font-size: 100%;
 	height: 31px;
 	min-width: 100px;
 }
+.yui-button.yui-button-disabled#btnStartImport button,
+.yui-button.yui-button-disabled#btnSkipImport button {
+	background-color: #CCC;
+	background-image: none;
+	border: 1px solid #999;
+}
+
 .yui-button#btnInsertMissingPages button {
 	text-indent: 1.5em;
 	padding: 5px 3px;

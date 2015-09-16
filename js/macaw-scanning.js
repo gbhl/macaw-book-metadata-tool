@@ -216,7 +216,9 @@
 
 			// Call the URL to get the data
 			var transaction = YAHOO.util.Connect.asyncRequest('GET', sBaseUrl+'/scan/start_import', loadDataCallback, null);
+			Dom.addClass('instructions','disabled');
 			Scanning.obtnStartImport.set('disabled', true);
+			Scanning.obtnSkipImport.set('disabled', true);
 			Scanning.importStarted = true;
 
 		},
