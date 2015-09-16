@@ -36,7 +36,7 @@
 			</select>
 		</div>
 		<div id="uploadComplete">
-			<input type="checkbox" id="chkStartImport"/>
+			<input type="checkbox" id="chkStartImport" checked="checked" />
 			<label for="chkStartImport"> Start import when upload is complete</label>
 		</div>
 	</div>
