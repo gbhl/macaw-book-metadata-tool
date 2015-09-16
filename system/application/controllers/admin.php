@@ -103,18 +103,36 @@ class Admin extends Controller {
 		// Sort our records into the subarrays
 		foreach ($books as $b) {
 			if ($b->status_code == 'new') {
+				$b->date = preg_replace('/ \d\d:\d\d:\d\d/','',$b->date_created);
+				if ($b->date == '0000-00-00') { $b->date = ''; }
 				array_push($data['new_items'], $b);
 
 			} elseif ($b->status_code == 'scanning' || $b->status_code == 'scanned' || $b->status_code == 'reviewing' || $b->status_code == 'reviewed') {
+				if (isset($b->date_review_end)) {
+					$b->date = preg_replace('/ \d\d:\d\d:\d\d/','',$b->date_review_end);
+				} elseif (isset($b->date_review_start)) {
+					$b->date = preg_replace('/ \d\d:\d\d:\d\d/','',$b->date_review_start);
+				} elseif (isset($b->date_scanning_end)) {
+					$b->date = preg_replace('/ \d\d:\d\d:\d\d/','',$b->date_scanning_end);
+				} elseif (isset($b->date_scanning_start)) {
+					$b->date = preg_replace('/ \d\d:\d\d:\d\d/','',$b->date_scanning_start);
+				}
+				if ($b->date == '0000-00-00') { $b->date = ''; }
 				array_push($data['in_progress'], $b);
 
 			} elseif ($b->status_code == 'exporting') {
+				$b->date = preg_replace('/ \d\d:\d\d:\d\d/','',$b->date_export_start);
+				if ($b->date == '0000-00-00') { $b->date = ''; }
 				array_push($data['exporting'], $b);
 
 			} elseif ($b->status_code == 'completed') {
+				$b->date = preg_replace('/ \d\d:\d\d:\d\d/','',$b->date_completed);
+				if ($b->date == '0000-00-00') { $b->date = ''; }
 				array_push($data['completed'], $b);
 
 			} elseif ($b->status_code == 'error') {
+				$b->date = preg_replace('/ \d\d:\d\d:\d\d/','',$b->date_created);
+				if ($b->date == '0000-00-00') { $b->date = ''; }
 				array_push($data['error'], $b);
 
 			}
