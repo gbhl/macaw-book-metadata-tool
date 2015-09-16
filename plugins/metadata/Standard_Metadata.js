@@ -1259,7 +1259,13 @@ YAHOO.macaw.Standard_Metadata.metadataChange = function(obj) {
 			pg[i].metadata.callFunction('set', 'pageNumberImplicit', obj.checked, multiple);
 
 		} else if (obj.id == 'year') {
-			pg[i].metadata.callFunction('set', 'year', obj.value, multiple, multiple);
+			if (obj.value.match(/\d{4}/)) {
+				pg[i].metadata.callFunction('set', 'year', obj.value, multiple, multiple);
+			} else {
+				alert('Year must be empty or exactly four digits: YYYY');
+				obj.value = '';
+				return;
+			}
 
 		} else if (obj.id == 'volume') {
 			pg[i].metadata.callFunction('set', 'volume', obj.value, multiple, multiple);
