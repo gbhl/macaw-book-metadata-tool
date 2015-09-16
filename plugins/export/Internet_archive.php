@@ -27,20 +27,13 @@
 //
 // CONNECTION PARAMETERS
 //
-// To connect to the Internet Archive, you need your login credentials. You can
-// store them either in the config/macaw.php file or you can place them here
-// in the file. It is preferred to place them in the macaw.php so that you may
-// more easily incorporate updates to this file when they become available.
+// To connect to the Internet Archive, you need your login credentials. The 
+// API Key and Secret should be set in the config/macaw.php file.
+// 
 // The variables are:
 //
 //    $config['macaw']['internet_archive_access_key'] = "";
 // 	  $config['macaw']['internet_archive_secret'] = "";
-// 	  $config['macaw']['internet_archive_email'] = "";
-// 	  $config['macaw']['internet_archive_password'] = "";
-//
-// Yes, both your Secret Key and Password are needed. It's a long story. :)
-// (It's needed for our hack to fake a login to IA to see if a bucket exists.
-// There's no easy way otherwise.)
 //
 // OTHER NOTES
 //
