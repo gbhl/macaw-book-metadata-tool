@@ -25,10 +25,8 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 	this.pageTypes = new Array();
 	this.year = null;
 	this.volume = null;
-	this.caption = null;
 	this.notes = null;
 	this.pageSide = null;
-	this.flagFutureReview = null;
 	this.pieces = new Array();
 	this.parent = parent;
 	this.pageID = this.parent.parent.pageID;
@@ -117,10 +115,8 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 		if (this.data.page_number_implicit) this.pageNumberImplicit = this.data.page_number_implicit;
 		if (this.data.year)                 this.year = this.data.year;
 		if (this.data.volume)               this.volume = this.data.volume;
-		if (this.data.caption)              this.caption = this.data.caption;
 		if (this.data.notes)                this.notes = this.data.notes;
 		if (this.data.page_side)            this.pageSide = this.data.page_side;
-		if (this.data.future_review)        this.flagFutureReview = this.data.future_review;
 		if (this.data.filebase)             this.filebase = this.data.filebase;
 
 		// Set the page_type information into an array that will contain
@@ -229,12 +225,10 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 		data['page_type'] = pt;
 		data['year'] = this.year;
 		data['volume'] = this.volume;
-		data['caption'] = this.caption;
 		data['notes'] = this.notes;
 		data['piece'] = pc;
 		data['piece_text'] = pct;
 		data['page_side'] = this.pageSide;
-		data['future_review'] = this.flagFutureReview;
 
 		return data;
 	}
@@ -1001,14 +995,9 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 				this.pageSide = value;
 			}
 
-		} else if (field == 'caption') {
-			this.caption = value;
-
 		} else if (field == 'notes') {
 			this.notes = value;
 
-		} else if (field == 'flagFutureReview') {
-			this.flagFutureReview = value;
 		}
 	}
 
@@ -1027,11 +1016,8 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 		Dom.removeClass('page_number_implicit_text', 'grey');
 		if (this.year) Dom.get('year').value = this.year;
 		if (this.volume) Dom.get('volume').value = this.volume;
-		if (this.caption) Dom.get('caption').value = this.caption;
-		if (this.caption) Dom.get('caption').innerHTML = this.caption;
 		if (this.notes) Dom.get('notes').value = this.notes;
 		if (this.notes) Dom.get('notes').innerHTML = this.notes;
-		Dom.get('future_review').checked = (this.flagFutureReview ? true : false);
 
 		this._renderPageTypes();
 		this._renderPieces();
@@ -1059,11 +1045,8 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 		Dom.removeClass('page_number_implicit_text', 'grey');
 		Dom.get('year').value = '';
 		Dom.get('volume').value = '';
-		Dom.get('caption').value = '';
-		Dom.get('caption').innerHTML = '';
 		Dom.get('notes').value = '';
 		Dom.get('notes').innerHTML = '';
-		Dom.get('future_review').checked = false;
 		Dom.get('page_side').selectedIndex = 0;
 
 		this._unrenderMetadataTypes('page_types');
@@ -1200,7 +1183,7 @@ YAHOO.macaw.Standard_Metadata.setPageNumbering = function(prefix_only) {
 
 		if (prefix_only) {
 			if (!isBlank(pfx)) {
-				pgs[i].metadata.callFunction('set', 'pagePrefix', pfx + ' ' + pgs[i].metadata.pagePrefix);
+				pgs[i].metadata.callFunction('set', 'pagePrefix', pfx);
 			}
 		} else {
 			pgs[i].metadata.callFunction('set', 'pagePrefix', pfx);
@@ -1284,14 +1267,9 @@ YAHOO.macaw.Standard_Metadata.metadataChange = function(obj) {
 		} else if (obj.id == 'page_side') {
 			pg[i].metadata.callFunction('set', 'pageSide', obj.value, multiple, multiple);
 
-		} else if (obj.id == 'caption') {
-			pg[i].metadata.callFunction('set', 'caption', obj.value, multiple, multiple);
-
 		} else if (obj.id == 'notes') {
 			pg[i].metadata.callFunction('set', 'notes', obj.value, multiple, multiple);
 
-		} else if (obj.id == 'future_review') {
-			pg[i].metadata.callFunction('set', 'flagFutureReview', obj.checked, multiple, multiple);
 		}
 		// Collect the pageids we modify
 		page_ids.push(pg[i].pageID);

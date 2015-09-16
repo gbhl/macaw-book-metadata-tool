@@ -1291,6 +1291,11 @@ class Internet_archive extends Controller {
 			elseif ($p[$i] == 'Table of Contents') { $p[$i] = 'Table of Contents'; }
 			elseif ($p[$i] == 'Text') { $p[$i] = 'Text'; }
 			elseif ($p[$i] == 'Title Page') { $p[$i] = 'Title Page'; }
+			elseif ($p[$i] == 'Bookplate') { $p[$i] = 'Bookplate'; }
+			elseif ($p[$i] == 'Drawing') { $p[$i] = 'Drawing'; }
+			elseif ($p[$i] == 'List of Illustrations') { $p[$i] = 'List of Illustrations'; }
+			elseif ($p[$i] == 'Photograph') { $p[$i] = 'Photograph'; }
+			elseif ($p[$i] == 'Table') { $p[$i] = 'Table'; }
 			elseif ($p[$i] == 'Suppress') { $p[$i] = 'Delete'; }
 			elseif ($p[$i] == 'Tissue') { $p[$i] = 'Delete'; }
 			elseif ($p[$i] == 'White card') { $p[$i] = 'Delete'; }
@@ -1655,6 +1660,7 @@ class Internet_archive extends Controller {
 		if ($this->CI->book->get_metadata('year')) {
 			$metadata['x-archive-meta-date'] = $this->CI->book->get_metadata('year').'';
 			$metadata['x-archive-meta-year'] = $this->CI->book->get_metadata('year').'';
+		// LEGACY? Remove this? 
 		} elseif ($this->CI->book->get_metadata('pub_date')) {
 			$metadata['x-archive-meta-date'] = $this->CI->book->get_metadata('pub_date').'';
 			$metadata['x-archive-meta-year'] = $this->CI->book->get_metadata('pub_date').'';

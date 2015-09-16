@@ -1,7 +1,7 @@
 <?php
 	// Reminder: The site configuration is available in the $config variable.
 	$page_types =array(
-		'Appendix', 'Article start', 'Article end', 'Blank', 'Bibliography', 'Bookplate', 'Copyright', 'Cover', 'Drawing', 'Fold Out',
+		'Appendix', 'Blank', 'Bibliography', 'Bookplate', 'Copyright', 'Cover', 'Drawing', 'Fold Out',
 		'Illustration', 'Index', 'Issue Start', 'Issue End', 'List of Illustrations', 'Map', 'Photograph', 'Table', 'Table of Contents', 'Text', 'Title Page',
 		'Specimen', 'Suppress', 'Tissue', 'White card', 'Color card'
 	);
@@ -28,10 +28,10 @@
 			<td width="50%" valign="top">
 				<table border="0" cellspacing="0" cellpadding="3" width="100%">
 					<tr>
-						<td ><label for="page_number">Page&nbsp;Prefix&nbsp;/&nbsp;Num:</label></td>
+						<td ><label for="page_number">Page&nbsp;Prefix</label></td>
 						<td  id="tdPagePrefix">
 							<input type="text" name="page_prefix" id="page_prefix" value="" onChange="YAHOO.macaw.Standard_Metadata.metadataChange(this);" onFocus="focusOn(this);" onBlur="focusOff();" title="Page Number Prefix">
-							<input type="text" style="width:4em;" name="page_number" id="page_number" value="" onChange="YAHOO.macaw.Standard_Metadata.metadataChange(this);" onFocus="focusOn(this);" onBlur="focusOff();" title="Page Number Value">
+							Num:&nbsp;<input type="text" style="width:3em;" name="page_number" id="page_number" value="" onChange="YAHOO.macaw.Standard_Metadata.metadataChange(this);" onFocus="focusOn(this);" onBlur="focusOff();" title="Page Number Value">
 							<input type="checkbox" name="page_number_implicit" id="page_number_implicit" value="" onChange="YAHOO.macaw.Standard_Metadata.metadataChange(this);" onFocus="focusOn(this);" onBlur="focusOff();" title="Implied Page Number?"> <em id="page_number_implicit_text">impl.</em>
 							<img src="<?php echo $this->config->item('base_url'); ?>images/icons/application_form_edit.png" id="btnShowPagesDlg" class="icon">&nbsp;<img src="<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearPageNumber" class="icon" onMouseOver="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';">
 						</td>
@@ -76,20 +76,8 @@
 			<td width="50%" valign="top">
 				<table border="0" cellspacing="0" cellpadding="3" width="100%">
 					<tr>
-						<td><label for="caption">Caption:</label></td>
 						<td>
-							<textarea name="caption" id="caption" onChange="YAHOO.macaw.Standard_Metadata.metadataChange(this);" onFocus="focusOn(this);" onBlur="focusOff();"></textarea>
-						</td>
-					</tr>
-					<tr>
-						<td><label for="future_review">Flag&nbsp;page:</label></td>
-						<td>
-							<input type="checkbox" value="1" name="future_review" id="future_review" onChange="YAHOO.macaw.Standard_Metadata.metadataChange(this);" onFocus="focusOn(this);" onBlur="focusOff();"> Interesting, special, problems, etc.
-						</td>
-					</tr>
-					<tr>
-						<td ><label for="notes">General&nbsp;Notes:</label></td>
-						<td >
+							<label for="notes">Macaw&nbsp;Notes&nbsp;about&nbsp;Page&nbsp;(will&nbsp;not&nbsp;export&nbsp;to&nbsp;IA):</label><br>
 							<textarea name="notes" id="notes" onChange="YAHOO.macaw.Standard_Metadata.metadataChange(this);" onFocus="focusOn(this);" onBlur="focusOff();"></textarea>
 						</td>
 					</tr>
