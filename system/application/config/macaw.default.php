@@ -220,7 +220,10 @@ $config['macaw']['export_modules'] = array();
 // presented on the main page for the item listing the fields that need to be provided. The name
 // here must match exactly that of the "export_modules" above.
 $config['macaw']['export_required_fields'] = array(
-	'Internet_archive' => array('marc_xml', 'copyright', 'collections', 'title', 'author', 'mods_xml')
+	'Internet_archive' => array('marc_xml', 'copyright', 'collection', 'year', 'title', 'sponsor')
+);
+$config['macaw']['export_optional_fields'] = array(
+	'Internet_archive' => array('volume')
 );
 
 // ------------------------------

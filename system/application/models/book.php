@@ -1408,6 +1408,30 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				}
 			}
 		}
+
+		// Handle some optional fields
+		if (!$strict) {
+			if (isset($this->cfg['export_optional_fields'])) {
+				foreach ($this->cfg['export_optional_fields'] as $mod => $fields) {
+				
+					$all_fields = $this->get_metadata_fieldnames();
+// 					print_r($all_fields);
+// 					die;
+					
+					if (in_array($mod, $this->cfg['export_modules'])) {
+						if (!isset($return[$mod])) {
+							$return[$mod] = array();
+						}
+						foreach ($fields as $f) {
+							if (!in_array($f, $all_fields)) {
+								array_push($return[$mod], $f);
+							}
+						}
+					}
+				}
+			}
+		}
+		
 		return $return;
 	}
 
