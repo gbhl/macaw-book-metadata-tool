@@ -140,8 +140,7 @@ class Dashboard extends Controller {
 		               $row->completed.' items completed.<br>'.
 		               $row->archived.' items archived.<br>'.
 		               $row->error.' items have errors.<br><br>'.
-		               $row->pages.' pages scanned total.<br>'.
-		               $row->avg.' average scanning time.</div>';
+		               $row->pages.' pages scanned total.<br>';
 		$data['column'] = '1';
 		return $data;
 	}
