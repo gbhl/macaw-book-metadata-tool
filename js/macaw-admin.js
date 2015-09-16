@@ -136,13 +136,44 @@
 				var barcode = YAHOO.lang.escapeHTML(oData); 
 				elLiner.innerHTML = "<a href=\"" + sBaseUrl + "/main/managebarcode/" + barcode + "/\">" + barcode + "</a>"; 
 			};
+
+			var formatStatus = function(elCell, oRecord, oColumn, oData) {
+				if (oData == 'new') {
+					elCell.innerHTML = '<span style="color: #903">New</span>';				
+
+				} else if (oData == 'scanning') {
+					elCell.innerHTML = '<span style="color: #F60"">Images Uploading</span>';
+
+				} else if (oData == 'scanned') {
+					elCell.innerHTML = '<span style="color: #F60"">Images Imported</span>';
+
+				} else if (oData == 'reviewing') {
+					elCell.innerHTML = '<span style="color: #F60"">Metadata Entry</span>';
+
+				} else if (oData == 'reviewed') {
+					elCell.innerHTML = '<span style="color: #090">Metadata Complete</span>';
+
+				} else if (oData == 'exporting') {
+					elCell.innerHTML = '<span style="color: #09F">Exporting</span>';
+
+				} else if (oData == 'completed') {
+					elCell.innerHTML = '<span style="color: #093">Export&nbsp;Complete</span>';
+
+				} else if (oData == 'error') {
+					elCell.innerHTML = '<span style="color: #F00">Error</span>';
+
+				} else {
+					elCell.innerHTML = oData;
+				}
+			}
 			
 			var myColumnDefs = [
 				{key:"barcode", label:'Barcode', formatter:YAHOO.widget.DataTable.formatLink }, //try formatting link
 				{key:"title",		label:'Title',	sortable: true  },
 				{key:"author",		label:'Author',	sortable: true  },
 				{key:"org_name",		label:'Organization',	sortable: true },
-				{key:"status_code",	label:'Status',	sortable: true  }
+				{key:"status_code",	label:'Status',	formatter: formatStatus,  sortable: true  },
+				{key:"date",	label:'Date',	sortable: true  }
 			];
 
 			var dsNew = new YAHOO.util.DataSource(data.new_items);
@@ -162,7 +193,7 @@
 				= dsExporting.responseSchema 
 				= dsCompleted.responseSchema 
 				= dsError.responseSchema 
-				= { fields: ["barcode","title","author","org_name","status_code"] };
+				= { fields: ["barcode","title","author","org_name","status_code","date"] };
 
 			var tblNew       = new YAHOO.widget.DataTable("divNew", myColumnDefs, dsNew);
 			var tblProgress  = new YAHOO.widget.DataTable("divInProgress", myColumnDefs, dsProgress);
@@ -220,7 +251,34 @@
 			}); 
 		},
 		loadTables: function(data) {
-				
+
+			var formatStatus = function(elCell, oRecord, oColumn, oData) {
+				if (oData == 'new') {
+					elCell.innerHTML = '<span style="color: #C00">New</span>';				
+
+				} else if (oData == 'scanning') {
+					elCell.innerHTML = '<span style="color: #39F">In&nbsp;Progress</span>';
+
+				} else if (oData == 'scanned') {
+					elCell.innerHTML = '<span style="color: #39F">In&nbsp;Progress</span>';
+
+				} else if (oData == 'reviewing') {
+					elCell.innerHTML = '<span style="color: #39F">In&nbsp;Progress</span>';
+
+				} else if (oData == 'reviewed') {
+					elCell.innerHTML = '<span style="color: #090">Completed</span>';
+
+				} else if (oData == 'uploading') {
+					elCell.innerHTML = '<span style="color: #360">Uploading</span>';
+
+				} else if (oData == 'completed') {
+					elCell.innerHTML = '<span style="color: #360">Export&nbsp;Complete</span>';
+
+				} else {
+					elCell.innerHTML = oData;
+				}
+			}
+
 			YAHOO.widget.DataTable.formatLink = function(elLiner, oRecord, oColumn, oData) { 
 				var barcode = YAHOO.lang.escapeHTML(oData.replace(/\\'/g, "'")); 
 				elLiner.innerHTML = "<a href=\"" + sBaseUrl + "/main/managebarcode/" + barcode + "/\">" + barcode + "</a>"; 
@@ -231,7 +289,7 @@
 				{key:"title",				label:'Title',				sortable: true },
 				{key:"author",			label:'Author',				sortable: true },
 				{key:"org_name",		label:'Organization',	sortable: true },
-				{key:"status_code",	label:'Status',				sortable: true }
+				{key:"status_code",	label:'Status',				formatter: formatStatus, sortable: true }
 			];
 
 			ListItems.dataSource = new YAHOO.util.DataSource(data.in_progress);
@@ -257,7 +315,7 @@
 								filtered.push(data[i]);
 							}						
 
-						} else if (req == 'completed') {
+						} else if (req == 'completed' ) {
 							if (data[i].status_code == 'reviewed') {
 								filtered.push(data[i]);
 							}						
