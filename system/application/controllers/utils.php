@@ -358,6 +358,11 @@ class Utils extends Controller {
 		if (file_exists($fname)) {
 			// Read the entire file to check the encoding
 			$all_file = file_get_contents($fname);
+			// Clean up the 'marc6552' column which is often mangled by Excel into a date
+			if (preg_match('/,Mar-52,/',$all_file)) {
+				$all_file = preg_replace('/,Mar\-52,/', ',marc6552,', $all_file);
+				file_put_contents($fname, $all_file);
+			}
 			$encoding = mb_detect_encoding($all_file, mb_list_encodings(), true);
 			unset($all_file);
 			

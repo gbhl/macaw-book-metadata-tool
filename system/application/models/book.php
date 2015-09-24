@@ -933,6 +933,25 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				$item_id = $this->db->insert_id();
 
 				$marc = array();
+				// Rename collections to collection for backwards compatibility
+				if (isset($info['collections'])) {
+					$info['collection'] = $info['collections'];
+					unset($info['collections']);
+				}
+
+				// Translate the 260a into a year. Because we can.
+				if (isset($info['marc260c'])) {
+					$matches = array();
+					if (preg_match('/^(\d\d\d\d-\d\d\d\d)$/', $info['marc260c'], $matches)) {
+						// Get start date and end date, make sure exactly 4 chars
+						$info['year'] = $matches[1];
+
+					} else if (preg_match('/(\d\d\d\d)/', $info['marc260c'], $matches)) {
+						// Get start date, make sure exactly 4 chars
+						$info['year'] = $matches[1];
+					}
+				}
+				
 				// This is a simple associative array
 				foreach (array_keys($info) as $i) {
 					if (preg_match('/^marc/i', $i) && !preg_match('/^marc_xml$/i', $i)) {
