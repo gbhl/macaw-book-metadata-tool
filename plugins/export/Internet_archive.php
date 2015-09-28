@@ -180,7 +180,7 @@ class Internet_archive extends Controller {
 				$this->_get_ia_keys($this->CI->book->org_id);
 				
 				// If we didn't get any keys, we're doomed! Spam the admin and skip this item.
-				if (!$this->access || !$this->secret) {
+				if ((!$this->access || !$this->secret) && !$this->cfg['testing']) {
 					$this->CI->logging->log('book', 'error', 'Organization '.$this->CI->book->org_id.' does not have IA Keys set.', $bc);
 					$this->CI->common->email_error('Organization '.$this->CI->book->org_id.' does not have IA Keys set.'."\n\n"."Identifier:    ".$bc."\n\n");
 					continue;
@@ -1155,12 +1155,39 @@ class Internet_archive extends Controller {
 
 			// Page Number
 			if (property_exists($p, 'page_number')) {
-				if (property_exists($p, 'page_number')) {
-					if ($p->page_number) {
+				if ($p->page_number) {
+					if (preg_match('/(and|,)/', $p->page_number)) {
+						$pagenums = preg_split('/(and|,)/', $p->page_number);
+						$output .= '    <pageNumber>'.trim($pagenums[0]).'</pageNumber>'."\n";
+					} else {
 						$output .= '    <pageNumber>'.$p->page_number.'</pageNumber>'."\n";
 					}
 				}
 			}
+
+			// Alternate Page Numbers (we only have one here right now, but we can send the prefix)
+			if (property_exists($p, 'page_number')) {
+				$implied = false;
+				if (property_exists($p, 'page_number_implicit')) {
+					$implied = ($p->page_number_implicit == 1);  
+				}
+
+				$prefix = '';
+				if (property_exists($p, 'page_prefix')) {
+					$prefix = $p->page_prefix;
+				}
+				$output .= '    <altPageNumbers>'."\n";
+				if (preg_match('/(and|,)/', $p->page_number)) {
+					$pagenums = preg_split('/(and|,)/', $p->page_number);
+					foreach ($pagenums as $pgnum) {
+						$output .= '      <altPageNumber prefix="'.$prefix.'"'.($implied ? ' implied="1"' : '').'>'.trim($pgnum).'</altPageNumber>'."\n";
+					}
+				} else {
+					$output .= '      <altPageNumber prefix="'.$prefix.'"'.($implied ? ' implied="1"' : '').'>'.$p->page_number.'</altPageNumber>'."\n";
+				}
+				$output .= '    </altPageNumbers>'."\n";
+			}
+
 			// Recto/Verso
 			if (property_exists($p, 'page_side')) {
 				if ($p->page_side) {
@@ -1185,23 +1212,6 @@ class Internet_archive extends Controller {
 				$output .= '      <altPageType>'.$pt.'</altPageType>'."\n";
 			}
 			$output .= '    </altPageTypes>'."\n";
-
-			// Alternate Page Numbers (we only have one here right now, but we can send the prefix)
-			if (property_exists($p, 'page_number')) {
-				$implied = false;
-				if (property_exists($p, 'page_number_implicit')) {
-					$implied = ($p->page_number_implicit == 1);  
-				}
-				
-				$prefix = '';
-				if (property_exists($p, 'page_prefix')) {
-					$prefix = $p->page_prefix;  
-				}
-				
-				$output .= '    <altPageNumbers>'."\n";
-				$output .= '      <altPageNumber prefix="'.$prefix.'"'.($implied ? ' implied="1"' : '').'>'.$p->page_number.'</altPageNumber>'."\n";
-				$output .= '    </altPageNumbers>'."\n";
-			}
 
 			// Caption, because we can
 			if (property_exists($p, 'caption')) {
