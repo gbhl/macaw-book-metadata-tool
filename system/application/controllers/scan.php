@@ -210,7 +210,7 @@ class Scan extends Controller {
 			echo json_encode(array('message' => ''));
 
 			// Now we can spawn the cron process.
-			system('MACAW_OVERRIDE=1 "'.$php_exe.'" "'.$this->cfg['base_directory'].'/index.php" cron import_pages '.$this->book->barcode.' > /dev/null 2> /dev/null < /dev/null &');
+			system('MACAW_OVERRIDE=1 "'.$php_exe.'" "'.$this->cfg['base_directory'].'/index.php" cron import_pages \''.$this->book->barcode.'\' > /dev/null 2> /dev/null < /dev/null &');
 			
 		} catch (Exception $e) {
 			$this->common->ajax_headers();
