@@ -5,7 +5,7 @@
 
 		<div id="enter_barcode">
 			<form action="#" onSubmit="Barcode.submit();return false">
-			<input type="text" name="barcode" id="txtBarcode" maxlength="32" value="Enter Item ID" onFocus="if (this.value == 'Enter Item ID') {this.value = ''}" <?php if ($this->session->userdata('username') == 'demo') { echo('value="39088009903683"'); }  ?> >
+			<input type="text" name="barcode" id="txtBarcode" maxlength="32" placeholder="Enter Item ID" <?php if ($this->session->userdata('username') == 'demo') { echo('value="39088009903683"'); }  ?> >
 			<input type="submit" value="Go">
 			</form>
 		</div>
