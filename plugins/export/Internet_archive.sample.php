@@ -27,20 +27,13 @@
 //
 // CONNECTION PARAMETERS
 //
-// To connect to the Internet Archive, you need your login credentials. You can
-// store them either in the config/macaw.php file or you can place them here
-// in the file. It is preferred to place them in the macaw.php so that you may
-// more easily incorporate updates to this file when they become available.
+// To connect to the Internet Archive, you need your login credentials. The 
+// API Key and Secret should be set in the config/macaw.php file.
+// 
 // The variables are:
 //
 //    $config['macaw']['internet_archive_access_key'] = "";
 // 	  $config['macaw']['internet_archive_secret'] = "";
-// 	  $config['macaw']['internet_archive_email'] = "";
-// 	  $config['macaw']['internet_archive_password'] = "";
-//
-// Yes, both your Secret Key and Password are needed. It's a long story. :)
-// (It's needed for our hack to fake a login to IA to see if a bucket exists.
-// There's no easy way otherwise.)
 //
 // OTHER NOTES
 //
@@ -187,7 +180,7 @@ class Internet_archive extends Controller {
 				$this->_get_ia_keys($this->CI->book->org_id);
 				
 				// If we didn't get any keys, we're doomed! Spam the admin and skip this item.
-				if (!$this->access || !$this->secret) {
+				if ((!$this->access || !$this->secret) && !$this->cfg['testing']) {
 					$this->CI->logging->log('book', 'error', 'Organization '.$this->CI->book->org_id.' does not have IA Keys set.', $bc);
 					$this->CI->common->email_error('Organization '.$this->CI->book->org_id.' does not have IA Keys set.'."\n\n"."Identifier:    ".$bc."\n\n");
 					continue;
@@ -411,7 +404,7 @@ class Internet_archive extends Controller {
 									$preview->setImageCompressionQuality(50);							
 									echo " created $new_filebase".".jp2 (Q=50, From PDF)";
 								} else {
-									$preview->setImageCompressionQuality(32);
+									$preview->setImageCompressionQuality(43);
 									echo " created $new_filebase".".jp2";
 								}
 								$preview->setImageDepth(8);
@@ -1162,12 +1155,39 @@ class Internet_archive extends Controller {
 
 			// Page Number
 			if (property_exists($p, 'page_number')) {
-				if (property_exists($p, 'page_number')) {
-					if ($p->page_number) {
+				if ($p->page_number) {
+					if (preg_match('/(and|,)/', $p->page_number)) {
+						$pagenums = preg_split('/(and|,)/', $p->page_number);
+						$output .= '    <pageNumber>'.trim($pagenums[0]).'</pageNumber>'."\n";
+					} else {
 						$output .= '    <pageNumber>'.$p->page_number.'</pageNumber>'."\n";
 					}
 				}
 			}
+
+			// Alternate Page Numbers (we only have one here right now, but we can send the prefix)
+			if (property_exists($p, 'page_number')) {
+				$implied = false;
+				if (property_exists($p, 'page_number_implicit')) {
+					$implied = ($p->page_number_implicit == 1);  
+				}
+
+				$prefix = '';
+				if (property_exists($p, 'page_prefix')) {
+					$prefix = $p->page_prefix;
+				}
+				$output .= '    <altPageNumbers>'."\n";
+				if (preg_match('/(and|,)/', $p->page_number)) {
+					$pagenums = preg_split('/(and|,)/', $p->page_number);
+					foreach ($pagenums as $pgnum) {
+						$output .= '      <altPageNumber prefix="'.$prefix.'"'.($implied ? ' implied="1"' : '').'>'.trim($pgnum).'</altPageNumber>'."\n";
+					}
+				} else {
+					$output .= '      <altPageNumber prefix="'.$prefix.'"'.($implied ? ' implied="1"' : '').'>'.$p->page_number.'</altPageNumber>'."\n";
+				}
+				$output .= '    </altPageNumbers>'."\n";
+			}
+
 			// Recto/Verso
 			if (property_exists($p, 'page_side')) {
 				if ($p->page_side) {
@@ -1192,23 +1212,6 @@ class Internet_archive extends Controller {
 				$output .= '      <altPageType>'.$pt.'</altPageType>'."\n";
 			}
 			$output .= '    </altPageTypes>'."\n";
-
-			// Alternate Page Numbers (we only have one here right now, but we can send the prefix)
-			if (property_exists($p, 'page_number')) {
-				$implied = false;
-				if (property_exists($p, 'page_number_implicit')) {
-					$implied = ($p->page_number_implicit == 1);  
-				}
-				
-				$prefix = '';
-				if (property_exists($p, 'page_prefix')) {
-					$prefix = $p->page_prefix;  
-				}
-				
-				$output .= '    <altPageNumbers>'."\n";
-				$output .= '      <altPageNumber prefix="'.$prefix.'"'.($implied ? ' implied="1"' : '').'>'.$p->page_number.'</altPageNumber>'."\n";
-				$output .= '    </altPageNumbers>'."\n";
-			}
 
 			// Caption, because we can
 			if (property_exists($p, 'caption')) {
@@ -1330,6 +1333,12 @@ class Internet_archive extends Controller {
 			return 'Map';
 
 		} else if (in_array('Illustration', $t)) {
+			return 'Illustrations';
+
+		} else if (in_array('Photograph', $t)) {
+			return 'Illustrations';
+
+		} else if (in_array('Drawing', $t)) {
 			return 'Illustrations';
 
 		} else if (in_array('Issue Start', $t)) {
