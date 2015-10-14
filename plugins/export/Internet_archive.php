@@ -404,7 +404,7 @@ class Internet_archive extends Controller {
 									$preview->setImageCompressionQuality(50);							
 									echo " created $new_filebase".".jp2 (Q=50, From PDF)";
 								} else {
-									$preview->setImageCompressionQuality(32);
+									$preview->setImageCompressionQuality(43);
 									echo " created $new_filebase".".jp2";
 								}
 								$preview->setImageDepth(8);
@@ -1333,6 +1333,12 @@ class Internet_archive extends Controller {
 			return 'Map';
 
 		} else if (in_array('Illustration', $t)) {
+			return 'Illustrations';
+
+		} else if (in_array('Photograph', $t)) {
+			return 'Illustrations';
+
+		} else if (in_array('Drawing', $t)) {
 			return 'Illustrations';
 
 		} else if (in_array('Issue Start', $t)) {
