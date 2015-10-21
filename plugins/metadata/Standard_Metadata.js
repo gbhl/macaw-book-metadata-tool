@@ -1259,11 +1259,11 @@ YAHOO.macaw.Standard_Metadata.metadataChange = function(obj) {
 			pg[i].metadata.callFunction('set', 'pageNumberImplicit', obj.checked, multiple);
 
 		} else if (obj.id == 'year') {
-			if (obj.value.match(/\d{4}/)) {
+			if (obj.value.match(/\d{4}/) || obj.value == '') {
 				pg[i].metadata.callFunction('set', 'year', obj.value, multiple, multiple);
 			} else {
 				alert('Year must be empty or exactly four digits: YYYY');
-				obj.value = '';
+				obj.value = pg[0].metadata.getSaveData().year;
 				return;
 			}
 
