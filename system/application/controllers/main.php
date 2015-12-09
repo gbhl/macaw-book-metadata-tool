@@ -578,7 +578,7 @@ class Main extends Controller {
 
 		// Make sure we can access this item
 		// (either we are admin or we are local admin and the book is in our org_id)
-		if ($this->user->org_id != $this->book->org_id) {
+		if ($this->user->org_id != $this->book->org_id && !$this->user->has_permission('admin')) {
 			$this->session->set_userdata('errormessage', 'Unable to delete the item with identifier "'.$barcode.'". It does not belong to your organization!');
 			redirect($this->config->item('base_url').'main/listitems');
 			return;		
