@@ -336,7 +336,8 @@ class Utils extends Controller {
 	 */
 	function csvimport($filename, $filename2 = null, $username = 'admin') {
 		// Import the file
-
+		$errors = array();
+		
 		$fname = $this->cfg['data_directory'].'/import_export/'.$filename;
 
 		// Load the effective user. This is probably a huge security hole.
@@ -421,9 +422,12 @@ class Utils extends Controller {
 					try {			
 						// Add the book
 						$this->book->add($b);
+						$this->logging->log('book', 'info', 'Item created from CSV Import.', $b['identifier']);
 						$items_imported++;
 						$this->_save_import_status($orig_fname, round(($c++)/$max*100), 'Loading Items...');
 					} catch (Exception $e) {
+						$errors[] = 'Error creating item '.$b['identifier'].' from CSV Import: '.$e->getMessage();
+						$this->logging->log('access', 'info', 'Error creating item '.$b['identifier'].' from CSV Import: '.$e->getMessage());
 						$errorcount++;
 					}
 				} else {
@@ -466,6 +470,7 @@ class Utils extends Controller {
 						if (!$this->book->page_exists($p['filename'])) {
 
 							$this->book->add_page($p['filename'], 0, 0, 0, 'Data loaded');
+							$this->logging->log('book', 'info', 'Page '.$p['filename'].' added from CSV Import.', $b['identifier']);
 							$pages_imported++;
 		
 							$filebase = preg_replace('/(.+)\.(.*?)$/', "$1", $p['filename']);
@@ -487,6 +492,8 @@ class Utils extends Controller {
 							$pages_skipped++;						
 						}
 					} catch (Exception $e) {
+						$errors[] = 'Error adding page '.$p['filename'].' from CSV Import: '.$e->getMessage();
+						$this->logging->log('access', 'info', 'Error adding page '.$p['filename'].' from CSV Import: '.$e->getMessage());
 						$errorcount++;
 					}
 				}
@@ -500,7 +507,7 @@ class Utils extends Controller {
 			'<h4 class="finished">Import complete!</h4>'.
 			$items_imported.' items imported. ('.$items_skipped.' skipped)<br>'.
 			$pages_imported.' pages imported. ('.$pages_skipped.' skipped)'.
-			($errorcount ? '<br><br>'.$errorcount.' errors.' : ''), 
+			($errorcount ? '<br><br>'.$errorcount.' errors. <br><br>'.implode('<br>', $errors) : ''), 
 			1
 		);
 
