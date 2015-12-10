@@ -80,6 +80,7 @@ class Organization extends Model {
 				$this->created		= $row->created;
 				$this->modified		= $row->modified;
 
+				// Handle Internet Archive API Keys
 				if ($this->db->table_exists('custom_internet_archive_keys')) {
 					$this->db->where('org_id', $id);			
 					$keys = $this->db->get('custom_internet_archive_keys');
@@ -145,15 +146,33 @@ class Organization extends Model {
 		$this->db->where('id', $this->id);
 		$this->db->update('organization', $data);
 
+		// Handle Internet Archive API Keys
 		if ($this->db->table_exists('custom_internet_archive_keys')) {
-			$data = array(
-				'access_key'		=> $this->ia_api_key,
-				'secret'	      => $this->ia_secret_key
-			);
-	
-			// Save to the database.
-			$this->db->where('org_id', $this->id);
-			$this->db->update('custom_internet_archive_keys', $data);
+			$this->db->where('org_id', $id);			
+			$keys = $this->db->get('custom_internet_archive_keys');
+			// Do keys exist? Yes, update them
+			if ($keys->num_rows() > 0) {
+				$data = array(
+					'access_key'		=> $this->ia_api_key,
+					'secret'	      => $this->ia_secret_key
+				);
+		
+				// Save to the database.
+				$this->db->where('org_id', $this->id);
+				$this->db->update('custom_internet_archive_keys', $data);
+			// Do keys exist? No, add them
+			} else {
+				$data = array(
+					'org_id'		=> $this->id,
+					'access_key'		=> $this->ia_api_key,
+					'secret'	=> $this->ia_secret_key
+				);
+		
+				// Save to the database.
+				$this->db->where('org_id', $this->id);
+				$this->db->insert('custom_internet_archive_keys', $data);			
+			}
+		
 		}
 	}
 
@@ -184,6 +203,7 @@ class Organization extends Model {
 		// Save to the database.
 		$this->db->insert('organization', $data);
 
+		// Handle Internet Archive API Keys
 		if ($this->db->table_exists('custom_internet_archive_keys')) {
 			$data = array(
 				'org_id'		=> $this->db->insert_id(),
@@ -205,10 +225,16 @@ class Organization extends Model {
 	 */
 	function delete() {
 		if (_orgid_in_use($this->id)) {
-			throw new Exception("Unable to delete an organization that is associated to one or more organizations.");		
+			throw new Exception("Unable to delete an organization that is associated to one or more accounts.");		
 		} else {
 			$this->where('id', $this->id);
 			$this->delete('organization');
+
+			// Handle Internet Archive API Keys
+			if ($this->db->table_exists('custom_internet_archive_keys')) {
+				$this->where('org_id', $this->id);
+				$this->delete('custom_internet_archive_keys');
+			}
 		}
 	}
 
