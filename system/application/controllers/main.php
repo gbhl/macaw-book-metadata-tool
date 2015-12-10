@@ -608,11 +608,13 @@ class Main extends Controller {
 		$query = $this->db->query('delete from item_export_status where item_id = ?', array($id));
 		$query = $this->db->query('delete from item where id = ?', array($id));
 		// Delete the files
-		try {
-			delete_files($this->cfg['data_directory'].'/'.$barcode, TRUE);
-			rmdir($this->cfg['data_directory'].'/'.$barcode);
-		} catch (Exception $e) {
-			$this->session->set_userdata('errormessage', 'Unable to delete the the item.<br>'.$e->getMessage());			
+		if (file_exists($this->cfg['data_directory'].'/'.$barcode)) {
+			try {
+				delete_files($this->cfg['data_directory'].'/'.$barcode, TRUE);
+				rmdir($this->cfg['data_directory'].'/'.$barcode);
+			} catch (Exception $e) {
+				$this->session->set_userdata('errormessage', 'Unable to delete the the item.<br>'.$e->getMessage());			
+			}
 		}
 
 		if (file_exists($this->cfg['incoming_directory'].'/'.$barcode)) {
@@ -955,19 +957,21 @@ class Main extends Controller {
 	 */
 	function _getFilesFromDir($dir) { 
 		$files = array(); 
-		if ($handle = opendir($dir)) { 
-			while (false !== ($file = readdir($handle))) { 
-				if ($file != "." && $file != "..") { 
-					if(is_dir($dir.'/'.$file)) { 
-						$dir2 = $dir.'/'.$file; 
-						$files[] = $this->_getFilesFromDir($dir2); 
-					} else { 
-						$files[] = $dir.'/'.$file; 
+		if (file_exists($dir)) {
+			if ($handle = opendir($dir)) { 
+				while (false !== ($file = readdir($handle))) { 
+					if ($file != "." && $file != "..") { 
+						if(is_dir($dir.'/'.$file)) { 
+							$dir2 = $dir.'/'.$file; 
+							$files[] = $this->_getFilesFromDir($dir2); 
+						} else { 
+							$files[] = $dir.'/'.$file; 
+						} 
 					} 
 				} 
-			} 
-			closedir($handle); 
-		} 		
+				closedir($handle); 
+			} 		
+		}
 		return $this->_array_flat($files); 
 	} 
 
