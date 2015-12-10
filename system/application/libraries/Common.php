@@ -655,7 +655,7 @@ class Common extends Controller {
 		# 2. Get the item_export_status information
 		$query = $this->CI->db->query('select * from item_export_status where item_id = ?', array($id));
 		$item_export_status = $query->result();
-		write_file($tmp.'/import_export/serialize/'.$item_export_status.'/item_export_status.dat', serialize((array)$item_export_status));
+		write_file($tmp.'/import_export/serialize/'.$barcode.'/item_export_status.dat', serialize((array)$item_export_status));
 
 		# 3. Get the page information
 		$query = $this->CI->db->query('select * from page where item_id = ?', array($id));
