@@ -28,6 +28,8 @@ class Organization extends Model {
     public $country		= '';
     public $created		= '';
     public $modified	= '';
+    public $ia_api_key = '';
+    public $ia_secret_key = '';
 
     private $all_permissions = array('scan', 'QA', 'admin');
 
@@ -77,6 +79,16 @@ class Organization extends Model {
 				$this->country		= $row->country;
 				$this->created		= $row->created;
 				$this->modified		= $row->modified;
+
+				if ($this->db->table_exists('custom_internet_archive_keys')) {
+					$this->db->where('org_id', $id);			
+					$keys = $this->db->get('custom_internet_archive_keys');
+					if ($keys->num_rows() > 0) {
+						$row = $keys->row();
+						$this->ia_api_key		= $row->access_key;
+						$this->ia_secret_key		= $row->secret;				
+					}
+				}				
 			}
 		}
  	}
@@ -101,6 +113,8 @@ class Organization extends Model {
  		$this->country	= '';
  		$this->created	= '';
 		$this->modified	= '';
+		$this->ia_api_key		= '';
+		$this->ia_secret_key = '';				
  	}
 
 	/**
@@ -130,6 +144,17 @@ class Organization extends Model {
 		// Save to the database.
 		$this->db->where('id', $this->id);
 		$this->db->update('organization', $data);
+
+		if ($this->db->table_exists('custom_internet_archive_keys')) {
+			$data = array(
+				'access_key'		=> $this->ia_api_key,
+				'secret'	      => $this->ia_secret_key
+			);
+	
+			// Save to the database.
+			$this->db->where('org_id', $this->id);
+			$this->db->update('custom_internet_archive_keys', $data);
+		}
 	}
 
 	/**
@@ -158,6 +183,19 @@ class Organization extends Model {
 
 		// Save to the database.
 		$this->db->insert('organization', $data);
+
+		if ($this->db->table_exists('custom_internet_archive_keys')) {
+			$data = array(
+				'org_id'		=> $this->db->insert_id(),
+				'access_key'		=> $this->ia_api_key,
+				'secret'	=> $this->ia_secret_key
+			);
+	
+			// Save to the database.
+			$this->db->where('org_id', $this->id);
+			$this->db->insert('custom_internet_archive_keys', $data);
+		}
+
 	}
 
 	/**

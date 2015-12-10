@@ -826,6 +826,11 @@ class Admin extends Controller {
 			$data['country'] = $this->organization->country;
 			$data['created'] = $this->organization->created;
 			$data['modified'] = $this->organization->modified;
+			if ($this->db->table_exists('custom_internet_archive_keys')) {
+				$data['show_api_keys'] = true;
+				$data['api_key'] = $this->organization->ia_api_key;
+				$data['secret_key'] = $this->organization->ia_secret_key;
+			}
 			$data['token'] = $this->session->userdata('li_token');
 
 			// Display the page
@@ -873,6 +878,11 @@ class Admin extends Controller {
 		$data['country'] = '';
 		$data['created'] = '';
 		$data['modified'] = '';
+		if ($this->db->table_exists('custom_internet_archive_keys')) {
+			$data['show_api_keys'] = true;
+			$data['api_key'] = '';
+			$data['secret_key'] = '';
+		}
 		$data['id'] = 0;
 		$data['token'] = $this->session->userdata('li_token');
 
@@ -919,7 +929,11 @@ class Admin extends Controller {
 			$this->organization->state = $this->input->post('state');
 			$this->organization->postal = $this->input->post('postal');
 			$this->organization->country = $this->input->post('country');
-
+			if ($this->db->table_exists('custom_internet_archive_keys')) {
+				$this->organization->ia_api_key = $this->input->post('api_key');
+				$this->organization->ia_secret_key = $this->input->post('secret_key');
+			}
+		
 			try {
 				// Add the organization, with proper error handling
 				$this->organization->add();
@@ -951,6 +965,10 @@ class Admin extends Controller {
 			$this->organization->state = $this->input->post('state');
 			$this->organization->postal = $this->input->post('postal');
 			$this->organization->country = $this->input->post('country');
+			if ($this->db->table_exists('custom_internet_archive_keys')) {
+				$this->organization->ia_api_key = $this->input->post('api_key');
+				$this->organization->ia_secret_key = $this->input->post('secret_key');
+			}
 
 			try {
 				// Add the organization, with proper error handling
@@ -995,6 +1013,11 @@ class Admin extends Controller {
 		$this->db->where('id', $id);
 		$this->db->delete('organization');
 
+		if ($this->db->table_exists('custom_internet_archive_keys')) {
+			$this->db->where('org_id', $id);
+			$this->db->delete('custom_internet_archive_keys');
+		}
+		
 		$this->common->ajax_headers();
 		echo json_encode(array('message' => 'Organization deleted.'));
 		$this->logging->log('access', 'info', 'Deleted organization: '.$id);

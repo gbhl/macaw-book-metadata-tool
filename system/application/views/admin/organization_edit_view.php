@@ -49,6 +49,19 @@
 		<td>Country:</td>
 		<td><input type="text" name="country" value="<?php echo($country) ?>" size="25"></td>
 	</tr>
+	<?php if ($show_api_keys) { ?>
+	<tr>
+		<td colspan="2">Internet Archive API Keys (optional):</td>
+	</tr>
+	<tr>
+		<td>API Key:</td>
+		<td><input type="password" name="api_key" autocomplete="false" value="<?php echo($api_key) ?>" size="25" maxlength="64"> (max: 64 chars)</td>
+	</tr>
+	<tr>
+		<td>Secret Key:</td>
+		<td><input type="password" name="secret_key" autocomplete="false" value="<?php echo($secret_key) ?>" size="25" maxlength="64"> (max: 64 chars)</td>
+	</tr>
+	<?php } ?>
 </table>
 
 </form>
