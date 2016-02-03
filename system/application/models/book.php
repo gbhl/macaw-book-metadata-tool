@@ -886,6 +886,10 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				// Default this to something in case we don't have it
 				if (!array_key_exists('needs_qa', $info)) {
 					$info['needs_qa'] = 0;
+				} else {
+					if (!$this->user->org_has_qa()) {
+						$info['needs_qa'] = 0;									
+					}
 				}
 				// Default this to something in case we don't have it
 				if (!array_key_exists('ia_ready_images', $info)) {
@@ -894,7 +898,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				if (!array_key_exists('page_progression', $info)) {
 					$info['page_progression'] = 'ltr';
 				}
-				if ($info['page_progression'] != 'ltr' && $info['page_progression'] != 'rtl') {
+				if (strtolower($info['page_progression']) != 'ltr' && strtolower($info['page_progression']) != 'rtl') {
 					$info['page_progression'] = 'ltr';				
 				}
 				if (!array_key_exists('collections', $info)) {
@@ -957,7 +961,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 					if (preg_match('/^marc/i', $i) && !preg_match('/^marc_xml$/i', $i)) {
 						$marc[$i] = $info[$i];
 					} else {
-						if ($i != 'barcode' && $i != 'identifier' && $i != 'needs_qa' && $i != 'ia_ready_images' && $i != 'page_progression') {
+						if ($i != 'barcode' && $i != 'identifier' && $i != 'needs_qa' && $i != 'ia_ready_images' && $i != 'page_progression' && !preg_match('/[0-9]+/', $i)) {
 							// If we got an array of data, we loop through 
 							// the items and add them to the metadata.
 							if (is_array($info[$i])) {
@@ -1591,7 +1595,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 							}
 							// $exec = "$gs -sDEVICE=jpeg -dJPEGQ=100 -r450x450 -o $outname $fnamenew";
 							// Switched to using PNG. The files are smaller. Quality is maintained compared tp jpeg2000
-							$exec = "$gs -sDEVICE=png16m -r450x450 -dSAFER -dBATCH -dNOPAUSE -dTextAlphaBits=4 -sOutputFile=$outname $fnamenew";
+							$exec = "$gs -sDEVICE=png16m -r450x450 -dSAFER -dBATCH -dNOPAUSE -dTextAlphaBits=4 -dUseCropBox -sOutputFile=$outname $fnamenew";
 							$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->barcode);
 							exec($exec, $output);
 							
