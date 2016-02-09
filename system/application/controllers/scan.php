@@ -638,6 +638,20 @@ class Scan extends Controller {
 			// Get our book
 			$this->book->load($this->session->userdata('barcode'));
 
+			// Completing a book with missing metadata is bad.
+			$missing_metadata = $this->book->get_missing_metadata(true);
+			if (count($missing_metadata) > 0) {
+				// Yup. Missing some metadata. Let's prevent them from finishing.
+				$msg = 'Some metadata fields are missing. They must be filled in before you can complete the metadata.<br/><br/>';
+				foreach ($missing_metadata as $module => $fields) {
+					$msg .= 'The missing fields are: <strong>'.implode(', ', $fields).'</strong><br/>';
+				}
+				$msg .= '<br/>Please <a href="/main/edit">edit the Item</a> to add this metadata.';
+				header("Content-Type: application/json; charset=utf-8");
+				echo json_encode(array('error' => $msg));
+				return;
+			}
+
 			// Does the book need to be QA'ed by someone?
 			if ($this->book->needs_qa) {
 				// Is the person reviewing the book a QA person?

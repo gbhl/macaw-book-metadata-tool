@@ -198,10 +198,10 @@ YAHOO.macaw.Book = function() {
 			success: function(o) {
 				eval('var r = '+o.responseText);
 				if (r.redirect) {
-					this.hideSavingIndicator();
+					this.hideSavingIndicator(true);
 					window.location = r.redirect;
 				} else if (r.error) {
-					this.hideSavingIndicator();
+					this.hideSavingIndicator(true);
 					General.showErrorMessage(r.error);
 				}
 			},
