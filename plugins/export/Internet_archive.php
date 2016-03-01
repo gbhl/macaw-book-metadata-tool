@@ -404,7 +404,7 @@ class Internet_archive extends Controller {
 									$preview->setImageCompressionQuality(50);							
 									echo " created $new_filebase".".jp2 (Q=50, From PDF)";
 								} else {
-									$preview->setImageCompressionQuality(43);
+									$preview->setImageCompressionQuality(37);
 									echo " created $new_filebase".".jp2";
 								}
 								$preview->setImageDepth(8);
