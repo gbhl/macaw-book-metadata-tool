@@ -109,6 +109,9 @@ class Cron extends Controller {
 		if (count($barcodes)) {
 			// Assume that any directory names are the barcodes for a book
 			foreach ($barcodes as $bc) {
+				// Sometimes we get encoded chars for things that aren't friendly to URLs.
+				// Convert them back to something useful.
+				$bc = html_entity_decode($bc);
 				if ($this->book->exists($bc)) {
 					try {
 						// Check that the barcode actually exists
