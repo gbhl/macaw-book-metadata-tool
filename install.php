@@ -976,7 +976,7 @@
 								<input type="hidden" name="step" value="3">
 								<table border="0" cellspacing="0" cellpadding="2">
 									<tr>
-										<td>Organization Name:</td>
+										<td>Contributor Name:</td>
 										<td><input type="text" name="organization_name" value="<?php echo($organization_name); ?>" maxlength="64"></td>
 									</tr>
 									<tr>

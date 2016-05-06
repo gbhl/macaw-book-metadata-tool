@@ -181,8 +181,8 @@ class Internet_archive extends Controller {
 				
 				// If we didn't get any keys, we're doomed! Spam the admin and skip this item.
 				if ((!$this->access || !$this->secret) && !$this->cfg['testing']) {
-					$this->CI->logging->log('book', 'error', 'Organization '.$this->CI->book->org_id.' does not have IA Keys set.', $bc);
-					$this->CI->common->email_error('Organization '.$this->CI->book->org_id.' does not have IA Keys set.'."\n\n"."Identifier:    ".$bc."\n\n");
+					$this->CI->logging->log('book', 'error', 'Contributor '.$this->CI->book->org_id.' does not have IA Keys set.', $bc);
+					$this->CI->common->email_error('Contributor '.$this->CI->book->org_id.' does not have IA Keys set.'."\n\n"."Identifier:    ".$bc."\n\n");
 					continue;
 				}
 				

@@ -225,7 +225,7 @@ class Organization extends Model {
 	 */
 	function delete() {
 		if (_orgid_in_use($this->id)) {
-			throw new Exception("Unable to delete an organization that is associated to one or more accounts.");		
+			throw new Exception("Unable to delete a contributor that is associated to one or more accounts.");		
 		} else {
 			$this->where('id', $this->id);
 			$this->delete('organization');

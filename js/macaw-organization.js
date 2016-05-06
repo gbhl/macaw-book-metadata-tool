@@ -111,7 +111,7 @@
 				}
 			},
 			failure: function (o){
-				General.showErrorMessage('There was a problem loading the organization details dialog. If it helps, the error was:<blockquote style="font-weight:bold;color:#990000;">'+o.statusText+"</blockquote>");
+				General.showErrorMessage('There was a problem loading the contributor details dialog. If it helps, the error was:<blockquote style="font-weight:bold;color:#990000;">'+o.statusText+"</blockquote>");
 			}
 		},
 
@@ -131,10 +131,10 @@
 					}
 				},
 				failure: function (o){
-					General.showErrorMessage('There was a problem deleting the organization. If it helps, the error was:<blockquote style="font-weight:bold;color:#990000;">'+o.statusText+"</blockquote>");
+					General.showErrorMessage('There was a problem deleting the contributor. If it helps, the error was:<blockquote style="font-weight:bold;color:#990000;">'+o.statusText+"</blockquote>");
 				}
 			}
-			if (confirm('Are you sure you want to delete this organization?')) {
+			if (confirm('Are you sure you want to delete this contributor?')) {
 				// Call the URL to get the data
 				var transaction = YAHOO.util.Connect.asyncRequest('GET', sBaseUrl+'/admin/organization_delete/'+id+'/', handleDelete, null);
 			}
@@ -192,7 +192,7 @@
 
 			// What happens when we fail to submit the data to the server.
 			var handleFailure = function(o) {
-				General.showErrorMessage('There was a problem saving the organization\'s information. If it helps, the error was: <blockquote style="font-weight:bold;color:#990000;">'+o.statusText+"</blockquote>");
+				General.showErrorMessage('There was a problem saving the contributor\'s information. If it helps, the error was: <blockquote style="font-weight:bold;color:#990000;">'+o.statusText+"</blockquote>");
 			};
 
 			// Delete any div that might have contained the old dialog
@@ -216,7 +216,7 @@
 			});
 
 			// Set the content of the dialog box
-			Organization.editDialog.setHeader('Edit Organization');
+			Organization.editDialog.setHeader('Edit Contributor');
 			Organization.editDialog.setBody(ct);
 
 			// Validate the entries in the form to require that the passwords
@@ -224,7 +224,7 @@
 			Organization.editDialog.validate = function() {
 				var data = this.getData();
 				if (data.name == '' || data.name == null || !data.name) {
-					General.showErrorMessage('Please enter a name of the organization.');
+					General.showErrorMessage('Please enter a name of the contributor.');
 				} else {
 					return true;
 				}

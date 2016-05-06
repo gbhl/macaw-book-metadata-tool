@@ -37,7 +37,7 @@
 		<td colspan="3"><input type="text" name="email" value="<?php if (!$new) { echo($email); } ?>" size="60" id="email"></td>
 	</tr>
 	<tr>
-		<td>Organization:</td>
+		<td>Contributor:</td>
 		<td colspan="3">
 		<?php if ($locked_org_id) { ?>
 			<?php echo $org_name; ?>

@@ -65,7 +65,7 @@
 				{key:"username",     label: "User Name",     sortable:false},
 				{key:"full_name",    label: "Full Name",     sortable:true},
 				{key:"email",        label: "Email Address", sortable:true},
-				{key:"organization", label: "Organization",  sortable:true},
+				{key:"organization", label: "Contributor",  sortable:true},
 				{key:"last_login",   label: "Last Login",    formatter:formatDate, sortable:true},
 				{key:"username",     label: "Actions",       formatter:formatEditLink}
 			];
@@ -267,7 +267,7 @@
 					return false;
 
 				} else if (data.org_id[0] == '' || data.org_id[0] == null || !data.org_id[0]) {
-					General.showErrorMessage('Please select an organization.');
+					General.showErrorMessage('Please select a contributor.');
 					return false;
 
 				} else {

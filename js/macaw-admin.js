@@ -171,7 +171,7 @@
 				{key:"barcode", label:'Barcode', formatter:YAHOO.widget.DataTable.formatLink }, //try formatting link
 				{key:"title",		label:'Title',	sortable: true  },
 				{key:"author",		label:'Author',	sortable: true  },
-				{key:"org_name",		label:'Organization',	sortable: true },
+				{key:"org_name",		label:'Contributor',	sortable: true },
 				{key:"status_code",	label:'Status',	formatter: formatStatus,  sortable: true  },
 				{key:"date",	label:'Date',	sortable: true  }
 			];
@@ -288,7 +288,7 @@
 				{key:"barcode",			label:'Barcode',			formatter:YAHOO.widget.DataTable.formatLink,	sortable: true },
 				{key:"title",				label:'Title',				sortable: true },
 				{key:"author",			label:'Author',				sortable: true },
-				{key:"org_name",		label:'Organization',	sortable: true },
+				{key:"org_name",		label:'Contributor',	sortable: true },
 				{key:"status_code",	label:'Status',				formatter: formatStatus, sortable: true }
 			];
 

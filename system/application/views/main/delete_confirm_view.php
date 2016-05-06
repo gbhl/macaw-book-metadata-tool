@@ -53,7 +53,7 @@
 							<td><?php echo($title) ?></td>
 						</tr>
 						<tr>
-							<td class="fieldname">Organization:</td>
+							<td class="fieldname">Contributor:</td>
 							<td><?php echo($organization) ?></td>
 						</tr>
 					</table>

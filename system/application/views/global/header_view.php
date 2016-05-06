@@ -75,7 +75,7 @@
 						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/account"><img src="<?php echo $this->config->item('base_url'); ?>images/08_list_accounts_icon_sm.png">List Accounts</a></li>
 						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/queues"><img src="<?php echo $this->config->item('base_url'); ?>images/09_queues_icon_sm.png">Queues</a></li>
 						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/logs"><img src="<?php echo $this->config->item('base_url'); ?>images/10_view_logs_icon_sm.png">View Logs</a></li>
-						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/organization"><img src="<?php echo $this->config->item('base_url'); ?>images/11_organisations_icon_sm.png">Organizations</a></li>
+						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/organization"><img src="<?php echo $this->config->item('base_url'); ?>images/11_organisations_icon_sm.png">Contributors</a></li>
 						<li class="last"><a href="<?php echo $this->config->item('base_url'); ?>admin/scheduled_jobs"><img src="<?php echo $this->config->item('base_url'); ?>images/12_manually_run_icon_sm.png">Scheduled Jobs</a></li>
 					</ul>
 				</li>
@@ -84,7 +84,7 @@
 		</div>
 		<?php if (isset($item_title)) { ?>
 			<div id="item-title">
-				<?php echo($item_title); ?>
+				<?php if (is_array($item_title)) {echo($item_title[0]);} else {echo($item_title);} ?>
 			</div>
 		<?php } ?>
 		

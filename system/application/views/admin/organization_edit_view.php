@@ -7,11 +7,11 @@
 <?php }?>
 <table border="0" cellspacing="5" cellpadding="5">
 	<tr>
-		<td>Organization ID:</td>
+		<td>Contributor ID:</td>
 		<td><?php echo($id) ?></td>
 	</tr>
 	<tr>
-		<td>Organization Name:</td>
+		<td>Contributor Name:</td>
 		<td><input type="text" name="name" value="<?php echo($name) ?>" size="25"> (req.)</td>
 	</tr>
 	<tr>

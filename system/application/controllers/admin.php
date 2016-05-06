@@ -909,7 +909,7 @@ class Admin extends Controller {
 		if (!$this->user->has_permission('admin')) {
 			$this->common->ajax_headers();
 			echo json_encode(array('error' => 'Permission denied.'));
-			$this->logging->log('error', 'debug', 'Permission denied to save the organization "'.$this->input->post('name'));
+			$this->logging->log('error', 'debug', 'Permission denied to save the contributor "'.$this->input->post('name'));
 			return;
 		}
 
@@ -947,8 +947,8 @@ class Admin extends Controller {
 
 			// Send a nominal response back to the browser
 			$this->common->ajax_headers();
-			echo json_encode(array('message' => 'Organization added!'));
-			$this->logging->log('access', 'info', 'Added organization: '.$this->input->post('name'));
+			echo json_encode(array('message' => 'Contributor added!'));
+			$this->logging->log('access', 'info', 'Added contributor '.$this->input->post('name'));
 		} else { // WE ARE EDITING AN EXISTING ORG
 			// Get the data from the POST and make it into something useful
 			// Load the organization based on the id passed
@@ -984,7 +984,7 @@ class Admin extends Controller {
 			// Send a nominal response back to the browser
 			$this->common->ajax_headers();
 			echo json_encode(array('message' => 'Changes saved!'));
-			$this->logging->log('access', 'info', 'Upadted Organization: '.$this->input->post('name'). ' (id '.$this->input->post('id').')');
+			$this->logging->log('access', 'info', 'Upadted Contributor: '.$this->input->post('name'). ' (id '.$this->input->post('id').')');
 		}
 	}
 
@@ -1001,13 +1001,13 @@ class Admin extends Controller {
 		if (!$this->user->has_permission('admin')) {
 			$this->common->ajax_headers();
 			echo json_encode(array('error' => 'Permission denied.'));
-			$this->logging->log('error', 'debug', 'Permission denied to delete the organization "'.$id);
+			$this->logging->log('error', 'debug', 'Permission denied to delete the contributor "'.$id);
 			return;
 		}
 		if (!isset($id)) {
 			$this->common->ajax_headers();
-			echo json_encode(array('error' => 'You did not supply the ID of an organization to delete.'));
-			$this->logging->log('error', 'debug', 'No organization ID supplied for deletion.');		
+			echo json_encode(array('error' => 'You did not supply the ID of an contributor to delete.'));
+			$this->logging->log('error', 'debug', 'No contributor ID supplied for deletion.');		
 		}
 
 		$this->db->where('id', $id);
@@ -1019,8 +1019,8 @@ class Admin extends Controller {
 		}
 		
 		$this->common->ajax_headers();
-		echo json_encode(array('message' => 'Organization deleted.'));
-		$this->logging->log('access', 'info', 'Deleted organization: '.$id);
+		echo json_encode(array('message' => 'Contributor deleted.'));
+		$this->logging->log('access', 'info', 'Deleted Contributor '.$id);
 	}
 
 }

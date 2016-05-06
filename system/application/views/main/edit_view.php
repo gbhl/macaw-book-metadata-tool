@@ -212,7 +212,7 @@
 					</td>
 				</tr>
 				<tr class="row">
-					<td class="fieldname">Organization:</td>
+					<td class="fieldname">Contributor:</td>
 					<td><?php echo($organization) ?></td>
 				</tr>
 				<tr class="row">
@@ -221,7 +221,7 @@
 						<td><input type="checkbox" name="needs_qa" id="needs_qa" value="1" <?php if ($needs_qa) { echo("checked"); } ?>> This item will be reviewed for Quality Assurance</td>
 					<?php } else { ?>
 						<td style="color:#ccc" class="fieldname">Needs QA:</td>
-						<td style="color:#ccc"><input type="checkbox" name="needs_qa" id="needs_qa" value="1" disabled > This item will be NOT reviewed for Quality Assurance. Organization has no QA user.</td>
+						<td style="color:#ccc"><input type="checkbox" name="needs_qa" id="needs_qa" value="1" disabled > This item will be NOT reviewed for Quality Assurance. Contributor has no QA user.</td>
 					<?php } ?>
 				</tr>
 				<tr class="row">
