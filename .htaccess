@@ -43,7 +43,7 @@
 
 <IfModule mod_php5.c>
 # Some servers will not allow these to be set here. If they give a 500 Server Error, set them in the PHP.INI file.
-#	php_value upload_max_filesize "128M"
-#	php_value post_max_size "128M"
-#	php_value memory_limit "256M"
+	php_value upload_max_filesize "512M"
+	php_value post_max_size "512M"
+	php_value memory_limit "512M"
 </IfModule>
