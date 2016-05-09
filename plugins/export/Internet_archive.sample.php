@@ -69,7 +69,7 @@ class Internet_archive extends Controller {
 
 	private $send_orig_jp2 = "no"; // "yes", "no", or "both" This creates faster uploads when false (larger files/slower uploads when true)
 	private $timing = false; // This makes more noise about how long things are taking.
-	private $download_extensions = array('_djvu.txt','_abbyy.gz','.gif','.epub','.djvu','.pdf'); // What must be online and we can ignore if missing? And what do we download?
+	private $download_extensions = array('_djvu.txt','_abbyy.gz'); // What must be online and we can ignore if missing? And what do we download?
 	private $required_extensions = array('_jp2.zip', '_marc.xml', '_scandata.xml'); // What must be online and we can't ignore?
 
 	var $CI;
