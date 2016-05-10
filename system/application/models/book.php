@@ -883,18 +883,18 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 					$this->last_error = "The identifier is too long.";
 					throw new Exception($this->last_error);
 				}
-				if (!array_key_exists('copyright', $info)) {
-					$this->last_error = "The copyright value was not provided.";
-					throw new Exception($this->last_error);
-				}
-				if (!array_key_exists('year', $info)) {
-					$this->last_error = "The copyright value was not provided.";
-					throw new Exception($this->last_error);
-				}
-				if (!array_key_exists('sponsor', $info)) {
-					$this->last_error = "The sponsor value was not provided.";
-					throw new Exception($this->last_error);
-				}
+// 				if (!array_key_exists('copyright', $info)) {
+// 					$this->last_error = "The copyright value was not provided.";
+// 					throw new Exception($this->last_error);
+// 				}
+// 				if (!array_key_exists('year', $info)) {
+// 					$this->last_error = "The year value was not provided.";
+// 					throw new Exception($this->last_error);
+// 				}
+// 				if (!array_key_exists('sponsor', $info)) {
+// 					$this->last_error = "The sponsor value was not provided.";
+// 					throw new Exception($this->last_error);
+// 				}
 
 				// Default this to something in case we don't have it
 				if (!array_key_exists('needs_qa', $info)) {
