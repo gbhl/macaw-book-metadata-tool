@@ -69,7 +69,7 @@ class Internet_archive extends Controller {
 
 	private $send_orig_jp2 = "no"; // "yes", "no", or "both" This creates faster uploads when false (larger files/slower uploads when true)
 	private $timing = false; // This makes more noise about how long things are taking.
-	private $download_extensions = array('_djvu.txt','_abbyy.gz'); // What must be online and we can ignore if missing? And what do we download?
+	private $download_extensions = array('_djvu.xml','_abbyy.gz'); // What must be online and we can ignore if missing? And what do we download?
 	private $required_extensions = array('_jp2.zip', '_marc.xml', '_scandata.xml'); // What must be online and we can't ignore?
 
 	var $CI;
@@ -387,7 +387,7 @@ class Internet_archive extends Controller {
 
 						if ($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') {
 							$preview->setImageCompression(imagick::COMPRESSION_JPEG2000);
-							$preview->setImageCompressionQuality(70);
+							$preview->setImageCompressionQuality(50);
 							// Write the jp2 out to the local directory
 							echo " created $new_filebase_orig".".jp2";
 							$preview->setImageDepth(8);
@@ -404,7 +404,12 @@ class Internet_archive extends Controller {
 									$preview->setImageCompressionQuality(50);							
 									echo " created $new_filebase".".jp2 (Q=50, From PDF)";
 								} else {
-									$preview->setImageCompressionQuality(43);
+									// Use the compression level from the config, if we have it
+									if (isset($this->cfg['jpeg2000_quality']) && preg_match('/^[0-9]+$/', $this->cfg['jpeg2000_quality'])) {
+										$preview->setImageCompressionQuality($this->cfg['jpeg2000_quality']);	
+									} else {
+										$preview->setImageCompressionQuality(37);
+									}
 									echo " created $new_filebase".".jp2";
 								}
 								$preview->setImageDepth(8);
