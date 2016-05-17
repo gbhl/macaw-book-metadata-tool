@@ -306,13 +306,6 @@ $config['macaw']['cc_values'] = array(
 
 
 // ------------------------------
-// JPEG 2000 Quality
-// ------------------------------
-// Used to override the default used in the Internet Archive export script.
-$config['macaw']['jpeg2000_quality'] = '35';
-
-
-// ------------------------------
 // TEST MODE?
 // ------------------------------
 // Used for only development servers. But since you don't know what it

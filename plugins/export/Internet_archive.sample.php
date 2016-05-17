@@ -324,6 +324,7 @@ class Internet_archive extends Controller {
 				$filenames_orig = array();
 				$filenames = array();
 				echo "TOTAL PAGES: ".count($pages)."\n";
+				echo "JPEG-2000 Library: ".$this->imagick_jp2_library()."\n";
 				foreach ($pages as $p) {
 					// Reworked this to make a filename from scratch, ignoring anything that we may have seen before.
 					if ($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') {
@@ -400,20 +401,50 @@ class Internet_archive extends Controller {
 								echo " (compressing) ";
 								$preview->setImageCompression(imagick::COMPRESSION_JPEG2000);
 								// If we got our images from a PDF, we use the highest quality we can
+								$quality = 37;
+								if ($this->imagick_jp2_library() == 'OpenJPEG') {
+									$quality = 30;
+								}
+
 								if ($this->CI->book->get_metadata('from_pdf') == 'yes') {
-									$preview->setImageCompressionQuality(50);							
-									echo " created $new_filebase".".jp2 (Q=50, From PDF)";
+									echo '(from PDF)';
+									if (isset($this->cfg['jpeg2000_quality_pdf']) && preg_match('/^[0-9]+$/', $this->cfg['jpeg2000_quality_pdf'])) {
+										$quality = $this->cfg['jpeg2000_quality_pdf'];
+									} else {
+										$quality = 50;
+										if ($this->imagick_jp2_library() == 'OpenJPEG') {
+											$quality = 32;
+										}
+									}
 								} else {
 									// Use the compression level from the config, if we have it
 									if (isset($this->cfg['jpeg2000_quality']) && preg_match('/^[0-9]+$/', $this->cfg['jpeg2000_quality'])) {
-										$preview->setImageCompressionQuality($this->cfg['jpeg2000_quality']);	
+										$quality = $this->cfg['jpeg2000_quality'];
 									} else {
-										$preview->setImageCompressionQuality(37);
+										$quality = 37;
+										if ($this->imagick_jp2_library() == 'OpenJPEG') {
+											$quality = 30;
+										}
 									}
-									echo " created $new_filebase".".jp2";
 								}
+								$preview->setImageCompressionQuality($quality);
+								echo " creating $new_filebase".".jp2 (Q=$quality)";
 								$preview->setImageDepth(8);
 								$preview->writeImage($jp2path.'/'.$new_filebase.'.jp2');
+
+								// If the image we just created is too small, we need to recompress it at a higher rate
+								$tqual = $quality;
+								$fs = filesize($jp2path.'/'.$new_filebase.'.jp2');
+								while ($fs < 102400) {
+									$tqual++;
+									print " $fs is too small (Q=$tqual)";
+									unlink($jp2path.'/'.$new_filebase.'.jp2');
+									$p2 = clone $preview;
+									$p2->setImageCompressionQuality($tqual);
+									$p2->writeImage($jp2path.'/'.$new_filebase.'.jp2');
+									$fs = filesize($jp2path.'/'.$new_filebase.'.jp2');
+								}
+					
 								if ($this->timing) { echo "TIMING (write): ".round((microtime(true) - $start_time), 5)."\n"; }							
 							} else {
 								// Write the jp2 out to the local directory
@@ -2113,4 +2144,19 @@ class Internet_archive extends Controller {
 		}
 	}
 
+	function imagick_jp2_library() {
+		$m = new Imagick();
+		$v = $m->getVersion();
+		preg_match('/ImageMagick (\d+\.\d+\.\d+-?\d+)/', $v['versionString'], $v);
+		if (count($v) == 0) {
+			$v = $m->getVersion();
+			preg_match('/ImageMagick (\d+\.\d+\.\d+)/', $v['versionString'], $v);
+		}
+		if(version_compare($v[1],'6.8.8-2') < 0){
+			return "JasPer\n";
+		} else {
+			return "OpenJPEG\n";
+		}
+	
+	}
 }
