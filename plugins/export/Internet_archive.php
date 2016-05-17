@@ -2153,9 +2153,9 @@ class Internet_archive extends Controller {
 			preg_match('/ImageMagick (\d+\.\d+\.\d+)/', $v['versionString'], $v);
 		}
 		if(version_compare($v[1],'6.8.8-2') < 0){
-			return "JasPer\n";
+			return "JasPer";
 		} else {
-			return "OpenJPEG\n";
+			return "OpenJPEG";
 		}
 	
 	}
