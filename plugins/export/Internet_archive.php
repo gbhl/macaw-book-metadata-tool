@@ -437,6 +437,9 @@ class Internet_archive extends Controller {
 								$fs = filesize($jp2path.'/'.$new_filebase.'.jp2');
 								while ($fs < 102400) {
 									$tqual++;
+									if ($tqual == 101) {
+										break;
+									}
 									print " $fs is too small (Q=$tqual)";
 									unlink($jp2path.'/'.$new_filebase.'.jp2');
 									$p2 = clone $preview;
