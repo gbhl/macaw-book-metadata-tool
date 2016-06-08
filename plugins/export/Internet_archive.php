@@ -427,6 +427,7 @@ class Internet_archive extends Controller {
 										}
 									}
 								}
+								$preview->setCompressionQuality($quality);
 								$preview->setImageCompressionQuality($quality);
 								echo " creating $new_filebase".".jp2 (Q=$quality)";
 								$preview->setImageDepth(8);
@@ -443,6 +444,7 @@ class Internet_archive extends Controller {
 									print " $fs is too small (Q=$tqual)";
 									unlink($jp2path.'/'.$new_filebase.'.jp2');
 									$p2 = clone $preview;
+									$p2->setCompressionQuality($tqual);
 									$p2->setImageCompressionQuality($tqual);
 									$p2->writeImage($jp2path.'/'.$new_filebase.'.jp2');
 									$fs = filesize($jp2path.'/'.$new_filebase.'.jp2');
@@ -1559,7 +1561,9 @@ class Internet_archive extends Controller {
 		// Handle the collection(s) that the book might be in
 		$collections = $this->CI->book->get_metadata('collections'); // Returns an array for multiple valies OR a string
 		if (!is_array($collections)) {
-			$collections = array($collections);
+			if ($collections) {
+				$collections = array($collections);
+			}
 		}
 
 		// Combine the "collection" (singular) metadata because, well, people get confused.
