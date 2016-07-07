@@ -900,7 +900,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				if (!array_key_exists('needs_qa', $info)) {
 					$info['needs_qa'] = 0;
 				} else {
-					if (!$this->user->org_has_qa()) {
+					if (!$this->CI->user->org_has_qa()) {
 						$info['needs_qa'] = 0;									
 					}
 				}
