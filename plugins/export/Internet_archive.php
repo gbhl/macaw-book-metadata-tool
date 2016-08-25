@@ -1088,6 +1088,16 @@ class Internet_archive extends Controller {
 						$this->CI->book->set_export_status('completed');
 						$this->CI->logging->log('book', 'info', 'Derivatives successfully downloaded from Internet archive.', $b->barcode);
 						$this->CI->logging->log('access', 'info', 'Item with barcode '.$b->barcode.' harvested from internet archive.');
+
+						// Should we purge the IA items when we're done?
+						if (isset($this->cfg['purge_ia_deriatives'])) {
+							if ($this->cfg['purge_ia_deriatives']) {
+								echo 'The purging IA export directory '.$id."\n";
+								$cmd = 'rm -fr '.$this->cfg['data_directory'].'/import_export/Internet_archive/'.$id;
+								system($cmd);
+							}
+						}
+
 					} catch (Exception $e) {
 						// Do nothing.
 					}
