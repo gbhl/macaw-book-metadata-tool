@@ -339,7 +339,8 @@ class Main extends Controller {
 				));
 			}
 		}
-
+		$data['bhl_institutions'] = $this->bhl->get_institutions();
+		
 		$data['is_local_admin'] = $this->user->has_permission('local_admin');
 		$data['is_admin'] = $this->user->has_permission('admin');
 		$data['item_title'] = $this->session->userdata('title');

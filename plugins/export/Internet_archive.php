@@ -1823,6 +1823,17 @@ class Internet_archive extends Controller {
 			if ($ret && count($ret) > 0) {
 				$metadata['x-archive-meta-sublocation'] = str_replace("'", "&quot;", str_replace('"', "'", $ret[0].''));
 			}
+
+			// Rights Holder
+			if ($this->CI->book->get_metadata('rights_holder')) {
+				$metadata['x-archive-meta-rights-holder'] = $this->CI->book->get_metadata('rights_holder');
+			}
+			
+			// Scanning Institution
+			if ($this->CI->book->get_metadata('scanning_institution')) {
+				$metadata['x-archive-meta-scanning-institution'] = $this->CI->book->get_metadata('scanning_institution');
+			}
+
 			return $metadata;
 		} else {
 			return null;

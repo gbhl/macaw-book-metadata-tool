@@ -304,6 +304,29 @@ $config['macaw']['cc_values'] = array(
 	array('title' => 'CC BY-NC-ND', 'value' => 'http://creativecommons.org/licenses/by-nc-nd/3.0/'),
 );
 
+// ------------------------------
+// JPEG 2000 Quality
+// ------------------------------
+// Used to override the default used in the Internet Archive export script.
+// These default to values that are suitable for the OpenJPEG libraries used by ImageMagik
+// version 6.8.8-2 or later. 
+//
+// The setting "jpeg2000_quality" is used for JP2 files created from other iamges, TIFF, PNG.
+// The setting "jpeg2000_quality" is used for JP2 files created from PDFs uploaded to Macaw.
+// $config['macaw']['jpeg2000_quality'] = '30';
+// $config['macaw']['jpeg2000_quality_pdf'] = '32';
+
+// For ImageMagick earlier than version 6.8.8-2, the Jasper Library is used and these values are more 
+// appropriate.
+// 
+// $config['macaw']['jpeg2000_quality'] = '37';
+// $config['macaw']['jpeg2000_quality_pdf'] = '50';
+
+// ------------------------------
+// BHL Connection
+// ------------------------------
+// $config['macaw']['bhl_api_key'] = 'API_KEY_GOES_HERE';
+
 
 // ------------------------------
 // TEST MODE?

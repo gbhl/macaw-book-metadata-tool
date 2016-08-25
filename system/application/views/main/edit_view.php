@@ -261,27 +261,72 @@
 					
 				<?php  $c = 0;
 					foreach ($metadata as $i) { ?>
-					<tr class="row" id="existing_field_<?php echo($c) ?>">
-						<td class="fieldname"><?php echo($i['fieldname']); ?>:</td>
-						<td>
-						<?php if (strlen($i['value']) > 100) { ?>
-						<textarea name="<?php echo($i['fieldname']); ?>[]" rows="5" cols="83" class="txt-fieldvalue"><?php echo(htmlspecialchars($i['value'])); ?></textarea>
-					</td>
-					<td>
-						<a href="javascript:FIELDS.deleteField('existing_field_<?php echo($c); ?>')"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/delete.png" title="Delete field"></a>
-						<?php } else { ?>
-						<input type="text" name="<?php echo($i['fieldname']); ?>[]"  value="<?php echo(htmlspecialchars($i['value'])); ?>" class="txt-fieldvalue">
-					</td>
-					<td>
-						<a href="javascript:FIELDS.deleteField('existing_field_<?php echo($c); ?>')"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/delete.png" title="Delete field"></a>
-						<?php } ?>
-						</td>
-					</tr>
+					<?php if ($i['fieldname'] == 'scanning_institution' || $i['fieldname'] == 'rights_holder') { ?> 
+						<tr class="row" id="existing_field_<?php echo($c) ?>">
+							<td class="fieldname"><?php echo($i['fieldname']); ?>:</td>
+							<td>
+								<select name="<?php echo($i['fieldname']); ?>[]" style="width: 100%">
+									<option value="">(none)</option>
+									<?php 
+										foreach ($bhl_institutions as $bhl) {
+											echo('<option'.($bhl->InstitutionName == $i['value'] ? ' selected' : '').'>'.$bhl->InstitutionName.'</option>');
+										} 
+									?>
+								</select>
+							</td>
+							<td><a href="javascript:FIELDS.deleteField('existing_field_<?php echo($c); ?>')"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/delete.png" title="Delete field"></a></td>
+						</tr>
+						
+					<?php  } else { ?> 
+						<tr class="row" id="existing_field_<?php echo($c) ?>">
+							<td class="fieldname"><?php echo($i['fieldname']); ?>:</td>
+							<td>
+							<?php if (strlen($i['value']) > 100) { ?>
+								<textarea name="<?php echo($i['fieldname']); ?>[]" rows="5" cols="83" class="txt-fieldvalue"><?php echo(htmlspecialchars($i['value'])); ?></textarea>
+							</td>
+							<td>
+								<a href="javascript:FIELDS.deleteField('existing_field_<?php echo($c); ?>')"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/delete.png" title="Delete field"></a>
+								<?php } else { ?>
+								<input type="text" name="<?php echo($i['fieldname']); ?>[]"  value="<?php echo(htmlspecialchars($i['value'])); ?>" class="txt-fieldvalue">
+							</td>
+							<td>
+								<a href="javascript:FIELDS.deleteField('existing_field_<?php echo($c); ?>')"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/delete.png" title="Delete field"></a>
+								<?php } ?>
+							</td>
+						</tr>
+					<?php  } ?>
 				<?php  $c++;
 						}
+				?>
+				
+				<?php
 					$counter = 900;
 					foreach ($missing_metadata as $mod => $fields) {
 						foreach ($fields as $f) {
+							if ($f != 'scanning_institution' && $f != 'rights_holder') { continue; }
+							$counter++;
+				?>
+						<tr class="row" id="newfields_<?php echo($counter); ?>">
+							<td class="fieldname"><?php echo($f); ?><input type="hidden" name="new_fieldname_<?php echo($counter); ?>" maxlength="32" value="<?php echo($f); ?>" class="txt-fieldname"></td>
+							<td>
+								<select name="new_value_<?php echo($counter); ?>" id="new_value_<?php echo($counter); ?>" style="width: 100%">
+									<option value="">(none)</option>
+									<?php 
+										foreach ($bhl_institutions as $bhl) {
+											echo('<option>'.$bhl->InstitutionName.'</option>');
+										} 
+									?>
+								</select>
+							</td>
+							<td><a href="javascript:FIELDS.deleteField('newfields_<?php echo($counter); ?>')"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/delete.png" title="Delete field"></a></td>
+						</tr>
+				<?php } ?>
+
+				<?php
+						foreach ($fields as $f) {
+							if ($f == 'scanning_institution' || $f == 'rights_holder') {
+								continue;
+							}
 							$counter++;
 				?>
 						<tr class="row" id="newfields_<?php echo($counter); ?>">
@@ -315,7 +360,6 @@
 			<button id="btnSave">Save</button>
 			<button id="btnDelete">Delete Item</button>
 		</div>
-
 	</div>
 	<?php $this->load->view('global/footer_view') ?>
 </body>
