@@ -1903,7 +1903,7 @@ class Internet_archive extends Controller {
 		// Get the title and author from MODS, sometimes it's not available on the book's metadata
 		// Process the title
 		
-		$title = $this->_utf8_clean(strtolower($metadata['x-archive-meta-title']));
+		$title = $this->_utf8_clean($metadata['x-archive-meta-title']);
 		$title = preg_replace('/\b(the|a|an|and|or|of|for|to|in|it|is|are|at|of|by)\b/i', '', $title);
 		$title = preg_replace('/[^a-zA-Z0-9]/', '', $title);
 		$title = substr($title, 0, 15);
@@ -1942,13 +1942,14 @@ class Internet_archive extends Controller {
 	// 				}
 	// 			}
 	
-				$identifier = $title.$number.$author;
+				// Make this lowercase becuse SIL (and maybe others) uses it as a URL and URLs are case-insensitive (or should be)
+				$identifier = strtolower($title.$number.$author);
 	
 				if ($count2 > 0) {
-					$identifier .= chr($count2+64);
+					$identifier .= chr($count2+96);
 				}
 				if ($count > 0) {
-					$identifier .= chr($count+64);
+					$identifier .= chr($count+96);
 				}
 	
 				// Make sure the identifier doesn't already exist in our custom table
