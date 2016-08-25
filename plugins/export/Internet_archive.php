@@ -431,6 +431,8 @@ class Internet_archive extends Controller {
 								$preview->setImageCompressionQuality($quality);
 								echo " creating $new_filebase".".jp2 (Q=$quality)";
 								$preview->setImageDepth(8);
+								$preview->setOption('jp2:tilewidth','256');
+								$preview->setOption('jp2:tileheight','256');
 								$preview->writeImage($jp2path.'/'.$new_filebase.'.jp2');
 
 								// If the image we just created is too small, we need to recompress it at a higher rate
