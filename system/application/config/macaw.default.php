@@ -327,6 +327,14 @@ $config['macaw']['cc_values'] = array(
 // ------------------------------
 // $config['macaw']['bhl_api_key'] = 'API_KEY_GOES_HERE';
 
+// ------------------------------
+// Keep downloaded derivatves
+// ------------------------------
+// In the case of Macaw-in-the-Cloud for BHL we don't want to keep dervied files. It uses up a lot of space.
+// If this is set to TRUE, the the export directory for the Internet Archive will be purged after the item is
+// downloaded successfully. 
+// $config['macaw']['purge_ia_deriatives'] = FALSE;
+
 
 // ------------------------------
 // TEST MODE?
