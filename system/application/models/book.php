@@ -590,7 +590,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 	 * @param integer [$bytes] The size in bytes of the file we are adding.
 	 * @param string [$ext] The file extension of the file (this shouldn't be passed in, really)
 	 */
-	function add_page($filename = '', $width = 0, $height = 0, $bytes = 0, $status = 'Processed') {
+	function add_page($filename = '', $width = 0, $height = 0, $bytes = 0, $status = 'Processed', $missing = false) {
 		// Create the filebase
 		$filebase = preg_replace('/(.+)\.(.*?)$/', "$1", $filename);
 
@@ -620,7 +620,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				'extension' => $extension,
 				'width' => $width,
 				'height'=> $height,
-				'is_missing' => (($this->status != 'new' && $this->status != 'scanning') ? 'true' : 'false')
+				'is_missing' => ($missing ? 1 : 0)
 			);
 			$this->db->set($data);
 			$this->db->insert('page');
@@ -1588,11 +1588,21 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 
 	function import_images() {
 		if ($this->id > 0) {
+
 			$incoming_dir = $this->cfg['incoming_directory'];
 			$scans_dir = $this->cfg['data_directory'].'/'.$this->barcode.'/scans/';
 			$book_dir = $this->cfg['data_directory'].'/'.$this->barcode.'/';
 			$modified = false;
 			if ($this->check_paths()) {
+
+				// Does this book already have pages? 
+				$missing = false;
+				$pgs = $this->get_pages();
+				if (count($pgs) > 0) {
+					// If yes, then the imported images are "missing".
+					$missing = true;
+				}
+				
 				if ($this->status == 'new' || $this->status == 'scanning' || $this->status == 'scanned' || $this->status == 'reviewing' || $this->status == 'reviewed') {
 					//If it does, scan the files
 					// TODO: This is probably broken since PATH is often blank. We should handle it more gracefully.
@@ -1660,7 +1670,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 						foreach ($files as $f) {
 							$fname = $incoming_dir.'/'.$this->barcode.'/'.$f;
 							$info = get_file_info($fname, 'size');
-							$this->add_page($f, 0, 0, $info['size'], 'Pending');
+							$this->add_page($f, 0, 0, $info['size'], 'Pending', $missing);
 						} // foreach ($files as $f)
 	
 						// Then we process the pages, updating them as we find them again.
@@ -1707,7 +1717,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				echo('Check paths failed for item with barcode "'.$this->barcode.'".'."\n");
 				// The paths are not all writable or existing. Skip this book
 			} // if ($this->check_paths)
-		}
+		} // if ($this->id > 0)
 	}
 
 	/**
