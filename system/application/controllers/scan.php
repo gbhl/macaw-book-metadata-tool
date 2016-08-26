@@ -640,6 +640,7 @@ class Scan extends Controller {
 
 			// Completing a book with missing metadata is bad.
 			$missing_metadata = $this->book->get_missing_metadata(true);
+
 			if (count($missing_metadata) > 0) {
 				// Yup. Missing some metadata. Let's prevent them from finishing.
 				$msg = 'Some metadata fields are missing. They must be filled in before you can complete the metadata.<br/><br/>';
@@ -652,6 +653,25 @@ class Scan extends Controller {
 				return;
 			}
 
+			// Do all pages have page types?
+			$pages = array();
+			foreach ($this->book->get_pages() as $p) {
+				if (!isset($p->page_type) || !$p->page_type) {
+					$pages[] = $p->sequence_number;
+				}
+			}
+			if (count($pages) > 0) {
+				$prefix = "The ";
+				if (count($pages) > 10) {
+					$prefix = "Some of the ";
+					$pages = array_slice($pages, 0, 10);
+				}
+				$msg = 'One or more pages are missing a <strong>Page Type</strong>. Please correct this before continuing.<br><br>'.$prefix.' page(s) that are missing Page Types are: '.implode(', ', $pages);
+				header("Content-Type: application/json; charset=utf-8");
+				echo json_encode(array('error' => $msg));
+				return;
+			}
+			
 			// Does the book need to be QA'ed by someone?
 			if ($this->book->needs_qa) {
 				// Is the person reviewing the book a QA person?
