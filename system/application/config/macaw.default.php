@@ -335,6 +335,13 @@ $config['macaw']['cc_values'] = array(
 // downloaded successfully. 
 // $config['macaw']['purge_ia_deriatives'] = FALSE;
 
+// ------------------------------
+// Demo Organization
+// ------------------------------
+// Macaw likes to keep things clean. If this is set to the NAME of an orgnaization, all of the items for that
+// organization will be purged nightly and replaced with a single test item. The name must match exactly 
+// to the name of the organization in the /admin/organization page.
+// $config['macaw']['demo_organization'] = '';
 
 // ------------------------------
 // TEST MODE?

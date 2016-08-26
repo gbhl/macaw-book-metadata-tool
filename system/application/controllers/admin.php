@@ -191,6 +191,13 @@ class Admin extends Controller {
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 		}
 
+			
+		$data['export_modules'] = implode(', ',$this->cfg['export_modules']);
+		if (isset($this->cfg['demo_organization'])) {
+			$data['demo_org'] = $this->cfg['demo_organization'];
+		} else {
+			$data['demo_org'] = "none"; 
+		}
 		$data['admin'] = ($this->session->userdata('username') == 'admin');
 		$this->load->view('admin/scheduled_jobs_view.php', $data);
 	}
@@ -734,7 +741,9 @@ class Admin extends Controller {
 		$fname = $this->logging->log('cron', 'info', 'Cron job \''.$action.'\' manually initiated.');
 
 		// Now we can spawn the cron process.
-		system('cd "'.$this->cfg['base_directory'].'" && MACAW_OVERRIDE=1 "'.$php_exe.'" "'.$this->cfg['base_directory'].'/index.php" cron '.$action.' >> "'.$fname.'" 2>&1');
+		$exec = 'cd "'.$this->cfg['base_directory'].'" && MACAW_OVERRIDE=1 "'.$php_exe.'" "'.$this->cfg['base_directory'].'/index.php" cron '.$action.' >> "'.$fname.'" 2>&1';
+		$this->logging->log('cron', 'info', "EXEC: $exec");
+		system($exec);
 
 		echo json_encode(array('redirect' => $this->config->item('base_url').'admin/logs/'.basename($fname)));
 	}

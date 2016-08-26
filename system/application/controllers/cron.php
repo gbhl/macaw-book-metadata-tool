@@ -189,4 +189,62 @@ class Cron extends Controller {
 		return false;
 	}
 
+	function clean_demo() {		
+		if (!isset($this->cfg['demo_organization'])) {
+			return;
+		}
+	
+		$this->db->select('id');
+		$this->db->where('name', $this->cfg['demo_organization']);
+		$org = $this->db->get('organization');
+		if ($org->num_rows() == 0) {
+			return;
+		}
+		$org = $org->result();		
+		
+		// Get the identifier and IA name of the items for the demo user
+		$this->db->select('id, barcode, identifier');
+		$this->db->where('org_id', $org[0]->id);
+		$this->db->join('custom_internet_archive', 'item.id = custom_internet_archive.item_id', 'left');
+		$item = $this->db->get('item');
+		
+		// Do we have anything to delete?
+		if ($item->num_rows() > 0) {
+			$items = $item->result();
+			foreach ($items as $i) {
+				print "clearing demo item ".$i->barcode."\n";
+				
+				// Delete the incoming directory for the items
+				if (file_exists($this->cfg['incoming_directory'].'/'.$i->barcode)) {
+					$cmd = 'rm -fr '.$this->cfg['incoming_directory'].'/'.$i->barcode;
+					system($cmd);
+				}	
+				if (file_exists($this->cfg['data_directory'].'/'.$i->barcode)) {
+					$cmd = 'rm -fr '.$this->cfg['data_directory'].'/'.$i->barcode;
+					system($cmd);				
+				}
+
+				if ($i->identifier) {
+					if (file_exists($this->cfg['data_directory'].'/import_export/Internet_archive/'.$i->identifier)) {
+						$cmd = 'rm -fr '.$this->cfg['data_directory'].'/import_export/Internet_archive/'.$i->identifier;
+						system($cmd);
+					}
+				}
+			}
+
+			// Delete the metadata for items for the demo organization
+			$this->db->query('delete from metadata where item_id in (select id from item where org_id = '.$org[0]->id.')');
+	
+			// Delete the pages for the items for the demo organization
+			$this->db->query('delete from page where item_id in (select id from item where org_id = '.$org[0]->id.')');
+		
+			// Delete the items
+			$this->db->query('delete from item where org_id = '.$org[0]->id);
+		}
+		
+		// Finally Reinstate the one clean demo item
+		// TODO: Get the demo item ready, serialize it, place it in a safe location
+		// TODO: Do the command to load the demo item
+	}
+
 }

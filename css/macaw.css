@@ -64,7 +64,7 @@ th{
 }
 td, .yui-skin-sam .yui-dt td {
 	font-family: Helvetica;
-	color: #696B6E;
+	color: #333;
 	border: 1px solid #D1DDE4;
 	border-bottom: none;
 	border-left: none;
@@ -935,29 +935,26 @@ td.yui-dt-last {
 	float: left;
 	margin-bottom: 10px;
 }
-.yui-skin-sam #btnCronNewItems.yui-button,
-.yui-skin-sam #btnCronPages.yui-button,
-.yui-skin-sam #btnCronExport.yui-button,
-.yui-skin-sam #btnCronStats.yui-button {
+table#admin_scheduled_jobs {
+	width: 90%;
+	margin: 30px auto;
+	border: 0;
+}
+table#admin_scheduled_jobs td {
+	vertical-align: middle;
+	border: 0;
+	padding: 10px;
+}
+.yui-skin-sam #admin_scheduled_jobs .yui-button {
 	background: url("http://yui.yahooapis.com/2.9.0/build/assets/skins/sam/sprite.png") repeat-x scroll 0 -10 transparent;
 }
-.yui-skin-sam #btnCronNewItems.yui-button button,
-.yui-skin-sam #btnCronNewItems.yui-button a,
-.yui-skin-sam #btnCronNewItems.yui-button a:visited,
-.yui-skin-sam #btnCronPages.yui-button button,
-.yui-skin-sam #btnCronPages.yui-button a,
-.yui-skin-sam #btnCronPages.yui-button a:visited,
-.yui-skin-sam #btnCronExport.yui-button button,
-.yui-skin-sam #btnCronExport.yui-button a,
-.yui-skin-sam #btnCronExport.yui-button a:visited,
-.yui-skin-sam #btnCronStats.yui-button button,
-.yui-skin-sam #btnCronStats.yui-button a,
-.yui-skin-sam #btnCronStats.yui-button a:visited {
+.yui-skin-sam #admin_scheduled_jobs .yui-button button,
+.yui-skin-sam #admin_scheduled_jobs .yui-button a,
+.yui-skin-sam #admin_scheduled_jobs .yui-button a:visited {
 	line-height: 1.5;
-	min-height: 1.25em;
-	padding: 0px 3px;
-	font-size: 75%;
-	width: 84px;
+	padding: 11px;
+	font-size: 120%;
+	width: 220px;
 }
 .yui-skin-sam .yui-button button,
 .yui-skin-sam .yui-button a,
