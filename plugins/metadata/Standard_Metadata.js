@@ -668,6 +668,13 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 			YAHOO.macaw.Standard_Metadata.closeAddPagePieceDialog(YAHOO.macaw.dlgPageNumbering);
 		};
 		var handleReplace = function() {
+			// Verify that we got numbers
+			if (Dom.get('page_number_start').value.match(/[^0-9]/) 
+			    || Dom.get('page_number_increment').value.match(/[^0-9]/) 
+			    || Dom.get('pages_per_image').value.match(/[^0-9]/)) {
+				General.showMessage('Please enter only numbers for <strong>Start Counting At</strong>, <strong>Increment By</strong>, and <strong>Pages per Image</strong>.');
+				return;
+			}
 			YAHOO.macaw.Standard_Metadata.setPageNumbering();
 			YAHOO.macaw.Standard_Metadata.closeAddPagePieceDialog(YAHOO.macaw.dlgPageNumbering);
 		};
