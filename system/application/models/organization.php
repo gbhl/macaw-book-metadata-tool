@@ -263,7 +263,12 @@ class Organization extends Model {
 	 */
 	function get_list() {
 		// Simple query, get everyone, but list the fields we want. Password should always be hidden.
-		$this->db->order_by('name');
+		$this->db->select('max(organization.id) as id, max(organization.name) as name, max(organization.person) as person, max(organization.email) as email, max(organization.phone) as phone, max(organization.address) as address, max(organization.address2) as address2, max(organization.city) as city, max(organization.state) as state, max(organization.postal) as postal, max(organization.country) as country, max(organization.created) as created, max(organization.modified) as modified, sum(page.bytes) as bytes');
+		$this->db->join('item', 'organization.id = item.org_id', 'left'); 
+		$this->db->join('page', 'item.id = page.item_id', 'left'); 
+		$this->db->where_not_in('item.status_code', array('completed','exporting'));
+		$this->db->group_by('organization.id');
+		$this->db->order_by('max(organization.name)');
 		$l = $this->db->get('organization')->result();
 		for ($i=0; $i < count($l); $i++) {
 			$l[$i]->created = preg_replace("/\.(\d+)$/","",$l[$i]->created);
@@ -274,6 +279,3 @@ class Organization extends Model {
 		return $l;
 	}
 }
-
-
-

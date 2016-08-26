@@ -34,20 +34,24 @@
 				elLiner.innerHTML += "&nbsp;&nbsp;<a href=\"#\" onClick=\"Organization.del('"+oData+"');return false;\"><img src=\""+sBaseUrl+"/images/icons/delete.png\" wdith=\"16\" height=\"16\"></a>";
 			}
 
+			var formatBytes = function(elLiner, oRecord, oColumn, oData) {
+				elLiner.innerHTML = Math.round(int(oData)/1024/1024)+" MB";
+			}
+
 			var myColumnDefs = [
 				{key:"name",		label: "Name",			sortable:false},
-				{key:"person",		label: "Contact",		sortable:false},
+				{key:"person",	label: "Contact",		sortable:false},
 				{key:"city",		label: "City",			sortable:false},
 				{key:"state",		label: "State",			sortable:false},
-				{key:"postal",		label: "Zip/Postal",	sortable:false},
-				{key:"country",		label: "Country",		sortable:false},
+				{key:"country",	label: "Country",		sortable:false},
+				{key:"bytes",		label: "Space",			sortable:true, formatter:formatBytes},
 				{key:"id",			label: "Actions",		formatter:formatEditLink}
 			];
 
 			var myDataSource = new YAHOO.util.XHRDataSource(sBaseUrl+'/admin/organization_list/');
 			myDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
 			myDataSource.responseSchema = {
-				fields: ["id", "name", "person", "city", "state", "postal", "country"]
+				fields: ["id", "name", "person", "city", "state", "country", "bytes"]
 			};
 
 			Organization.tblOrganizations = new YAHOO.widget.DataTable("organizations", myColumnDefs, myDataSource);
