@@ -159,7 +159,7 @@ class Admin extends Controller {
 		$data = array('in_progress' => array());
 
 		// Get all books in the system along with their data
-		$books = $this->book->get_all_books(true);
+		$books = $this->book->get_all_books(true, 0, array('new','scanning','scanned','reviewing','reviewed','exporting'));
 
 		// Sort our records into the subarrays
 		foreach ($books as $b) {

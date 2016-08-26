@@ -744,7 +744,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 	 *
 	 * @param boolean [$all] Whether or not to return all data from item as well as the standard metadata fields (default: false)
 	 */
-	function get_all_books($all = false, $org_id = 0) {
+	function get_all_books($all = false, $org_id = 0, $status = array()) {
 		if ($all) {
 			$select = 'max(item.id) as item_id';
 			$select .= ", max(item.barcode) as barcode";
@@ -791,12 +791,24 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 					'left outer');
 				$count++;
 			}
+
+			// Limit based on the statuses provided
+			if (count($status) > 0) {
+				$s = array();
+				foreach ($status as $st) {
+					if (in_array(strtolower($st), array('new','scanning','scanned','reviewing','reviewed','exporting','completed','archived','error'))) {
+						$s[] = $st;
+					}
+				}
+				$this->db->where_in('item.status_code', $s);
+			}
 						
 			$this->db->from('item');
 			$this->db->select($select);
 			$this->db->group_by('item.id');
 			$this->db->order_by($order_by);
 			$query = $this->db->get();
+			$this->logging->log('access', 'info', $this->db->last_query());
 			
 			return $query->result();
 		} else {
@@ -1578,7 +1590,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 		if ($this->id > 0) {
 			$incoming_dir = $this->cfg['incoming_directory'];
 			$scans_dir = $this->cfg['data_directory'].'/'.$this->barcode.'/scans/';
-		    $book_dir = $this->cfg['data_directory'].'/'.$this->barcode.'/';
+			$book_dir = $this->cfg['data_directory'].'/'.$this->barcode.'/';
 			$modified = false;
 			if ($this->check_paths()) {
 				if ($this->status == 'new' || $this->status == 'scanning' || $this->status == 'scanned' || $this->status == 'reviewing' || $this->status == 'reviewed') {
@@ -1609,7 +1621,6 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 							// $exec = "$gs -sDEVICE=jpeg -dJPEGQ=100 -r450x450 -o $outname $fnamenew";
 							// Switched to using PNG. The files are smaller. Quality is maintained compared tp jpeg2000
 							$exec = "$gs -sDEVICE=png16m -r450x450 -dSAFER -dBATCH -dNOPAUSE -dTextAlphaBits=4 -dUseCropBox -sOutputFile=".escapeshellarg($outname)." ".escapeshellarg($fnamenew);
-							print($exec);
 							$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->barcode);
 							exec($exec, $output);
 							
