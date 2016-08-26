@@ -503,6 +503,17 @@ class Internet_archive extends Controller {
 						}
 						// Close and save
 						$zip->close();
+
+						// Send a warning if the file is more than about 4 GB
+						$size = filesize($archive_file);
+						if ($size > 4000000000) {
+							$message = "JP2 file is too large. This may cause trouble at IA. \n\n".
+								"Identifier:    ".$bc."\n\n".
+								"IA Identifier: ".$id."\n\n".
+								"Filename: ".$archive_file."\n\n".
+								"Size: ".$size."\n\n";
+							$this->CI->common->email_admin($message);
+						}
 						$this->CI->logging->log('book', 'debug', 'Created ZIP file '.$id.'_jp2.zip', $bc);
 					}
 				} // if ($file == '' || $file == 'scans')
