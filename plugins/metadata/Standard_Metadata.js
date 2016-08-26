@@ -17,6 +17,7 @@
 YAHOO.macaw.Standard_Metadata = function(parent, data) {
 
 	// Intialize the fields that will hold our metadata
+	this.name = 'Standard_Metadata'; // Should be the name of this file without the .js extension
 	this.data = data;
 	this.sequence = null;
 	this.pagePrefix = null;
@@ -348,19 +349,58 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 	//    The item is removed from the array and the page
 	// ----------------------------
 	this.removePageType = function(e, obj) {
-		var id = obj.id;
-		for (var i in this.pageTypes) {
-			if (this.pageTypes[i].id == id) {
-				// Remove the element from the array
-				type_removed = this.pageTypes[i].type
-				Scanning.log(this.pageID, 'DELETE_page_type', type_removed);
-				this.pageTypes.splice(i, 1);
-				this._unrenderOneMetadataType('page_types',id);
-				Scanning.resizeWindow();
-				this.parent.changed.fire(type_removed);
+// 		var id = obj.id;
+// 		for (var i in this.pageTypes) {
+// 			if (this.pageTypes[i].id == id) {
+// 				// Remove the element from the array
+// 				type_removed = this.pageTypes[i].type
+// 				Scanning.log(this.pageID, 'DELETE_page_type', type_removed);
+// 				this.pageTypes.splice(i, 1);
+// 				this._unrenderOneMetadataType('page_types',id);
+// 				Scanning.resizeWindow();
+// 				this.parent.changed.fire(type_removed);
+// 			}
+// 		}
+// 		oBook._updateDataTableRecordset();
+
+		// Get the title of what we are deleting:
+		type_removed = obj.children[1].innerHTML; // Not pretty, but it should work
+		
+		var pg = oBook.pages.arrayHighlighted();
+		var multiple = (pg.length > 1);
+		// Set an array to accumulate any pageids we modify
+
+		if (multiple) {
+			if (!confirm('Are you sure you want to remove "'+type_removed+'" for '+pg.length+' items?')) {
+				return;
 			}
 		}
+		id = null;
+		var page_ids = new Array();
+		removed = false;
+		for (var i in pg) {
+			// Find the object metadata for this page. 
+			for (var m in pg[i].metadata.modules) {
+				if (pg[i].metadata.modules[m].name == 'Standard_Metadata') {
+					for (var t in pg[i].metadata.modules[m].pageTypes) {
+						if (pg[i].metadata.modules[m].pageTypes[t].type == type_removed) {
+							// Remove the element from the array
+							pg[i].metadata.modules[m].pageTypes.splice(t, 1);
+							// Collect the pageids we modify
+							page_ids.push(pg[i].pageID);
+							removed = true;
+						}
+					}
+				}
+			}
+		}
+		if (removed) {
+			this._unrenderOneMetadataType('page_types', obj.id);
+		}
+		Scanning.log(page_ids.join('|'), 'DELETE_page_type', type_removed);
+		Scanning.resizeWindow();
 		oBook._updateDataTableRecordset();
+		// Log all the pages that were modified at once to not spam the server
 	}
 
 	// ----------------------------

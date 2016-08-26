@@ -17,6 +17,7 @@
 YAHOO.macaw.Generic = function(parent, data) {
 
 	// Intialize the fields that will hold our metadata
+	this.name = "Generic"; // Should be the name of this file without the .js extension
 	this.data = data;
 	this.sequence = data.sequence_number;
 	this.parent = parent;

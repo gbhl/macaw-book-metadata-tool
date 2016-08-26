@@ -17,6 +17,7 @@
 YAHOO.macaw.SAMPLE = function(parent, data) {
 
 	// Intialize the fields that will hold our metadata
+	this.name = "_metadata-sample"; // Should be the name of this file without the .js extension
 	this.data = data;
 	this.sequence = data.sequence_number;
 	this.parent = parent;
