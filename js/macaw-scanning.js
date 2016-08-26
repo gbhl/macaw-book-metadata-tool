@@ -571,12 +571,12 @@
 
 			var thumbs = Dom.getElementsByClassName('thumb', 'li', 'thumbs_missing');
 			if (thumbs.length > 0) {
-				missingwidth = thumbs.length * (thumbs[0].clientWidth + 5) + 120;
+				missingwidth = thumbs.length * (thumbs[0].clientWidth + 5);
 				if (missingwidth < Dom.getViewportWidth()) {
-					missingwidth = Dom.getViewportWidth() + 120;
+					missingwidth = Dom.getViewportWidth();
 				}
 			} else {
-				missingwidth = Dom.getViewportWidth() + 120;
+				missingwidth = Dom.getViewportWidth();
 			}
 			Dom.setStyle('thumb_scroller','width', missingwidth+'px');
 			Dom.setStyle('thumbs', 'height', intHeight+'px');
