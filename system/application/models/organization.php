@@ -263,13 +263,18 @@ class Organization extends Model {
 	 */
 	function get_list() {
 		// Simple query, get everyone, but list the fields we want. Password should always be hidden.
-		$this->db->select('max(organization.id) as id, max(organization.name) as name, max(organization.person) as person, max(organization.email) as email, max(organization.phone) as phone, max(organization.address) as address, max(organization.address2) as address2, max(organization.city) as city, max(organization.state) as state, max(organization.postal) as postal, max(organization.country) as country, max(organization.created) as created, max(organization.modified) as modified, sum(page.bytes) as bytes');
-		$this->db->join('item', 'organization.id = item.org_id', 'left'); 
-		$this->db->join('page', 'item.id = page.item_id', 'left'); 
-		$this->db->where_not_in('item.status_code', array('completed','exporting'));
-		$this->db->group_by('organization.id');
-		$this->db->order_by('max(organization.name)');
-		$l = $this->db->get('organization')->result();
+		$l = $this->db->query(
+			'SELECT o.*, coalesce(i.bytes, 0) as bytes '.
+			'FROM organization o '.
+			'LEFT OUTER JOIN ( '.
+			'	SELECT sum(p.bytes) AS bytes, i.id, max(i.status_code) AS status_code, max(i.org_id) as org_id, count(*) as pages '.
+			'	FROM page p  '.
+			'	INNER JOIN item i ON p.item_id = i.id  '.
+			'	WHERE i.status_code NOT IN (\'completed\', \'exporting\')  '.
+			'	GROUP BY i.org_id '.
+			') i ON o.id = i.org_id '.
+			'ORDER BY o.name'
+		)->result();
 		for ($i=0; $i < count($l); $i++) {
 			$l[$i]->created = preg_replace("/\.(\d+)$/","",$l[$i]->created);
 			$l[$i]->modified = preg_replace("/\.(\d+)$/","",$l[$i]->modified);
