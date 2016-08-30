@@ -325,6 +325,8 @@ $config['macaw']['cc_values'] = array(
 // ------------------------------
 // BHL Connection
 // ------------------------------
+// In order to get the list of institutions for Rights Holder and Scanning Institution, you must set your
+// BHL API Key here. If this is not set, the list of institutions will be empty. 
 // $config['macaw']['bhl_api_key'] = 'API_KEY_GOES_HERE';
 
 // ------------------------------
