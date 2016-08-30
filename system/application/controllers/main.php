@@ -430,7 +430,8 @@ class Main extends Controller {
 		$this->book->unset_metadata('', true); // Wipe all all item metadata
 		
 		foreach ($_REQUEST as $field => $val) {
-			if ($field != 'id' && $field != 'needs_qa' && $field != 'ia_ready_images' && $field != 'page_progression' && $field != 'idenitifer') {
+			if ($field != 'id' && $field != 'needs_qa' && $field != 'ia_ready_images' && $field != 'page_progression' && $field != 'idenitifer' &&
+			    $field != 'scanning_institution[]' && $field != 'scanning_institution_other' && $field != 'rights_holder[]' && $field != 'rights_holder_other') {
 				$matches = array();
 				if (preg_match('/^new_fieldname_(\d+)$/', $field, $matches)) {
 					$c = $matches[1];
@@ -451,6 +452,30 @@ class Main extends Controller {
 							}
 						}
 					}
+				}
+			}
+		}
+		
+		if (array_key_exists('scanning_institution', $_POST)) {
+			if ($_POST['scanning_institution'] != '(other)') {
+				print "Setting scanning_institution1 = ".$_POST['scanning_institution']."\n";
+				$this->book->set_metadata('scanning_institution', $_POST['scanning_institution'], false);
+			} else {
+				if (array_key_exists('scanning_institution_other', $_POST)) {
+					print "Setting scanning_institution2 = ".$_POST['scanning_institution_other']."\n";
+					$this->book->set_metadata('scanning_institution', $_POST['scanning_institution_other'], false);
+				}
+			}
+		}
+		
+		if (array_key_exists('rights_holder', $_POST)) {
+			if ($_POST['rights_holder'] != '(other)') {
+					print "Setting rights_holder1 = ".$_POST['rights_holder']."\n";
+				$this->book->set_metadata('rights_holder', $_POST['rights_holder'], false);
+			} else {
+				if (array_key_exists('rights_holder_other', $_POST)) {
+					print "Setting rights_holder2 = ".$_POST['rights_holder_other']."\n";
+					$this->book->set_metadata('rights_holder', $_POST['rights_holder_other'], false);
 				}
 			}
 		}

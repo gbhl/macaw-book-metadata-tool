@@ -162,6 +162,14 @@
 			}
 		}
 		
+		FIELDS.checkOther = function(el) {
+			if (el.value == '(other)') {
+				Dom.get(el.name+'_other').style.display = 'block';
+			} else {
+				Dom.get(el.name+'_other').style.display = 'none';
+			}
+		}
+		
 		FIELDS.validate = function() {
 			var fields = document.getElementsByTagName('input');
 			var m;
@@ -263,16 +271,37 @@
 					foreach ($metadata as $i) { ?>
 					<?php if ($i['fieldname'] == 'scanning_institution' || $i['fieldname'] == 'rights_holder') { ?> 
 						<tr class="row" id="existing_field_<?php echo($c) ?>">
-							<td class="fieldname"><?php echo($i['fieldname']); ?>:</td>
+							<td class="fieldname"><?php echo($i['fieldname'] == 'scanning_institution' ? 'Scanning Institution' : ($i['fieldname'] == 'rights_holder' ? 'Rights Holder' : $i['fieldname'])); ?>:</td>
 							<td>
-								<select name="<?php echo($i['fieldname']); ?>[]" style="width: 100%">
+								<select name="<?php echo($i['fieldname']); ?>" style="width: 100%" onChange="FIELDS.checkOther(this)">
 									<option value="">(none)</option>
+									<?php
+										$other = true;
+										if ($i['value']) {
+											foreach ($bhl_institutions as $bhl) {
+												if ($bhl->InstitutionName == $i['value']) {
+													$other = false;
+													break;
+												}
+											} 
+										} else {
+											$other = false;										
+										}
+									?>
+									<option value="(other)"<?php if ($other) { echo(' selected'); } ?>>(Other)</option>
 									<?php 
 										foreach ($bhl_institutions as $bhl) {
 											echo('<option'.($bhl->InstitutionName == $i['value'] ? ' selected' : '').'>'.$bhl->InstitutionName.'</option>');
 										} 
 									?>
 								</select>
+								<div id="<?php echo($i['fieldname']); ?>_other" class="txt-other-value" <?php if (!$other) {?> style="display: none" <?php } ?>>
+								<?php if ($other) {?>
+									Other: <input type="text" name="<?php echo($i['fieldname']); ?>_other" placeholder="Enter other value here" value="<?php echo($i['value']); ?>">
+								<?php } else { ?>
+									Other: <input type="text" name="<?php echo($i['fieldname']); ?>_other" placeholder="Enter other value here">
+								<?php } ?>
+								</div>
 							</td>
 							<td><a href="javascript:FIELDS.deleteField('existing_field_<?php echo($c); ?>')"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/delete.png" title="Delete field"></a></td>
 						</tr>
@@ -307,16 +336,18 @@
 							$counter++;
 				?>
 						<tr class="row" id="newfields_<?php echo($counter); ?>">
-							<td class="fieldname"><?php echo($f); ?><input type="hidden" name="new_fieldname_<?php echo($counter); ?>" maxlength="32" value="<?php echo($f); ?>" class="txt-fieldname"></td>
+							<td class="fieldname"><?php echo($f == 'scanning_institution' ? 'Scanning Institution' : ($f == 'rights_holder' ? 'Rights Holder' : $f)); ?><input type="hidden" name="new_fieldname_<?php echo($counter); ?>" maxlength="32" value="<?php echo($f); ?>" class="txt-fieldname"></td>
 							<td>
-								<select name="new_value_<?php echo($counter); ?>" id="new_value_<?php echo($counter); ?>" style="width: 100%">
+								<select name="new_value_<?php echo($counter); ?>" id="new_value_<?php echo($counter); ?>" style="width: 100%" onChange="FIELDS.checkOther(this);">
 									<option value="">(none)</option>
+									<option value="(other)">(Other)</option>
 									<?php 
 										foreach ($bhl_institutions as $bhl) {
 											echo('<option>'.$bhl->InstitutionName.'</option>');
 										} 
 									?>
 								</select>
+								<input type="text" name="new_value_<?php echo($counter); ?>_other" id="new_value_<?php echo($counter); ?>_other" class="txt-other-value" placeholder="Enter other value here">
 							</td>
 							<td><a href="javascript:FIELDS.deleteField('newfields_<?php echo($counter); ?>')"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/delete.png" title="Delete field"></a></td>
 						</tr>
