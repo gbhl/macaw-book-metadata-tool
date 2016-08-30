@@ -568,62 +568,38 @@ td.yui-dt-last {
 /* ****************************** */
 /* Dashboard Page */
 /* ****************************** */
+
 #dashboard {
 	text-align:center;
-	width: 64.7em;
-	margin: 1.55em auto;
-}
-#dashboard #controls {
-	text-align:center;
-	margin-bottom: .7em;
-}
-#summary, #total_scanned, #disk_usage, #pages_per_day {
-	padding: .5em;
-	width: 27em;
-	height: 15.5em;
-}
-#summary {
-	text-align: left;
-	font-size: 115%;
-}
-.bd {
-	text-align: left;
-}
-#dashboard #summary-widget {
-	padding: 1em;
-}
-#dashboard .yui-panel {
+	width: 850px;
 	border: 0;
 }
-#dashboard .yui-panel .bd {
-	background-color: #FFFFFF;
-	text-align: left;
-	border: 1px solid #4F7E97;
-	width: 28.1em;
-	padding-bottom: 1.5em;
-}
-#dashboard .yui-panel .hdr {
-	font-size: 120%;
-	padding-bottom: .3em;
+#dashboard h3{
+	text-align:center;
 	color: #4F7E97;
+	font-weight: normal;
+	margin-bottom: 5px;
 }
-#Column1, #Column2 {
-	position: relative;
-	float: left;
-	width: 32em;
-	min-height: 21em;
+
+#dashboard td.widget {
+	vertical-align:top;
+	border: 0;
 }
-#dashboard .yui-panel {
-	width: 30.8em;
-	margin: .4em .4em 1.55em .4em;
-	background-color: #FFFFFF;
+
+#dashboard #disk, #dashboard #perday, #dashboard #pages {
+	padding: 5px;
+	border: 1px solid #CCC;
+	height: 230px;
 }
-.yui-panel .container-close {
-	text-indent: -10000em;
+
+#dashboard div#summary {
+	font-size: 14px;
+	padding: 25px 10px 10px 50px;
+	border: 1px solid #ccc;
+	height: 205px;
+	line-height: 150%;
 }
-#summary-widget {
-	line-height: 1.5;
-}
+
 /* ****************************** */
 /* Main Page */
 /* ****************************** */
@@ -1610,7 +1586,7 @@ textarea, input {
 #edit input[type=file],
 #edit textarea {
 	width: 100%;
-	color: #696B6E;
+	color: #333;
 }
 #edit textarea {
 	height: 100px;
@@ -1639,6 +1615,12 @@ textarea, input {
 	width: 700px;
 	display:block;
 	text-align: center;
+}
+#edit .txt-other-value {
+	margin-top: 6px;
+}
+#edit .txt-other-value input[type=text] {
+	width: 50%;
 }
 
 /* ****************************** */

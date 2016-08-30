@@ -133,13 +133,12 @@ class Dashboard extends Controller {
 
 		$data = array();
 		$data['title'] = 'Summary';
-		$data['html'] = '<div id="summary-widget">'.$row->new.' items ready to be scanned.<br>'.
-		               $reviewing.' items in progress.<br>'.
-		               $row->reviewed.' reviewed and ready to share.<br>'.
-		               $row->exporting.' being exported or verified.<br>'.
-		               $row->completed.' items completed.<br>'.
-		               $row->archived.' items archived.<br>'.
-		               $row->error.' items have errors.<br><br>'.
+		$data['html'] = '<div id="summary-widget">'.$row->new.' new item'.($row->new > 1 || $row->new == 0 ? 's' : '').'.<br>'.
+		               $reviewing.' item'.($reviewing > 1 || $reviewing == 0 ? 's' : '').' in progress.<br>'.
+		               $row->reviewed.' item'.($row->reviewed > 1 || $row->reviewed == 0 ? 's' : '').' ready to export.<br>'.
+		               $row->exporting.' item'.($row->exporting > 1 || $row->exporting == 0 ? 's' : '').' being exported.<br>'.
+		               $row->completed.' item'.($row->completed > 1 || $row->completed == 0 ? 's' : '').' completed.<br>'.
+		               $row->error.' item'.($row->error > 1 || $row->error == 0 ? 's' : '').' have errors.<br><br>'.
 		               $row->pages.' pages scanned total.<br>';
 		$data['column'] = '1';
 		return $data;
@@ -173,40 +172,9 @@ class Dashboard extends Controller {
 		}
 
 		$data = array();
-		$data['title'] = 'Disk Usage (%)';
-		$data['datasourcetype'] = 'YAHOO.util.DataSource.TYPE_JSARRAY';
-		$data['html'] = 'Make sure you have Adboe Flash Version 9.0.4 or better installed. If you are seeing this, you need to <a href="http://get.adobe.com/flashplayer/">install or ugprade</a>.';
 		$data['fields'] = array('day','megs');
-		$data['type'] = 'LineChart';
-		$data['xField'] = 'day';
-		$data['yField'] = 'value';
-		$data['div_id'] = 'disk_usage';
 		$data['data'] = $rows;
-		$data['column'] = '2';
 		return $data;
-
-	// 	{ title: 'Disk Usage',
-	// 	  datasourcetype: YAHOO.util.DataSource.TYPE_JSARRAY,
-	// 	  fields: [ "day","megs" ],
-	// 	  type: 'LineChart',
-	// 	  xField: "day",
-	// 	  yField: "megs",
-	// 	  div_id: 'disk_usage',
-	// 	  column: 2,
-	// 	  data: [ { day: '6/7', megs: '6'},
-	// 			  { day: '6/8', megs: '16'},
-	// 			  { day: '6/9', megs: '28'},
-	// 			  { day: '6/10', megs: '32'},
-	// 			  { day: '6/11', megs: '47'},
-	// 			  { day: '6/12', megs: '51'},
-	// 			  { day: '6/13', megs: '51'},
-	// 			  { day: '6/14', megs: '75'},
-	// 			  { day: '6/15', megs: '89'},
-	// 			  { day: '6/16', megs: '93'}
-	// 			],
-	// 		html: 'Make sure you have Adboe Flash Version 9.0.4 or better installed. If you are seeing this, you need to <a href="http://get.adobe.com/flashplayer/">install or ugprade</a>.'
-	// 	}
-
 	}
 
 	/**
@@ -233,40 +201,9 @@ class Dashboard extends Controller {
 		}
 
 		$data = array();
-		$data['title'] = 'Total Pages Scanned';
-		$data['datasourcetype'] = 'YAHOO.util.DataSource.TYPE_JSARRAY';
-		$data['html'] = 'Make sure you have Adboe Flash Version 9.0.4 or better installed. If you are seeing this, you need to <a href="http://get.adobe.com/flashplayer/">install or ugprade</a>.';
 		$data['fields'] = array('day','pages');
-		$data['type'] = 'LineChart';
-		$data['xField'] = 'day';
-		$data['yField'] = 'pages';
-		$data['div_id'] = 'total_scanned';
 		$data['data'] = $rows;
-		$data['column'] = '1';
 		return $data;
-
-	// 	{ title: 'Total Pages Scanned',
-	// 	  datasourcetype: YAHOO.util.DataSource.TYPE_JSARRAY,
-	// 	  fields: [ "day","pages" ],
-	// 	  type: 'LineChart',
-	// 	  xField: "day",
-	// 	  yField: "pages",
-	// 	  div_id: 'total_scanned',
-	// 	  column: 1,
-	// 	  data: [ { day: '6/7', pages: '5'},
-	// 			  { day: '6/8', pages: '15'},
-	// 			  { day: '6/9', pages: '27'},
-	// 			  { day: '6/10', pages: '38'},
-	// 			  { day: '6/11', pages: '46'},
-	// 			  { day: '6/12', pages: '50'},
-	// 			  { day: '6/13', pages: '50'},
-	// 			  { day: '6/14', pages: '74'},
-	// 			  { day: '6/15', pages: '88'},
-	// 			  { day: '6/16', pages: '100'}
-	// 			],
-	// 		html: 'Make sure you have Adboe Flash Version 9.0.4 or better installed. If you are seeing this, you need to <a href="http://get.adobe.com/flashplayer/">install or ugprade</a>.'
-	// 	}
-
 	}
 
 	/**
@@ -293,39 +230,8 @@ class Dashboard extends Controller {
 		}
 
 		$data = array();
-		$data['title'] = 'Pages Per Day';
-		$data['datasourcetype'] = 'YAHOO.util.DataSource.TYPE_JSARRAY';
-		$data['html'] = 'Make sure you have Adboe Flash Version 9.0.4 or better installed. If you are seeing this, you need to <a href="http://get.adobe.com/flashplayer/">install or ugprade</a>.';
 		$data['fields'] = array('day','pages');
-		$data['type'] = 'ColumnChart';
-		$data['xField'] = 'day';
-		$data['yField'] = 'pages';
-		$data['div_id'] = 'pages_per_day';
 		$data['data'] = $rows;
-		$data['column'] = '2';
 		return $data;
-
-	// 	{ title: 'Pages Per Day',
-	// 	  datasourcetype: YAHOO.util.DataSource.TYPE_JSARRAY,
-	// 	  fields: [ "day","pages" ],
-	// 	  type: 'ColumnChart',
-	// 	  xField: "day",
-	// 	  yField: "pages",
-	// 	  div_id: 'pages_per_day',
-	// 	  column: 2,
-	// 	  data: [ { day: '6/7', pages: '23'},
-	// 			  { day: '6/8', pages: '23'},
-	// 			  { day: '6/9', pages: '27'},
-	// 			  { day: '6/10', pages: '24'},
-	// 			  { day: '6/11', pages: '29'},
-	// 			  { day: '6/12', pages: '1'},
-	// 			  { day: '6/13', pages: '1'},
-	// 			  { day: '6/14', pages: '35'},
-	// 			  { day: '6/15', pages: '28'},
-	// 			  { day: '6/16', pages: '24'}
-	// 			],
-	// 		html: 'Make sure you have Adboe Flash Version 9.0.4 or better installed. If you are seeing this, you need to <a href="http://get.adobe.com/flashplayer/">install or ugprade</a>.'
-	// 	}
-
 	}
 }

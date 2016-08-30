@@ -31,13 +31,42 @@
 						if (r.error) {
 							General.showErrorMessage(r.error);
 						} else {
-							YAHOO.macaw.Dashboard.widget_data = r.widgets;
-							var uw = user_widgets.widgets;
-							for (c = 0; c <= uw.length; c++) {
-								for (i in uw[c]) {
-									YAHOO.macaw.Dashboard.widgetRegister(uw[c][i], c+1);
-								}
+							Dom.get('summary').innerHTML = r.widgets.summary.html;
+
+							
+							// Pages Per day
+							var dataPerDay = new google.visualization.DataTable();
+							dataPerDay.addColumn('string','Date');
+							dataPerDay.addColumn('number','Pages');
+							for (i in r.widgets.perday.data) {
+								dataPerDay.addRow([r.widgets.perday.data[i].day,  int(r.widgets.perday.data[i].pages)]);
 							}
+							var chartPerDay = new google.visualization.LineChart(document.getElementById('perday'));
+							var options = {legend: { position: 'bottom' }, pointSize: 5, vAxis : {minValue: 0}, fontSize: 13};
+							chartPerDay.draw(dataPerDay, options);
+
+							// Disk Usage
+							var dataDisk = new google.visualization.DataTable();
+							dataDisk.addColumn('string','Date');
+							dataDisk.addColumn('number','Percent (%)');
+							for (i in r.widgets.disk.data) {
+								dataDisk.addRow([r.widgets.disk.data[i].day,  int(r.widgets.disk.data[i].value)]);
+							}
+							var chartDisk = new google.visualization.LineChart(document.getElementById('disk'));
+							options = {legend: { position: 'bottom' }, pointSize: 5, vAxis : {minValue: 0, maxValue: 100}, fontSize: 13};
+							chartDisk.draw(dataDisk, options);
+
+							// Pages Per day
+							var dataPages = new google.visualization.DataTable();
+							dataPages.addColumn('string','Date');
+							dataPages.addColumn('number','Pages');
+							for (i in r.widgets.pages.data) {
+								dataPages.addRow([r.widgets.pages.data[i].day,  int(r.widgets.pages.data[i].pages)]);
+							}
+							var chartPages = new google.visualization.LineChart(document.getElementById('pages'));
+							options = {legend: { position: 'bottom' }, pointSize: 5,  vAxis: { minValue: int(r.widgets.pages.data[0].pages) - 10000 }, fontSize: 13};
+							chartPages.draw(dataPages, options);
+
 						}
 					}
 				},
@@ -50,40 +79,16 @@
 			// Call the URL to get the data
 			var transaction = YAHOO.util.Connect.asyncRequest('GET', sBaseUrl+'/dashboard/widget/summary,disk,perday,pages', loadWidgets, null);
 
-// 			var oAddWidgetButton = new YAHOO.widget.Button("addWidgetButtton", {
-//                                         type: "menu",
-//                                         menu: "addWidgetSelect" });
-// 
-// 			var onWidgetButtonClick = function (p_sType, p_aArgs) {
-// 				var oEvent = p_aArgs[0],	//	DOM event
-// 					oMenuItem = p_aArgs[1];	//	MenuItem instance that was the
-// 											//	target of the event
-// 				if (oMenuItem) {
-// 					YAHOO.macaw.Dashboard.addWidget(oMenuItem.value, 1);
-// 				}
-// 			};
-// 
-// 			var onWidgetButtonMenuLoad = function (p_sType, p_aArgs) {
-// 				Dom.setStyle('yui-gen0', 'z-index', '100');
-// 			}
-// 
-// 			//	Add a "click" event listener for the Button's Menu
-// 			oAddWidgetButton.getMenu().subscribe("click", onWidgetButtonClick);
-// 			oAddWidgetButton.getMenu().subscribe("show", onWidgetButtonMenuLoad);
-// 
-			// Make the columns drag-enterable
-			var column1Drop = new YAHOO.util.DDTarget('Column1', "Group1");
-			var column2Drop = new YAHOO.util.DDTarget('Column2', "Group1");
-
 			// Initialize the continue button
 			var continueClick = function () { window.location = sBaseUrl+'/main'; }
-          // Continue Button removed from Dashboard page
-          //  var obtnContinue = new YAHOO.widget.Button("btnContinue");
-          //  obtnContinue.on("click", continueClick);
+			// Continue Button removed from Dashboard page
+			//  var obtnContinue = new YAHOO.widget.Button("btnContinue");
+			//  obtnContinue.on("click", continueClick);
 
 		},
 
-		widgetRegister: function(name, column) {
+		widgetRegister: function(name) {
+
 			// Make sure this widget isn't already on the page
 			var found = 0;
 			for (i in YAHOO.macaw.Dashboard.registered) {
@@ -205,61 +210,6 @@
 			l_widget.drag = widgetDrag;
 
 			return 1;
-		},
-
-		hdlDragStart: function(x, y) {
-			if (this.id == 'Column1' || this.id == 'Column2') {
-				return;
-			}
-			var dragEl = this.getDragEl();
-			var el = this.getEl();
-			YAHOO.macaw.Dashboard.container = el.parentNode;
-
-			el.style.display = "none";
-			dragEl.style.zIndex = ++YAHOO.macaw.Dashboard.zIndex;
-			dragEl.innerHTML = el.innerHTML;
-			dragEl.style.color = "#ebebeb";
-			dragEl.style.backgroundColor = "#fff";
-			dragEl.style.textAlign = "center";
-			YAHOO.macaw.Dashboard.marker.style.display = "none";
-			YAHOO.macaw.Dashboard.marker.style.height = Dom.getStyle(dragEl, "height");
-			YAHOO.macaw.Dashboard.marker.style.width = Dom.getStyle(dragEl, "width");
-			YAHOO.macaw.Dashboard.marker.style.margin = "5px";
-			YAHOO.macaw.Dashboard.marker.style.marginBottom = "20px";
-			YAHOO.macaw.Dashboard.marker.style.border = "2px dashed #7e7e7e";
-			YAHOO.macaw.Dashboard.marker.style.display= "block";
-			YAHOO.macaw.Dashboard.container.insertBefore(YAHOO.macaw.Dashboard.marker, el);
-		},
-
-		hdlDragEnter: function(e, id) {
-			var el = document.getElementById(id);
-			if (id.substr(0, 6)	=== "Column") {
-				el.appendChild(YAHOO.macaw.Dashboard.marker);
-			} else {
-				YAHOO.macaw.Dashboard.container = el.parentNode;
-				YAHOO.macaw.Dashboard.container.insertBefore(YAHOO.macaw.Dashboard.marker, el);
-			}
-		},
-
-		hdlDragOut: function(e, id) {
-			var el = document.getElementById(id);
-			YAHOO.macaw.Dashboard.lastRectNode[YAHOO.macaw.Dashboard.container.id] = YAHOO.macaw.Dashboard.getLastNode(YAHOO.macaw.Dashboard.container.lastChild);
-
-			if (el.id === YAHOO.macaw.Dashboard.lastRectNode[YAHOO.macaw.Dashboard.container.id].id) {
-				YAHOO.macaw.Dashboard.container.appendChild(YAHOO.macaw.Dashboard.marker);
-			}
-		},
-
-		hdlDragEnd: function(e, id) {
-			var el = this.getEl();
-			try {
-				YAHOO.macaw.Dashboard.marker = YAHOO.macaw.Dashboard.container.replaceChild(el, YAHOO.macaw.Dashboard.marker);
-			} catch(err) {
-				YAHOO.macaw.Dashboard.marker = YAHOO.macaw.Dashboard.marker.parentNode.replaceChild(el, YAHOO.macaw.Dashboard.marker);
-			}
-			el.style.display = "block";
-			YAHOO.macaw.Dashboard.updateRegistered();
-			YAHOO.macaw.Dashboard.saveUserWidgets();
 		},
 
 
