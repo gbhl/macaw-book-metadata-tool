@@ -2028,3 +2028,10 @@ textarea, input {
 	font-family: monospace;
 }
 
+
+/* ****************************** */
+/* NEW UPLOAD PAGE                */
+/* ****************************** */
+input.toggle {
+	display: none;
+}
