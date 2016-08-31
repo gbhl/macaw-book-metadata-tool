@@ -1622,7 +1622,9 @@ textarea, input {
 #edit .txt-other-value input[type=text] {
 	width: 50%;
 }
-
+#edit td {
+	white-space: nowrap;
+}
 /* ****************************** */
 /* IMPORT CSV PAGE                */
 /* ****************************** */
@@ -2028,3 +2030,37 @@ textarea, input {
 	font-family: monospace;
 }
 
+
+/* ****************************** */
+/* JQUERY UPLOADER                */
+/* ****************************** */
+input.toggle[type=checkbox],
+button.delete {
+	display: none;
+}
+p.size {
+	margin: 9px 0px 0px 0px;
+  float: right;
+}
+
+div.progress {
+	margin: 9px 0px 0px 0px;
+	background-color: #CCC;
+	width: 150px;
+}
+#fileupload table {
+	margin: 0 auto;
+}
+#fileupload tbody.files td {
+	width: 38%;
+}
+#fileupload tbody.files td:first-child {
+	width: 1%;
+}
+#fileupload tbody.files td:last-child {
+	width: 23%;
+}
+
+.btn {
+	padding: 3px 7px !important;
+}

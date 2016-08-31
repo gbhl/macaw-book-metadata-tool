@@ -347,7 +347,9 @@
 										} 
 									?>
 								</select>
-								<input type="text" name="new_value_<?php echo($counter); ?>_other" id="new_value_<?php echo($counter); ?>_other" class="txt-other-value" placeholder="Enter other value here">
+								<div id="new_value_<?php echo($counter); ?>_other" class="txt-other-value" style="display: none">
+									Other: <input type="text" name="new_value_<?php echo($counter); ?>_other" placeholder="Enter other value here">
+								</div>
 							</td>
 							<td><a href="javascript:FIELDS.deleteField('newfields_<?php echo($counter); ?>')"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/delete.png" title="Delete field"></a></td>
 						</tr>
