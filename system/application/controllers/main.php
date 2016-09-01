@@ -458,11 +458,9 @@ class Main extends Controller {
 		
 		if (array_key_exists('scanning_institution', $_POST)) {
 			if ($_POST['scanning_institution'] != '(other)') {
-				print "Setting scanning_institution1 = ".$_POST['scanning_institution']."\n";
 				$this->book->set_metadata('scanning_institution', $_POST['scanning_institution'], false);
 			} else {
 				if (array_key_exists('scanning_institution_other', $_POST)) {
-					print "Setting scanning_institution2 = ".$_POST['scanning_institution_other']."\n";
 					$this->book->set_metadata('scanning_institution', $_POST['scanning_institution_other'], false);
 				}
 			}
@@ -470,11 +468,9 @@ class Main extends Controller {
 		
 		if (array_key_exists('rights_holder', $_POST)) {
 			if ($_POST['rights_holder'] != '(other)') {
-					print "Setting rights_holder1 = ".$_POST['rights_holder']."\n";
 				$this->book->set_metadata('rights_holder', $_POST['rights_holder'], false);
 			} else {
 				if (array_key_exists('rights_holder_other', $_POST)) {
-					print "Setting rights_holder2 = ".$_POST['rights_holder_other']."\n";
 					$this->book->set_metadata('rights_holder', $_POST['rights_holder_other'], false);
 				}
 			}
