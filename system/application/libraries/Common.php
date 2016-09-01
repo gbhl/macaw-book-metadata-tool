@@ -396,7 +396,7 @@ class Common extends Controller {
 				$marc = preg_replace("/<collection>/", "<collection xmlns=\"http://www.loc.gov/MARC21/slim\">", $marc);
 
 			// Do we have just the <record> tags?
-			} else if (!preg_match("/<collection>/", $marc) && preg_match("/\<record>/", $marc) && !preg_match("/http:\/\/www.loc.gov\/MARC21\/slim\/", $marc)) {
+			} else if (!preg_match("/<collection>/", $marc) && preg_match("/\<record>/", $marc) && !preg_match("/http:\/\/www.loc.gov\/MARC21\/slim\//", $marc)) {
 				// No, add the namespace to the record tag.
 				$marc = preg_replace("/\<record>/", "<record xmlns=\"http://www.loc.gov/MARC21/slim\">", $marc);
 			}
@@ -420,8 +420,32 @@ class Common extends Controller {
 // 					$marc = '<?xml version="1.0" encoding="UTF-8" ?'.'>'."\n".$marc;
 // 				}
 			}
-			
 		}
+		// Is this an OAI MARC file
+		if (preg_match("/oai-marc/", $marc)) {
+			$this->CI->session->set_userdata('errormessage', "The MARC XML is invalid. Macaw does not recognize OAI MARC data.");
+		} else if (preg_match("/fixfield/", $marc)) {
+			$this->CI->session->set_userdata('errormessage', "The MARC XML is invalid. Macaw does not recognize OAI MARC data.");
+		} else if (preg_match("/varfield/", $marc)) {
+			$this->CI->session->set_userdata('errormessage', "The MARC XML is invalid. Macaw does not recognize OAI MARC data.");
+		}
+
+		// Can we parse the XML file?
+		$xml = new DOMDocument;
+		$ret = $xml->loadXML($marc);
+		if (!$ret) {
+			$this->CI->session->set_userdata('errormessage', "Unable to parse MARC XML data. Please check that your MARC XML is formatted correctly.");
+			return $marc;
+		}
+
+		// Do we have more than one record?
+		if (preg_match("/\<collection/", $marc)) {
+			$xml = simplexml_load_string($marc);
+			if ($xml->count() > 1) {
+				$this->CI->session->set_userdata('errormessage', "The MARC XML is contains more than one record. Please verify that your MARC XML contains exactly one &lt;record&gt; element.");
+			}
+		}
+
 		return $marc;
 	}
 
