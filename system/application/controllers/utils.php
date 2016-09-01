@@ -91,6 +91,51 @@ class Utils extends Controller {
 	/**
 	 * Export data for an item to a TAR file
 	 *
+	 * CLI: Given a barcode on the command line, this will reset the item so that it can be
+	 * re-uploaded to the internet archive.
+	 *
+	 * Usage: php index.php utils serialize 3908808264355
+	 *
+	 * Parameter: barcode 
+	 *
+	 * @since Version 2.2
+	 */
+	function reset_item($barcode) {
+		if (!$barcode) {
+			echo "Please supply a barcode\n";
+			die;
+		}
+		if (!$this->book->exists($barcode)) {
+			echo "Item not found with barcode $barcode.\n";
+			die;
+		}
+
+		// Set the status to reviewing
+		$this->book->load($barcode);
+		$this->db->query("update item set status_code = 'reviewed' where id = ".$this->book->id);
+
+		// Delete the IA Export status 
+		$this->db->query("delete from item_export_status where item_id = ".$this->book->id." and export_module = 'Internet_archive'");
+		
+		// Delete the IA derived images on disk
+		$this->db->select('identifier');
+		$this->db->where('item_id', $this->book->id);
+		$query = $this->db->get('custom_internet_archive');
+		if ($row = $query->row()) {
+			if ($row->identifier) {
+				$cmd = 'rm -fr '.$this->cfg['data_directory'].'/import_export/'.$row->identifier;
+				`$cmd`;
+			}
+		}
+
+		// Give command to start re-uploading the item
+		print "Item has been reset. Please use the following command to re-upload to the Internet Archive.\n\n";
+		print "    sudo -u WWW_USER php index.php cron export Internet_archive ".$barcode."\n\n";
+	}
+
+	/**
+	 * Export data for an item to a TAR file
+	 *
 	 * CLI: Given a barcode on the command line, this will export the data and images 
 	 * for an item into a tar. This filecan then be imported into another installation of Macaw.
 	 * Technically, the data can be extracted from the file, too.
