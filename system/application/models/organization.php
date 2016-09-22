@@ -267,7 +267,7 @@ class Organization extends Model {
 			'SELECT o.*, coalesce(i.bytes, 0) as bytes '.
 			'FROM organization o '.
 			'LEFT OUTER JOIN ( '.
-			'	SELECT sum(p.bytes) AS bytes, i.id, max(i.status_code) AS status_code, max(i.org_id) as org_id, count(*) as pages '.
+			'	SELECT sum(p.bytes) AS bytes, max(i.id), max(i.status_code) AS status_code, max(i.org_id) as org_id, count(*) as pages '.
 			'	FROM page p  '.
 			'	INNER JOIN item i ON p.item_id = i.id  '.
 			'	WHERE i.status_code NOT IN (\'completed\', \'exporting\')  '.
