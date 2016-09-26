@@ -52,8 +52,13 @@ class Importer extends Model {
 			if (in_array($args[0], $import_modules)) {
 				require_once($config['plugins_directory'].'/import/'.$args[0].EXT);
 				eval('$obj = new '.$args[0].'();');
-				array_shift($args);
-				$this->_import($obj->get_new_items($args), $args[0]);
+				// Ensure we have an argument
+				$arg = null;
+				if (count($args) > 1) {
+					array_shift($args);
+					$arg = $args[0];
+				}
+				$this->_import($obj->get_new_items($args), $arg);
 			} else {
 				echo "Import Module not found: $args[0] (Allowed values are: ".implode(', ', $import_modules).")\n";
 			}

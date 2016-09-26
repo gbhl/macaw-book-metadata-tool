@@ -458,11 +458,9 @@ class Main extends Controller {
 		
 		if (array_key_exists('scanning_institution', $_POST)) {
 			if ($_POST['scanning_institution'] != '(other)') {
-				print "Setting scanning_institution1 = ".$_POST['scanning_institution']."\n";
 				$this->book->set_metadata('scanning_institution', $_POST['scanning_institution'], false);
 			} else {
 				if (array_key_exists('scanning_institution_other', $_POST)) {
-					print "Setting scanning_institution2 = ".$_POST['scanning_institution_other']."\n";
 					$this->book->set_metadata('scanning_institution', $_POST['scanning_institution_other'], false);
 				}
 			}
@@ -470,11 +468,9 @@ class Main extends Controller {
 		
 		if (array_key_exists('rights_holder', $_POST)) {
 			if ($_POST['rights_holder'] != '(other)') {
-					print "Setting rights_holder1 = ".$_POST['rights_holder']."\n";
 				$this->book->set_metadata('rights_holder', $_POST['rights_holder'], false);
 			} else {
 				if (array_key_exists('rights_holder_other', $_POST)) {
-					print "Setting rights_holder2 = ".$_POST['rights_holder_other']."\n";
 					$this->book->set_metadata('rights_holder', $_POST['rights_holder_other'], false);
 				}
 			}
@@ -676,6 +672,7 @@ class Main extends Controller {
 			return;
 		}
 
+		$data['bhl_institutions'] = $this->bhl->get_institutions();
 		$data['is_local_admin'] = $this->user->has_permission('local_admin');
 		$data['is_admin'] = $this->user->has_permission('admin');
 		$data['new'] = true;		
@@ -778,8 +775,16 @@ class Main extends Controller {
 				if (preg_match('/^new_fieldname_(\d+)$/', $field, $matches)) {
 					$c = $matches[1];
 					if (isset($_REQUEST['new_fieldname_'.$c]) && isset($_REQUEST['new_value_'.$c]) && $_REQUEST['new_value_'.$c] != '') {
-						// We got a value from the plain text field.
-						$this->book->set_metadata(trim($_REQUEST['new_fieldname_'.$c]), $_REQUEST['new_value_'.$c], false);
+						if ($_REQUEST['new_fieldname_'.$c] == 'scanning_institution' || $_REQUEST['new_fieldname_'.$c] == 'rights_holder') {
+							if ($_REQUEST['new_value_'.$c] == '(other)') {
+								$this->book->set_metadata(trim($_REQUEST['new_fieldname_'.$c]), $_REQUEST['new_value_'.$c.'_other'], false);
+							} else {
+								$this->book->set_metadata(trim($_REQUEST['new_fieldname_'.$c]), $_REQUEST['new_value_'.$c], false);
+							}
+						} else {
+							// We got a value from the plain text field.
+							$this->book->set_metadata(trim($_REQUEST['new_fieldname_'.$c]), $_REQUEST['new_value_'.$c], false);
+						}
 					} elseif ($_REQUEST['new_fieldname_'.$c] && array_key_exists('new_value_'.$c.'_file', $_FILES)) {
 						// We didn't get a value, so let's see if we got a file upload
 						$string = read_file($_FILES['new_value_'.$c.'_file']['tmp_name']);

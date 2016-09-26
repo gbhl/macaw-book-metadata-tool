@@ -620,7 +620,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				'extension' => $extension,
 				'width' => $width,
 				'height'=> $height,
-				'is_missing' => ($missing ? 1 : 0)
+				'is_missing' => ($missing ? 't' : 'f')
 			);
 			$this->db->set($data);
 			$this->db->insert('page');

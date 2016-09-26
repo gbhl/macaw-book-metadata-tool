@@ -1032,4 +1032,51 @@ class Admin extends Controller {
 		$this->logging->log('access', 'info', 'Deleted Contributor '.$id);
 	}
 
+	/**
+	 * Monthly repoert
+	 *
+	 * Only admins and local admins can see this grouping of which organization contributed how many items and pages
+	 * per month. Only shows completed items. Local admins will see only their stuff.
+	 *
+	 * @since Version 2.2
+	 */
+	function monthly_report() {
+		if (!$this->user->has_permission('admin') && !$this->user->has_permission('local_admin')) {
+			$data['results'] = array();
+			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			$content = $this->load->view('admin/monthly_report', $data);
+			return;
+		}
+
+		$sql = 'SELECT count(*) as items, max(o.name) as contributor, o.id, concat(monthname(date_completed), \' \', year(date_completed)) as month, sum(pages_found) as pages '.
+		       'FROM (select * from item where date_completed <> \'0000-00-00 00:00:00\') i '.
+		       'INNER JOIN organization o ON o.id = i.org_id '.
+		       'GROUP BY EXTRACT(YEAR_MONTH FROM date_completed), org_id '.
+		       'ORDER BY EXTRACT(YEAR_MONTH FROM date_completed) DESC, o.name';
+
+		if ($this->user->has_permission('local_admin')) {
+			$this->user->load($this->session->userdata('username'));
+			$org_id = $this->user->org_id;
+
+			$sql = 'SELECT count(*) as items, max(o.name) as contributor, o.id, concat(monthname(date_completed), \' \', year(date_completed)) as month, sum(pages_found) as pages '.
+			       'FROM (select * from item where date_completed <> \'0000-00-00 00:00:00\' and org_id = '.$org_id.') i '.
+			       'INNER JOIN organization o ON o.id = i.org_id '.
+			       'GROUP BY EXTRACT(YEAR_MONTH FROM date_completed), org_id '.
+			       'ORDER BY EXTRACT(YEAR_MONTH FROM date_completed) DESC, o.name';
+		}
+
+		$query = $this->db->query($sql);
+		$data['results'] = array();
+		foreach ($query->result() as $row) {
+			$data['results'][] = array(
+				'month' => $row->month,
+				'contributor' => $row->contributor,
+				'org_id' => $row->id,
+				'items' => $row->items,
+				'pages' => $row->pages
+			);
+		}
+		$data['local_admin'] = ($this->user->has_permission('local_admin') ? true : false);
+		$content = $this->load->view('admin/monthly_report', $data);
+	}
 }
