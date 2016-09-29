@@ -835,14 +835,14 @@ class Common extends Controller {
 				// 1. Get the number of pages from yesterday
 				$this->CI->db->query(
 					"insert into logging (date, statistic, value) values (
-						date(now() - interval 1 day) ,
+						date(now() - interval 1 day),
 						'pages',
 						(select count(*)
 						from page
-						where created between extract(day from now() - interval 1 day)
-													and extract(day from  now() + interval 1 day))
+						where created between date(now() - interval 1 day)
+													and date(now() + interval 1 day))
 					)"
-				);			
+				);
 			}
 
 			// Has this statistic already been generated
