@@ -6,8 +6,6 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=9" />
 	<title>Scan | Upload | Macaw</title>
 
-	<?php $this->load->view('global/head_view') ?>
-
 	<!-- Bootstrap styles -->
 	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 	<!-- blueimp Gallery styles -->
@@ -18,6 +16,10 @@
 	<!-- CSS adjustments for browsers with JavaScript disabled -->
 	<noscript><link rel="stylesheet" href="/css/jquery.fileupload-noscript.css"></noscript>
 	<noscript><link rel="stylesheet" href="/css/jquery.fileupload-ui-noscript.css"></noscript>
+
+	<?php $this->load->view('global/head_view') ?>
+
+
 </head>
 <body>	
 	<?php $this->load->view('global/header_view') ?>

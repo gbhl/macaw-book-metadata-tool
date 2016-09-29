@@ -27,6 +27,10 @@
   cursor: pointer;
 }
 
+.preview img, .preview canvas {
+	height: 50px;
+	width: auto;
+}
 /* Fixes for IE < 8 */
 @media screen\9 {
   .fileinput-button input {

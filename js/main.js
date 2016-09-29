@@ -19,7 +19,8 @@ $(function () {
         // Uncomment the following to send cross-domain cookies:
         //xhrFields: {withCredentials: true},
       url: '/scan/do_upload/',
-			sequentialUploads: true,
+			sequentialUploads: false,
+			limitConcurrentUploads: 3,
 			autoUpload: false,
 			maxFileSize: 536870912
     });

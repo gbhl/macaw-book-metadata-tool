@@ -907,6 +907,14 @@ class Scan extends Controller {
 		}
 	}
 
+	/**
+	 * Upload images usign the new javascript importer
+	 * 
+	 * This handles the display of the new JS uploader/importer, which shows what existing
+	 * images are in the directory. This just shows the page. It does not do the uploading.
+	 *
+	 * @since Version 2.2
+	 */
 	function upload_new(){
 		if (!$this->user->has_permission('scan')) {
 			$this->common->ajax_headers();
@@ -941,64 +949,85 @@ class Scan extends Controller {
 		$this->load->view('scan/upload_view_jquery', $data);		
 	}
 
-
+	/**
+	 * Upload one image
+	 *
+	 * Used by the new javascript importer, this handles the uploading and processing
+	 * of one image. Once uploaded, the image is sent the book model for import.
+	 *
+	 * If no file is provided, then a list of existing files are provided that are then
+	 * (presumably) displayed on the main upload page. 
+	 *
+	 * The resulting image info is then returned to the browser. 
+	 *
+	 * @since Version 2.2
+	 */
 	public function do_upload() {
 		// Set our paths
 		$barcode = $this->session->userdata('barcode');
-		$incomingpath = $this->cfg['incoming_directory'].'/'.$barcode.'/';
-		$upload_path_url = base_url() . 'incoming/'.$barcode.'/';
-
-		// Make sure the path exists
-		if (!file_exists($incomingpath)) {
-			mkdir($data['incomingpath']);
-			$this->logging->log('book', 'info', 'Created incoming directory: '.$incomingpath, $barcode);
-		}
-
+		$this->book->load($barcode);
+		$scans_dir = $this->cfg['data_directory'].'/'.$barcode.'/scans/';
+		$upload_path_url = base_url().'books/'.$barcode.'/scans/';
+		$upload_thumb_url = base_url().'books/'.$barcode.'/thumbs/';
 		
-		$config['upload_path'] = $incomingpath;
+		// Make sure the path exists
+		if (!file_exists($scans_dir)) {
+			mkdir($scans_dir,'0777',true);
+			$this->logging->log('book', 'info', 'Created directory: '.$scans_dir, $barcode);
+		}
+		
 		$config['max_width']    = '30000';
 		$config['max_height']   = '30000';
-		$config['allowed_types'] = 'jpg|jpeg|png|tif|tiff|jp2';
+		$config['allowed_types'] = 'tif|tiff|jpg|jpeg|jp2|jpf|gif|png|bmp';
 
 		if (!count($_FILES)) {
 			//Load the list of existing files in the upload directory
-			$existingFiles = get_dir_file_info($config['upload_path']);
-			$foundFiles = array();
-			$f=0;
-			foreach ($existingFiles as $fileName => $info) {
-				if($fileName!='thumbs'){//Skip over thumbs directory
-					//set the data for the json array   
-					$foundFiles[$f]['name'] = $fileName;
-					$foundFiles[$f]['size'] = $info['size'];
- 					$foundFiles[$f]['url'] = $upload_path_url . $fileName;
-//  					$foundFiles[$f]['thumbnailUrl'] = $upload_path_url . $fileName;
-					$foundFiles[$f]['deleteUrl'] = 'none'; //TODO;
-					$foundFiles[$f]['deleteType'] = 'DELETE';
-					$foundFiles[$f]['error'] = '';
-					$f++;
-				}
-			}
-			
+			$foundFiles = $this->_get_existing_files($scans_dir, $barcode);
+
 			header("Content-Type: application/json; charset=utf-8");
-			echo json_encode(array('files' => $foundFiles));
+			if ($this->book->get_metadata('processing_pdf')) {
+				echo json_encode(array('files' => $foundFiles, 'reload' => 'true', 'message' => 'Processing PDF...', 'dir' => $scans_dir));
+			} else {
+				echo json_encode(array('files' => $foundFiles));			
+			}
 		} else {
 
 			$data = array();
 			foreach ($_FILES as $fieldName => $file) {
- 				move_uploaded_file($file['tmp_name'][0], $incomingpath.strip_tags(basename($file['name'][0])));
- 				$data['file_name'] = $file['name'][0]; 
- 				$data['file_type'] = $file['type'][0];
- 				$data['file_size'] = $file['size'][0];
+				if (preg_match("/\.pdf$/i", $file['name'][0])) {
+					// We got a PDF, we need to split it
+					move_uploaded_file($file['tmp_name'][0], $scans_dir.strip_tags(basename($file['name'][0])));
+					
+					$output = '';
+					$exec = 'MACAW_OVERRIDE=1 "'.$php_exe.'" "'.$this->cfg['base_directory'].'/index.php" utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($data['file_name']).'> /dev/null 2> /dev/null < /dev/null &';
+					$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->barcode);
+					exec($exec, $output);
+					
+					$this->book->set_metadata('processing_pdf','yes');
+					$this->book>update();
+					
+					$foundFiles = $this->_get_existing_files($scans_dir, $barcode);
+					header("Content-Type: application/json; charset=utf-8");
+					echo json_encode(array('files' => $foundFiles, 'reload' => 'true', 'message' => 'Started splitting PDF...'));
+
+					return;
+				} else {
+					move_uploaded_file($file['tmp_name'][0], $scans_dir.strip_tags(basename($file['name'][0])));
+					$this->book->import_one_image($file['name'][0]);
+					$data['file_name'] = $file['name'][0]; 
+					$data['file_type'] = $file['type'][0];
+					$data['file_size'] = $file['size'][0];
+					sleep(3);
+				}
  			}
+
 			//set the data for the json array
 			$info = new StdClass;
 			$info->name = $data['file_name'];
 			$info->size = $data['file_size'];
 			$info->type = $data['file_type'];
 			$info->url = $upload_path_url . $data['file_name'];
-
-			// I set this to original file since I did not create thumbs.  change to thumbnail directory if you do = $upload_path_url .'/thumbs' .$data['file_name']
-// 			$info->thumbnailUrl = $upload_path_url . $data['file_name'];
+			$info->thumbnailUrl = $upload_thumb_url . pathinfo($data['file_name'], PATHINFO_FILENAME).'.jpg';
 			$info->deleteUrl = 'none';
 			$info->deleteType = 'NONE';
 			$info->error = null;
@@ -1010,6 +1039,32 @@ class Scan extends Controller {
 			header("Content-Type: application/json; charset=utf-8");
 			echo json_encode(array("files" => $files));
 		}
+	}
+	
+	function _get_existing_files($dir, $barcode) {
+		$upload_path_url = base_url().'books/'.$barcode.'/scans/';
+		$upload_thumb_url = base_url().'books/'.$barcode.'/thumbs/';
+		$existingFiles = get_dir_file_info($dir);
+		$foundFiles = array();
+		$f = 0;
+		foreach ($existingFiles as $fileName => $info) {
+			$thumbfileName = pathinfo($fileName, PATHINFO_FILENAME).'.jpg';
+			//set the data for the json array   
+			$foundFiles[$f]['name'] = $fileName;
+			$foundFiles[$f]['size'] = $info['size'];
+			$foundFiles[$f]['url'] = $upload_path_url . $fileName;
+
+			if (file_exists($dir.'../thumbs/'.$thumbfileName)) {
+				$foundFiles[$f]['thumbnailUrl'] = $upload_thumb_url . $thumbfileName;			
+			} else {
+				$foundFiles[$f]['thumbnailUrl'] = '/images/spacer.gif';				
+			}
+			$foundFiles[$f]['deleteUrl'] = 'none';
+			$foundFiles[$f]['deleteType'] = 'DELETE';
+			$foundFiles[$f]['error'] = '';
+			$f++;
+		}
+		return $foundFiles;
 	}
 	
 // 	function do_upload() {

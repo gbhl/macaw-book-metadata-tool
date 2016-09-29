@@ -690,6 +690,41 @@ class Utils extends Controller {
 	} 
 	
 	
+	function import_pdf($barcode = null, $filename = null) {
+		if (!$barcode) {
+			print "Barcode is requred!\n";
+			die;
+		}
+
+		if (!$filename) {
+			print "Filename is required!\n";
+			die;
+		}
+
+		$scans_dir = $this->cfg['data_directory'].'/'.$barcode.'/scans/';
+		$book_dir = $this->cfg['data_directory'].'/'.$barcode.'/';
+		$this->book->load($barcode);		
+
+		if (!$this->book->check_paths()) {
+			echo('Could not write to one or more paths for item with barcode "'.$this->barcode.'".'."\n");
+		} // if ($this->check_paths)
+
+		if (!file_exists($scans_dir.$filename)) {
+			print "File not found: $scans_dir$filename\n";
+			die;
+		}
+		
+		$this->book->split_pdf($filename);
+		
+		// Now that the files are split, they need to be processed
+		$existingFiles = get_dir_file_info($scans_dir);
+		
+		foreach ($existingFiles as $fileName => $info) {
+			$this->book->import_one_image($fileName);
+		}
+		
+	}
+	
 // 	function fix_metadata($bc = '') {
 // 		// A barcode is required. Duh.
 // 		if ($bc == '') {
