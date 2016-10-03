@@ -928,6 +928,7 @@ class Scan extends Controller {
 		$this->common->check_missing_metadata($this->book);
 
 		$data['upload_max_filesize'] = ini_get('upload_max_filesize');
+		$data['max_sequence'] = $this->book->max_sequence();
 		$data['item_title'] = $this->session->userdata('title');
 		$data['ip_address'] = $_SERVER['REMOTE_ADDR'];
 		$data['hostname'] = $this->common->_get_host($_SERVER['REMOTE_ADDR']);
@@ -986,38 +987,51 @@ class Scan extends Controller {
 
 			header("Content-Type: application/json; charset=utf-8");
 			if ($this->book->get_metadata('processing_pdf')) {
-				echo json_encode(array('files' => $foundFiles, 'reload' => 'true', 'message' => 'Processing PDF...', 'dir' => $scans_dir));
+				echo json_encode(array('files' => $foundFiles, 'reload' => 'true', 'message' => 'Processing PDF pages...', 'dir' => $scans_dir));
 			} else {
 				echo json_encode(array('files' => $foundFiles));			
 			}
 		} else {
 
 			$data = array();
+
 			foreach ($_FILES as $fieldName => $file) {
 				if (preg_match("/\.pdf$/i", $file['name'][0])) {
 					// We got a PDF, we need to split it
 					move_uploaded_file($file['tmp_name'][0], $scans_dir.strip_tags(basename($file['name'][0])));
 					
 					$output = '';
-					$exec = 'MACAW_OVERRIDE=1 "'.$php_exe.'" "'.$this->cfg['base_directory'].'/index.php" utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($data['file_name']).'> /dev/null 2> /dev/null < /dev/null &';
-					$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->barcode);
+
+					$php_exe = PHP_BINDIR.'/php5';		
+					if (!file_exists($php_exe)) {
+						$php_exe = PHP_BINDIR.'/php';
+					}
+
+					$exec = 'MACAW_OVERRIDE=1 "'.$php_exe.'" "'.$this->cfg['base_directory'].'/index.php" utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file['name'][0]).'> /dev/null 2> /dev/null < /dev/null &';
+					$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->book->barcode);
 					exec($exec, $output);
 					
 					$this->book->set_metadata('processing_pdf','yes');
-					$this->book>update();
+					$this->book->update();
 					
 					$foundFiles = $this->_get_existing_files($scans_dir, $barcode);
 					header("Content-Type: application/json; charset=utf-8");
-					echo json_encode(array('files' => $foundFiles, 'reload' => 'true', 'message' => 'Started splitting PDF...'));
+					echo json_encode(array('files' => $foundFiles, 'reload' => 'true', 'message' => 'Processing PDF pages...'));
 
 					return;
 				} else {
+					$sequence = $_POST['sequence'];
+					if (!$sequence) {$sequence = 0;}
+
+					$counter = $_POST['counter'][0];
+					if (!$counter) {$counter = 1;}
+					
+					// We assume we only get one file. Our JS upload config is set this way. So we use the coutner variable to keep things in order.
 					move_uploaded_file($file['tmp_name'][0], $scans_dir.strip_tags(basename($file['name'][0])));
-					$this->book->import_one_image($file['name'][0]);
+					$this->book->import_one_image($file['name'][0], $counter + $sequence);
 					$data['file_name'] = $file['name'][0]; 
 					$data['file_type'] = $file['type'][0];
 					$data['file_size'] = $file['size'][0];
-					sleep(3);
 				}
  			}
 

@@ -1266,6 +1266,9 @@
             if (dataTransfer && dataTransfer.files && dataTransfer.files.length) {
                 e.preventDefault();
                 this._getDroppedFiles(dataTransfer).always(function (files) {
+                    files.forEach(function(el, idx, arr) { 
+                      arr[idx].counter = idx+1;
+                    });
                     data.files = files;
                     if (that._trigger(
                             'drop',

@@ -590,7 +590,32 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 	 * @param integer [$bytes] The size in bytes of the file we are adding.
 	 * @param string [$ext] The file extension of the file (this shouldn't be passed in, really)
 	 */
-	function add_page($filename = '', $width = 0, $height = 0, $bytes = 0, $status = 'Processed', $missing = false) {
+	function max_sequence() {
+		$this->db->select('max(sequence_number) as max_seq');
+		$this->db->where('item_id', $this->id);
+		$q = $this->db->get('page')->result();
+		$max = $q[0]->max_seq;
+		if (!$max) {$max = 0;}
+
+		return $max;	
+	}
+
+	/**
+	 * Add a page to the item
+	 *
+	 * Given a filename, add it to the book, making sure that we haven't
+	 * already added it. Parses the filename to remove the extension, thereby
+	 * giving us the filebase with which to compare. We also pass in the bytes
+	 * since we don't want to have to look it up here (and we may not know how
+	 * to find the file in question from this deep in the code.)
+	 *
+	 * @param string [$filename] The filename of the page we are adding.
+	 * @param integer [$width] The width in pixels of the image file.
+	 * @param integer [$height] The height in pixels of the image file.
+	 * @param integer [$bytes] The size in bytes of the file we are adding.
+	 * @param string [$ext] The file extension of the file (this shouldn't be passed in, really)
+	 */
+	function add_page($filename = '', $width = 0, $height = 0, $bytes = 0, $status = 'Processed', $missing = false, $sequence = 0) {
 		// Create the filebase
 		$filebase = preg_replace('/(.+)\.(.*?)$/', "$1", $filename);
 
@@ -605,18 +630,14 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 		// Well, does it?
 		if ($this->db->count_all_results() == 0) {
 			// Get the largest sequence that's in the database
-			$this->db->select('max(sequence_number) as max_seq');
-			$this->db->where('item_id', $this->id);
-			$q = $this->db->get('page')->result();
-			$max = $q[0]->max_seq;
-			if (!$max) {$max = 0;}
+			$max = $this->max_sequence();			
 			// Page doesn't exist, add it to the database
 			$data = array(
 				'item_id' => $this->id,
 				'filebase' => $filebase,
 				'status' => $status,
 				'bytes' => $bytes,
-				'sequence_number' => $max + 1,
+				'sequence_number' => ($sequence ? $sequence : $max + 1),
 				'extension' => $extension,
 				'width' => $width,
 				'height'=> $height,
@@ -1745,10 +1766,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 		$scans_dir = $this->cfg['data_directory'].'/'.$this->barcode.'/scans/';
 		$book_dir = $this->cfg['data_directory'].'/'.$this->barcode.'/';
 
-		if (preg_match("/\.(pdf|PDF)$/i", $filename)) {
-			$this->set_metadata('processing_pdf','yes');
-			$this->update();
-
+		if (preg_match("/\.(pdf|PDF)$/i", $filename)) {			
 			// Move the PDF so we don't see it again
 			rename($scans_dir.$filename, $book_dir.$filename);
 			// Build the pattern for the PNGs to create
@@ -1769,8 +1787,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 			$this->logging->log('book', 'info', 'After splitting '.$filename.', "gs" output is '.count($output), $this->barcode);			
 			// Done! Let's mark the images as having been derived from a PDF
 			$this->set_metadata('from_pdf','yes',true);
-			$this->unset_metadata('processing_pdf');
-			$this->update();
+
 		}
 	}
 	
@@ -1791,7 +1808,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 	 * @return nothing
 	 * @since version 2.2
 	 */
-	function import_one_image($filename) {
+	function import_one_image($filename, $counter = 1) {
 		if ($this->id > 0) {
 
 			$scans_dir = $this->cfg['data_directory'].'/'.$this->barcode.'/scans/';
@@ -1827,10 +1844,10 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 			// Create derivatives for the file (/thumbnail/ and /preview/)
 			$dim = $this->_process_image($scans_dir, $this->barcode, $filebase);
 			// Add the page to the book
-			$this->add_page($filebase, $dim['width'], $dim['height'], $info['size'], 'Processed', $missing);
+
+			$this->add_page($filebase, $dim['width'], $dim['height'], $info['size'], 'Processed', $missing, $counter);
 			// Log that we saw the file.
 			$this->logging->log('book', 'info', 'Created preview and thumbnail for page '.$filename.'.', $this->barcode);
-			$this->update();
 		} // if ($this->id > 0)
 	}
 

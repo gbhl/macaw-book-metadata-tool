@@ -30,7 +30,7 @@
 			You can <strong>drag &amp; drop</strong> files from your desktop on this webpage (Chrome, Firefox, Safari, Internet Explorer 10+).<br>
 			The maximum size for each file is <strong><?php echo($upload_max_filesize) ?></strong><br>
 			</p>
-			<br>
+			
 			<!-- The file upload form used as target for the file upload widget -->
 			<form id="fileupload" action="/scan/do_upload/" method="POST" enctype="multipart/form-data">
 					<!-- Redirect browsers with JavaScript disabled to the origin page -->
@@ -61,6 +61,7 @@
 									<!-- <input type="checkbox" class="toggle"> -->
 									<!-- The global file processing state -->
 									<span class="fileupload-process"></span>
+									<span class="message btn" id="pdfmessage"></span>
 							</div>
 							<!-- The global progress state -->
 							<div class="col-lg-5 fileupload-progress fade">
@@ -96,6 +97,8 @@
 					<td>
 							<p class="name">{%=file.name%}</p>
 							<strong class="error text-danger"></strong>
+							<input type="hidden" name="counter[]" value="{%=file.counter%}" required>
+							<input type="hidden" name="sequence" value="<?php echo($max_sequence) ?>" required>
 					</td>
 					<td>
 							<p class="size">Processing...</p>

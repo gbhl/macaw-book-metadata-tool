@@ -714,6 +714,15 @@ class Utils extends Controller {
 			die;
 		}
 		
+		// Mark that we are processing the PDF, but don't use built-in functions
+		// We might get a race condition
+		$this->db->insert('metadata', array(
+			'item_id'   => $this->book->id,
+			'fieldname' => 'processing_pdf',
+			'counter'   => 1,
+			'value' => 'yes'
+		));
+
 		$this->book->split_pdf($filename);
 		
 		// Now that the files are split, they need to be processed
@@ -722,6 +731,12 @@ class Utils extends Controller {
 		foreach ($existingFiles as $fileName => $info) {
 			$this->book->import_one_image($fileName);
 		}
+		// Indicate that we are done processing the PDF			
+		$this->db->query(
+			'delete from metadata
+			where item_id = '.$this->book->id.'
+			and page_id is null and fieldname = \'processing_pdf\''
+		);
 		
 	}
 	
