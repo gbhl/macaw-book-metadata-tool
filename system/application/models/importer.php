@@ -57,6 +57,8 @@ class Importer extends Model {
 				if (count($args) > 1) {
 					array_shift($args);
 					$arg = $args[0];
+				} else {
+					$arg = $args[0];
 				}
 				$this->_import($obj->get_new_items($args), $arg);
 			} else {
