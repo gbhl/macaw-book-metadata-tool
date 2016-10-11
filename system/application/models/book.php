@@ -829,7 +829,6 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 			$this->db->group_by('item.id');
 			$this->db->order_by($order_by);
 			$query = $this->db->get();
-			$this->logging->log('access', 'info', $this->db->last_query());
 			
 			return $query->result();
 		} else {
