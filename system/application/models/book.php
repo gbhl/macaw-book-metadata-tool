@@ -810,13 +810,34 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 			$query = $this->db->get();
 			$this->logging->log('access', 'info', $this->db->last_query());
 			
-			return $query->result();
+			$res = $query->result();
+			for ($i = 0; $i < count($res); $i++) {
+				$val = $this->_dir_size($this->cfg['data_directory'].'/'.$res[$i]->barcode)/1024;
+				if ($val > 1024 && $val < 10240) {
+					$res[$i]->du = round($val/1024, 1).' GB';
+				} elseif ($val > 10240) {
+					$res[$i]->du = round($val/1024).' GB';
+				} else {
+					$res[$i]->du = round($val).' MB';
+				}
+			}
+			return $res;
 		} else {
 			$this->db->select('barcode');
 			$query = $this->db->get('item');
 			return $query->result();
 		}
 	}
+
+	function _dir_size($f) {
+		// Returns size of directory in kb
+		$io = popen ( '/usr/bin/du -sk ' . $f, 'r' );
+		$size = fgets ( $io, 4096);
+		$size = substr ( $size, 0, strpos ( $size, "\t" ) );
+		pclose ( $io );
+		return $size;	
+	}
+
 
 	/**
 	 * Find books in the system

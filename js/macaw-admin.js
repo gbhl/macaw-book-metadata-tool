@@ -173,7 +173,8 @@
 				{key:"author",		label:'Author',	sortable: true  },
 				{key:"org_name",		label:'Contributor',	sortable: true },
 				{key:"status_code",	label:'Status',	formatter: formatStatus,  sortable: true  },
-				{key:"date",	label:'Date',	sortable: true  }
+				{key:"date",	label:'Date',	sortable: true  },
+				{key:"du",					label:'Size',					sortable: true, minWidth:60 }
 			];
 
 			var dsNew = new YAHOO.util.DataSource(data.new_items);
@@ -193,7 +194,7 @@
 				= dsExporting.responseSchema 
 				= dsCompleted.responseSchema 
 				= dsError.responseSchema 
-				= { fields: ["barcode","title","author","org_name","status_code","date"] };
+				= { fields: ["barcode","title","author","org_name","status_code","date","du"] };
 
 			var tblNew       = new YAHOO.widget.DataTable("divNew", myColumnDefs, dsNew);
 			var tblProgress  = new YAHOO.widget.DataTable("divInProgress", myColumnDefs, dsProgress);
@@ -289,12 +290,13 @@
 				{key:"title",				label:'Title',				sortable: true },
 				{key:"author",			label:'Author',				sortable: true },
 				{key:"org_name",		label:'Contributor',	sortable: true },
+				{key:"du",					label:'Size',					sortable: true, minWidth:60 },
 				{key:"status_code",	label:'Status',				formatter: formatStatus, sortable: true }
 			];
 
 			ListItems.dataSource = new YAHOO.util.DataSource(data.in_progress);
 			ListItems.dataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
-			ListItems.dataSource.responseSchema = {	fields: ["barcode","title","author","org_name","status_code"] };
+			ListItems.dataSource.responseSchema = {	fields: ["barcode","title","author","org_name","du","status_code"] };
 			ListItems.dataSource.doBeforeCallback = function (req, raw, res, cb) {
 				// This is the filter function
 				var data = res.results || [], filtered = [], i ,l;
