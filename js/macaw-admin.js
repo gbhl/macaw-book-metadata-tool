@@ -101,6 +101,17 @@
 	};
 
 	Queues = {
+		completedLoaded: false,
+		messageBox: null,
+		myColumnDefs: [
+			{key:"barcode", label:'Barcode', formatter:YAHOO.widget.DataTable.formatLink }, //try formatting link
+			{key:"title",		label:'Title',	sortable: true  },
+			{key:"author",		label:'Author',	sortable: true  },
+			{key:"org_name",		label:'Contributor',	sortable: true },
+			{key:"status_code",	label:'Status',	formatter: formatStatus2,  sortable: true  },
+			{key:"date",	label:'Date',	sortable: true  },
+			{key:"bytes",				label: "Size",				sortable:true, formatter:formatBytes, minWidth:80,  sortOptions: { sortFunction: sortBytes }},
+		],
 		init: function() {
 			// Set up the tabs
 			var myTabs = new YAHOO.widget.TabView('queues');
@@ -126,7 +137,6 @@
 			//removed back button
            // var obtnBack = new YAHOO.widget.Button("btnBack");
            // obtnBack.on("click", function(o) {window.location = sBaseUrl+'/admin';} );
-
 			var transaction = YAHOO.util.Connect.asyncRequest('GET', sBaseUrl+'/admin/queue_data', loadDataCallback);
 
 		},
@@ -136,47 +146,7 @@
 				var barcode = YAHOO.lang.escapeHTML(oData); 
 				elLiner.innerHTML = "<a href=\"" + sBaseUrl + "/main/managebarcode/" + barcode + "/\">" + barcode + "</a>"; 
 			};
-
-			var formatStatus = function(elCell, oRecord, oColumn, oData) {
-				if (oData == 'new') {
-					elCell.innerHTML = '<span style="color: #903">New</span>';				
-
-				} else if (oData == 'scanning') {
-					elCell.innerHTML = '<span style="color: #F60"">Images Uploading</span>';
-
-				} else if (oData == 'scanned') {
-					elCell.innerHTML = '<span style="color: #F60"">Images Imported</span>';
-
-				} else if (oData == 'reviewing') {
-					elCell.innerHTML = '<span style="color: #F60"">Metadata Entry</span>';
-
-				} else if (oData == 'reviewed') {
-					elCell.innerHTML = '<span style="color: #090">Metadata Complete</span>';
-
-				} else if (oData == 'exporting') {
-					elCell.innerHTML = '<span style="color: #09F">Exporting</span>';
-
-				} else if (oData == 'completed') {
-					elCell.innerHTML = '<span style="color: #093">Export&nbsp;Complete</span>';
-
-				} else if (oData == 'error') {
-					elCell.innerHTML = '<span style="color: #F00">Error</span>';
-
-				} else {
-					elCell.innerHTML = oData;
-				}
-			}
 			
-			var myColumnDefs = [
-				{key:"barcode", label:'Barcode', formatter:YAHOO.widget.DataTable.formatLink }, //try formatting link
-				{key:"title",		label:'Title',	sortable: true  },
-				{key:"author",		label:'Author',	sortable: true  },
-				{key:"org_name",		label:'Contributor',	sortable: true },
-				{key:"status_code",	label:'Status',	formatter: formatStatus,  sortable: true  },
-				{key:"date",	label:'Date',	sortable: true  },
-				{key:"bytes",				label: "Size",				sortable:true, formatter:formatBytes, minWidth:80,  sortOptions: { sortFunction: sortBytes }},
-			];
-
 			var dsNew = new YAHOO.util.DataSource(data.new_items);
 			var dsProgress = new YAHOO.util.DataSource(data.in_progress);
 			var dsExporting = new YAHOO.util.DataSource(data.exporting);
@@ -196,13 +166,61 @@
 				= dsError.responseSchema 
 				= { fields: ["barcode","title","author","org_name","status_code","date","bytes"] };
 
-			var tblNew       = new YAHOO.widget.DataTable("divNew", myColumnDefs, dsNew);
-			var tblProgress  = new YAHOO.widget.DataTable("divInProgress", myColumnDefs, dsProgress);
-			var tblExporting = new YAHOO.widget.DataTable("divExporting", myColumnDefs, dsExporting);
-			var tblCompleted = new YAHOO.widget.DataTable("divCompleted", myColumnDefs, dsCompleted);
-			var tblError     = new YAHOO.widget.DataTable("divErrors", myColumnDefs, dsError);
+			var tblNew       = new YAHOO.widget.DataTable("divNew", Queues.myColumnDefs, dsNew);
+			var tblProgress  = new YAHOO.widget.DataTable("divInProgress", Queues.myColumnDefs, dsProgress);
+			var tblExporting = new YAHOO.widget.DataTable("divExporting", Queues.myColumnDefs, dsExporting);
+			var tblCompleted = new YAHOO.widget.DataTable("divCompleted", Queues.myColumnDefs, dsCompleted);
+			var tblError     = new YAHOO.widget.DataTable("divErrors", Queues.myColumnDefs, dsError);
 
+			var myTabs = new YAHOO.widget.TabView('queues');
+			var tab3 = myTabs.getTab(3);
+			function handleClick(e) {Queues.initCompleted();}
+			tab3.addListener('click', handleClick);
+		},
+		initCompleted: function() {
+			var loadDataCallback = {
+				success: function(o) {
+					eval('var r = '+o.responseText);
+					Queues.messageBox.hide();
+					if (r.redirect) {
+						window.location = r.redirect;
+					} else if (r.error) {
+						General.showErrorMessage(r.error);
+					} else {
 
+						var dsCompleted = new YAHOO.util.DataSource(r.data.completed);
+						dsCompleted.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
+						dsCompleted.responseSchema = { fields: ["barcode","title","author","org_name","status_code","date","bytes"] };
+						var tblCompleted = new YAHOO.widget.DataTable("divCompleted", Queues.myColumnDefs, dsCompleted);
+						Queues.completedLoaded = true;
+					}
+				},
+				failure: function(o) {
+					Queues.messageBox.hide();
+					General.showErrorMessage('There was a problem loading the data for the queues. If it helps, the error was:<blockquote style="font-weight:bold;color:#990000;">'+o.statusText+"</blockquote>");
+				},
+				argument: []
+			};
+			if (!Queues.completedLoaded) {
+
+				Queues.messageBox = new YAHOO.widget.SimpleDialog("messageDialog", {
+					width: "320px",
+					visible: false,
+					draggable: false,
+					fixedcenter: true,
+					modal: true,
+					underlay: 'none',
+					zIndex: 10,
+					close: false
+				});
+
+				Queues.messageBox.setHeader("Please wait...");
+				Queues.messageBox.setBody("Macaw is fetching the completed items.");
+				Queues.messageBox.render(document.body);
+				Queues.messageBox.show();
+
+				var transaction = YAHOO.util.Connect.asyncRequest('GET', sBaseUrl+'/admin/queue_data/completed', loadDataCallback);
+			}
 		}
 	};
 	
@@ -252,33 +270,6 @@
 			}); 
 		},
 		loadTables: function(data) {
-
-			var formatStatus = function(elCell, oRecord, oColumn, oData) {
-				if (oData == 'new') {
-					elCell.innerHTML = '<span style="color: #C00">New</span>';				
-
-				} else if (oData == 'scanning') {
-					elCell.innerHTML = '<span style="color: #39F">In&nbsp;Progress</span>';
-
-				} else if (oData == 'scanned') {
-					elCell.innerHTML = '<span style="color: #39F">In&nbsp;Progress</span>';
-
-				} else if (oData == 'reviewing') {
-					elCell.innerHTML = '<span style="color: #39F">In&nbsp;Progress</span>';
-
-				} else if (oData == 'reviewed') {
-					elCell.innerHTML = '<span style="color: #090">Completed</span>';
-
-				} else if (oData == 'uploading') {
-					elCell.innerHTML = '<span style="color: #360">Uploading</span>';
-
-				} else if (oData == 'completed') {
-					elCell.innerHTML = '<span style="color: #360">Export&nbsp;Complete</span>';
-
-				} else {
-					elCell.innerHTML = oData;
-				}
-			}
 
 			YAHOO.widget.DataTable.formatLink = function(elLiner, oRecord, oColumn, oData) { 
 				var barcode = YAHOO.lang.escapeHTML(oData.replace(/\\'/g, "'")); 

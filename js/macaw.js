@@ -274,6 +274,64 @@ var formatBytes = function(elLiner, oRecord, oColumn, oData) {
 	elLiner.innerHTML = Math.round(int(oData)/1024/1024)+' MB';
 }
 
+var formatStatus2 = function(elCell, oRecord, oColumn, oData) {
+	if (oData == 'new') {
+		elCell.innerHTML = '<span style="color: #903">New</span>';
+
+	} else if (oData == 'scanning') {
+		elCell.innerHTML = '<span style="color: #F60"">Images Uploading</span>';
+
+	} else if (oData == 'scanned') {
+		elCell.innerHTML = '<span style="color: #F60"">Images Imported</span>';
+
+	} else if (oData == 'reviewing') {
+		elCell.innerHTML = '<span style="color: #F60"">Metadata Entry</span>';
+
+	} else if (oData == 'reviewed') {
+		elCell.innerHTML = '<span style="color: #090">Metadata Complete</span>';
+
+	} else if (oData == 'exporting') {
+		elCell.innerHTML = '<span style="color: #09F">Exporting</span>';
+
+	} else if (oData == 'completed') {
+		elCell.innerHTML = '<span style="color: #093">Export&nbsp;Complete</span>';
+
+	} else if (oData == 'error') {
+		elCell.innerHTML = '<span style="color: #F00">Error</span>';
+
+	} else {
+		elCell.innerHTML = oData;
+	}
+};
+
+var formatStatus = function(elCell, oRecord, oColumn, oData) {
+	if (oData == 'new') {
+		elCell.innerHTML = '<span style="color: #C00">New</span>';
+
+	} else if (oData == 'scanning') {
+		elCell.innerHTML = '<span style="color: #39F">In&nbsp;Progress</span>';
+
+	} else if (oData == 'scanned') {
+		elCell.innerHTML = '<span style="color: #39F">In&nbsp;Progress</span>';
+
+	} else if (oData == 'reviewing') {
+		elCell.innerHTML = '<span style="color: #39F">In&nbsp;Progress</span>';
+
+	} else if (oData == 'reviewed') {
+		elCell.innerHTML = '<span style="color: #090">Completed</span>';
+
+	} else if (oData == 'uploading') {
+		elCell.innerHTML = '<span style="color: #360">Uploading</span>';
+
+	} else if (oData == 'completed') {
+		elCell.innerHTML = '<span style="color: #360">Export&nbsp;Complete</span>';
+
+	} else {
+		elCell.innerHTML = oData;
+	}
+}
+
+
 var sortBytes = function(a, b, desc, field) {
 	// Deal with empty values
 	if(!YAHOO.lang.isValue(a)) {

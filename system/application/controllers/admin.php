@@ -76,7 +76,7 @@ class Admin extends Controller {
 	 * @access public
 	 * @since Version 1.2
 	 */
-	function queue_data() {
+	function queue_data($completed = false) {
 		if (!$this->common->check_session(true)) {
 			return;
 		}
@@ -98,7 +98,12 @@ class Admin extends Controller {
 			$this->user->load($this->session->userdata('username'));
 			$org_id = $this->user->org_id;
 		}
-		$books = $this->book->get_all_books(true, $org_id);
+		$books = null;
+		if ($completed) {
+			$books = $this->book->get_all_books(true, $org_id, array('completed'));
+		} else {
+			$books = $this->book->get_all_books(true, $org_id, array('new','scanning','scanned','reviewing','reviewed','exporting'));
+		}
 
 		// Sort our records into the subarrays
 		foreach ($books as $b) {
@@ -141,6 +146,7 @@ class Admin extends Controller {
 		$this->common->ajax_headers();
 		echo json_encode(array('data' => $data));
 	}
+
 
 	/**
 	 * Get the data for the queues for users

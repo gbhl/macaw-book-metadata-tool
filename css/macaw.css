@@ -1728,13 +1728,13 @@ textarea, input {
 }
 /* Admin Queues */
 #queuewrapper{
-	width:940px;
+	width:75%;
 	margin: 1em auto;	
 }
 #queuewrapper h1{
 	margin: 0px auto;
 	padding: 15px;
-	width: 908px; /* 940 - 30*/
+	width: auto; /* 940 - 30*/
 	background: #4F7E97;
 	border: 1px solid #4F7E97;
 	border-top-left-radius: 6px;
