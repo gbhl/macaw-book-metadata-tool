@@ -690,6 +690,56 @@ class Utils extends Controller {
 	} 
 	
 	
+	function import_pdf($barcode = null, $filename = null) {
+		if (!$barcode) {
+			print "Barcode is requred!\n";
+			die;
+		}
+
+		if (!$filename) {
+			print "Filename is required!\n";
+			die;
+		}
+
+		$scans_dir = $this->cfg['data_directory'].'/'.$barcode.'/scans/';
+		$book_dir = $this->cfg['data_directory'].'/'.$barcode.'/';
+		$this->book->load($barcode);		
+
+		if (!$this->book->check_paths()) {
+			echo('Could not write to one or more paths for item with barcode "'.$this->barcode.'".'."\n");
+		} // if ($this->check_paths)
+
+		if (!file_exists($scans_dir.$filename)) {
+			print "File not found: $scans_dir$filename\n";
+			die;
+		}
+		
+		// Mark that we are processing the PDF, but don't use built-in functions
+		// We might get a race condition
+		$this->db->insert('metadata', array(
+			'item_id'   => $this->book->id,
+			'fieldname' => 'processing_pdf',
+			'counter'   => 1,
+			'value' => 'yes'
+		));
+
+		$this->book->split_pdf($filename);
+		
+		// Now that the files are split, they need to be processed
+		$existingFiles = get_dir_file_info($scans_dir);
+		
+		foreach ($existingFiles as $fileName => $info) {
+			$this->book->import_one_image($fileName);
+		}
+		// Indicate that we are done processing the PDF			
+		$this->db->query(
+			'delete from metadata
+			where item_id = '.$this->book->id.'
+			and page_id is null and fieldname = \'processing_pdf\''
+		);
+		
+	}
+	
 // 	function fix_metadata($bc = '') {
 // 		// A barcode is required. Duh.
 // 		if ($bc == '') {

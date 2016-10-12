@@ -2064,3 +2064,27 @@ div.progress {
 .btn {
 	padding: 3px 7px !important;
 }
+
+.fileupload-buttonbar .message {
+    color: #000;
+    background-color: #ddd;
+    border-color: #ccc;
+    display: none;
+}
+
+/* ****************************** */
+/* BOOTSTRAP SUCKS                */
+/* ****************************** */
+* {
+  -webkit-box-sizing: content-box;
+     -moz-box-sizing: content-box;
+          box-sizing: content-box;
+}
+*:before,
+*:after {
+  -webkit-box-sizing: content-box;
+     -moz-box-sizing: content-box;
+          box-sizing: content-box;
+}
+
+

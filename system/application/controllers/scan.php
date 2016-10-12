@@ -906,4 +906,199 @@ class Scan extends Controller {
 			$this->logging->log('book', 'info', 'Inserting missing pages begins.', $this->session->userdata('barcode'));
 		}
 	}
+
+	/**
+	 * Upload images usign the new javascript importer
+	 * 
+	 * This handles the display of the new JS uploader/importer, which shows what existing
+	 * images are in the directory. This just shows the page. It does not do the uploading.
+	 *
+	 * @since Version 2.2
+	 */
+	function upload_new(){
+		if (!$this->user->has_permission('scan')) {
+			$this->common->ajax_headers();
+			echo json_encode(array('errormessage' => 'You do not have permission to access that page.'));
+			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
+			return;
+		}
+		$barcode = $this->session->userdata('barcode');
+		// Get our book
+		$this->book->load($barcode);
+		$this->common->check_missing_metadata($this->book);
+
+		$data['upload_max_filesize'] = ini_get('upload_max_filesize');
+		$data['max_sequence'] = $this->book->max_sequence();
+		$data['item_title'] = $this->session->userdata('title');
+		$data['ip_address'] = $_SERVER['REMOTE_ADDR'];
+		$data['hostname'] = $this->common->_get_host($_SERVER['REMOTE_ADDR']);
+		$data['incoming_path'] = $this->cfg['incoming_directory'].'/'.$barcode;
+
+		// Make sure the path exists
+		if (!file_exists($data['incoming_path'])) {
+			mkdir($data['incoming_path']);
+			$this->logging->log('access', 'info', 'Created incoming directory: '.$data['incoming_path']);
+		}
+
+		$data['remote_path'] = $this->cfg['incoming_directory_remote'].'/'.$barcode;
+		$status = $this->book->status;
+		if ($status == 'new' || $status == 'scanning') {
+			$data['book_has_missing_pages'] = false;
+		} else {
+			$data['book_has_missing_pages'] = true;		
+		}		
+		$this->load->view('scan/upload_view_jquery', $data);		
+	}
+
+	/**
+	 * Upload one image
+	 *
+	 * Used by the new javascript importer, this handles the uploading and processing
+	 * of one image. Once uploaded, the image is sent the book model for import.
+	 *
+	 * If no file is provided, then a list of existing files are provided that are then
+	 * (presumably) displayed on the main upload page. 
+	 *
+	 * The resulting image info is then returned to the browser. 
+	 *
+	 * @since Version 2.2
+	 */
+	public function do_upload() {
+		// Set our paths
+		$barcode = $this->session->userdata('barcode');
+		$this->book->load($barcode);
+		$scans_dir = $this->cfg['data_directory'].'/'.$barcode.'/scans/';
+		$upload_path_url = base_url().'books/'.$barcode.'/scans/';
+		$upload_thumb_url = base_url().'books/'.$barcode.'/thumbs/';
+		
+		// Make sure the path exists
+		if (!file_exists($scans_dir)) {
+			mkdir($scans_dir,'0777',true);
+			$this->logging->log('book', 'info', 'Created directory: '.$scans_dir, $barcode);
+		}
+		
+		$config['max_width']    = '30000';
+		$config['max_height']   = '30000';
+		$config['allowed_types'] = 'tif|tiff|jpg|jpeg|jp2|jpf|gif|png|bmp';
+
+		if (!count($_FILES)) {
+			//Load the list of existing files in the upload directory
+			$foundFiles = $this->_get_existing_files($scans_dir, $barcode);
+
+			header("Content-Type: application/json; charset=utf-8");
+			if ($this->book->get_metadata('processing_pdf')) {
+				echo json_encode(array('files' => $foundFiles, 'reload' => 'true', 'message' => 'Processing PDF pages...', 'dir' => $scans_dir));
+			} else {
+				echo json_encode(array('files' => $foundFiles));			
+			}
+		} else {
+
+			$data = array();
+
+			foreach ($_FILES as $fieldName => $file) {
+				if (preg_match("/\.pdf$/i", $file['name'][0])) {
+					// We got a PDF, we need to split it
+					move_uploaded_file($file['tmp_name'][0], $scans_dir.strip_tags(basename($file['name'][0])));
+					
+					$output = '';
+
+					$php_exe = PHP_BINDIR.'/php5';		
+					if (!file_exists($php_exe)) {
+						$php_exe = PHP_BINDIR.'/php';
+					}
+
+					$exec = 'MACAW_OVERRIDE=1 "'.$php_exe.'" "'.$this->cfg['base_directory'].'/index.php" utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file['name'][0]).'> /dev/null 2> /dev/null < /dev/null &';
+					$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->book->barcode);
+					exec($exec, $output);
+					
+					$this->book->set_metadata('processing_pdf','yes');
+					$this->book->update();
+					
+					$foundFiles = $this->_get_existing_files($scans_dir, $barcode);
+					header("Content-Type: application/json; charset=utf-8");
+					echo json_encode(array('files' => $foundFiles, 'reload' => 'true', 'message' => 'Processing PDF pages...'));
+
+					return;
+				} else {
+					$sequence = $_POST['sequence'];
+					if (!$sequence) {$sequence = 0;}
+
+					$counter = $_POST['counter'][0];
+					if (!$counter) {$counter = 1;}
+					
+					// We assume we only get one file. Our JS upload config is set this way. So we use the coutner variable to keep things in order.
+					move_uploaded_file($file['tmp_name'][0], $scans_dir.strip_tags(basename($file['name'][0])));
+					$this->book->import_one_image($file['name'][0], $counter + $sequence);
+					$data['file_name'] = $file['name'][0]; 
+					$data['file_type'] = $file['type'][0];
+					$data['file_size'] = $file['size'][0];
+				}
+ 			}
+
+			//set the data for the json array
+			$info = new StdClass;
+			$info->name = $data['file_name'];
+			$info->size = $data['file_size'];
+			$info->type = $data['file_type'];
+			$info->url = $upload_path_url . $data['file_name'];
+			$info->thumbnailUrl = $upload_thumb_url . pathinfo($data['file_name'], PATHINFO_FILENAME).'.jpg';
+			$info->deleteUrl = 'none';
+			$info->deleteType = 'NONE';
+			$info->error = null;
+			
+			$files = array();
+			$files[] = $info;
+			
+			//this is why we put this in the constants to pass only json data
+			header("Content-Type: application/json; charset=utf-8");
+			echo json_encode(array("files" => $files));
+		}
+	}
+	
+	function _get_existing_files($dir, $barcode) {
+		$upload_path_url = base_url().'books/'.$barcode.'/scans/';
+		$upload_thumb_url = base_url().'books/'.$barcode.'/thumbs/';
+		$existingFiles = get_dir_file_info($dir);
+		$foundFiles = array();
+		$f = 0;
+		foreach ($existingFiles as $fileName => $info) {
+			$thumbfileName = pathinfo($fileName, PATHINFO_FILENAME).'.jpg';
+			//set the data for the json array   
+			$foundFiles[$f]['name'] = $fileName;
+			$foundFiles[$f]['size'] = $info['size'];
+			$foundFiles[$f]['url'] = $upload_path_url . $fileName;
+
+			if (file_exists($dir.'../thumbs/'.$thumbfileName)) {
+				$foundFiles[$f]['thumbnailUrl'] = $upload_thumb_url . $thumbfileName;			
+			} else {
+				$foundFiles[$f]['thumbnailUrl'] = '/images/spacer.gif';				
+			}
+			$foundFiles[$f]['deleteUrl'] = 'none';
+			$foundFiles[$f]['deleteType'] = 'DELETE';
+			$foundFiles[$f]['error'] = '';
+			$f++;
+		}
+		return $foundFiles;
+	}
+	
+// 	function do_upload() {
+// // 		$barcode = $_POST["bookid"];
+// // 		$incomingpath = $this->cfg['incoming_directory'].'/'.$barcode.'/';
+// // 		$remotepath= $this->cfg['incoming_directory_remote'].'/'.$barcode;
+// // 		$data['remotepath'] = $remotepath;
+// // 		$data['incomingpath'] = $incomingpath;
+// // 
+// // 		// Make sure the path exists
+// // 		if (!file_exists($data['incomingpath'])) {
+// // 			mkdir($data['incomingpath']);
+// // 			$this->logging->log('book', 'info', 'Created incoming directory: '.$data['incomingpath'], $barcode);
+// // 		}
+// // 
+// // 		foreach ($_FILES as $fieldName => $file) {
+// // 			move_uploaded_file($file['tmp_name'], $incomingpath.strip_tags(basename($file['name'])));
+// // 			$this->logging->log('book', 'info', 'Uploaded '.$incomingpath.strip_tags(basename($file['name'])), $barcode);
+// // 		}
+// // 		$this->load->view('scan/monitor_view', $data);	
+// 	}
 }
+

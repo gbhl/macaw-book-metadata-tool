@@ -590,7 +590,32 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 	 * @param integer [$bytes] The size in bytes of the file we are adding.
 	 * @param string [$ext] The file extension of the file (this shouldn't be passed in, really)
 	 */
-	function add_page($filename = '', $width = 0, $height = 0, $bytes = 0, $status = 'Processed', $missing = false) {
+	function max_sequence() {
+		$this->db->select('max(sequence_number) as max_seq');
+		$this->db->where('item_id', $this->id);
+		$q = $this->db->get('page')->result();
+		$max = $q[0]->max_seq;
+		if (!$max) {$max = 0;}
+
+		return $max;	
+	}
+
+	/**
+	 * Add a page to the item
+	 *
+	 * Given a filename, add it to the book, making sure that we haven't
+	 * already added it. Parses the filename to remove the extension, thereby
+	 * giving us the filebase with which to compare. We also pass in the bytes
+	 * since we don't want to have to look it up here (and we may not know how
+	 * to find the file in question from this deep in the code.)
+	 *
+	 * @param string [$filename] The filename of the page we are adding.
+	 * @param integer [$width] The width in pixels of the image file.
+	 * @param integer [$height] The height in pixels of the image file.
+	 * @param integer [$bytes] The size in bytes of the file we are adding.
+	 * @param string [$ext] The file extension of the file (this shouldn't be passed in, really)
+	 */
+	function add_page($filename = '', $width = 0, $height = 0, $bytes = 0, $status = 'Processed', $missing = false, $sequence = 0) {
 		// Create the filebase
 		$filebase = preg_replace('/(.+)\.(.*?)$/', "$1", $filename);
 
@@ -605,18 +630,14 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 		// Well, does it?
 		if ($this->db->count_all_results() == 0) {
 			// Get the largest sequence that's in the database
-			$this->db->select('max(sequence_number) as max_seq');
-			$this->db->where('item_id', $this->id);
-			$q = $this->db->get('page')->result();
-			$max = $q[0]->max_seq;
-			if (!$max) {$max = 0;}
+			$max = $this->max_sequence();			
 			// Page doesn't exist, add it to the database
 			$data = array(
 				'item_id' => $this->id,
 				'filebase' => $filebase,
 				'status' => $status,
 				'bytes' => $bytes,
-				'sequence_number' => $max + 1,
+				'sequence_number' => ($sequence ? $sequence : $max + 1),
 				'extension' => $extension,
 				'width' => $width,
 				'height'=> $height,
@@ -808,7 +829,6 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 			$this->db->group_by('item.id');
 			$this->db->order_by($order_by);
 			$query = $this->db->get();
-			$this->logging->log('access', 'info', $this->db->last_query());
 			
 			$res = $query->result();
 			for ($i = 0; $i < count($res); $i++) {
@@ -1600,6 +1620,15 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 		}
 	}
 
+	/**
+	 * Import all images from incoming
+	 *
+	 * Gets a list the images int he incoming directory and imports them
+	 * into the current book, making preview and thumbnail versions.
+	 *
+	 * @return nothing
+	 * @since version 1.0
+	 */
 	function import_images() {
 		if ($this->id > 0) {
 
@@ -1735,6 +1764,107 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 	}
 
 	/**
+	 * Split a PDF into smaller PNG files for later processing.
+	 * 
+	 * PDF file is moved from the /scans/ directory (or wherever, really) into the main folder for the book.
+	 * Then the PDF is split into 450 DPI PNG files in the /scans/ directory.
+	 *
+	 * Params
+	 * $filename - Just the filename, no path. The file is assumed to be in the /scans/ directory
+	 * 
+	 * @return nothing
+	 * @since version 2.2
+	 */
+	function split_pdf($filename) {
+		$scans_dir = $this->cfg['data_directory'].'/'.$this->barcode.'/scans/';
+		$book_dir = $this->cfg['data_directory'].'/'.$this->barcode.'/';
+
+		if (preg_match("/\.(pdf|PDF)$/i", $filename)) {			
+			// Move the PDF so we don't see it again
+			rename($scans_dir.$filename, $book_dir.$filename);
+			// Build the pattern for the PNGs to create
+			$outname = $scans_dir.preg_replace('/\.(.+)$/', '', $filename).'_%04d.png';
+			
+			$this->logging->log('book', 'info', 'About to split  '.$filename.' to PNG files', $this->barcode);
+			// Find ghostscript
+			$gs = 'gs';
+			if (isset($this->cfg['gs_exe'])) {
+				$gs = $this->cfg['gs_exe'];
+			}
+			$output = '';
+			// Build the ghostscript command
+			$exec = "$gs -sDEVICE=png16m -r450x450 -dSAFER -dBATCH -dNOPAUSE -dTextAlphaBits=4 -dUseCropBox -sOutputFile=".escapeshellarg($outname)." ".escapeshellarg($book_dir.$filename);
+			$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->barcode);
+			// Do the splitting, this takes a while and is largely uninformative
+			exec($exec, $output);
+			$this->logging->log('book', 'info', 'After splitting '.$filename.', "gs" output is '.count($output), $this->barcode);			
+			// Done! Let's mark the images as having been derived from a PDF
+			$this->set_metadata('from_pdf','yes',true);
+
+		}
+	}
+	
+	/**
+	 * Import one image for the current book
+	 *
+	 * Given the path to a file for a page of the book, imports the image
+	 * into the current book, making preview and thumbnail versions and database
+	 * records.
+	 *
+	 * Params
+	 * $filename - Just the filename, no path. The file is assumed to be in the /scans/ directory
+	 *
+	 * ASSUMPTION: The image to be processed is already in the /scans/ directory.
+	 * It does not need to be moved. (This allows this script to be re-run if the
+	 * thumbnails are missing)
+	 *
+	 * @return nothing
+	 * @since version 2.2
+	 */
+	function import_one_image($filename, $counter = 1) {
+		if ($this->id > 0) {
+
+			$scans_dir = $this->cfg['data_directory'].'/'.$this->barcode.'/scans/';
+			$book_dir = $this->cfg['data_directory'].'/'.$this->barcode.'/';
+
+			if (!file_exists($scans_dir.$filename)) {
+				$this->logging->log('book', 'info', "File not found: $scans_dir$filename", $this->barcode);
+				return;
+			}
+
+			// Does this book already have pages? 
+			$missing = false;
+			$pgs = $this->get_pages();
+			if (count($pgs) > 0) {
+				// If yes, then the imported images are "missing".
+				$missing = true;
+			}
+
+			$modified = false;
+			$filebase = basename($filename); 
+		
+			setlocale(LC_ALL, 'en_US.UTF-8');
+			// Make sure the filename is ASCII, rename if necessary
+			$f_clean = iconv('utf-8', 'ASCII//TRANSLIT//IGNORE', $filebase);							
+			if ($f_clean != $filebase) {
+				// Rename the file
+				rename($scans_dir.$filebase, $scans_dir.$f_clean);
+				$filebase = $f_clean;
+				$filename = $scans_dir.$f_clean;
+			}
+			
+			$info = get_file_info($filename, 'size');
+			// Create derivatives for the file (/thumbnail/ and /preview/)
+			$dim = $this->_process_image($scans_dir, $this->barcode, $filebase);
+			// Add the page to the book
+
+			$this->add_page($filebase, $dim['width'], $dim['height'], $info['size'], 'Processed', $missing, $counter);
+			// Log that we saw the file.
+			$this->logging->log('book', 'info', 'Created preview and thumbnail for page '.$filename.'.', $this->barcode);
+		} // if ($this->id > 0)
+	}
+
+	/**
 	 * Create derivatives for an individual scan of a page
 	 *
 	 * INTERNAL: Given a filename, creates whatever derivatives that are immediately
@@ -1771,7 +1901,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 		$return['height'] = $info['height'];
 
 		// Create the preview image
-		$preview->resizeImage(1500, 2000, Imagick::FILTER_UNDEFINED, 1, true);
+		$preview->resizeImage(1500, 2000, Imagick::FILTER_POINT, 0);
 		$preview->profileImage('xmp', $this->book->xmp_xml());
 		try {
 			$preview->writeImage($dest.'/preview/'.$filebase.'.jpg');
@@ -1792,7 +1922,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 		$img->save();
 
 		// Create the thumbnail image
-		$preview->resizeImage(180, 300, Imagick::FILTER_UNDEFINED, 1, true);
+		$preview->resizeImage(180, 300, Imagick::FILTER_POINT, 0);
 		$preview->profileImage('xmp', $this->book->xmp_xml());
 		$preview->writeImage($dest.'/thumbs/'.$filebase.'.jpg');
 
