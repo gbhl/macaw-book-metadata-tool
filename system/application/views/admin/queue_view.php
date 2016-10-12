@@ -4,7 +4,6 @@
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=9" />
 	<title>Admin | Queues | Macaw</title>
-	<link rel="stylesheet" type="text/css" href="//yui.yahooapis.com/combo?2.9.0/build/reset-fonts-grids/reset-fonts-grids.css&2.9.0/build/base/base-min.css&2.9.0/build/assets/skins/sam/skin.css"> 
 	<?php $this->load->view('global/head_view') ?>
 	<script type="text/javascript">YAHOO.util.Event.onDOMReady(Queues.init);</script>
 </head>
