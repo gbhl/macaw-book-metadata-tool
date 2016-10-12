@@ -812,14 +812,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 			
 			$res = $query->result();
 			for ($i = 0; $i < count($res); $i++) {
-				$val = $this->_dir_size($this->cfg['data_directory'].'/'.$res[$i]->barcode)/1024;
-				if ($val > 1024 && $val < 10240) {
-					$res[$i]->du = round($val/1024, 1).' GB';
-				} elseif ($val > 10240) {
-					$res[$i]->du = round($val/1024).' GB';
-				} else {
-					$res[$i]->du = round($val).' MB';
-				}
+				$res[$i]->bytes = $this->_dir_size($this->cfg['data_directory'].'/'.$res[$i]->barcode)*1024;
 			}
 			return $res;
 		} else {
