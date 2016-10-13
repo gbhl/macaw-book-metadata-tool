@@ -17,6 +17,7 @@
 			$this->session->set_userdata('author', '');			
 		}
 	}
+	$free = (int)(disk_free_space($cfg['data_directory'])/disk_total_space($cfg['data_directory'])*100);
 ?>
 
 <?php if ($this->uri->total_segments() == 0 || $this->uri->segment(1) == 'login') { ?>
@@ -80,6 +81,7 @@
 						<li class="last"><a href="<?php echo $this->config->item('base_url'); ?>admin/scheduled_jobs"><img src="<?php echo $this->config->item('base_url'); ?>images/12_manually_run_icon_sm.png">Scheduled Jobs</a></li>
 					</ul>
 				</li>
+				<li class="top"><a href="#"><?php print $free.'% Free'; ?></a></li>
 				<?php } ?>
 			</ul>            
 		</div>
