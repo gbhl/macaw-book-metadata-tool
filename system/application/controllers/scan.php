@@ -942,11 +942,14 @@ class Scan extends Controller {
 
 		$data['remote_path'] = $this->cfg['incoming_directory_remote'].'/'.$barcode;
 		$status = $this->book->status;
-		if ($status == 'new' || $status == 'scanning') {
-			$data['book_has_missing_pages'] = false;
-		} else {
-			$data['book_has_missing_pages'] = true;		
-		}		
+
+		$data['book_has_missing_pages'] = false;
+		$pgs = $this->book->get_pages();
+		if (count($pgs) > 0) {
+			// If yes, then the imported images are "missing".
+			$data['book_has_missing_pages'] = true;
+		}
+		$this->logging->log('book', 'info', "Loading Upload page Missing is ".$data['book_has_missing_pages']." Page count is ".count($pgs), $barcode);
 		$this->load->view('scan/upload_view_jquery', $data);		
 	}
 
@@ -987,13 +990,23 @@ class Scan extends Controller {
 
 			header("Content-Type: application/json; charset=utf-8");
 			if ($this->book->get_metadata('processing_pdf')) {
-				echo json_encode(array('files' => $foundFiles, 'reload' => 'true', 'message' => 'Processing PDF pages...', 'dir' => $scans_dir));
+				$total = count($foundFiles);
+				$count = count($this->book->get_pages());
+				echo json_encode(array('files' => $foundFiles, 'reload' => 'true', 'message' => 'Processing PDF pages ('.$count.'/'.$total.')...', 'dir' => $scans_dir));
 			} else {
 				echo json_encode(array('files' => $foundFiles));			
 			}
 		} else {
 
 			$data = array();
+
+			$missing = false;
+			$pgs = $this->book->get_pages();
+			if (count($pgs) > 0) {
+				// If yes, then the imported images are "missing".
+				$missing = true;
+			}
+			$this->logging->log('book', 'info', "Starting Import Missing is $missing Page count is ".count($pgs), $barcode);
 
 			foreach ($_FILES as $fieldName => $file) {
 				if (preg_match("/\.pdf$/i", $file['name'][0])) {
@@ -1028,7 +1041,7 @@ class Scan extends Controller {
 					
 					// We assume we only get one file. Our JS upload config is set this way. So we use the coutner variable to keep things in order.
 					move_uploaded_file($file['tmp_name'][0], $scans_dir.strip_tags(basename($file['name'][0])));
-					$this->book->import_one_image($file['name'][0], $counter + $sequence);
+					$this->book->import_one_image($file['name'][0], $counter + $sequence, $missing);
 					$data['file_name'] = $file['name'][0]; 
 					$data['file_type'] = $file['type'][0];
 					$data['file_size'] = $file['size'][0];
@@ -1048,6 +1061,11 @@ class Scan extends Controller {
 			
 			$files = array();
 			$files[] = $info;
+
+			if ($this->book->status == 'new' || $this->book->status == 'scanning') {
+				$this->book->set_status('scanning');
+				$this->book->set_status('scanned');
+			}
 			
 			//this is why we put this in the constants to pass only json data
 			header("Content-Type: application/json; charset=utf-8");

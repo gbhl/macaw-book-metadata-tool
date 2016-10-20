@@ -16,7 +16,6 @@
 	<!-- CSS adjustments for browsers with JavaScript disabled -->
 	<noscript><link rel="stylesheet" href="/css/jquery.fileupload-noscript.css"></noscript>
 	<noscript><link rel="stylesheet" href="/css/jquery.fileupload-ui-noscript.css"></noscript>
-
 	<?php $this->load->view('global/head_view') ?>
 
 
@@ -62,6 +61,14 @@
 									<!-- The global file processing state -->
 									<span class="fileupload-process"></span>
 									<span class="message btn" id="pdfmessage"></span>
+									<button type="button" class="btn btn-metadata">
+											<i class="glyphicon glyphicon-book"></i>
+											<span>Enter Page Metadata</span>
+									</button>
+									<button type="button" class="btn btn-missing">
+											<i class="glyphicon glyphicon-sort-by-attributes"></i>
+											<span>Insert Missing Pages</span>
+									</button>
 							</div>
 							<!-- The global progress state -->
 							<div class="col-lg-5 fileupload-progress fade">
@@ -193,6 +200,10 @@
 	<script src="/js/jquery.fileupload-ui.js"></script>
 	<!-- The main application script -->
 	<script src="/js/main.js"></script>
+	<script>
+		 var hasMissingPages = <?php echo ($book_has_missing_pages ? 'true' : 'false'); ?>;
+		 var loadingPDF = false;
+	</script>
 	<!-- The XDomainRequest Transport is included for cross-domain file deletion for IE 8 and IE 9 -->
 	<!--[if (gte IE 8)&(lt IE 10)]>
 	<script src="js/cors/jquery.xdr-transport.js"></script>

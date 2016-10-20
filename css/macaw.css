@@ -2072,6 +2072,18 @@ div.progress {
     display: none;
 }
 
+.btn-missing, .btn-metadata  {
+    color: #fff;
+    background-color: #1e6620;
+    border-color: #1a511b;
+    display: none;
+}
+.btn-missing:hover, .btn-metadata:hover  {
+    color: #fff;
+    background-color: #0f3010;
+    border-color: #000000;
+}
+
 /* ****************************** */
 /* BOOTSTRAP SUCKS                */
 /* ****************************** */

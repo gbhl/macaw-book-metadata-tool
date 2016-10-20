@@ -632,17 +632,32 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 			// Get the largest sequence that's in the database
 			$max = $this->max_sequence();			
 			// Page doesn't exist, add it to the database
-			$data = array(
-				'item_id' => $this->id,
-				'filebase' => $filebase,
-				'status' => $status,
-				'bytes' => $bytes,
-				'sequence_number' => ($sequence ? $sequence : $max + 1),
-				'extension' => $extension,
-				'width' => $width,
-				'height'=> $height,
-				'is_missing' => ($missing ? 't' : 'f')
-			);
+			$data = array();
+			if ($this->db->dbdriver == 'mysql') {
+				$data = array(
+					'item_id' => $this->id,
+					'filebase' => $filebase,
+					'status' => $status,
+					'bytes' => $bytes,
+					'sequence_number' => ($sequence ? $sequence : $max + 1),
+					'extension' => $extension,
+					'width' => $width,
+					'height'=> $height,
+					'is_missing' => ($missing ? '1' : '0')
+				);
+			} elseif ($this->db->dbdriver == 'postgre') {
+				$data = array(
+					'item_id' => $this->id,
+					'filebase' => $filebase,
+					'status' => $status,
+					'bytes' => $bytes,
+					'sequence_number' => ($sequence ? $sequence : $max + 1),
+					'extension' => $extension,
+					'width' => $width,
+					'height'=> $height,
+					'is_missing' => ($missing ? 't' : 'f')
+				);
+			}
 			$this->db->set($data);
 			$this->db->insert('page');
 
@@ -1821,7 +1836,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 	 * @return nothing
 	 * @since version 2.2
 	 */
-	function import_one_image($filename, $counter = 1) {
+	function import_one_image($filename, $counter = 1, $missing = false) {
 		if ($this->id > 0) {
 
 			$scans_dir = $this->cfg['data_directory'].'/'.$this->barcode.'/scans/';
@@ -1830,14 +1845,6 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 			if (!file_exists($scans_dir.$filename)) {
 				$this->logging->log('book', 'info', "File not found: $scans_dir$filename", $this->barcode);
 				return;
-			}
-
-			// Does this book already have pages? 
-			$missing = false;
-			$pgs = $this->get_pages();
-			if (count($pgs) > 0) {
-				// If yes, then the imported images are "missing".
-				$missing = true;
 			}
 
 			$modified = false;

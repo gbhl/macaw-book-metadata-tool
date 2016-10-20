@@ -34,7 +34,17 @@ $(function () {
             '/cors/result.html?%s'
         )
     );
-    
+
+		// Call when we start uploading a single file
+		// We need to know if we are uploading a PDF so we can handle buttons and messages later.
+    $('#fileupload').bind('fileuploadsend', function (e, data) {
+			if (data.files["0"].name.match(/\.pdf$/)) {
+				loadingPDF = true;
+			}
+    });
+
+		// This is called when we start uploading.
+		// We pass some extra data (namely, the sequence number) with the image
     $('#fileupload').bind('fileuploadsubmit', function (e, data) {
         var inputs = data.context.find(':input');
         if (inputs.filter(function () {
@@ -46,9 +56,12 @@ $(function () {
         data.formData = inputs.serializeArray();
     });
 
+		// This is called when one file is finished uploading
+		// We check to see if we need to reload the list of files
     $('#fileupload').bind('fileuploaddone', function (e, data) {
     	if (data.result) {
 				if (data.result.reload) {
+					loadingPDF = true;
 					$('#pdfmessage')[0].innerHTML = 'Status: '+data.result.message;
 					$('#pdfmessage')[0].style.display = 'inline-block';
 					setTimeout(function(){
@@ -56,17 +69,46 @@ $(function () {
 						initializeFiles();
 					}, 3000);
 				} else {
+					if (loadingPDF) {
+						if (hasMissingPages) {
+							$('.btn-missing').css('display','inline');
+						} else {
+							$('.btn-metadata').css('display','inline');
+						}
+						loadingPDF = false;
+					}
 					$('#pdfmessage')[0].innerHTML = '';
 					$('#pdfmessage')[0].style.display = 'none';
 				}
 			}
     });
 
+		// This is called when all files is finished uploading
+		// We display the buttons on the page, but only if we aren't loading a PDF
+    $('#fileupload').bind('fileuploadstop', function (e, data) {
+			if (!loadingPDF) {
+				// Wait until we hope we are done
+				if (hasMissingPages) {
+					$('.btn-missing').css('display','inline');
+				} else {
+					$('.btn-metadata').css('display','inline');
+				}
+			}
+    });
+
+
+
+    // Click handlers for Enter Page Metadata and Insert Missing Pages
+    $('.btn-metadata').on("click", function(){window.location.href = '/scan/review';});
+    $('.btn-missing').on("click",  function(){window.location.href = '/scan/missing/insert';});
+
 		initializeFiles();
-	
+
 		function initializeFiles() {
 			// Load existing files:
 			$('#fileupload').addClass('fileupload-processing');
+			$('.btn-missing').css('display','none');
+			$('.btn-metadata').css('display','none');
 			$.ajax({
 					// Uncomment the following to send cross-domain cookies:
 					//xhrFields: {withCredentials: true},
@@ -76,20 +118,28 @@ $(function () {
 			}).always(function () {
 					$(this).removeClass('fileupload-processing');
 			}).done(function (result) {
-					$(this).fileupload('option', 'done')
-							.call(this, $.Event('done'), {result: result});
+					$(this).fileupload('option', 'done').call(this, $.Event('done'), {result: result});
 					if (result.reload) {
 						setTimeout(function(){
+							loadingPDF = true;
 							$('#pdfmessage')[0].innerHTML = 'Status: '+result.message;
 							$('#pdfmessage')[0].style.display = 'inline-block';
 							$('.' + $("#fileupload").fileupload("option").downloadTemplateId).remove();
 							initializeFiles();
 						}, 3000);
 					} else {
+						if (loadingPDF) {
+							if (hasMissingPages) {
+								$('.btn-missing').css('display','inline');
+							} else {
+								$('.btn-metadata').css('display','inline');
+							}
+							loadingPDF = false;
+						}
 						$('#pdfmessage')[0].innerHTML = '';
 						$('#pdfmessage')[0].style.display = 'none';
 					}
-			});		
+			});
 		}
 
 });

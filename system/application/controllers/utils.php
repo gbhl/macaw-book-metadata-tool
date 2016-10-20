@@ -723,13 +723,22 @@ class Utils extends Controller {
 			'value' => 'yes'
 		));
 
+
+		$missing = false;
+		$pgs = $this->book->get_pages();
+		if (count($pgs) > 0) {
+			// If yes, then the imported images are "missing".
+			$missing = true;
+		}
+
 		$this->book->split_pdf($filename);
 		
 		// Now that the files are split, they need to be processed
 		$existingFiles = get_dir_file_info($scans_dir);
 		
+		$seq = $this->book->max_sequence() + 1;
 		foreach ($existingFiles as $fileName => $info) {
-			$this->book->import_one_image($fileName);
+			$this->book->import_one_image($fileName, $seq++, $missing);
 		}
 		// Indicate that we are done processing the PDF			
 		$this->db->query(
@@ -737,7 +746,10 @@ class Utils extends Controller {
 			where item_id = '.$this->book->id.'
 			and page_id is null and fieldname = \'processing_pdf\''
 		);
-		
+		if ($this->book->status == 'new' || $this->book->status == 'scanning') {
+			$this->book->set_status('scanning');
+			$this->book->set_status('scanned');
+		}
 	}
 	
 // 	function fix_metadata($bc = '') {
