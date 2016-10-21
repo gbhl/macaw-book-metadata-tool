@@ -235,7 +235,7 @@
 				visible : false,
 				constraintoviewport : true,
 				modal: true,
-				zindex: 5,
+				zindex: 10,
 				buttons : [
 					{ text:"Save", handler: handleSubmit, isDefault: true },
 					{ text:"Cancel", handler: handleCancel }

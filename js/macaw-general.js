@@ -29,28 +29,13 @@
 		init: function() {
 			if (!YAHOO.macaw.login) {
 				// Initialize the  Panel
-				/*YAHOO.macaw.login =
-						new YAHOO.widget.Dialog("login",
-												{ width: "300px",
-												  xy: [500,250],
-												  close: false,
-												  draggable: false,
-												  zindex:4,
-												  modal: false,
-												  visible: false,
-												  preventcontextoverlap: true,
-												  postmethod: "form",
-												  buttons: [ { text: "Login", handler: Login.handleLoginSubmit, isDefault: true } ]
-												}
-											);
-*/
 			MessageBox.init();
 			YAHOO.macaw.login =
 						new YAHOO.widget.Dialog("login",
 												{ 
 												  close: false,
 												  draggable: false,
-												  zindex:4,
+												  zindex:10,
 												  modal: false,
 												  visible: false,
 												  preventcontextoverlap: false,
@@ -153,6 +138,7 @@
 				draggable: false,
 				fixedcenter: true,
 				modal: true,
+				zindex: 10,
 				underlay: 'none',
 				buttons: [ { text:'Ok', handler:handleOK, isDefault: true }]
 				}
