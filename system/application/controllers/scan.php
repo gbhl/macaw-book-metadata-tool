@@ -636,7 +636,8 @@ class Scan extends Controller {
 		$this->common->ajax_headers();
 		try {
 			// Get our book
-			$this->book->load($this->session->userdata('barcode'));
+			$barcode = $this->session->userdata('barcode');
+			$this->book->load($barcode);
 
 			// Completing a book with missing metadata is bad.
 			$missing_metadata = $this->book->get_missing_metadata(true);
@@ -654,8 +655,9 @@ class Scan extends Controller {
 			}
 
 			// Do all pages have page types?
+			$all_pages = $this->book->get_pages();
 			$pages = array();
-			foreach ($this->book->get_pages() as $p) {
+			foreach ($all_pages as $p) {
 				if (!isset($p->page_type) || !$p->page_type) {
 					$pages[] = $p->sequence_number;
 				}
@@ -671,7 +673,27 @@ class Scan extends Controller {
 				echo json_encode(array('error' => $msg));
 				return;
 			}
-			
+		
+			// Make sure each file for the page exists.
+			$missing_seq = array();
+			foreach ($all_pages as $p) {
+				$filename = $this->cfg['data_directory'].'/'.$barcode.'/scans/'.$p->filebase.'.'.$p->extension;
+				if (!file_exists($filename)) {
+					$missing_seq[] = $p->filebase.'.'.$p->extension;
+				}
+			}			
+			if (count($missing_seq) > 0) {
+				$prefix = "The ";
+				if (count($missing_seq) > 10) {
+					$prefix = "Some of the ";
+					$missing_seq = array_slice($pages, 0, 10);
+				}
+				$msg = 'One or more pages are missing an image file.<br>Please re-upload the missing files before continuing.<br><br>'.$prefix.' missing files are:<br> '.implode('<br>', $missing_seq);
+				header("Content-Type: application/json; charset=utf-8");
+				echo json_encode(array('error' => $msg));
+				return;
+			}
+		
 			// Does the book need to be QA'ed by someone?
 			if ($this->book->needs_qa) {
 				// Is the person reviewing the book a QA person?
