@@ -35,6 +35,22 @@ $(function () {
         )
     );
 
+		// Call when we select a file to upload
+		// Set the counter of the file so that we know what order we uploaded them
+    $('#fileupload').bind('fileuploadchange', function (e, data) {
+			data.files.forEach(function(el, idx, arr) { 
+				arr[idx].counter = idx+1;
+			});
+    });
+
+		// Call whenfiles are dropped onto the page
+		// Set the counter of the file so that we know what order we uploaded them
+    $('#fileupload').bind('fileuploaddrop', function (e, data) {
+			data.files.forEach(function(el, idx, arr) { 
+				arr[idx].counter = idx+1;
+			});
+    });
+
 		// Call when we start uploading a single file
 		// We need to know if we are uploading a PDF so we can handle buttons and messages later.
     $('#fileupload').bind('fileuploadsend', function (e, data) {
