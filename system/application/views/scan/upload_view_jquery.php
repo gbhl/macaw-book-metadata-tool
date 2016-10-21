@@ -9,7 +9,7 @@
 	<!-- Bootstrap styles -->
 	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 	<!-- blueimp Gallery styles -->
-	<link rel="stylesheet" href="//blueimp.github.io/Gallery/css/blueimp-gallery.min.css">
+	<link rel="stylesheet" href="/js/blueimp/Gallery/css/blueimp-gallery.min.css">
 	<!-- CSS to style the file input field as button and adjust the Bootstrap progress bars -->
 	<link rel="stylesheet" href="/css/jquery.fileupload.css">
 	<link rel="stylesheet" href="/css/jquery.fileupload-ui.css">
@@ -33,7 +33,6 @@
 			<!-- The file upload form used as target for the file upload widget -->
 			<form id="fileupload" action="/scan/do_upload/" method="POST" enctype="multipart/form-data">
 					<!-- Redirect browsers with JavaScript disabled to the origin page -->
-					<noscript><input type="hidden" name="redirect" value="https://blueimp.github.io/jQuery-File-Upload/"></noscript>
 					<!-- The fileupload-buttonbar contains buttons to add/delete files and start/cancel the upload -->
 					<div class="row fileupload-buttonbar">
 							<div class="col-lg-7">
@@ -175,13 +174,13 @@
 	<!-- The jQuery UI widget factory, can be omitted if jQuery UI is already included -->
 	<script src="/js/vendor/jquery.ui.widget.js"></script>
 	<!-- The Templates plugin is included to render the upload/download listings -->
-	<script src="//blueimp.github.io/JavaScript-Templates/js/tmpl.min.js"></script>
+	<script src="/js/blueimp/JavaScript-Templates/js/tmpl.min.js"></script>
 	<!-- The Load Image plugin is included for the preview images and image resizing functionality -->
-	<script src="//blueimp.github.io/JavaScript-Load-Image/js/load-image.all.min.js"></script>
+	<script src="/js/blueimp/JavaScript-Load-Image/js/load-image.all.min.js"></script>
 	<!-- The Canvas to Blob plugin is included for image resizing functionality -->
-	<script src="//blueimp.github.io/JavaScript-Canvas-to-Blob/js/canvas-to-blob.min.js"></script>
+	<script src="/js/blueimp/JavaScript-Canvas-to-Blob/js/canvas-to-blob.min.js"></script>
 	<!-- blueimp Gallery script -->
-	<script src="//blueimp.github.io/Gallery/js/jquery.blueimp-gallery.min.js"></script>
+	<script src="/js/blueimp/Gallery/js/jquery.blueimp-gallery.min.js"></script>
 	<!-- The Iframe Transport is required for browsers without support for XHR file uploads -->
 	<script src="/js/jquery.iframe-transport.js"></script>
 	<!-- The basic File Upload plugin -->
