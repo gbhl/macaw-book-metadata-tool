@@ -975,11 +975,21 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				if (strtolower($info['page_progression']) != 'ltr' && strtolower($info['page_progression']) != 'rtl') {
 					$info['page_progression'] = 'ltr';				
 				}
-				if (!array_key_exists('collections', $info)) {
-					if (array_key_exists('collection', $info)) {
-						$info['collections'] = $info['collection'];
-					}
+
+				// Handle collection/collections
+				$collection = array();
+				if (array_key_exists('collection', $info)) {
+					$collection[] = $info['collection'];
 				}
+				if (array_key_exists('collections', $info)) {
+					$collection = array_merge((array)$collection, (array)$info['collections']);
+				}
+				if (array_key_exists('collection_2', $info)) {
+					$collection = array_merge((array)$collection, (array)$info['collection_2']);
+				}
+				unset($info['collections']);
+				unset($info['collection_2']);
+				$info['collection'] = $collection;
 
 				// Create the item record in the database
 				if (!isset($this->CI->user->username) || !$this->CI->user->username) {
@@ -1011,11 +1021,6 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				$item_id = $this->db->insert_id();
 
 				$marc = array();
-				// Rename collections to collection for backwards compatibility
-				if (isset($info['collections'])) {
-					$info['collection'] = $info['collections'];
-					unset($info['collections']);
-				}
 
 				// Translate the 260a into a year. Because we can.
 				if (isset($info['marc260c'])) {
