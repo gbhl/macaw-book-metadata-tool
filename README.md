@@ -13,8 +13,6 @@ Macaw is built in PHP using CodeIgniter and uses PostgreSQL for the database. Fu
 
 There is a mailing list for Macaw located at Google Groups: https://groups.google.com/forum/#!forum/macaw-discussion
 
-An (older) VirtualBox VM image is available at: https://www.dropbox.com/sh/vgm7pzczdafwjxe/w79yCR-__c
-
 Documentation can be found at the following URLs:
 
 * Quick Start Checklist 
