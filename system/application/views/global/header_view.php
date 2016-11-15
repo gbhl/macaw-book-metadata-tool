@@ -81,7 +81,7 @@
 						<li class="last"><a href="<?php echo $this->config->item('base_url'); ?>admin/scheduled_jobs"><img src="<?php echo $this->config->item('base_url'); ?>images/12_manually_run_icon_sm.png">Scheduled Jobs</a></li>
 					</ul>
 				</li>
-				<li class="top"><a href="#"><?php print $free.'% Free'; ?></a></li>
+				<li class="top"><a href="#" title="This is how much disk space is remaining for macaw to use for TIFF files, etc."><?php print $free.'% Free'; ?></a></li>
 				<?php } ?>
 			</ul>            
 		</div>
