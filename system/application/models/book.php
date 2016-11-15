@@ -1167,6 +1167,20 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 		}
 		$marc_xml .= '  <leader>00000n'.$field_leader[6].$field_leader[7].$field_leader[8].'a2200000u#'.$field_leader[19].'4500</leader>'."\r\n";
 
+		// Handle the control fields, we want them at the top
+		foreach ($marc as $fieldname => $value) {
+			$value = trim(preg_replace('/[\x00-\x1F]/', '', $value)); // Strip all low-ascii control characters
+			if (strlen($value) > 0) {
+				// handle the 001-009 fields
+				$matches = array();
+				if (preg_match('/^marc(00[12345679])/', $fieldname, $matches)) { // Note that 8 is missing here. We don't add it ever.
+					if ($matches[1] != '') {
+						$marc_xml .= '  <controlfield tag="'.$matches[1].'">'.$value.'</controlfield>'."\r\n";
+					}
+				}
+			}
+		}
+
 		// Build the 008
 		$field008 = array(0 => date('ymd'), 6 => 'm', 7 => 'uuuu', 11 => 'uuuu', 15 => 'xx#', 35 => '###');
 		foreach ($marc as $fieldname => $value) {
@@ -1196,7 +1210,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				}
 			}	
 		}
-		$marc_xml .= '  <datafield tag="008">'.$field008[0].$field008[6].$field008[7].$field008[11].$field008[15].'||||g######00||0|'.$field008[35].'||</datafield>'."\r\n";
+		$marc_xml .= '  <controlfield tag="008">'.$field008[0].$field008[6].$field008[7].$field008[11].$field008[15].'||||g######00||0|'.$field008[35].'||</controlfield>'."\r\n";
 
 		// Handle the other fields
 		foreach ($marc as $fieldname => $value) {
@@ -1204,12 +1218,13 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 			if (strlen($value) > 0) {
 				$matches = array();
 				$x = preg_match('/^marc(\d{3})(.?)(-?\d*?)$/', $fieldname, $matches);
+
 				if (!isset($matches[1])) { $matches[1] = ''; }
 				if (!isset($matches[2])) { $matches[2] = ''; }
 				if (!isset($matches[3])) { $matches[3] = ''; }
 
 				// 008 and Leader handled special above. Skip 'em here.
-				if ($matches[1] != '008' && $matches[1] != 'Leader' && $matches[1] != '') {
+				if (substr($matches[1],0,2) != '00' && $matches[1] != 'Leader' && $matches[1] != '') {
 					if ($prev_tag != $matches[1].$matches[3]) {
 						if ($prev_tag != 0) { $marc_xml .= '  </datafield>'."\r\n"; }
 						$marc_xml .= '  <datafield tag="'.$matches[1].'" ind1=" " ind2=" ">'."\r\n";
