@@ -52,7 +52,11 @@
 					<ul>					
 						<?php if ($can_edit_item) { ?>
 						<li><a href="<?php echo $this->config->item('base_url'); ?>main/edit"><img src="<?php echo $this->config->item('base_url'); ?>images/07_edit_items_icon_sm.png">Edit Item</a></li>						
+						<?php if ($this->user->username == 'demo') {?>
+						<li><a href="<?php echo $this->config->item('base_url'); ?>scan/upload_new/"><img src="<?php echo $this->config->item('base_url'); ?>images/icon-upload-small.png">Upload Pages</a></li>
+						<?php } else { ?>
 						<li><a href="<?php echo $this->config->item('base_url'); ?>scan/upload/"><img src="<?php echo $this->config->item('base_url'); ?>images/icon-upload-small.png">Upload Pages</a></li>
+						<?php } ?>
 						<li><a href="<?php echo $this->config->item('base_url'); ?>scan/monitor/"><img src="<?php echo $this->config->item('base_url'); ?>images/03_import_pages_icon_sm.png">Import Pages</a></li>
 						<li><a href="<?php echo $this->config->item('base_url'); ?>scan/review"><img src="<?php echo $this->config->item('base_url'); ?>images/04_review_pages_icon_sm.png">Edit Page Metadata</a></li>
 						<li><a href="<?php echo $this->config->item('base_url'); ?>scan/missing/insert"><img src="<?php echo $this->config->item('base_url'); ?>images/05_insert_missing_pages_icon_sm.png">Insert Missing Pages</a></li>
