@@ -13,6 +13,13 @@
 	<hidden name="bookid" value="<?php echo( $this->session->userdata('barcode')); ?>"></hidden>
 </form>
 
+<?php if ($free < 5) { ?>
+	<h2 style="text-align:center">Uploads are disabled because Macaw is low on disk space! (<?php echo($free.'%') ?> free)</h2>
+	<h3 style="text-align:center">There are currently <?php echo($exporting) ?> items being uploaded by or processed at the Internet Archive.</h3>
+	<h3 style="text-align:center">Please check back in a few hours.</h3>
+	<h4 style="text-align:center;margin-top:30px;font-weight:normal;">(This message will disappear when macaw has made more space available for new items.)</h2>
+<?php } else { ?>
+	
 <div id="uploadcontrols">
 	<h1>Upload Pages</h1>
 	<div id="uploadcontrolsbody">
@@ -220,5 +227,8 @@
 		}
 	}
 </script>
+
+<?php }?>
+
 
 </body>

@@ -118,6 +118,9 @@ class Scan extends Controller {
 		$data['ip_address'] = $_SERVER['REMOTE_ADDR'];
 		$data['hostname'] = $this->common->_get_host($_SERVER['REMOTE_ADDR']);
 		$data['incoming_path'] = $this->cfg['incoming_directory'].'/'.$barcode;
+		$data['free'] = (int)(disk_free_space($this->cfg['data_directory'])/disk_total_space($this->cfg['data_directory'])*100);
+		$books = $this->book->get_all_books(true, null, array('exporting'));
+		$data['exporting'] = count($books);
 
 		// Make sure the path exists
 		if (!file_exists($data['incoming_path'])) {
