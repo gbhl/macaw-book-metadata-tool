@@ -113,13 +113,13 @@ class Admin extends Controller {
 				array_push($data['new_items'], $b);
 
 			} elseif ($b->status_code == 'scanning' || $b->status_code == 'scanned' || $b->status_code == 'reviewing' || $b->status_code == 'reviewed') {
-				if (isset($b->date_review_end)) {
+				if (isset($b->date_review_end) && $b->date_review_end != '0000-00-00 00:00:00') {
 					$b->date = preg_replace('/ \d\d:\d\d:\d\d/','',$b->date_review_end);
-				} elseif (isset($b->date_review_start)) {
+				} elseif (isset($b->date_review_start) && $b->date_review_start != '0000-00-00 00:00:00') {
 					$b->date = preg_replace('/ \d\d:\d\d:\d\d/','',$b->date_review_start);
-				} elseif (isset($b->date_scanning_end)) {
+				} elseif (isset($b->date_scanning_end) && $b->date_scanning_end != '0000-00-00 00:00:00') {
 					$b->date = preg_replace('/ \d\d:\d\d:\d\d/','',$b->date_scanning_end);
-				} elseif (isset($b->date_scanning_start)) {
+				} elseif (isset($b->date_scanning_start) && $b->date_scanning_start != '0000-00-00 00:00:00') {
 					$b->date = preg_replace('/ \d\d:\d\d:\d\d/','',$b->date_scanning_start);
 				}
 				if ($b->date == '0000-00-00') { $b->date = ''; }
