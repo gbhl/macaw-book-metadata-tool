@@ -465,17 +465,26 @@ class Main extends Controller {
 				}
 			}
 		}
-		
+
+		$rights_holder = null;
 		if (array_key_exists('rights_holder', $_POST)) {
 			if ($_POST['rights_holder'] != '(other)') {
 				$this->book->set_metadata('rights_holder', $_POST['rights_holder'], false);
+				$rights_holder = $_POST['rights_holder'];
 			} else {
 				if (array_key_exists('rights_holder_other', $_POST)) {
 					$this->book->set_metadata('rights_holder', $_POST['rights_holder_other'], false);
+					$rights_holder = $_POST['rights_holder_other'];
 				}
 			}
 		}
 		
+		if (array_key_exists('copyright', $_POST)) {
+			if ($_POST['copyright'] != '1' && !$rights_holder) {
+				$this->session->set_userdata('warning', "<strong>Rights Holder</strong> is required when the item is <strong>In Copyright</strong>.");
+			}
+		}
+
  		$this->book->needs_qa = (array_key_exists('needs_qa', $_POST) ? true : false);
  		$this->book->ia_ready_images = (array_key_exists('ia_ready_images', $_POST) ? true : false);
  		$this->book->page_progression = $_POST['page_progression'][0];
