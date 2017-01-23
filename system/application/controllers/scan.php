@@ -101,7 +101,7 @@ class Scan extends Controller {
 	*
 	*/
 	
-	function upload(){
+	function upload_old(){
 		if (!$this->user->has_permission('scan')) {
 			$this->common->ajax_headers();
 			echo json_encode(array('errormessage' => 'You do not have permission to access that page.'));
@@ -940,7 +940,7 @@ class Scan extends Controller {
 	 *
 	 * @since Version 2.2
 	 */
-	function upload_new(){
+	function upload(){
 		if (!$this->user->has_permission('scan')) {
 			$this->common->ajax_headers();
 			echo json_encode(array('errormessage' => 'You do not have permission to access that page.'));
