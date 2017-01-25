@@ -2,6 +2,9 @@
     RewriteEngine On
     RewriteBase /
 
+    RewriteCond %{REQUEST_URI} update-macaw.sh
+    RewriteRule ^ - [F,L]
+
     RewriteCond %{REQUEST_URI} !(/index\.php|/image\.php|/install\.php|/robots\.txt|/favicon\.ico|/assets/|/images/|/js/|/css/|/books/|/plugins/|/inc/|/cors/)
     RewriteRule ^(.*)$ index.php/$1 [L]
 
