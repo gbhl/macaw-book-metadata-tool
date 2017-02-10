@@ -480,8 +480,10 @@ class Main extends Controller {
 		}
 		
 		if (array_key_exists('copyright', $_POST)) {
-			if ($_POST['copyright'] != '1' && !$rights_holder) {
-				$this->session->set_userdata('warning', "<strong>Rights Holder</strong> is required when the item is <strong>In Copyright</strong>.");
+			if (isset($_POST['copyright'][0])) {
+				if ($_POST['copyright'][0] == '1' && !$rights_holder) {
+					$this->session->set_userdata('warning', "<strong>Rights Holder</strong> is required when the item is <strong>In Copyright</strong>.");
+				}
 			}
 		}
 
