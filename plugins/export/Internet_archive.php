@@ -1783,22 +1783,22 @@ class Internet_archive extends Controller {
 			$metadata['x-archive-meta-identifier-bib'] = $val;
 		}
 
-		$ret = ($mods->xpath($root.$ns."note"));
-		$c = 0;
-		if ($ret && is_array($ret)) {
-			foreach ($ret as $r) {
-				$str = '';
-				if ($r['type']) {
-					$str = $r['type'].': '.$r;
-				} else {
-					$str = $r.'';
-				}
-				if ($str) {
-					$metadata['x-archive-meta'.sprintf("%02d", $c).'-description'] = str_replace('"', '\\"', $str);
-					$c++;
-				}
-			}
-		}
+// 		$ret = ($mods->xpath($root.$ns."note"));
+// 		$c = 0;
+// 		if ($ret && is_array($ret)) {
+// 			foreach ($ret as $r) {
+// 				$str = '';
+// 				if ($r['type']) {
+// 					$str = $r['type'].': '.$r;
+// 				} else {
+// 					$str = $r.'';
+// 				}
+// 				if ($str) {
+// 					$metadata['x-archive-meta'.sprintf("%02d", $c).'-description'] = str_replace('"', '\\"', $str);
+// 					$c++;
+// 				}
+// 			}
+// 		}
 		
 		$tm = time();
 		if (isset($this->CI->book->date_review_end) && $this->CI->book->date_review_end != '0000-00-00 00:00:00') {
