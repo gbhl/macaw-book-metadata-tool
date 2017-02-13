@@ -979,7 +979,11 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				// Handle collection/collections
 				$collection = array();
 				if (array_key_exists('collection', $info)) {
-					$collection[] = $info['collection'];
+					if (is_array($info['collection'])) {
+						$collection = $info['collection'];
+					} else {
+						$collection = array($info['collection']);
+					}
 				}
 				if (array_key_exists('collections', $info)) {
 					$collection = array_merge((array)$collection, (array)$info['collections']);
