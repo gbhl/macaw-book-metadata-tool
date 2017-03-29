@@ -999,12 +999,17 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				if (!isset($this->CI->user->username) || !$this->CI->user->username) {
 					$this->CI->user->load('admin');
 				}
+				$org_id = $this->CI->user->org_id;
+				if ($info['org_id']) {
+					$org_id = $info['org_id'];
+				}
+
 				if ($this->db->dbdriver == 'postgre') {
 					$data = array(
 						'barcode' => $info['barcode'],
 						'status_code' => 'new',
 						'date_created' => date('Y-m-d H:i:s'),
-						'org_id' => $this->CI->user->org_id,
+						'org_id' => $org_id,
 						'needs_qa' => (($info['needs_qa'] == 1 || substr(strtolower($info['needs_qa']),0,1) == 'y') ? 't' : 'f'),
 						'ia_ready_images' => (($info['ia_ready_images'] == 1 || substr(strtolower($info['ia_ready_images']),0,1) == 'y') ? 't' : 'f'),
 						'page_progression' => $info['page_progression']
@@ -1014,7 +1019,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 						'barcode' => $info['barcode'],
 						'status_code' => 'new',
 						'date_created' => date('Y-m-d H:i:s'),
-						'org_id' => $this->CI->user->org_id,
+						'org_id' => $org_id,
 						'needs_qa' => (($info['needs_qa'] == 1 || substr(strtolower($info['needs_qa']),0,1) == 'y') ? 1 : 0),
 						'ia_ready_images' => (($info['ia_ready_images'] == 1 || substr(strtolower($info['ia_ready_images']),0,1) == 'y') ? 1 : 0),
 						'page_progression' => $info['page_progression']
@@ -1038,13 +1043,13 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 						$info['year'] = $matches[1];
 					}
 				}
-				
+
 				// This is a simple associative array
 				foreach (array_keys($info) as $i) {
 					if (preg_match('/^marc/i', $i) && !preg_match('/^marc_xml$/i', $i)) {
 						$marc[$i] = $info[$i];
 					} else {
-						if ($i != 'barcode' && $i != 'identifier' && $i != 'needs_qa' && $i != 'ia_ready_images' && $i != 'page_progression' && !preg_match('/[0-9]+/', $i)) {
+						if ($i != 'barcode' && $i != 'identifier' && $i != 'needs_qa' && $i != 'ia_ready_images' && $i != 'page_progression'  && $i != 'org_id' && !preg_match('/[0-9]+/', $i)) {
 							// If we got an array of data, we loop through 
 							// the items and add them to the metadata.
 							if (is_array($info[$i])) {
@@ -1104,7 +1109,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				
 				// Did we get the MARC XML uploaded in a CSV field all at once?
 				// If so, we need to make and save the MODS
-				if (isset($info['marc_xml'])) {
+				if (isset($info['marc_xml']) && !isset($info['mods_xml'])) {
 					$marc_data = $info['marc_xml'];
 
 					$mods_data = $this->common->marc_to_mods($marc_data);
@@ -1126,7 +1131,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 
 					$ret = $this->_read_mods($mods_data);
 					
-					if (isset($ret['title'])) {
+					if (isset($ret['title']) && !isset($info['title'])) {
 						$this->db->insert('metadata', array(
 							'item_id'   => $item_id,
 							'fieldname' => 'title',
@@ -1134,7 +1139,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 							'value'     => $ret['title']
 						));							
 					}
-					if (isset($ret['author'])) {
+					if (isset($ret['author']) && !isset($info['author'])) {
 						$this->db->insert('metadata', array(
 							'item_id'   => $item_id,
 							'fieldname' => 'author',
@@ -1955,6 +1960,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 		// Create the thumbnail image
 		$preview->resizeImage(180, 300, Imagick::FILTER_POINT, 0);
 		$preview->profileImage('xmp', $this->book->xmp_xml());
+// 		auto_rotate_image($preview);
 		$preview->writeImage($dest.'/thumbs/'.$filebase.'.jpg');
 
 		// Set IPTC Data
@@ -2114,5 +2120,25 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 	
 		return $return;
 	}
+
+	// Note: $image is an Imagick object, not a filename! See example use below.
+// 	function auto_rotate_image($image) {
+// 		$orientation = $image->getImageOrientation();
+// 
+// 		switch($orientation) {
+// 			case imagick::ORIENTATION_BOTTOMRIGHT:
+// 				$image->rotateimage("#000", 180); // rotate 180 degrees
+// 				break;
+// 			case imagick::ORIENTATION_RIGHTTOP:
+// 				$image->rotateimage("#000", 90); // rotate 90 degrees CW
+// 				break;
+// 			case imagick::ORIENTATION_LEFTBOTTOM:
+// 				$image->rotateimage("#000", -90); // rotate 90 degrees CCW
+// 				break;
+// 		}
+// 
+// 		// Now that it's auto-rotated, make sure the EXIF data is correct in case the EXIF gets saved with the image!
+// 		$image->setImageOrientation(imagick::ORIENTATION_TOPLEFT);
+// 	}
 
 }
