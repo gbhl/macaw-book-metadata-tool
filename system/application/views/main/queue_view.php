@@ -19,12 +19,10 @@
 				<?php } ?>
 			</select>
 		</ul>
-		<div class="yui-content"><div>
+		<div class="yui-content"></div>
 		<div id="divInProgress"></div>
 	</div>
 
-	</div>
-	</div>
 	<?php $this->load->view('global/footer_view') ?>
 </body>
 </html>
