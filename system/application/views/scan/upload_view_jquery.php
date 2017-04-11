@@ -23,6 +23,14 @@
 <body>	
 	<?php $this->load->view('global/header_view') ?>
 
+<?php if ($free < 5) { ?>
+	<h2 style="text-align:center">Uploads are disabled because Macaw is low on disk space! (<?php echo($free.'%') ?> free)</h2>
+	<h3 style="text-align:center">There are currently <?php echo($exporting) ?> items being uploaded by or processed at the Internet Archive.</h3>
+	<h3 style="text-align:center">Please check back in a few hours.</h3>
+	<h4 style="text-align:center;margin-top:30px;font-weight:normal;">(This message will disappear when macaw has made more space available for new items.)</h2>
+<?php } else { ?>
+
+
 	<div class="container">
 			<p>
 			Upload image files (<strong>PNG, TIFF, JP2</strong>) or PDFs for this item to the Macaw server.<br>
@@ -207,4 +215,7 @@
 	<!--[if (gte IE 8)&(lt IE 10)]>
 	<script src="js/cors/jquery.xdr-transport.js"></script>
 	<![endif]-->
+ 
+<?php }?>
+
 </body>
