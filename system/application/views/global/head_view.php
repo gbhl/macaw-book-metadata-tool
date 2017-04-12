@@ -10,7 +10,6 @@
 <script type="text/javascript" src="<?php echo $this->config->item('base_url'); ?>js/yui-combo.js"></script>
 
 <script type="text/javascript" src="<?php echo $this->config->item('base_url'); ?>inc/magnifier/image-magnifier.js"></script>
-<script type="text/javascript" src="<?php echo $this->config->item('base_url'); ?>inc/swf/swfobject.js"></script>
 <script type="text/javascript" src="<?php echo $this->config->item('base_url'); ?>main/js_config"></script>
 <script type="text/javascript" src="<?php echo $this->config->item('base_url'); ?>js/macaw.js"></script>
 <script type="text/javascript" src="<?php echo $this->config->item('base_url'); ?>js/macaw-barcode.js"></script>
