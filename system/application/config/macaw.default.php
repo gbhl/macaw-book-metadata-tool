@@ -223,7 +223,7 @@ $config['macaw']['export_required_fields'] = array(
 	'Internet_archive' => array('marc_xml', 'copyright', 'collection', 'year', 'title', 'sponsor')
 );
 $config['macaw']['export_optional_fields'] = array(
-	'Internet_archive' => array('volume')
+	'Internet_archive' => array('volume','copy_specific_information')
 );
 
 // ------------------------------

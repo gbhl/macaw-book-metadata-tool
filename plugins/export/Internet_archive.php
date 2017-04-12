@@ -1857,6 +1857,11 @@ class Internet_archive extends Controller {
 				$metadata['x-archive-meta-scanning-institution'] = $this->CI->book->get_metadata('scanning_institution');
 			}
 
+			// Copy Specific Information
+			if ($this->CI->book->get_metadata('copy_specific_information')) {
+				$metadata['x-archive-meta-copy-specific-information'] = $this->CI->book->get_metadata('copy_specific_information');
+			}
+
 			return $metadata;
 		} else {
 			return null;

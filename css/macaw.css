@@ -1549,7 +1549,7 @@ textarea, input {
 	padding-top: 10px;
 }
 #edit form{
-	width:700px;
+	width:750px;
 	border-left: 1px solid #9FB9C7;
 	border-right: 1px solid #9FB9C7;
 	margin: 0 auto;
@@ -1558,7 +1558,7 @@ textarea, input {
 #edit h1{	
 	margin: 0px auto;
 	padding: 12px;
-	width: 676px;
+	width: 726px;
 	background: #4F7E97;
 	border: 1px solid #9fb9c7;
 	border-top-left-radius: 6px;
@@ -1588,7 +1588,7 @@ textarea, input {
 	margin-left: 0px;
 }
 #edit .fieldname input[type=text] {
-	width:120px;
+	width:140px;
 }
 #edit input[type=text],
 #edit input[type=file],
@@ -1608,7 +1608,7 @@ textarea, input {
 	margin: 0px auto;
 	height:2.5em;
 	display: block;
-	width: 700px;
+	width: 750px;
 	background-color: #F6F8FA;
 	border: 1px solid #9FB9C7;
 	border-bottom-left-radius: 6px;
