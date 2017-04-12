@@ -66,6 +66,9 @@
 							<button id="btnSelectAlternate" title="Selects all even-numbered pages">Alternate</Button>
 							<button id="btnSelectInverse" title="Selects pages that aren't selected and unselects those that are">Inverse</Button>
 						</div>
+						<div id="resort">
+							<button id="btnAlphaReorder" title="Reorder all pages Alphanumerically">Alphanumeric Re-sort</Button>
+						</div>
 						<div id="btnToggleListThumbs" class="yui-buttongroup">
 							<input id="btnToggleThumbs" type="radio" name="list_or_thumbs" value="Th" checked title="Thumbnail View"><input id="btnToggleList" type="radio" name="list_or_thumbs" value="Ls" title="List View">
 						</div>

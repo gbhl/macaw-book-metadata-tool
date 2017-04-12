@@ -1224,19 +1224,24 @@ table#admin_scheduled_jobs td {
 .yui-button#btnSelectAlternate,
 .yui-button#btnSelectInverse,
 .yui-button#btnToggleThumbs,
-.yui-button#btnToggleList{
+.yui-button#btnToggleList,
+.yui-button#btnAlphaReorder {
 	background: url(http://yui.yahooapis.com/2.9.0/build/assets/skins/sam/sprite.png) repeat-x 0 0;
 	padding:  0 1px;
 	border: 0;
 	margin: 0;
 	height: 100%;
 }
+.yui-button#btnAlphaReorder {
+	margin-left: 100px;
+}
 .yui-button#btnSelectAll button,
 .yui-button#btnSelectNone button,
 .yui-button#btnSelectAlternate button,
 .yui-button#btnSelectInverse button,
 .yui-button#btnToggleThumbs button,
-.yui-button#btnToggleList button {
+.yui-button#btnToggleList button, 
+.yui-button#btnAlphaReorder button {
 	text-indent: 1.5em;
 	padding: 1px 3px;
 	color: #000;
@@ -1281,6 +1286,9 @@ table#admin_scheduled_jobs td {
 }
 .yui-button#btnToggleList button {
 	background: url(../images/icons/application_view_list.png) center center no-repeat;
+}
+.yui-button#btnAlphaReorder button {
+	background: url(../images/icons/arrow_switch.png) 2px 50%  no-repeat;
 }
 .yui-button#addWidgetButtton button {
 	text-indent: 1.5em;

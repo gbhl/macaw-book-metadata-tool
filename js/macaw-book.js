@@ -78,6 +78,9 @@ YAHOO.macaw.Book = function() {
 			var obtnSelectInverse = new YAHOO.widget.Button("btnSelectInverse");
 			obtnSelectInverse.on("click", oBook.pages.selectInverse, null, oBook.pages);
 
+			var obtnAlphaReorder = new YAHOO.widget.Button("btnAlphaReorder");
+			obtnAlphaReorder.on("click", oBook.reSortAll);
+
 			window.onbeforeunload = function () {
 				if (oBook.modified) { // "this" refers to the window
 					return "You have unsaved changes.";
@@ -102,7 +105,7 @@ YAHOO.macaw.Book = function() {
 	// Return Value / Effect
 	//    No return value. Assume that the data is saved, present an error if not.
 	// ----------------------------
-	this.save = function(e, finishing, finishing_later, suppress_dialog) {
+	this.save = function(e, finishing, finishing_later, suppress_dialog, resort_pages) {
 		// This is the callback to handle the saving of the data.
 		var saveCallback = {
 			success: function (o){
@@ -119,7 +122,11 @@ YAHOO.macaw.Book = function() {
 							this._doFinish();
 						} else if (finishing_later) {
 							//Changed direction to /scan/review. Finish later removed from review page. This only used with missing pages
-							window.location = sBaseUrl+'/scan/review/';
+							if (resort_pages) {
+								window.location = sBaseUrl+'/scan/reorder_all/';
+							} else {
+								window.location = sBaseUrl+'/scan/review/';
+							}
 						} else {
 							if (!suppress_dialog) {
 								General.showMessage(r.message);
@@ -350,6 +357,20 @@ YAHOO.macaw.Book = function() {
 		}
 		General.showYesNo('Are you sure you want to delete this page? This cannot be undone.', doDelete);
 		
+	}
+
+	this.reSortAll = function(e) {
+		// Verify with the user that they want to delete
+		function doReSortAll() {
+			// Save our changes, but don't finish the book
+			YAHOO.util.Selector.query('#messageDialog div.bd')[0].innerHTML = "<h2>Saving your changes...</h2>";
+			YAHOO.util.Selector.query('#messageDialog div.ft')[0].style.display = "none";
+			oBook.save(e, false, true, true, true);
+		}
+		General.showYesNo(
+			'<strong>Are you sure you want to reorder all of the pages?</strong><br><br>The pages will be <em>reordered</em> alpha-numerically based on the original filename of the TIFF file that was uploaded. This cannot be undone. All of your metadata will be saved. Only the order of the pages will be changed.',
+			doReSortAll
+		);
 	}
 
 	// ----------------------------

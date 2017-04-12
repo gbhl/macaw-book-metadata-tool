@@ -487,7 +487,6 @@ class Scan extends Controller {
 		if (!$this->common->check_session(true)) {
 			return;
 		}
-
 		$this->common->ajax_headers();
 		// Get our book
         $this->book->load($this->session->userdata('barcode'));
@@ -796,6 +795,34 @@ class Scan extends Controller {
 		} else {
 			$this->session->set_userdata('warning', "Warning: Unable to send QA notification email. Could not find a QA or Admin user.");
 		}
+	}
+
+	/**
+	 * Reorders all of the pages alphanumericallty
+	 *
+	 * @since Version 2.2.0
+	 */
+	function reorder_all() {
+		$this->common->check_session();
+
+		// Permission Checking
+		if (!$this->user->has_permission('scan')) {
+			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			redirect($this->config->item('base_url').'main');
+			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
+			return;
+		}
+
+		// Load the book
+		$this->book->load($this->session->userdata('barcode'));
+		// Get the pagesm sorted by filebase
+		$pages = $this->book->get_pages('filebase');
+		$seq = 1;
+		foreach ($pages as $p) {
+			$this->book->set_page_sequence($p->id, $seq++);
+		}
+		// redirect to the scan/review page
+		redirect($this->config->item('base_url').'scan/review');
 	}
 
 
