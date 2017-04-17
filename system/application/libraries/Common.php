@@ -403,7 +403,7 @@ class Common extends Controller {
 
 			// Now decide if we have a clean XML declaration			
 			
-			// Does the declaration begin at they very start of the fime?
+			// Does the declaration begin at they very start of the file?
 			if (!preg_match("/^<\?xml version=\"1\.0\" encoding=\"UTF\-8\"\?\>/",$marc)) {
 				// No, do we have a colleciton and record tag?
 				if (preg_match("/\<collection/", $marc) && preg_match("/\<record/", $marc)) {
@@ -442,7 +442,7 @@ class Common extends Controller {
 		if (preg_match("/\<collection/", $marc)) {
 			$xml = simplexml_load_string($marc);
 			if ($xml->count() > 1) {
-				$this->CI->session->set_userdata('errormessage', "The MARC XML is contains more than one record. Please verify that your MARC XML contains exactly one &lt;record&gt; element.");
+				$this->CI->session->set_userdata('errormessage', "The MARC XML contains more than one record. Please verify that your MARC XML contains exactly one &lt;record&gt; element.");
 			}
 		}
 
