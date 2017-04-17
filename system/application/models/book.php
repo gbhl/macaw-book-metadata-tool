@@ -1889,7 +1889,8 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				$filename = $scans_dir.$f_clean;
 			}
 			
-			$info = get_file_info($filename, 'size');
+			$info = get_file_info($scans_dir.$filename, 'size');
+
 			// Create derivatives for the file (/thumbnail/ and /preview/)
 			$dim = $this->_process_image($scans_dir, $this->barcode, $filebase);
 			// Add the page to the book
