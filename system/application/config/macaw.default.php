@@ -64,6 +64,14 @@ $config['macaw']['data_directory'] = $config['macaw']['base_directory']."/books"
 $config['macaw']['logs_directory'] = $config['macaw']['base_directory']."/system/application/logs";
 
 // ------------------------------
+// DISK SPACE QUOTA SETTINGS
+// ------------------------------
+// Percentages for settings related to disk space quotas.
+$config['macaw']['low_disk_space_cutoff'] = 5;
+$config['macaw']['upload_warning'] = 10;
+$config['macaw']['upload_cutoff'] = 20;
+
+// ------------------------------
 // LOGGING FILENAMES
 // ------------------------------
 // Names of the log files. You may use the following substitutions to have macaw automatically

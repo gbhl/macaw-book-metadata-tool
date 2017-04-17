@@ -23,15 +23,22 @@
 <body>	
 	<?php $this->load->view('global/header_view') ?>
 
-<?php if ($free < 5) { ?>
+<?php if ($free < $this->cfg['low_disk_space_cutoff']) { ?>
 	<h2 style="text-align:center">Uploads are disabled because Macaw is low on disk space! (<?php echo($free.'%') ?> free)</h2>
 	<h3 style="text-align:center">There are currently <?php echo($exporting) ?> items being uploaded by or processed at the Internet Archive.</h3>
 	<h3 style="text-align:center">Please check back in a few hours.</h3>
 	<h4 style="text-align:center;margin-top:30px;font-weight:normal;">(This message will disappear when macaw has made more space available for new items.)</h2>
+<?php } elseif ($used >= $this->cfg['upload_cutoff']) { ?>
+	<h2 style="text-align:center">Uploads are disabled because your organization has exceeded their allowed quota of <?php echo($this->cfg['upload_cutoff']) ?>% of usable disk space. </h2>
+	<h3 style="text-align:center">Additional message...</h3>
 <?php } else { ?>
 
-
 	<div class="container">
+	
+		<?php if ($used >= $this->cfg['upload_warning']) { ?>
+			<h2 style="text-align:center">Warning: <?php echo($this->cfg['upload_warning']) ?>% or more used of available disk space.</h2>
+		<?php } ?>
+	
 			<p>
 			Upload image files (<strong>PNG, TIFF, JP2</strong>) or PDFs for this item to the Macaw server.<br>
 			You can <strong>drag &amp; drop</strong> files from your desktop on this webpage (Chrome, Firefox, Safari, Internet Explorer 10+).<br>
