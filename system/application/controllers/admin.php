@@ -182,6 +182,20 @@ class Admin extends Controller {
 		$this->common->ajax_headers();
 		echo json_encode(array('data' => $data));
 	}
+	
+	function user_export_data(){
+		if (!$this->common->check_session(TRUE)){
+			return;
+		}
+
+		// Get all books for the current organization that are exporting.
+		$books = $this->book->get_all_books(TRUE, $this->user->org_id, array('exporting'));
+		$data = array('exporting' => $books);
+		
+		// Send the data back to the browser.
+		$this->common->ajax_headers();
+		echo json_encode(array('data' => $data));
+	}
 
 	/**
 	 * Show the manual functions

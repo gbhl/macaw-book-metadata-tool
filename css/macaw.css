@@ -156,7 +156,11 @@ td.yui-dt-last {
 	right: 1%;
 	font-family: arial, helvetica, clean, sans-serif;
 }
-
+.message-static {
+	text-align:center;
+	padding:10px;
+	border: 2px solid;
+}
 #message {
 	border-color: #c7d7b8;
 	color: #697f54;

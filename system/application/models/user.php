@@ -374,6 +374,23 @@ class User extends Model {
 		return (count($qa_users) > 0);
 		
 	}
+
+	
+	function get_space_used(){
+		$result = $this->db->query(
+			'SELECT coalesce(i.bytes, 0) as bytes '.
+			'FROM organization o '.
+			'LEFT OUTER JOIN ( '.
+			'	SELECT sum(p.bytes) AS bytes, max(i.id) as id, max(i.status_code) AS status_code, max(i.org_id) as org_id, count(*) as pages '.
+			'	FROM page p  '.
+			'	INNER JOIN item i ON p.item_id = i.id  '.
+			'	WHERE i.status_code NOT IN (\'completed\', \'exporting\')  '.
+			'	GROUP BY i.org_id '.
+			') i ON o.id = i.org_id '.
+			'WHERE o.id = '.$this->org_id
+		)->row()->bytes;
+		return $result;
+	}	
 }
 
 

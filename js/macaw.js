@@ -323,9 +323,26 @@ var formatStatus = function(elCell, oRecord, oColumn, oData) {
 	} else if (oData == 'uploading') {
 		elCell.innerHTML = '<span style="color: #360">Uploading</span>';
 
+	} else if (oData == 'exporting') {
+		elCell.innerHTML = '<span style="color: #39F">Exporting</span>';
+
 	} else if (oData == 'completed') {
 		elCell.innerHTML = '<span style="color: #360">Export&nbsp;Complete</span>';
 
+	// These are for IA Statuses
+	} else if (oData == 'pending') {
+		elCell.innerHTML = '<span style="color: #39F">Exporting (Ready to Send)</span>';
+
+	} else if (oData == 'uploaded') {
+		elCell.innerHTML = '<span style="color: #39F">Exporting (Uploaded)</span>';
+
+	} else if (oData == 'verified_upload') {
+		elCell.innerHTML = '<span style="color: #39F">Exporting (Deriving)</span>';
+
+	} else if (oData == 'verified_derive') {
+		elCell.innerHTML = '<span style="color: #39F">Exporting (Derived)</span>';
+
+	// Default
 	} else {
 		elCell.innerHTML = oData;
 	}

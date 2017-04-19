@@ -231,10 +231,9 @@
 		init: function() {
 			// Set up the tabs
 			var myTabs = new YAHOO.widget.TabView('queues');
-
 			var loadDataCallback = {
 				success: function(o) {
-					eval('var r = '+o.responseText);
+					eval('var r = '+ o.responseText);
 					if (r.redirect) {
 						window.location = r.redirect;
 					} else if (r.error) {
@@ -251,8 +250,9 @@
 			};
 
 			YAHOO.util.Event.addListener("queue-filter", "change", ListItems.updateData);
-			
-			var transaction = YAHOO.util.Connect.asyncRequest('GET', sBaseUrl + '/admin/user_queue_data', loadDataCallback);
+			var url = (this.url ? this.url : '/admin/user_queue_data');
+
+			var transaction = YAHOO.util.Connect.asyncRequest('GET', sBaseUrl + url, loadDataCallback);
 			MessageBox.init();
 
 		},
@@ -285,7 +285,7 @@
 				{key:"status_code",	label:'Status',				formatter: formatStatus, sortable: true }
 			];
 
-			ListItems.dataSource = new YAHOO.util.DataSource(data.in_progress);
+			ListItems.dataSource = new YAHOO.util.DataSource(data.exporting ? data.exporting : data.in_progress);
 			ListItems.dataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
 			ListItems.dataSource.responseSchema = {	fields: ["barcode","title","author","org_name","bytes","status_code"] };
 			ListItems.dataSource.doBeforeCallback = function (req, raw, res, cb) {
@@ -310,6 +310,11 @@
 
 						} else if (req == 'completed' ) {
 							if (data[i].status_code == 'reviewed') {
+								filtered.push(data[i]);
+							}						
+
+						} else if (req == 'exporting' ) {
+							if (data[i].status_code == 'exporting') {
 								filtered.push(data[i]);
 							}						
 						}

@@ -24,19 +24,33 @@
 	<?php $this->load->view('global/header_view') ?>
 
 <?php if ($free < $this->cfg['low_disk_space_cutoff']) { ?>
-	<h2 style="text-align:center">Uploads are disabled because Macaw is low on disk space! (<?php echo($free.'%') ?> free)</h2>
-	<h3 style="text-align:center">There are currently <?php echo($exporting) ?> items being uploaded by or processed at the Internet Archive.</h3>
-	<h3 style="text-align:center">Please check back in a few hours.</h3>
-	<h4 style="text-align:center;margin-top:30px;font-weight:normal;">(This message will disappear when macaw has made more space available for new items.)</h2>
+	<div class="container">
+		<h2 style="text-align:center">Uploads are disabled because Macaw is low on disk space! (<?php echo($free.'%') ?> free)</h2>
+		<h3 style="text-align:center">There are currently <?php echo($exporting) ?> items being uploaded by or processed at the Internet Archive.</h3>
+		<h3 style="text-align:center">Please check back in a few hours.</h3>
+		<h4 style="text-align:center;margin-top:30px;font-weight:normal;">(This message will disappear when macaw has made more space available for new items.)</h2>
+	</div>
 <?php } elseif ($used >= $this->cfg['upload_cutoff']) { ?>
-	<h2 style="text-align:center">Uploads are disabled because your organization has exceeded their allowed quota of <?php echo($this->cfg['upload_cutoff']) ?>% of usable disk space. </h2>
-	<h3 style="text-align:center">Additional message...</h3>
+	<div class="container yui-skin-sam">
+		<script type="text/javascript">
+			var mydata = {url:'/admin/user_export_data'};
+			YAHOO.util.Event.onDOMReady(ListItems.init, mydata, true);
+		</script>
+		<h2 id="errormessage" class="message-static">Uploads are disabled because your organization has exceeded their allowed quota of <?php echo($this->cfg['upload_cutoff']) ?>% of usable disk space. </h2>
+		<h3 style="text-align:center">Your organization is using <?php echo $used ?>% of disk space.<br><br>You will need to wait 6 to 12 hours until your items are finished exporting before uploading new files.</h3>
+		<div id="userqueues" class="fulltable">
+			<ul class="queueheading">
+				<li class="selected"><a href="#tab2">Items Being Exported</a></li>
+			</ul>
+			<div id="divInProgress"></div>
+		</div>
+	</div>
 <?php } else { ?>
 
 	<div class="container">
 	
 		<?php if ($used >= $this->cfg['upload_warning']) { ?>
-			<h2 style="text-align:center">Warning: <?php echo($this->cfg['upload_warning']) ?>% or more used of available disk space.</h2>
+			<h2 id="warning" class="message-static">Your organization is using <?php echo($this->cfg['upload_warning']) ?>% or more of available disk space.</h2>
 		<?php } ?>
 	
 			<p>
