@@ -457,11 +457,13 @@ class Main extends Controller {
 		}
 		
 		if (array_key_exists('scanning_institution', $_POST)) {
-			if ($_POST['scanning_institution'] != '(other)') {
-				$this->book->set_metadata('scanning_institution', $_POST['scanning_institution'], false);
-			} else {
-				if (array_key_exists('scanning_institution_other', $_POST)) {
-					$this->book->set_metadata('scanning_institution', $_POST['scanning_institution_other'], false);
+			if ($_POST['scanning_institution'] != $this->book->get_contributor()){
+				if ($_POST['scanning_institution'] != '(other)') {
+					$this->book->set_metadata('scanning_institution', $_POST['scanning_institution'], false);
+				} else {
+					if (array_key_exists('scanning_institution_other', $_POST)) {
+						$this->book->set_metadata('scanning_institution', $_POST['scanning_institution_other'], false);
+					}
 				}
 			}
 		}
@@ -486,7 +488,7 @@ class Main extends Controller {
 				}
 			}
 		}
-
+		
  		$this->book->needs_qa = (array_key_exists('needs_qa', $_POST) ? true : false);
  		$this->book->ia_ready_images = (array_key_exists('ia_ready_images', $_POST) ? true : false);
  		$this->book->page_progression = $_POST['page_progression'][0];
