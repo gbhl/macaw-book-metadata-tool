@@ -493,30 +493,34 @@ class Main extends Controller {
 
 		// If we got marc_xml but not mods_xml, convert it to mods and save that, too
 		$marc = $this->book->get_metadata('marc_xml');
-		$marc = $this->common->validate_marc($marc);
-		$this->book->set_metadata('marc_xml', $marc);
-
-		if ($marc && !$this->book->get_metadata('mods_xml')) {
-			try {
-				$mods = $this->common->marc_to_mods($marc);
-			} catch (Exception $e) {
-				$this->session->set_userdata('errormessage', "Error converting MARCXML to MODS: ".$e->getMessage());
-			}
-			
-			if ($mods) {
-				$this->book->set_metadata('mods_xml', $mods, true);
-				$ret = $this->book->_read_mods($mods);
+		$marc = $this->common->clean_marc($marc);
+		if ($msg = $this->common->validate_marc($marc)){
+			$this->session->set_userdata('errormessage', $msg);
+		} else {
+			$this->book->set_metadata('marc_xml', $marc);
+			if ($marc && !$this->book->get_metadata('mods_xml')) {
+				try {
+					$mods = $this->common->marc_to_mods($marc);
+				} catch (Exception $e) {
+					$this->session->set_userdata('errormessage', "Error converting MARCXML to MODS: ".$e->getMessage());
+				}
 				
-				if (isset($ret['title'])) {
-					$this->book->set_metadata('title', $ret['title']);
+				if ($mods) {
+					$this->book->set_metadata('mods_xml', $mods, true);
+					$ret = $this->book->_read_mods($mods);
+					
+					if (isset($ret['title'])) {
+						$this->book->set_metadata('title', $ret['title']);
+					}
+					if (isset($ret['author'])) {
+						$this->book->set_metadata('author', $ret['author']);
+					}
+				} else {
+					$this->session->set_userdata('errormessage', "Error converting MARCXML to MODS: Unable to parse MARC data in the <strong>marc_xml</strong> field.");			
 				}
-				if (isset($ret['author'])) {
-					$this->book->set_metadata('author', $ret['author']);
-				}
-			} else {
-				$this->session->set_userdata('errormessage', "Error converting MARCXML to MODS: Unable to parse MARC data in the <strong>marc_xml</strong> field.");			
-			}
+			}		
 		}
+
 
  		$this->book->update();
 
@@ -817,7 +821,11 @@ class Main extends Controller {
 
 		// If we got marc_xml but not mods_xml, convert it to mods and save that, too
 		$marc = $this->book->get_metadata('marc_xml');
-		$marc = $this->common->validate_marc($marc);
+		$marc = $this->common->clean_marc($marc);
+		if ($msg = $this->common->validate_marc($marc)){
+			$this->session->set_userdata('errormessage', $msg);
+		}
+		
 		$this->book->set_metadata('marc_xml',$marc);
 
 		if ($marc && !$this->book->get_metadata('mods_xml')) {

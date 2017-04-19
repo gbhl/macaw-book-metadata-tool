@@ -582,6 +582,12 @@ class Scan extends Controller {
 				echo json_encode(array('error' => $msg));
 				return;
 			}
+			
+			if ($error = $this->common->validate_marc($this->book->get_metadata('marc_xml'))){
+				header("Content-Type: application/json; charset=utf-8");
+				echo json_encode(array('error' => $error));
+				return;
+			}
 
 			// Do all pages have page types?
 			$all_pages = $this->book->get_pages();
@@ -655,7 +661,7 @@ class Scan extends Controller {
 		} // try-catch
 	}
 
-
+	
 	/**
 	 * Notify the QA staff that something needs reviewing
 	 *
@@ -664,7 +670,6 @@ class Scan extends Controller {
 	 * @since Version 1.4
 	 */
 	function _notify_qa($org_id = -1) {
-
 
 		// Get a list of all QA users and their email addresses
 		$qa_users = array();

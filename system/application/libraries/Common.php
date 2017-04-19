@@ -378,17 +378,14 @@ class Common extends Controller {
 			throw new Exception('File not found!');
 		}
 	}
-
-
+	
 	/**
-	 * Validate that the MARC XML data is something we can recognize.
-	 *
 	 * Check to see if we have a marc: namespace, or that we have a defined namespace on the first tag.
 	 *
 	 * @param string [$text] The MARC XML to be checked
 	 */
-	function validate_marc($marc) {
-		// Do we have a marc namspace on the tags? If yes, we're ok.
+	function clean_marc($marc){
+		// Do we have a marc namespace on the tags? If yes, we're ok.
 		if (!preg_match("/\<marc:/", $marc)) {
 			// Do we have plain <collection> and <record> tags?
 			if (preg_match("/\<collection>/", $marc) && preg_match("/\<record>/", $marc) && !preg_match("/http:\/\/www.loc.gov\/MARC21\/slim\/", $marc)) {
@@ -405,7 +402,7 @@ class Common extends Controller {
 			
 			// Does the declaration begin at they very start of the file?
 			if (!preg_match("/^<\?xml version=\"1\.0\" encoding=\"UTF\-8\"\?\>/",$marc)) {
-				// No, do we have a colleciton and record tag?
+				// No, do we have a collection and record tag?
 				if (preg_match("/\<collection/", $marc) && preg_match("/\<record/", $marc)) {
 					// Remove everything up to the collection tag
 					$marc = preg_replace("/^.+\<collection/", "<collection", $marc);
@@ -421,32 +418,48 @@ class Common extends Controller {
 // 				}
 			}
 		}
+		return $marc;
+	}
+
+
+	/**
+	 * Validate that the MARC XML data is something we can recognize.
+	 *
+	 * @param string [$text] The MARC XML to be checked
+	 */
+	function validate_marc($marc){
+		// Does the record have a 008 or 245 field?
+		if (!preg_match('/\b008\b|\b245\b/', $marc) || !preg_match('/\bdatafield\b|\bcontrolfield\b/', $marc)){
+			return 'The MARC XML is invalid. No 008 or 245 fields were found.';
+		}
 		// Is this an OAI MARC file
 		if (preg_match("/oai-marc/", $marc)) {
-			$this->CI->session->set_userdata('errormessage', "The MARC XML is invalid. Macaw does not recognize OAI MARC data.");
+			return 'The MARC XML is invalid. Macaw does not recognize OAI MARC data.';
+			//$this->CI->session->set_userdata('errormessage', );
 		} else if (preg_match("/fixfield/", $marc)) {
-			$this->CI->session->set_userdata('errormessage', "The MARC XML is invalid. Macaw does not recognize OAI MARC data.");
+			return 'The MARC XML is invalid. Macaw does not recognize OAI MARC data.';
+			//$this->CI->session->set_userdata('errormessage', "The MARC XML is invalid. Macaw does not recognize OAI MARC data.");
 		} else if (preg_match("/varfield/", $marc)) {
-			$this->CI->session->set_userdata('errormessage', "The MARC XML is invalid. Macaw does not recognize OAI MARC data.");
+			return 'The MARC XML is invalid. Macaw does not recognize OAI MARC data.';
+			//$this->CI->session->set_userdata('errormessage', "The MARC XML is invalid. Macaw does not recognize OAI MARC data.");
 		}
 
-		// Can we parse the XML file?
-		$xml = new DOMDocument;
-		$ret = $xml->loadXML($marc);
-		if (!$ret) {
-			$this->CI->session->set_userdata('errormessage', "Unable to parse MARC XML data. Please check that your MARC XML is formatted correctly.");
-			return $marc;
-		}
-
-		// Do we have more than one record?
 		if (preg_match("/\<collection/", $marc)) {
-			$xml = simplexml_load_string($marc);
-			if ($xml->count() > 1) {
-				$this->CI->session->set_userdata('errormessage', "The MARC XML contains more than one record. Please verify that your MARC XML contains exactly one &lt;record&gt; element.");
+			// Can we parse the XML file?
+			if ($xml = @simplexml_load_string($marc)){
+				// Do we have more than one record?
+				if ($xml->count() > 1) {
+					return "The MARC XML contains more than one record. Please verify that your MARC XML contains exactly one &lt;record&gt; element.";
+				}
+			} else {
+				return 'Unable to parse MARC XML data. Please check that your MARC XML is formatted correctly.';
+			}
+		} else {
+			if (!$xml = @simplexml_load_string($marc)){
+				return 'Unable to parse MARC XML data. Please check that your MARC XML is formatted correctly.';
 			}
 		}
-
-		return $marc;
+		return NULL;
 	}
 
 	/**
