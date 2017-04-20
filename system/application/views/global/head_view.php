@@ -24,3 +24,4 @@
 <script type="text/javascript" src="<?php echo $this->config->item('base_url'); ?>js/macaw-organization.js"></script>
 <script type="text/javascript" src="<?php echo $this->config->item('base_url'); ?>js/macaw-admin.js"></script>
 <script type="text/javascript" src="<?php echo $this->config->item('base_url'); ?>js/macaw-import.js"></script>
+<script type="text/javascript" src="<?php echo $this->config->item('base_url'); ?>js/macaw-export.js"></script>

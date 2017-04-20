@@ -147,7 +147,6 @@ class Admin extends Controller {
 		echo json_encode(array('data' => $data));
 	}
 
-
 	/**
 	 * Get the data for the queues for users
 	 *
@@ -183,6 +182,11 @@ class Admin extends Controller {
 		echo json_encode(array('data' => $data));
 	}
 	
+	/**
+	 * Get the data for all exporting books for an organization.
+	 *
+	 * AJAX: Returns an array containing: exporting books for an organization
+	 **/
 	function user_export_data(){
 		if (!$this->common->check_session(TRUE)){
 			return;
@@ -193,6 +197,28 @@ class Admin extends Controller {
 		$data = array('exporting' => $books);
 		
 		// Send the data back to the browser.
+		$this->common->ajax_headers();
+		echo json_encode(array('data' => $data));
+	}
+	
+	/**
+	 * Get the data for all items being exported that have stalled, limited to organization
+	 * if not an admin.
+	 *
+	 * AJAX: Returns an array containing: exporting books
+	 **/
+	function export_audit_data(){
+		if (!$this->common->check_session(TRUE)){
+			return;
+		}
+		if (!$this->user->has_permission('admin')){
+			$books = $this->book->get_stalled_exports();
+		} else {
+			$books = $this->book->get_stalled_exports($this->user->org_id);
+		}
+		
+		// Send the data back to the browser.
+		$data = array('exporting' => $books);
 		$this->common->ajax_headers();
 		echo json_encode(array('data' => $data));
 	}
@@ -855,6 +881,7 @@ class Admin extends Controller {
 			$data['country'] = $this->organization->country;
 			$data['created'] = $this->organization->created;
 			$data['modified'] = $this->organization->modified;
+			$data['show_api_keys'] = false;
 			if ($this->db->table_exists('custom_internet_archive_keys')) {
 				$data['show_api_keys'] = true;
 				$data['api_key'] = $this->organization->ia_api_key;
@@ -907,6 +934,7 @@ class Admin extends Controller {
 		$data['country'] = '';
 		$data['created'] = '';
 		$data['modified'] = '';
+		$data['show_api_keys'] = false;
 		if ($this->db->table_exists('custom_internet_archive_keys')) {
 			$data['show_api_keys'] = true;
 			$data['api_key'] = '';
@@ -1098,5 +1126,9 @@ class Admin extends Controller {
 		}
 		$data['local_admin'] = ($this->user->has_permission('local_admin') ? true : false);
 		$content = $this->load->view('admin/monthly_report', $data);
+	}
+
+	function stalled_exports(){
+		$content = $this->load->view('admin/stalled_exports');
 	}
 }

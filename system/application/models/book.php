@@ -2142,4 +2142,54 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 // 		$image->setImageOrientation(imagick::ORIENTATION_TOPLEFT);
 // 	}
 
+	/**
+	 * Gets a list of exporting books that are older than a week but have
+	 * not completed.
+	 *
+	 * @param string [$org_id] Optional organization id to narrow down
+	 * results.
+	 */
+	function get_stalled_exports($org_id = NULL){
+		$query = null;
+		if ($this->db->dbdriver == 'mysql') {
+			$query = 'SELECT i.barcode, m.value as \'title\', o.name as \'org_name\', coalesce(b.bytes, 0) as \'bytes\', i.date_export_start, s.status_code '.
+				'FROM item i '.
+				'INNER JOIN organization o ON o.id = i.org_id '.
+				'LEFT OUTER JOIN ( '.
+				'	SELECT sum(p.bytes) AS bytes, max(i.id) as id, max(i.status_code) AS status_code, max(i.org_id) as org_id, count(*) as pages '.
+				'	FROM page p  '.
+				'	INNER JOIN item i ON p.item_id = i.id  '.
+				'	WHERE i.status_code NOT IN (\'completed\', \'exporting\')  '.
+				'	GROUP BY i.org_id '.
+				') b ON o.id = b.org_id '.
+				'LEFT JOIN metadata m ON m.item_id = i.id AND lower(m.fieldname) = \'title\' '.
+				'LEFT JOIN item_export_status s ON s.item_id = i.id '.
+				'WHERE i.status_code = \'exporting\' '.
+				'AND NOT s.status_code = \'completed\' '. 
+				'AND i.date_export_start < NOW() - INTERVAL 1 WEEK';
+		} elseif ($this->db->dbdriver == 'postgre') {
+			$query = 'SELECT i.barcode, m.value as title, o.name as org_name, coalesce(b.bytes, 0) as bytes, i.date_export_start, s.status_code '.
+				'FROM item i '.
+				'INNER JOIN organization o ON o.id = i.org_id '.
+				'LEFT OUTER JOIN ( '.
+				'	SELECT sum(p.bytes) AS bytes, max(i.id) as id, max(i.status_code) AS status_code, max(i.org_id) as org_id, count(*) as pages '.
+				'	FROM page p  '.
+				'	INNER JOIN item i ON p.item_id = i.id  '.
+				'	WHERE i.status_code NOT IN (\'completed\', \'exporting\')  '.
+				'	GROUP BY i.org_id '.
+				') b ON o.id = b.org_id '.
+				'LEFT JOIN metadata m ON m.item_id = i.id AND lower(m.fieldname) = \'title\' '.
+				'LEFT JOIN item_export_status s ON s.item_id = i.id '.
+				'WHERE i.status_code = \'exporting\' '.
+				'AND NOT s.status_code = \'completed\' '. 
+				'AND i.date_export_start < NOW() - INTERVAL \'1 WEEK\'';
+		}
+
+		if ($org_id){
+			$query .= ' AND i.org_id = '.$org_id;
+		}
+		$result = $this->db->query($query)->result();
+		return $result;
+	}
+
 }
