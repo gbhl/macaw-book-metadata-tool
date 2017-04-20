@@ -13,6 +13,9 @@
 
 $(function () {
     'use strict';
+	
+	// Disables the Cancel button from the start.
+	$('.btn-warning.cancel').prop("disabled", true);
 
     // Initialize the jQuery File Upload widget:
     $('#fileupload').fileupload({
@@ -43,7 +46,7 @@ $(function () {
 			});
     });
 
-		// Call whenfiles are dropped onto the page
+		// Call when files are dropped onto the page
 		// Set the counter of the file so that we know what order we uploaded them
     $('#fileupload').bind('fileuploaddrop', function (e, data) {
 			data.files.forEach(function(el, idx, arr) { 
@@ -57,6 +60,8 @@ $(function () {
 			if (data.files["0"].name.match(/\.pdf$/)) {
 				loadingPDF = true;
 			}
+			// Enables the Cancel button while the file is being uploaded.
+			//$('.btn-warning.cancel').prop("disabled", false);
     });
 
 		// This is called when we start uploading.
@@ -70,6 +75,8 @@ $(function () {
             return false;
         }
         data.formData = inputs.serializeArray();
+		// Enables the Cancel button while files are being uploaded.
+		$('.btn-warning.cancel').prop("disabled", false);
     });
 
 		// This is called when one file is finished uploading
@@ -109,6 +116,9 @@ $(function () {
 				} else {
 					$('.btn-metadata').css('display','inline');
 				}
+				
+				// Disables the Cancel button when upload is complete.
+				$('.btn-warning.cancel').prop("disabled", true);
 			}
     });
 
