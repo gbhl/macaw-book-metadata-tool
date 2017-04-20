@@ -17,8 +17,6 @@
 	<noscript><link rel="stylesheet" href="/css/jquery.fileupload-noscript.css"></noscript>
 	<noscript><link rel="stylesheet" href="/css/jquery.fileupload-ui-noscript.css"></noscript>
 	<?php $this->load->view('global/head_view') ?>
-
-
 </head>
 <body>	
 	<?php $this->load->view('global/header_view') ?>
@@ -170,7 +168,7 @@
 					<td>
 							<p class="name">
 									{% if (file.url) { %}
-											<a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" {%=file.thumbnailUrl?'data-gallery':''%}>{%=file.name%}</a>
+											<a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" {%=file.thumbnailUrl?'data-gallery':''%}>{%=file.name%}'</a>
 									{% } else { %}
 											<span>{%=file.name%}</span>
 									{% } %}
