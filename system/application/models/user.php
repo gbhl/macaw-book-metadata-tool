@@ -375,7 +375,11 @@ class User extends Model {
 		
 	}
 
-	
+	/**
+	 * Gets all the space used for a user's organization.
+	 *
+	 *
+	 */	
 	function get_space_used(){
 		$result = $this->db->query(
 			'SELECT coalesce(i.bytes, 0) as bytes '.
