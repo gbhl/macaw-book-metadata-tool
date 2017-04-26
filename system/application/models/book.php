@@ -1444,7 +1444,13 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 	function set_metadata($key = '', $value = '', $overwrite = true) {
 	
 		if ($key != '') {
-			$key = strtolower($key);
+			$key = preg_replace('/\s/', '_', strtolower($key));
+			
+			// Checks for a redundant Scanning Instition and ignores it if found.
+			if ($key == 'scanning_institution' && $value == $this->get_contributor()){
+				return;
+			}
+			
 			$replaced = false;
 			if ($overwrite) {
 				foreach ($this->metadata_array as &$i) {
@@ -2073,7 +2079,11 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 		if (is_array($mods)) {
 			$mods = $mods[0];
 		}
-		$xml = simplexml_load_string($mods);
+		$xml = @simplexml_load_string($mods);
+		// Prevent an ugly error when mods_xml is not xml.
+		if (!$xml) {
+			return $return;
+		}
 		$namespaces = $xml->getDocNamespaces();
 		$ns = '';
 		$root = '';
