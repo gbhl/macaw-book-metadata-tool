@@ -7,6 +7,11 @@
 YAHOO.namespace("macaw"); // This is required in all JS files for some reason
 YAHOO.widget.Chart.SWFURL = sBaseUrl+"/inc/swf/charts.swf";
 
+YAHOO.widget.DataTable.formatLink = function(elLiner, oRecord, oColumn, oData) { 
+	var barcode = YAHOO.lang.escapeHTML(oData.replace(/\\'/g, "'")); 
+	elLiner.innerHTML = "<a href=\"" + sBaseUrl + "/main/managebarcode/" + barcode + "/\">" + barcode + "</a>"; 
+};
+
 // Some variables that come in handy for not beating up the server
 
 // Image Cache of commonly referenced images or icons that change a lot

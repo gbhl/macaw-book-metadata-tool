@@ -141,11 +141,6 @@
 
 		},
 		loadTables: function(data) {
-		
-			YAHOO.widget.DataTable.formatLink = function(elLiner, oRecord, oColumn, oData) { 
-				var barcode = YAHOO.lang.escapeHTML(oData); 
-				elLiner.innerHTML = "<a href=\"" + sBaseUrl + "/main/managebarcode/" + barcode + "/\">" + barcode + "</a>"; 
-			};
 			
 			var dsNew = new YAHOO.util.DataSource(data.new_items);
 			var dsProgress = new YAHOO.util.DataSource(data.in_progress);
@@ -270,11 +265,6 @@
 			}); 
 		},
 		loadTables: function(data) {
-
-			YAHOO.widget.DataTable.formatLink = function(elLiner, oRecord, oColumn, oData) { 
-				var barcode = YAHOO.lang.escapeHTML(oData.replace(/\\'/g, "'")); 
-				elLiner.innerHTML = "<a href=\"" + sBaseUrl + "/main/managebarcode/" + barcode + "/\">" + barcode + "</a>"; 
-			};
 			
 			var myColumnDefs = [
 				{key:"barcode",			label:'Barcode',			formatter:YAHOO.widget.DataTable.formatLink,	sortable: true },
