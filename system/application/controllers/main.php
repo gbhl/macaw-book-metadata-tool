@@ -429,7 +429,7 @@ class Main extends Controller {
 		// Apply the metadata
 		$this->book->unset_metadata('', true); // Wipe all all item metadata
 		
-		foreach ($_REQUEST as $field => $val) {
+		foreach ($_REQUEST as $field => $val) {			
 			if ($field != 'id' && $field != 'needs_qa' && $field != 'ia_ready_images' && $field != 'page_progression' && $field != 'idenitifer' &&
 			    $field != 'scanning_institution[]' && $field != 'scanning_institution_other' && $field != 'rights_holder[]' && $field != 'rights_holder_other') {
 				$matches = array();
@@ -440,8 +440,11 @@ class Main extends Controller {
 						$this->book->set_metadata(trim($_REQUEST['new_fieldname_'.$c]), $_REQUEST['new_value_'.$c], false);
 					} elseif ($_REQUEST['new_fieldname_'.$c] && array_key_exists('new_value_'.$c.'_file', $_FILES)) {
 						// We didn't get a value, so let's see if we got a file upload
-						$string = read_file($_FILES['new_value_'.$c.'_file']['tmp_name']);
-						$this->book->set_metadata(trim($_REQUEST['new_fieldname_'.$c]), $string, false);
+						// Make sure the file exists, dummy!
+						if (file_exists($_FILES['new_value_'.$c.'_file']['tmp_name'])) {
+							$string = read_file($_FILES['new_value_'.$c.'_file']['tmp_name']);
+							$this->book->set_metadata(trim($_REQUEST['new_fieldname_'.$c]), $string, false);
+						}
 					}
 				} else {
 					if (is_array($val)) {
@@ -457,13 +460,11 @@ class Main extends Controller {
 		}
 		
 		if (array_key_exists('scanning_institution', $_POST)) {
-			if ($_POST['scanning_institution'] != $this->book->get_contributor()){
-				if ($_POST['scanning_institution'] != '(other)') {
-					$this->book->set_metadata('scanning_institution', $_POST['scanning_institution'], false);
-				} else {
-					if (array_key_exists('scanning_institution_other', $_POST)) {
-						$this->book->set_metadata('scanning_institution', $_POST['scanning_institution_other'], false);
-					}
+			if ($_POST['scanning_institution'] != '(other)') {
+				$this->book->set_metadata('scanning_institution', $_POST['scanning_institution'], false);
+			} else {
+				if (array_key_exists('scanning_institution_other', $_POST)) {
+					$this->book->set_metadata('scanning_institution', $_POST['scanning_institution_other'], false);
 				}
 			}
 		}

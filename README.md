@@ -41,3 +41,5 @@ Documentation can be found at the following URLs:
 * Developers Guide
   For those developing modules, this has lots of goodies and code-related things. Not for the faint of heart!
   https://docs.google.com/document/d/1iIkKmvGAyaU_FlK3Bq4qgwlbzn9AEhFBQiOXYFvjrfM/edit?usp=sharing
+
+Note: Documentation is a work in progress....
