@@ -2201,5 +2201,21 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 		$result = $this->db->query($query)->result();
 		return $result;
 	}
+	
+	/**
+	 * Gets a list of all unique collections.
+	 */	
+	function get_collections(){
+		$collections = array();
+		
+		$this->db->distinct();
+		$this->db->select('value');
+		$this->db->where('fieldname', 'collections');
+		$query = $this->db->get('metadata');
+		foreach ($query->result_array() as $row){
+			array_push($collections, $row['value']);
+		}
+		return $collections;
+	}
 
 }
