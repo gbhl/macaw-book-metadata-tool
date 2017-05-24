@@ -437,60 +437,74 @@ class Common extends Controller {
 		} else if (preg_match("/varfield/", $marc)) {
 			return 'The MARC XML is invalid. Macaw does not recognize OAI MARC data.';
 		}
-		
-		if ($xml = @simplexml_load_string($marc)){
+ 
+		libxml_use_internal_errors(true);
+		$xml = @simplexml_load_string($marc);
+		if ($xml !== false) {
 			
-			if (preg_match("/\<collection/", $marc)) {
-				if ($xml->count() > 1) {
-					return "The MARC XML contains more than one record. Please verify that your MARC XML contains exactly one &lt;record&gt; element.";
-				}
+			$namespaces = $xml->getDocNamespaces();
+			$ns = '';
+			$root = '/';
+			if (array_key_exists('marc', $namespaces)) {
+				$ns = 'marc:';
+			} elseif (array_key_exists('', $namespaces)) {
+				// Add empty namespace because xpath is weird
+				$ns = 'ns:';
+				$xml->registerXPathNamespace('ns', $namespaces['']);
 			}
-		
-			// Sets the namepsace if one exists.
-			if (preg_match('/xmlns="(.*?)"/', $marc, $matches)){
-				$xml->registerXPathNamespace('x', $matches[1]);
-			} else {
-				$xml->registerXPathNamespace('x', '');
+			$ret = ($xml->xpath($ns."marc"));
+			if ($ret && count($ret)) {
+					$root = '/'.$ns."marc/";
 			}
-			
+
+			$ret = $xml->xpath($ns.'record');
+			if (count($ret) > 1) {
+				return "The MARC XML contains more than one record. Please verify that your MARC XML contains exactly one &lt;record&gt; element.";
+			}
+
+
 			// Checks for a leader.
-			if (!$xml->xpath('//x:record/x:leader[text()]')){
+			if (empty($ret = $xml->xpath($ns.'record/'.$ns.'leader[text()]'))){
 				return 'The MARC XML is invalid. A leader is required.';
 			}
 			
 			// Checks for either a 001 or a 035 field.
-			if (!$xml->xpath('//x:record/x:controlfield[@tag="001"][text()]') 
-				&& !$xml->xpath('//x:record/x:datafield[@tag="035"]/x:subfield[@code="a"][text()][contains(., "OCoLC")]')){
+			if (empty($xml->xpath($ns.'record/'.$ns.'controlfield[@tag="001"][text()]')) 
+				&& empty($xml->xpath('datafield[@tag="035"]/'.$ns.'subfield[@code="a"][text()][contains(., "OCoLC")]'))){
 					
 				return 'The MARC XML is invalid. A 001 field or 035 $a field is required.';				
 			}
 			
 			// Checks for a 008 field.
-			if (!$xml->xpath('//x:record/x:controlfield[@tag="008"][text()]')){
+			if (empty($xml->xpath($ns.'record/'.$ns.'controlfield[@tag="008"][text()]'))){
 				return 'The MARC XML is invalid. A 008 field is required.';
 			}
 			
 			// Checks for a 100, 110, 111, or a 130 field.
-			if (!$xml->xpath('//x:record/x:datafield[@tag="100"][text()]')
-				&& !$xml->xpath('//x:record/x:datafield[@tag="110"][text()]')
-				&& !$xml->xpath('//x:record/x:datafield[@tag="110"][text()]')
-				&& !$xml->xpath('//x:record/x:datafield[@tag="130"][text()]')){
+			if (empty($xml->xpath($ns.'record/'.$ns.'datafield[@tag="100"]'))
+				&& empty($xml->xpath($ns.'record/'.$ns.'datafield[@tag="110"]'))
+				&& empty($xml->xpath($ns.'record/'.$ns.'datafield[@tag="110"]'))
+				&& empty($xml->xpath($ns.'record/'.$ns.'datafield[@tag="130"]'))){
 					
 				return 'The MARC XML is invalid. A 100, 110, 111, or 130 field is required.';
 			}
 			
 			// Checks for a 245 field.
-			if (!$xml->xpath('//x:record/x:datafield[@tag="245"][text()]')){
+			if (empty($xml->xpath($ns.'record/'.$ns.'datafield[@tag="245"]'))){
 				return 'The MARC XML is invalid. A 245 field is required.';
 			}
 			
 			// Checks for any 65X fields.
-			if (!$xml->xpath('//x:record/x:datafield[starts-with(@tag, "65")][text()]')){
+			if (empty($xml->xpath($ns.'record/'.$ns.'datafield[starts-with(@tag, "65")]'))){
 				return 'The MARC XML is invalid. A 65X field is required.';
 			}
 			
 		} else {
-			return 'Unable to parse MARC XML data. Please check that your MARC XML is formatted correctly.';
+			$errs = array();
+			foreach(libxml_get_errors() as $error) {
+				$errs[] = $error->message;
+			}
+			return 'Unable to parse MARC XML data. Please check that your MARC XML is formatted correctly.<br>'.implode('<br>', $errs);
 		}
 		return NULL;
 	}
