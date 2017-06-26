@@ -6,5 +6,5 @@
 | This file contains the version and release date of Macaw
 |
 */
-$version_rev = '2.3.0';
-$version_date = 'April 12, 2017';
+$version_rev = '2.4.0';
+$version_date = 'June 26, 2017';
