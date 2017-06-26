@@ -12,8 +12,8 @@ CREATE TABLE account (
     widgets varchar(255) DEFAULT '[["summary","perday"],["disk","pages"]]',
     full_name varchar(128),
     email varchar(128),
+    terms_conditions TIMESTAMP,
     PRIMARY KEY(`id`),
-		terms_conditions TIMESTAMP   
 ) ENGINE=InnoDB CHARACTER SET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE item (
@@ -123,10 +123,11 @@ INSERT INTO permission (username, permission) VALUES ('admin','admin'), ('admin'
 INSERT INTO settings (name, value) VALUES ('version','2.4');
 INSERT INTO settings (name, value) values ('installed', '1');
 
-ALTER TABLE account ADD CONSTRAINT account_pkey PRIMARY KEY (id);
-ALTER TABLE item ADD CONSTRAINT item_pkey PRIMARY KEY (id);
-ALTER TABLE organization ADD CONSTRAINT organization_pkey PRIMARY KEY (id);
-ALTER TABLE page ADD CONSTRAINT page_pkey PRIMARY KEY (id);
+-- Redunant now
+-- ALTER TABLE account ADD CONSTRAINT account_pkey PRIMARY KEY (id);
+-- ALTER TABLE item ADD CONSTRAINT item_pkey PRIMARY KEY (id);
+-- ALTER TABLE organization ADD CONSTRAINT organization_pkey PRIMARY KEY (id);
+-- ALTER TABLE page ADD CONSTRAINT page_pkey PRIMARY KEY (id);
 ALTER TABLE settings ADD CONSTRAINT settings_name_key_unique UNIQUE (name);
 
 ALTER TABLE `account` ADD INDEX (username);
