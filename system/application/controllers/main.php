@@ -461,9 +461,12 @@ class Main extends Controller {
 		
 		$collection = $this->book->get_metadata('collection');
 		$collections = $this->book->get_all_collections();
-		if ($collection && $collections) {
+
+		if ($collection) {
+			if (!is_array($collection)) { $collection = array($collection); }
+			if (!is_array($collections)) { $collections = array($collections); }
 			$new = array();
-			foreach($collection as $c) {
+			foreach ($collection as $c) {
 				if (!in_array($c, $collections)){
 					$new[] = $c;
 				}
@@ -472,7 +475,7 @@ class Main extends Controller {
 				$this->session->set_userdata('errormessage', "It looks like the following collection(s) are new. Please verify the spelling and accuracy. <strong>".implode(', ', $new)."</strong>");
 			}
 		}
-		
+
 		if (array_key_exists('scanning_institution', $_POST)) {
 			if ($_POST['scanning_institution'] != '(other)') {
 				$this->book->set_metadata('scanning_institution', $_POST['scanning_institution'], false);
