@@ -211,7 +211,7 @@ class Admin extends Controller {
 		if (!$this->common->check_session(TRUE)){
 			return;
 		}
-		if (!$this->user->has_permission('admin')){
+		if ($this->user->has_permission('admin')){
 			$books = $this->book->get_stalled_exports();
 		} else {
 			$books = $this->book->get_stalled_exports($this->user->org_id);
