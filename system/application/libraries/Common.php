@@ -462,10 +462,15 @@ class Common extends Controller {
 				return "The MARC XML contains more than one record. Please verify that your MARC XML contains exactly one &lt;record&gt; element.";
 			}
 
-			$rec = $ns.'record/';
-			$ret = $xml->xpath($ns.'record/');
-			if (empty($ret)) {
-				$rec ='';
+
+			$rec = '';
+			$ret = $xml->xpath($ns.'collection');
+			if (!empty($ret)) {
+				$rec .= $ns.'collection/';
+			}
+			$ret = $xml->xpath($ns.'record');
+			if (!empty($ret)) {
+				$rec .= $ns.'record/';
 			}
 
 			// Checks for a leader.
