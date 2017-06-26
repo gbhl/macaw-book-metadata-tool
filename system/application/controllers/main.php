@@ -425,7 +425,7 @@ class Main extends Controller {
 		// Who are we?
 		$is_local_admin = $this->user->has_permission('local_admin');
 		$is_admin = $this->user->has_permission('admin');
-		
+			
 		// Apply the metadata
 		$this->book->unset_metadata('', true); // Wipe all all item metadata
 		
@@ -435,7 +435,7 @@ class Main extends Controller {
 				$matches = array();
 				if (preg_match('/^new_fieldname_(\d+)$/', $field, $matches)) {
 					$c = $matches[1];
-					if (isset($_REQUEST['new_fieldname_'.$c]) && isset($_REQUEST['new_value_'.$c]) && $_REQUEST['new_value_'.$c] != '') {
+					if (isset($_REQUEST['new_fieldname_'.$c]) && isset($_REQUEST['new_value_'.$c]) && $_REQUEST['new_value_'.$c] != '') {						
 						// We got a value from the plain text field.
 						$this->book->set_metadata(trim($_REQUEST['new_fieldname_'.$c]), $_REQUEST['new_value_'.$c], false);
 					} elseif ($_REQUEST['new_fieldname_'.$c] && array_key_exists('new_value_'.$c.'_file', $_FILES)) {
@@ -456,6 +456,14 @@ class Main extends Controller {
 						}
 					}
 				}
+			}
+		}
+		
+			
+		if ($collection = $this->book->get_metadata('collections')){
+			$collections = $this->book->get_collections();
+			if (!in_array($collection, $collections)){
+				$this->session->set_userdata('errormessage', "It looks like \"{$collection}\" is a new collection. Please verify the spelling and accuracy.");
 			}
 		}
 		
