@@ -1000,8 +1000,11 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 					$this->CI->user->load('admin');
 				}
 				$org_id = $this->CI->user->org_id;
-				if ($info['org_id']) {
-					$org_id = $info['org_id'];
+
+				if (isset($info['org_id'])) {
+					if ($info['org_id']) {
+						$org_id = $info['org_id'];
+					}
 				}
 
 				if ($this->db->dbdriver == 'postgre') {
@@ -1772,7 +1775,12 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 						foreach ($files as $f) {
 							$fname = $incoming_dir.'/'.$this->barcode.'/'.$f;
 							$info = get_file_info($fname, 'size');
-	
+
+							// Make sure the file exists
+							if (!file_exists($fname)) {
+								$this->logging->log('book', 'info', 'File '.$f.' not found while importing. Skipped.', $this->barcode);
+								continue;
+							}
 							// Make sure the file size isn't changing (we check for 3 seconds)
 							if ($this->common->is_file_stable($fname, 1, 120)) {
 								if (file_exists($scans_dir.$f)) {
@@ -2205,12 +2213,12 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 	/**
 	 * Gets a list of all unique collections.
 	 */	
-	function get_collections(){
+	function get_all_collections(){
 		$collections = array();
 		
 		$this->db->distinct();
 		$this->db->select('value');
-		$this->db->where('fieldname', 'collections');
+		$this->db->where('fieldname', 'collection');
 		$query = $this->db->get('metadata');
 		foreach ($query->result_array() as $row){
 			array_push($collections, $row['value']);
