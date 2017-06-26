@@ -474,38 +474,44 @@ class Common extends Controller {
 			}
 
 			// Checks for a leader.
-			if (empty($ret = $xml->xpath($rec.$ns.'leader'))){
+			$ret = $xml->xpath($rec.$ns.'leader');
+			if (empty($ret)){
 				return 'The MARC XML is invalid. A leader is required.';
 			}
 			
 			// Checks for either a 001 or a 035 field.
-			if (empty($xml->xpath($rec.$ns.'controlfield[@tag="001"][text()]')) 
-				&& empty($xml->xpath('datafield[@tag="035"]/'.$ns.'subfield[@code="a"][text()][contains(., "OCoLC")]'))){
+			$ret1 = $xml->xpath($rec.$ns.'controlfield[@tag="001"][text()]');
+			$ret2 = $xml->xpath('datafield[@tag="035"]/'.$ns.'subfield[@code="a"][text()][contains(., "OCoLC")]');
+			if (empty($ret1) 
+				&& empty($ret2)){
 					
 				return 'The MARC XML is invalid. A 001 field or 035 $a field is required.';				
 			}
 			
 			// Checks for a 008 field.
-			if (empty($xml->xpath($rec.$ns.'controlfield[@tag="008"][text()]'))){
+			$ret = $xml->xpath($rec.$ns.'controlfield[@tag="008"][text()]');
+			if (empty($ret)){
 				return 'The MARC XML is invalid. A 008 field is required.';
 			}
 			
 			// Checks for a 100, 110, 111, or a 130 field.
-			if (empty($xml->xpath($rec.$ns.'datafield[@tag="100"]'))
-				&& empty($xml->xpath($rec.$ns.'datafield[@tag="110"]'))
-				&& empty($xml->xpath($rec.$ns.'datafield[@tag="110"]'))
-				&& empty($xml->xpath($rec.$ns.'datafield[@tag="130"]'))){
-					
+			$ret1 = $xml->xpath($rec.$ns.'datafield[@tag="100"]');
+			$ret2 = $xml->xpath($rec.$ns.'datafield[@tag="110"]');
+			$ret3 = $xml->xpath($rec.$ns.'datafield[@tag="111"]');
+			$ret4 = $xml->xpath($rec.$ns.'datafield[@tag="130"]');
+			if (empty($ret1) && empty($ret2) && empty($ret3) && empty($ret4)){
 				return 'The MARC XML is invalid. A 100, 110, 111, or 130 field is required.';
 			}
 			
 			// Checks for a 245 field.
-			if (empty($xml->xpath($rec.$ns.'datafield[@tag="245"]'))){
+			$ret = $xml->xpath($rec.$ns.'datafield[@tag="245"]');
+			if (empty($ret)){
 				return 'The MARC XML is invalid. A 245 field is required.';
 			}
 			
 			// Checks for any 65X fields.
-			if (empty($xml->xpath($rec.$ns.'datafield[starts-with(@tag, "65")]'))){
+			$ret = $xml->xpath($rec.$ns.'datafield[starts-with(@tag, "65")]');
+			if (empty($ret)){
 				return 'The MARC XML is invalid. A 65X field is required.';
 			}
 			
