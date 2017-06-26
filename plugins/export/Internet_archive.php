@@ -1690,7 +1690,7 @@ class Internet_archive extends Controller {
 		// Now we use xpath to get stuff out of the mods. Fun!
 		$ret = ($mods->xpath($root.$ns."titleInfo[not(@type)]/".$ns."title"));
 		if ($ret && count($ret) > 0) {
-			$metadata['x-archive-meta-title'] = str_replace("'", "&quot;", str_replace('"', "'", $ret[0].''));
+			$metadata['x-archive-meta-title'] = str_replace('"', "'", $ret[0].'');
 		}
 
 		$ret = ($mods->xpath($root.$ns."name/".$ns."role/".$ns."roleTerm[.='creator']/../../".$ns."namePart"));
@@ -1722,13 +1722,13 @@ class Internet_archive extends Controller {
 		// Genre
 		$ret = ($mods->xpath($root.$ns."genre"));
 		if ($ret && count($ret) > 0) {
-			$metadata['x-archive-meta-genre'] = str_replace("'", "&quot;", str_replace('"', "'", $ret[0].''));
+			$metadata['x-archive-meta-genre'] = str_replace('"', "'", $ret[0].'');
 		}
 
 		// Abstract
 		$ret = ($mods->xpath($root.$ns."abstract"));
 		if ($ret && count($ret) > 0) {
-			$metadata['x-archive-meta-abstract'] = str_replace("'", "&quot;", str_replace('"', "'", $ret[0].''));
+			$metadata['x-archive-meta-abstract'] = str_replace('"', "'", $ret[0].'');
 		}
 
 		//modified JC 4/2/12
@@ -1832,19 +1832,19 @@ class Internet_archive extends Controller {
 			// location
 			$ret = ($marc->xpath($root.$ns."record/".$ns."datafield[@tag='852']/".$ns."subfield[@code='a']"));
 			if ($ret && count($ret) > 0) {
-				$metadata['x-archive-meta-location'] = str_replace("'", "&quot;", str_replace('"', "'", $ret[0].''));
+				$metadata['x-archive-meta-location'] = str_replace('"', "'", $ret[0].'');
 			}
 	
 			// collection-number
 			$ret = ($marc->xpath($root.$ns."record/".$ns."datafield[@tag='852']/".$ns."subfield[@code='b']"));
 			if ($ret && count($ret) > 0) {
-				$metadata['x-archive-meta-collection-number'] = str_replace("'", "&quot;", str_replace('"', "'", $ret[0].''));
+				$metadata['x-archive-meta-collection-number'] = str_replace('"', "'", $ret[0].'');
 			}
 	
 			// sublocation
 			$ret = ($marc->xpath($root.$ns."record/".$ns."datafield[@tag='852']/".$ns."subfield[@code='c']"));
 			if ($ret && count($ret) > 0) {
-				$metadata['x-archive-meta-sublocation'] = str_replace("'", "&quot;", str_replace('"', "'", $ret[0].''));
+				$metadata['x-archive-meta-sublocation'] = str_replace('"', "'", $ret[0].'');
 			}
 
 			// Rights Holder
