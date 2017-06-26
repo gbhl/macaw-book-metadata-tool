@@ -994,6 +994,11 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				unset($info['collections']);
 				unset($info['collection_2']);
 				$info['collection'] = $collection;
+				for ($i = 0; $i < count($info['collection']); $i++) {
+					if ($info['collection'][$i] == '') {
+						unset($info['collection'][$i]);
+					}
+				}
 
 				// Create the item record in the database
 				if (!isset($this->CI->user->username) || !$this->CI->user->username) {
