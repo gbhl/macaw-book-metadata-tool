@@ -451,6 +451,7 @@ class Utils extends Controller {
 			include APPPATH . 'classes/ParseCSV.php';
 			$csv = new parseCSV();		
 	    $csv->delimiter = ",";
+	    $csv->allow_duplicate_headers = true;
 			if ($ext == 'txt') {
 		    $csv->delimiter = "\t";
 			}			

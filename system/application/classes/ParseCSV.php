@@ -274,6 +274,15 @@ class parseCSV {
     public $keep_file_data = false;
 
     /**
+     * Allow Duplicate Headers
+     * If the same header field appears more than once, combine the columns into an array for each row.
+     *
+     * @access public
+     * @var bool
+     */
+    public $allow_duplicate_headers = false;
+
+    /**
      * Internal variables
      */
 
@@ -338,6 +347,16 @@ class parseCSV {
      * @var array
      */
     public $data = array();
+
+
+    /**
+     * Multuple Titles
+     * List of those header fields that appeared twice
+     *
+     * @access public
+     * @var array
+     */
+    public $duplicated_headers = array();
 
 
     /**
@@ -749,7 +768,25 @@ class parseCSV {
             }
             elseif ( ($ch == $this->delimiter || $ch == "\n" || $ch == "\r" || $ch === false) && !$enclosed ) {
                 $key           = (!empty($head[$col])) ? $head[$col] : $col;
-                $row[$key]     = ($was_enclosed) ? $current : trim($current);
+                // Handle duplicate keys
+                // If we allow duplicates AND the first record is the headings AND
+                if ($this->allow_duplicate_headers) {
+                  if ($this->heading && empty($head)) {
+                    if (in_array($current, $row)) {
+                      if (!in_array($current, $this->duplicated_headers)) {
+                        $this->duplicated_headers[] = $current;
+                      }
+                    }
+                  }
+                }
+                if (in_array($key, $this->duplicated_headers)) {
+                  if (!isset($row[$key])) {
+                    $row[$key] = array();
+                  }
+                  $row[$key][]   = ($was_enclosed) ? $current : trim($current);
+                } else {
+                  $row[$key]     = ($was_enclosed) ? $current : trim($current);
+                }
                 $current       = '';
                 $was_enclosed  = false;
                 $col++;
