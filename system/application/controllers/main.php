@@ -459,11 +459,17 @@ class Main extends Controller {
 			}
 		}
 		
-			
-		if ($collection = $this->book->get_metadata('collections')){
-			$collections = $this->book->get_collections();
-			if (!in_array($collection, $collections)){
-				$this->session->set_userdata('errormessage', "It looks like \"{$collection}\" is a new collection. Please verify the spelling and accuracy.");
+		$collection = $this->book->get_metadata('collection');
+		$collections = $this->book->get_all_collections();
+		if ($collection && $collections) {
+			$new = array();
+			foreach($collection as $c) {
+				if (!in_array($c, $collections)){
+					$new[] = $c;
+				}
+			}
+			if (count($new) > 0) {
+				$this->session->set_userdata('errormessage', "It looks like the following collection(s) are new. Please verify the spelling and accuracy. <strong>".implode(', ', $new)."</strong>");
 			}
 		}
 		
