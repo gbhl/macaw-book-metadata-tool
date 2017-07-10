@@ -477,12 +477,12 @@ class Common extends Controller {
 				return 'The MARC XML is invalid. A leader is required.';
 			}
 
-			// Checks for either a 001 or a 035 field.
-			$ret1 = $xml->xpath($root.$rec.$ns.'controlfield[@tag="001"][text()]');
-			$ret2 = $xml->xpath($root.$rec.$ns.'datafield[@tag="035"]/'.$ns.'subfield[@code="a"][text()][contains(., "OCoLC")]');
-			if (empty($ret1) && empty($ret2)) {
-				return 'The MARC XML is invalid. A 001 field or 035 $a field is required.';				
-			}
+//			// Checks for either a 001 or a 035 field.
+//			$ret1 = $xml->xpath($root.$rec.$ns.'controlfield[@tag="001"][text()]');
+//			$ret2 = $xml->xpath($root.$rec.$ns.'datafield[@tag="035"]/'.$ns.'subfield[@code="a"][text()][contains(., "OCoLC")]');
+//			if (empty($ret1) && empty($ret2)) {
+//				return 'The MARC XML is invalid. A 001 field or 035 $a field is required.';				
+//			}
 			
 			// Checks for a 008 field.
 			$ret = $xml->xpath($root.$rec.$ns.'controlfield[@tag="008"][text()]');
@@ -490,18 +490,18 @@ class Common extends Controller {
 				return 'The MARC XML is invalid. A 008 field is required.';
 			}
 
-			// Checks for a 100, 110, 111, or a 130 field.
-			$ret1 = $xml->xpath($root.$rec.$ns.'datafield[@tag="100"]');
-			$ret2 = $xml->xpath($root.$rec.$ns.'datafield[@tag="110"]');
-			$ret3 = $xml->xpath($root.$rec.$ns.'datafield[@tag="111"]');
-			$ret4 = $xml->xpath($root.$rec.$ns.'datafield[@tag="130"]');
-			$ret5 = $xml->xpath($root.$rec.$ns.'datafield[@tag="700"]');
-			$ret6 = $xml->xpath($root.$rec.$ns.'datafield[@tag="710"]');
-			$ret7 = $xml->xpath($root.$rec.$ns.'datafield[@tag="711"]');
-			$ret8 = $xml->xpath($root.$rec.$ns.'datafield[@tag="730"]');
-			if (empty($ret1) && empty($ret2) && empty($ret3) && empty($ret4) && empty($ret5) && empty($ret6) && empty($ret7) && empty($ret8)){
-				return 'The MARC XML is invalid. A 100, 110, 111, or 130 field is required.';
-			}
+//			// Checks for a 100, 110, 111, or a 130 field.
+//			$ret1 = $xml->xpath($root.$rec.$ns.'datafield[@tag="100"]');
+//			$ret2 = $xml->xpath($root.$rec.$ns.'datafield[@tag="110"]');
+//			$ret3 = $xml->xpath($root.$rec.$ns.'datafield[@tag="111"]');
+//			$ret4 = $xml->xpath($root.$rec.$ns.'datafield[@tag="130"]');
+//			$ret5 = $xml->xpath($root.$rec.$ns.'datafield[@tag="700"]');
+//			$ret6 = $xml->xpath($root.$rec.$ns.'datafield[@tag="710"]');
+//			$ret7 = $xml->xpath($root.$rec.$ns.'datafield[@tag="711"]');
+//			$ret8 = $xml->xpath($root.$rec.$ns.'datafield[@tag="730"]');
+//			if (empty($ret1) && empty($ret2) && empty($ret3) && empty($ret4) && empty($ret5) && empty($ret6) && empty($ret7) && empty($ret8)){
+//				return 'The MARC XML is invalid. A 100, 110, 111, or 130 field is required.';
+//			}
 
 			// Checks for a 245 field.
 			$ret = $xml->xpath($root.$rec.$ns.'datafield[@tag="245"]');
@@ -509,11 +509,12 @@ class Common extends Controller {
 				return 'The MARC XML is invalid. A 245 field is required.';
 			}
 
-			// Checks for any 65X fields.
-			$ret = $xml->xpath($root.$rec.$ns.'datafield[starts-with(@tag, "65")]');
-			if (empty($ret)){
-				return 'The MARC XML is invalid. A 65X field is required.';
-			}
+// This needs to be a warning, not an error.
+//			// Checks for any 65X fields.
+// 			$ret = $xml->xpath($root.$rec.$ns.'datafield[starts-with(@tag, "65")]');
+// 			if (empty($ret)){
+// 				return 'The MARC XML is invalid. A 65X field is required.';
+// 			}
 
 		} else {
 			$errs = array();
