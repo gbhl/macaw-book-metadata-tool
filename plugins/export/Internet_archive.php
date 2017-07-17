@@ -535,6 +535,19 @@ class Internet_archive extends Controller {
 					write_file($fullpath.'/'.$id.'_scandata.xml', $this->_create_scandata_xml($id, $this->CI->book, $pages));
 					$this->CI->logging->log('book', 'debug', 'Created '.$id.'_scandata.xml', $bc);
 				}
+				
+				if ($file == '' || $file == 'segments') {
+					// create the IDENTIFIER_segments.xml file
+					// TO TEST:
+					//
+					// sudo -u apache php index.php cron export Internet_archive ButterflyBook segments
+					//
+					write_file($fullpath.'/'.$id.'_segments.xml', $this->_create_segments_xml($id, $this->CI->book, $pages));
+					$this->CI->logging->log('book', 'debug', 'Created '.$id.'_segments.xml', $bc);
+					if ($file == 'segments') { 
+						return;
+					}
+				}
 
 				// upload the files to internet archive
 				if ($file == 'meta') {
@@ -1142,6 +1155,134 @@ class Internet_archive extends Controller {
 		//      independent of each. The form of the table would be similar to that of the metadata table and
 		//      would be loaded and made available automatically to the Export Module.
 		// TODO: This really needs to be addressed better.
+	}
+	
+	// ----------------------------
+	// Function: _create_segments_xml()
+	//
+	// Parameters:
+	//    $id: The ID of the item as determined earlier
+	//    $book: A book object
+	//    $pages: The pages from the book (assume they were gathered earlier)
+	//
+	// Returns the XML for the segments.xml file. Does not create the file.
+	// This is specific to Internet Archive but is left here as a reminder.
+	// This should call Book.get_item_metadata().
+	// ----------------------------
+	function _create_segments_xml($id, $book, $pages) {
+		// Main XML element.
+		$segments_xml = new SimpleXMLElement('<segments></segments>');
+		
+		$segments = array();			// Keeps a reference to each segment and its pages.
+		$title = NULL; $authors = NULL;	// Compares the current and previous segments.
+		
+		foreach ($pages as $page){
+			// Ensures that certain metadata is formatted as arrays.
+			if (!is_array($page->segment_authors)) $page->segment_authors = array($page->segment_authors);
+			if (!is_array($page->segment_identifiers)) $page->segment_identifiers = array($page->segment_identifiers);
+			if (!is_array($page->segment_keywords)) $page->segment_keywords = array($page->segment_keywords);
+		
+			// Extracts the title and authors for comparison to the previous page.
+			$_title = (property_exists($page, 'segment_title') ? trim($page->segment_title) : FALSE);
+			$_authors = (property_exists($page, 'segment_authors') ? $page->segment_authors : FALSE);
+			
+			// Checks if this is the first segment or a new segment.
+			if (count($segments) == 0 || 
+				strtolower($title) != strtolower($_title) || 
+				count(array_diff($authors, $_authors)) > 0) {
+				
+				// Creates a reference to the XML node and adds the title.
+				$segments[$_title]['ref'] = $segments_xml->addChild('segment');
+				$segments[$_title]['ref']->addChild('title', $_title);
+				
+				// Iterates through the authors and adds them to the XML.
+				$authors = $segments[$_title]['ref']->addChild('authors');
+				for ($i = 0; $i < count($_authors); $i++){
+					$author = $authors->addChild('author');
+					if ($json = json_decode($_authors[$i])){
+						if (isset($json->segment_author_source)){
+							// The author was selected from the BHL API list.
+							$author->addChild('creatorID', $json->segment_author_source);
+						} else {
+							// The author's information was manually entered.
+							$author->addChild('name', trim($json->segment_author_name));
+							$author->addChild('dates', trim($json->segment_author_dates));
+							
+							$identifiers = $author->addChild('identifiers');
+							$identifier = $identifiers->addChild('identifier', trim($json->segment_author_identifier_value));
+							$identifier->addAttribute('type', trim($json->segment_author_identifier_type));
+						}
+					}
+				}				
+			}
+			
+			// Iterates through the segment identifiers.
+			for ($i = 0; $i < count($page->segment_identifiers); $i++){	
+			
+				// Creates the XML identifiers element if it does not already exist.
+				if (!$segments[$_title]['ref']->identifiers){
+					$segments[$_title]['ref']->addChild('identifiers');
+				}
+				
+				if ($json = json_decode($page->segment_identifiers[$i])){
+					$type = $json->segment_identifier_type;
+					$value = $json->segment_identifier_value;
+					
+					// Adds only unique identifiers.
+					if (count($segments[$_title]['ref']->identifiers->children()) == 0 ||
+						count($segments[$_title]['ref']->identifiers->xpath("identifier[@type=\"{$type}\" and text()=\"{$value}\"]")) == 0){
+						$identifier = $segments[$_title]['ref']->identifiers->addChild('identifier', $value);
+						$identifier->addAttribute('type', $type);
+					}
+				}
+			}
+			
+			// Iterates through the keywords.
+			for ($i = 0; $i < count($page->segment_keywords); $i++){
+				
+				// Creates the XML keywords element if it does not already exist.
+				if ($i == 0 && !$segments[$_title]['ref']->keywords){
+					$segments[$_title]['ref']->addChild('keywords');
+				}
+				
+				// Adds only unique keywords.
+				if (count($segments[$_title]['ref']->keywords->children()) == 0 ||
+					count($segments[$_title]['ref']->keywords->xpath("keyword[text()=\"{$page->segment_keywords[$i]}\"]")) == 0){
+					$segments[$_title]['ref']->keywords->addChild('keyword', $page->segment_keywords[$i]);
+				}
+			}
+			
+			// Saves the sequence number.
+			$segments[$_title]['sequence'][] = $page->sequence_number;
+			
+			// Saves the title and authors for look-ahead.
+			$title = $_title;
+			$authors = $_authors;
+		}
+		
+		// Iterates through each segment and adds the pages and ranges to the XML.
+		foreach ($segments as $segment){
+			// Sorts the pages as a precaution.
+			ksort($segment['sequence']);
+			
+			// Gets the start and end pages.
+			$start = $segment['sequence'][0];
+			$end = $segment['sequence'][count($segment['sequence']) - 1];
+			
+			// Adds the XML.
+			$segment['ref']->addChild('startPage', $start);
+			$segment['ref']->addChild('endPage', $end);
+			$segment['ref']->addChild('pageRange', "{$start}-{$end}");
+		}
+		
+		// Delete this later.
+		$dom = new DOMDocument;
+		$dom->preserveWhiteSpace = FALSE;
+		$dom->loadXML($segments_xml->asXML());
+		$dom->formatOutput = TRUE;
+		echo $dom->saveXml();
+			
+		return $segments_xml->asXML();
 	}
 
 	// ----------------------------
