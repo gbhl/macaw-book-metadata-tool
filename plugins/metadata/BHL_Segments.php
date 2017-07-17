@@ -74,12 +74,20 @@
 		-webkit-box-sizing:border-box;
 		-moz-box-sizing: border-box;
 	}
+	#bhl-segments td input:disabled,
+	#bhl-segments td select:disabled {
+		background-color: #f2f2f2;
+	}
 	
 	#bhl-segments .list {
 		vertical-align: top;
 	}
 	#bhl-segments .list ul {
 		margin: 0;
+	}
+	#bhl-segments .list ul a {
+		color: #333;
+		text-decoration: underline;
 	}
 	#bhl-segments .author-list {
 		background-color: #FFFFFF;

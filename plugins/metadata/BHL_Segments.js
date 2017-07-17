@@ -459,7 +459,7 @@ YAHOO.macaw.BHL_Segments = function(parent, data) {
 					var el = Dom.get('segment_author_dates');
 					el.value = args[2][3];
 					
-					var el = ['segment_author_identifier_type', 'segment_author_identifier_value'];
+					var el = ['segment_author_identifier_type', 'segment_author_identifier_value', 'segment_author_dates'];
 					el.forEach(function(e) {
 						e = Dom.get(e);
 						e.disabled = true;
@@ -473,7 +473,7 @@ YAHOO.macaw.BHL_Segments = function(parent, data) {
 					link.style.visibility = "hidden";
 					link.innerHTML = "";
 										
-					var el = ['segment_author_identifier_type', 'segment_author_identifier_value'];
+					var el = ['segment_author_identifier_type', 'segment_author_identifier_value', 'segment_author_dates'];
 					el.forEach(function(e) {
 						e = Dom.get(e);
 						e.disabled = false;
