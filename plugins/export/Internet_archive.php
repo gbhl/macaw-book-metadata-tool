@@ -1173,87 +1173,131 @@ class Internet_archive extends Controller {
 		// Main XML element.
 		$segments_xml = new SimpleXMLElement('<segments></segments>');
 		
-		$segments = array();			// Keeps a reference to each segment and its pages.
-		$title = NULL; $authors = NULL;	// Compares the current and previous segments.
+		$segments = array();				// Keeps a reference to each segment and its pages.
+		$title = NULL; $authors = array();	// Compares the current and previous segments.
 		
 		foreach ($pages as $page){
-			// Ensures that certain metadata is formatted as arrays.
-			if (!is_array($page->segment_authors)) $page->segment_authors = array($page->segment_authors);
-			if (!is_array($page->segment_identifiers)) $page->segment_identifiers = array($page->segment_identifiers);
-			if (!is_array($page->segment_keywords)) $page->segment_keywords = array($page->segment_keywords);
-		
 			// Extracts the title and authors for comparison to the previous page.
 			$_title = (property_exists($page, 'segment_title') ? trim($page->segment_title) : FALSE);
-			$_authors = (property_exists($page, 'segment_authors') ? $page->segment_authors : FALSE);
+			$_authors = array();
+			if (property_exists($page, 'segment_authors')){
+				// Ensures the authors are formatted as an array.
+				if (!is_array($page->segment_authors)){
+					$_authors = array($page->segment_authors);
+				} else {
+					$_authors = $page->segment_authors;
+				}
+			}
 			
 			// Checks if this is the first segment or a new segment.
 			if (count($segments) == 0 || 
 				strtolower($title) != strtolower($_title) || 
+				count($authors) != count($_authors) || 
 				count(array_diff($authors, $_authors)) > 0) {
+					
+				// Gets the index for the segment.
+				$index = count($segments);
 				
 				// Creates a reference to the XML node and adds the title.
-				$segments[$_title]['ref'] = $segments_xml->addChild('segment');
-				$segments[$_title]['ref']->addChild('title', $_title);
+				$segments[$index]['ref'] = $segments_xml->addChild('segment');
+				$segments[$index]['ref']->addChild('title', $_title);
 				
-				// Iterates through the authors and adds them to the XML.
-				$authors = $segments[$_title]['ref']->addChild('authors');
-				for ($i = 0; $i < count($_authors); $i++){
-					$author = $authors->addChild('author');
-					if ($json = json_decode($_authors[$i])){
-						if (isset($json->segment_author_source)){
-							// The author was selected from the BHL API list.
-							$author->addChild('creatorID', $json->segment_author_source);
-						} else {
-							// The author's information was manually entered.
-							$author->addChild('name', trim($json->segment_author_name));
-							$author->addChild('dates', trim($json->segment_author_dates));
-							
-							$identifiers = $author->addChild('identifiers');
-							$identifier = $identifiers->addChild('identifier', trim($json->segment_author_identifier_value));
-							$identifier->addAttribute('type', trim($json->segment_author_identifier_type));
+				// If there are authors, iterate through them and add them to the XML.
+				if (isset($page->segment_authors)){
+										
+					$authors = $segments[$index]['ref']->addChild('authors');
+					for ($i = 0; $i < count($_authors); $i++){
+						$author = $authors->addChild('author');
+						if ($json = json_decode($_authors[$i])){
+							if (isset($json->segment_author_source)){
+								// The author was selected from the BHL API list.
+								$author->addChild('creatorID', $json->segment_author_source);
+							} else {
+								// The author's information was manually entered.
+								$author->addChild('name', trim($json->segment_author_name));
+								$author->addChild('dates', trim($json->segment_author_dates));
+								
+								$identifiers = $author->addChild('identifiers');
+								$identifier = $identifiers->addChild('identifier', trim($json->segment_author_identifier_value));
+								$identifier->addAttribute('type', trim($json->segment_author_identifier_type));
+							}
 						}
 					}
-				}				
+				}
 			}
 			
-			// Iterates through the segment identifiers.
-			for ($i = 0; $i < count($page->segment_identifiers); $i++){	
+			// Adds the external URL to the XML if it exists.
+			if (isset($page->segment_external_url) && !$segments[$index]['ref']->externalURL){
+				$segments[$index]['ref']->addChild('externalURL', $page->segment_external_url);
+			}
 			
-				// Creates the XML identifiers element if it does not already exist.
-				if (!$segments[$_title]['ref']->identifiers){
-					$segments[$_title]['ref']->addChild('identifiers');
-				}
+			// Adds the download URL to the XML if it exists.
+			if (isset($page->segment_download_url) && !$segments[$index]['ref']->downloadURL){
+				$segments[$index]['ref']->addChild('downloadURL', $page->segment_download_url);
+			}
+			
+			// Adds the genre to the XML if it exists.
+			if (isset($page->segment_genre) && !$segments[$index]['ref']->genre){
+				$segments[$index]['ref']->addChild('genre', $page->segment_genre);
+			}
+			
+			// Adds the DOI to the XML if it exists.
+			if (isset($page->segment_doi) && !$segments[$index]['ref']->doi){
+				$segments[$index]['ref']->addChild('doi', $page->segment_doi);
+			}
+			
+			// If there are identifiers, iterate through them and add them to the XML.
+			if (isset($page->segment_identifiers)){
+				// Ensures the identifiers are formatted as an array.
+				if (!is_array($page->segment_identifiers)) $page->segment_identifiers = array($page->segment_identifiers);
 				
-				if ($json = json_decode($page->segment_identifiers[$i])){
-					$type = $json->segment_identifier_type;
-					$value = $json->segment_identifier_value;
-					
-					// Adds only unique identifiers.
-					if (count($segments[$_title]['ref']->identifiers->children()) == 0 ||
-						count($segments[$_title]['ref']->identifiers->xpath("identifier[@type=\"{$type}\" and text()=\"{$value}\"]")) == 0){
-						$identifier = $segments[$_title]['ref']->identifiers->addChild('identifier', $value);
-						$identifier->addAttribute('type', $type);
+				for ($i = 0; $i < count($page->segment_identifiers); $i++){					
+					if ($json = json_decode($page->segment_identifiers[$i])){
+						$type = $json->segment_identifier_type;
+						$value = $json->segment_identifier_value;
+						
+						// Skips the identifier if there is no value.
+						if (!$value){
+							continue;
+						}
+						
+						// Creates the XML identifiers element if it does not already exist.
+						if (!$segments[$index]['ref']->identifiers){
+							$segments[$index]['ref']->addChild('identifiers');
+						}
+						
+						// Adds only unique identifiers.
+						if (count($segments[$index]['ref']->identifiers->children()) == 0 ||
+							count($segments[$index]['ref']->identifiers->xpath("identifier[@type=\"{$type}\" and text()=\"{$value}\"]")) == 0){
+							$identifier = $segments[$index]['ref']->identifiers->addChild('identifier', $value);
+							$identifier->addAttribute('type', $type);
+						}
 					}
 				}
 			}
 			
-			// Iterates through the keywords.
-			for ($i = 0; $i < count($page->segment_keywords); $i++){
+			
+			// If there are keywords, iterate through them and add them to the XML.
+			if (isset($page->segment_keywords)){
+				// Ensures the keywords are formatted as an array.
+				if (!is_array($page->segment_keywords)) $page->segment_keywords = array($page->segment_keywords);
 				
-				// Creates the XML keywords element if it does not already exist.
-				if ($i == 0 && !$segments[$_title]['ref']->keywords){
-					$segments[$_title]['ref']->addChild('keywords');
-				}
-				
-				// Adds only unique keywords.
-				if (count($segments[$_title]['ref']->keywords->children()) == 0 ||
-					count($segments[$_title]['ref']->keywords->xpath("keyword[text()=\"{$page->segment_keywords[$i]}\"]")) == 0){
-					$segments[$_title]['ref']->keywords->addChild('keyword', $page->segment_keywords[$i]);
+				for ($i = 0; $i < count($page->segment_keywords); $i++){
+					// Creates the XML keywords element if it does not already exist.
+					if ($i == 0 && !$segments[$index]['ref']->keywords){
+						$segments[$index]['ref']->addChild('keywords');
+					}
+					
+					// Adds only unique keywords.
+					if (count($segments[$index]['ref']->keywords->children()) == 0 ||
+						count($segments[$index]['ref']->keywords->xpath("keyword[text()=\"{$page->segment_keywords[$i]}\"]")) == 0){
+						$segments[$index]['ref']->keywords->addChild('keyword', $page->segment_keywords[$i]);
+					}
 				}
 			}
 			
 			// Saves the sequence number.
-			$segments[$_title]['sequence'][] = $page->sequence_number;
+			$segments[$index]['sequence'][] = $page->sequence_number;
 			
 			// Saves the title and authors for look-ahead.
 			$title = $_title;
