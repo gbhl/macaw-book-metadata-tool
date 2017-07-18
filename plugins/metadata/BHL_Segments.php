@@ -91,7 +91,7 @@
 	}
 	#bhl-segments .author-list {
 		background-color: #FFFFFF;
-		border: 1px solid #000000;
+		border: 1px solid rgb(169, 169, 169);
 		height: 100px;
 		overflow-y: scroll;
 		padding: 5px 3px;
