@@ -1058,6 +1058,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 						$marc[$i] = $info[$i];
 					} else {
 						if ($i != 'barcode' && $i != 'identifier' && $i != 'needs_qa' && $i != 'ia_ready_images' && $i != 'page_progression'  && $i != 'org_id' && !preg_match('/[0-9]+/', $i)) {
+							
 							// If we got an array of data, we loop through 
 							// the items and add them to the metadata.
 							if (is_array($info[$i])) {
@@ -1090,12 +1091,10 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				if (!file_exists($path.'/preview')) { mkdir($path.'/preview', 0775); }
 
 				$marc_data = null;
-				$mods_data = null;
 				
 				// If we get the MARC data in separate fields? we create a Marc record
 				if (count($marc) > 0) {
-
-					$x = $this->_generate_marc($marc, $info['barcode']); // Also generates mods
+					$x = $this->_generate_marc($marc, $info['barcode']);
 					if ($x) {
 						$this->db->insert('metadata', array(
 							'item_id'   => $item_id,
@@ -1104,56 +1103,21 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 							'value_large' => $x['marc']
 						));
 						$marc_data = $x['marc'];
-	
-						$this->db->insert('metadata', array(
-							'item_id'   => $item_id,
-							'fieldname' => 'mods_xml',
-							'counter'   => 1,
-							'value_large' => $x['mods']
-						));
-						$mods_data = $x['mods'];
 					}
-				}
-				
-				// Did we get the MARC XML uploaded in a CSV field all at once?
-				// If so, we need to make and save the MODS
-				if (isset($info['marc_xml']) && !isset($info['mods_xml'])) {
-					$marc_data = $info['marc_xml'];
-
-					$mods_data = $this->common->marc_to_mods($marc_data);
-					$this->db->insert('metadata', array(
-						'item_id'   => $item_id,
-						'fieldname' => 'mods_xml',
-						'counter'   => 1,
-						'value_large' => $mods_data
-					));
 				}
 				
 				if ($marc_data) {
 					// Create the the marc.xml and item.xml file,
 					write_file($path.'/marc.xml', $marc_data);
 					chmod($path.'/marc.xml', 0775);
-
-					write_file($path.'/mods.xml', $mods_data);
-					chmod($path.'/mods.xml', 0775);
-
-					$ret = $this->_read_mods($mods_data);
-					
-					if (isset($ret['title']) && !isset($info['title'])) {
-						$this->db->insert('metadata', array(
-							'item_id'   => $item_id,
-							'fieldname' => 'title',
-							'counter'   => 1,
-							'value'     => $ret['title']
-						));							
+					// Sets the title using the MARC data.
+					if (!isset($info['title'])){
+						$this->set_title($marc_data);
 					}
-					if (isset($ret['author']) && !isset($info['author'])) {
-						$this->db->insert('metadata', array(
-							'item_id'   => $item_id,
-							'fieldname' => 'author',
-							'counter'   => 1,
-							'value'     => $ret['author']
-						));							
+					
+					// Sets the author using the MARC data.
+					if (!isset($info['author'])){
+						$this->set_author($marc_data);
 					}
 				}
 
@@ -1257,14 +1221,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 		$marc_xml .= '  </datafield>'."\r\n";
 		$marc_xml .= '</record>'."\r\n";
 		
-		try {
-			$mods_xml = $this->common->marc_to_mods($marc_xml);
-		} catch(Exception $e) {
-			$this->logging->log('book', 'error', "Error creating MARCXML and MODS: ".$e->getMessage(), $barcode);
-			print "Error creating MARCXML and MODS: ".$e->getMessage()."\n";
-			return null;
-		}
-		return array('marc' => $marc_xml, 'mods' => $mods_xml);
+		return array('marc' => $marc_xml);
 	}
 
 	/**
@@ -1344,7 +1301,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 		// it was first added to the database. And yes, this is a long comment. :)
 		$path = $this->cfg['data_directory'].'/'.$this->barcode;
 		if ($md = $this->get_metadata('marc_xml')) {
-			// doubly make sure that we don't have an array
+			// Doubly make sure that we don't have an array.
 			if (is_array($md)) {
 				$md = $md[0];
 			}
@@ -1352,36 +1309,15 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				write_file($path.'/marc.xml', $md);
 				chmod($path.'/marc.xml', 0775);
 			}
-		}
-		if ($md = $this->get_metadata('mods_xml')) {
-			// doubly make sure that we don't have an array
-			if (is_array($md)) {
-				$md = $md[0];
+			
+			// Sets the title using the MARC data.
+			if (!$this->get_metadata('title')){
+				$this->set_title($md);
 			}
-			if (file_exists($path)) {
-				write_file($path.'/mods.xml', $md);
-				chmod($path.'/mods.xml', 0775);
-			}
-			$ret = $this->_read_mods($md);
-			if (!$this->get_metadata('title')) {
-				if (isset($ret['title'])) {
-					$this->db->insert('metadata', array(
-						'item_id'   => $this->id,
-						'fieldname' => 'title',
-						'counter'   => 1,
-						'value'     => $ret['title']
-					));							
-				}
-			}
-			if (!$this->get_metadata('author')) {
-				if (isset($ret['author'])) {
-					$this->db->insert('metadata', array(
-						'item_id'   => $this->id,
-						'fieldname' => 'author',
-						'counter'   => 1,
-						'value'     => $ret['author']
-					));							
-				}
+			
+			// Sets the authors using the MARC data.
+			if (!$this->get_metadata('author')){
+				$this->set_author($md);
 			}
 		}
 	}
@@ -2051,7 +1987,6 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 			return $this->cfg['organization_name'];
 		}
 	}
-	
 
 	// Retrieves the metadata for the item
 	//
@@ -2078,71 +2013,6 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 		}
 
 		return $results;
-	}
-
-	// See if we can get title and author from the MODS
-	//
-	// Since Version 2.0
-
-	function _read_mods($mods) {
-		$return = array();
-
-		# Read the MODS to see if we can get the title of this item and save that, too.
-		// doubly make sure that we don't have an array
-		if (is_array($mods)) {
-			$mods = $mods[0];
-		}
-		$xml = @simplexml_load_string($mods);
-		// Prevent an ugly error when mods_xml is not xml.
-		if (!$xml) {
-			return $return;
-		}
-		$namespaces = $xml->getDocNamespaces();
-		$ns = '';
-		$root = '';
-		if (array_key_exists('mods', $namespaces)) {
-			$ns = 'mods:';
-		} elseif (array_key_exists('', $namespaces)) {
-			// Add empty namespace because xpath is weird
-			$ns = 'ns:';
-			$xml->registerXPathNamespace('ns', $namespaces['']);
-		}
-		$namespaces = $xml->getNamespaces();
-		$ret = ($xml->xpath($ns."mods"));
-		if ($ret && count($ret)) {
-			$root = $ns."mods/";
-		}
-
-		# NOW we can get the title
-		$title = null;
-
-		$ret = ($xml->xpath($root.$ns."titleInfo[not(@type)]/".$ns."nonSort"));
-		if ($ret && count($ret) > 0) {
-			$title = $ret[0];
-		}
-		
-		$ret = ($xml->xpath($root.$ns."titleInfo[not(@type)]/".$ns."title"));
-		if ($ret && count($ret) > 0) {
-			if ($title && substr($title,count($title)-1,1) != ' ') { $title .= ' '; } 
-			$title .= $ret[0];
-		}
-		$return['title'] = (string)$title;
-
-		# Get the author
-		$creator = null;
-		$ret = ($xml->xpath($root.$ns."name/".$ns."role/".$ns."roleTerm[.='creator']/../../".$ns."namePart"));
-		if ($ret && count($ret) > 0) {
-			$creator = $ret[0];
-		}
-		if (!$creator) {
-			$ret = ($xml->xpath($root.$ns."name/".$ns."namePart"));
-			if ($ret && count($ret) > 0) {
-				$creator = $ret[0];
-			}		
-		}
-		$return['author'] = (string)$creator;
-	
-		return $return;
 	}
 
 	// Note: $image is an Imagick object, not a filename! See example use below.
@@ -2215,6 +2085,71 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 		return $result;
 	}
 	
+	/**
+	 *
+	 */
+	function set_title($marc){
+		$xml = @simplexml_load_string($marc);
+		$namespaces = $xml->getNamespaces();
+		foreach ($namespaces as $prefix => $namespace){
+			if (in_array($prefix, array('marc', ''))){
+				$xml->registerXPathNamespace('x', $namespace);
+			}
+		}
+		$titles = NULL;
+		foreach (array('a', 'b') as $code){
+			if ($ret = $xml->xpath("//x:record/x:datafield[@tag=\"245\"]/x:subfield[@code=\"{$code}\"]")){
+				$titles[] = trim(preg_replace('/[,.;:\/ ]+$/', '', (string)$ret[0]));
+			}
+		}
+		$this->db->insert('metadata', array(
+			'item_id'   => $this->id,
+			'fieldname' => 'title',
+			'counter'   => 1,
+			'value'     => implode(' ', $titles)
+		));	
+	}
+	
+	/**
+	 *
+	 */
+	function set_author($marc){
+		$xml = simplexml_load_string($marc);
+		$namespaces = $xml->getNamespaces();
+		foreach ($namespaces as $prefix => $namespace){
+			if (in_array($prefix, array('marc', ''))){
+				$xml->registerXPathNamespace('x', $namespace);
+			}
+		}
+		
+		// Different XPATH queries to find an author.
+		$queries = array(
+			'//x:record/x:datafield[@tag="100"]/x:subfield[@code="a"][text()]',
+			'//x:record/x:datafield[@tag="110"]/x:subfield[@code="a"][text()]',
+			'//x:record/x:datafield[@tag="111"]/x:subfield[@code="a"][text()]',
+			'//x:record/x:datafield[@tag="700" and not(subfield[@code="t"])]/x:subfield[@code="a"][text()]',
+			'//x:record/x:datafield[@tag="710" and not(subfield[@code="t"])]/x:subfield[@code="a"][text()]',
+			'//x:record/x:datafield[@tag="711" and not(subfield[@code="t"])]/x:subfield[@code="a"][text()]',
+			'//x:record/x:datafield[@tag="720" and not(subfield[@code="t"])]/x:subfield[@code="a"][text()]'
+		);
+		$author = NULL;
+		foreach ($queries as $query){
+			$author = $xml->xpath($query);
+			
+			// An author was found.
+			if ($author){
+				$author = trim(preg_replace('/[,.;:\/ ]+$/', '', (string)$author[0]));
+				$this->db->insert('metadata', array(
+					'item_id'   => $this->id,
+					'fieldname' => 'author',
+					'counter'   => 1,
+					'value'     => $author)
+				);
+				break;
+			}
+		}	
+	}
+	 
 	/**
 	 * Gets a list of all unique collections.
 	 */	

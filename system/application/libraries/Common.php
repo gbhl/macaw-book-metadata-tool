@@ -775,7 +775,7 @@ class Common extends Controller {
 		write_file($tmp.'/import_export/serialize/'.$barcode.'/metadata.dat', serialize($metadata));
 
 		# 5. Gather the files
-		$files = array('marc.xml','mods.xml', 'thumbs', 'preview', 'scans');		
+		$files = array('marc.xml', 'thumbs', 'preview', 'scans');		
 		foreach ($files as $f) {
  			if (file_exists($this->CI->cfg['data_directory'].'/'.$barcode.'/'.$f)) {
 				system('cp -r '.$this->CI->cfg['data_directory'].'/'.$barcode.'/'.$f.' '.$tmp.'/import_export/serialize/'.$barcode.'/.');

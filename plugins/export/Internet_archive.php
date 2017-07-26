@@ -213,7 +213,7 @@ class Internet_archive extends Controller {
 					$message = "Error processing export.\n\n".
 						"Identifier:    ".$bc."\n\n".
 						"IA Identifier: ".$id."\n\n".
-						"Error Message: Could not get metadata for item with barcode ".$bc.". Check the MARC or MODS data.\n\n".
+						"Error Message: Could not get metadata for item with barcode ".$bc.". Check the MARC data.\n\n".
 					$this->CI->common->email_error($message);
 					continue;				
 				}
@@ -840,7 +840,7 @@ class Internet_archive extends Controller {
 				$message = "Error processing export.\n\n".
 					"Identifier:    ".$b->barcode."\n\n".
 					"IA Identifier: ".$id."\n\n".
-					"Error Message: Could not get metadata for item with barcode ".$b->barcode.". Check the MARC or MODS data.\n";
+					"Error Message: Could not get metadata for item with barcode ".$b->barcode.". Check the MARC data.\n";
 				$this->CI->common->email_error($message);
 				continue;				
 			}
@@ -929,7 +929,7 @@ class Internet_archive extends Controller {
 				$message = "Error processing export.\n\n".
 					"Identifier:    ".$b->barcode."\n\n".
 					"IA Identifier: ".$id."\n\n".
-					"Error Message: Could not get metadata for item with barcode ".$b->barcode.". Check the MARC or MODS data.\n";
+					"Error Message: Could not get metadata for item with barcode ".$b->barcode.". Check the MARC data.\n";
 				$this->CI->common->email_error($message);
 				continue;				
 			}
@@ -1033,7 +1033,7 @@ class Internet_archive extends Controller {
 				$message = "Error processing export.\n\n".
 					"Identifier:    ".$b->barcode."\n\n".
 					"IA Identifier: ".$id."\n\n".
-					"Error Message: Could not get metadata for item with barcode ".$b->barcode.". Check the MARC or MODS data.\n";
+					"Error Message: Could not get metadata for item with barcode ".$b->barcode.". Check the MARC data.\n";
 				$this->CI->common->email_error($message);
 				continue;				
 			}
@@ -1626,7 +1626,7 @@ class Internet_archive extends Controller {
 	// return 450.
 	// ----------------------------
 	function _get_dpi($book, $pages) {
-		// Get our mods into something we can use. All the info we need is in there.
+		// Retrieve our MARC data.
 		$marc = $this->_get_marc($book->get_metadata('marc_xml'));
 		
 		if ($marc !== false) {
@@ -1739,8 +1739,10 @@ class Internet_archive extends Controller {
 	// metadat elements to be used when uploading an item to IA.
 	// ----------------------------
 	function _get_metadata() {
-		// Get our mods into something we can use. All the info we need is in there.
-		$mods = simplexml_load_string($this->CI->book->get_metadata('mods_xml'));
+		// Converts MARC data to MODS to retrieve certain information.
+		$marc = $this->_get_marc($this->CI->book->get_metadata('marc_xml'));
+		$mods = $this->common->marc_to_mods($marc)
+				
 		$namespaces = $mods->getDocNamespaces();
 		$ns = '';
 		$root = '';
@@ -1889,7 +1891,6 @@ class Internet_archive extends Controller {
 			}		
 		}
 		
-
 		$ret = ($mods->xpath($root.$ns."subject[@authority='lcsh']/".$ns."topic"));
 		$c = 0;
 		// If we didn't get anything in topic, let's check genre, not sure if this is correct
@@ -1995,8 +1996,7 @@ class Internet_archive extends Controller {
 			$metadata['x-archive-scandate'] = date('YmdHis', $tm);
 		}
 
-		// Some data comes from MARC
-		$marc = $this->_get_marc($this->CI->book->get_metadata('marc_xml'));
+		// Some data comes from MARC.
 		if ($marc !== false) {
 			$namespaces = $marc->getDocNamespaces();
 			$ns = '';

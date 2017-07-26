@@ -511,37 +511,15 @@ class Main extends Controller {
  		$this->book->ia_ready_images = (array_key_exists('ia_ready_images', $_POST) ? true : false);
  		$this->book->page_progression = $_POST['page_progression'][0];
 
-		// If we got marc_xml but not mods_xml, convert it to mods and save that, too
+		// Validates the MARC and extracts the title and author.
 		$marc = $this->book->get_metadata('marc_xml');
 		$marc = $this->common->clean_marc($marc);
 		if ($msg = $this->common->validate_marc($marc)){
 			$this->session->set_userdata('errormessage', $msg);
 		} else {
 			$this->book->set_metadata('marc_xml', $marc);
-			if ($marc && !$this->book->get_metadata('mods_xml')) {
-				try {
-					$mods = $this->common->marc_to_mods($marc);
-				} catch (Exception $e) {
-					$this->session->set_userdata('errormessage', "Error converting MARCXML to MODS: ".$e->getMessage());
-				}
-				
-				if ($mods) {
-					$this->book->set_metadata('mods_xml', $mods, true);
-					$ret = $this->book->_read_mods($mods);
-					
-					if (isset($ret['title'])) {
-						$this->book->set_metadata('title', $ret['title']);
-					}
-					if (isset($ret['author'])) {
-						$this->book->set_metadata('author', $ret['author']);
-					}
-				} else {
-					$this->session->set_userdata('errormessage', "Error converting MARCXML to MODS: Unable to parse MARC data in the <strong>marc_xml</strong> field.");			
-				}
-			}		
 		}
-
-
+		
  		$this->book->update();
 
 		// Set the barcode and other info in the session
@@ -839,20 +817,13 @@ class Main extends Controller {
  		$this->book->ia_ready_images = ((array_key_exists('ia_ready_images', $_POST) && $_POST['ia_ready_images'] == 1) ? true : false);
  		$this->book->page_progression = $_POST['page_progression'][0];
 
-		// If we got marc_xml but not mods_xml, convert it to mods and save that, too
+		// Cleans and validates the MARC data.
 		$marc = $this->book->get_metadata('marc_xml');
 		$marc = $this->common->clean_marc($marc);
 		if ($msg = $this->common->validate_marc($marc)){
 			$this->session->set_userdata('errormessage', $msg);
 		}
-		
 		$this->book->set_metadata('marc_xml',$marc);
-
-		if ($marc && !$this->book->get_metadata('mods_xml')) {
-			$mods = $this->common->marc_to_mods($marc);
-			$this->book->set_metadata('mods_xml', $mods, true);
-			$this->book->_read_mods($mods);
-		}
 
  		$this->book->update();
 		$this->session->set_userdata('message', 'Item Added!');
