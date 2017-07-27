@@ -17,6 +17,12 @@
 	<noscript><link rel="stylesheet" href="/css/jquery.fileupload-noscript.css"></noscript>
 	<noscript><link rel="stylesheet" href="/css/jquery.fileupload-ui-noscript.css"></noscript>
 	<?php $this->load->view('global/head_view') ?>
+	<script type="text/javascript">
+		function init() {
+			MessageBox.init();
+		}
+		YAHOO.util.Event.onDOMReady(init);
+	</script>
 </head>
 <body>	
 	<?php $this->load->view('global/header_view') ?>
