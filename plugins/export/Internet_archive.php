@@ -754,6 +754,39 @@ class Internet_archive extends Controller {
 					} // if (!$this->cfg['testing'])
 				} //if ($file == '' || $file == 'marc')
 
+				if ($file == '' || $file == 'segments') {
+					$cmd = $this->cfg['curl_exe'];
+					$cmd .= ' --location';
+					$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
+					$cmd .= ' --header "x-archive-queue-derive:0"';
+					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_segments.xml" "http://s3.us.archive.org/'.$id.'/'.$id.'_segments.xml"';
+					echo "\n\n".$cmd."\n\n";
+
+					if (!$this->cfg['testing']) {
+						// execute the CURL command and echo back any responses
+						$output = array();
+						exec($cmd, $output, $ret);
+						if (count($output)) {
+							foreach ($output as $o) {
+								echo $o."\n";
+							}
+						}
+						if ($ret) {
+							echo "ERROR!!!";
+							// If we had any sort of error from exec, we log what happened and set the status to error
+							$out = '';
+							foreach ($output as $o) {
+								$out .= $o."\n";
+							}
+							$this->CI->book->set_status('error');
+							$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value for segments.xml. Output was:'."\n".$out, $bc);
+							return;
+						}
+					} else {
+						echo "IN TEST MODE. NOT UPLOADING.\n\n";
+					} // if (!$this->cfg['testing'])
+				} //if ($file == '' || $file == 'segments')
+					
 				if ($file == '' || $file == 'scans') {
 					// Upload the "processed" jp2 files first.
 					if ($this->send_orig_jp2 == 'no' || $this->send_orig_jp2 == 'both') {
