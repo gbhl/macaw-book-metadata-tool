@@ -1798,8 +1798,9 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 			exec($exec, $output);
 			$this->logging->log('book', 'info', 'After splitting '.$filename.', "gs" output is '.count($output), $this->barcode);			
 			// Done! Let's mark the images as having been derived from a PDF
-			$this->set_metadata('from_pdf','yes',true);
-
+			$this->set_metadata('from_pdf', 'yes', true);
+			$this->set_metadata('pdf_source', $filename, false);
+			$this->book->update();
 		}
 	}
 	

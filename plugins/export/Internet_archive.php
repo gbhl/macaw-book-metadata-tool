@@ -637,6 +637,65 @@ class Internet_archive extends Controller {
 					} // if (!$this->cfg['testing'])
 				} // if ($file == '' || $file == 'scandata')
 
+				if ($file == '' || $file == 'pdf') {
+					// Gets the names of any PDF files that were used to upload pages.
+					$pdf = $this->CI->book->get_metadata('pdf_source');
+					if (!$pdf) break;
+					
+					$files = NULL;
+					
+					// Copies the file(s) to the export directory and renames them.
+					if (is_array($pdf)) {
+						$count = 1;
+						foreach ($pdf as $p) {
+							if (file_exists("{$this->cfg['data_directory']}/{$bc}/{$p}")){
+								copy("{$this->cfg['data_directory']}/{$bc}/{$p}", "{$fullpath}/{$id}_orig_{$count}.pdf");
+								$files[] = "{$id}_orig_{$count}.pdf";
+								$count++;
+							}
+						}
+					} else {
+						if (file_exists("{$this->cfg['data_directory']}/{$bc}/{$pdf}")){
+							copy("{$this->cfg['data_directory']}/{$bc}/{$pdf}", "{$fullpath}/{$id}_orig.pdf");
+								$files[] = "{$id}_orig.pdf";
+						}
+					}
+					
+					// Uses cURL to upload to the Internet Archive.
+					foreach ($files as $pdf) {
+						$cmd = $this->cfg['curl_exe'];
+						$cmd .= ' --location';
+						$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
+						$cmd .= ' --header "x-archive-queue-derive:0"';
+						$cmd .= ' --upload-file "'.$fullpath.'/'.$pdf.'" "http://s3.us.archive.org/'.$id.'/'.$pdf.'"';
+						echo "\n\n".$cmd."\n\n";
+
+						if (!$this->cfg['testing']) {
+							// execute the CURL command and echo back any responses
+							$output = array();
+							exec($cmd, $output, $ret);
+							if (count($output)) {
+								foreach ($output as $o) {
+									echo $o."\n";
+								}
+							}
+							if ($ret) {
+								echo "ERROR!!!";
+								// If we had any sort of error from exec, we log what happened and set the status to error
+								$out = '';
+								foreach ($output as $o) {
+									$out .= $o."\n";
+								}
+								$this->CI->book->set_status('error');
+								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value for'.$pdf.'. Output was:'."\n".$out, $bc);
+								return;
+							}
+						} else {
+							echo "IN TEST MODE. NOT UPLOADING.\n\n";
+						} // if (!$this->cfg['testing'])
+					}
+				}
+				
 				// Pause for 1 minute and to see if the bucket exists in IA. Then it's safe to continue...
 				echo "Sleeping while we wait for IA to create the bucket...";
 				$bucket_found = 0;
@@ -771,7 +830,7 @@ class Internet_archive extends Controller {
 						} // if (!$this->cfg['testing'])
 					} // if ($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both')
 				} // if ($file == '' || $file == 'scans')
-
+				
 				// If we got this far, we were completely successful. Yay!
 
 				// TODO Update uploaded date field in the item table
