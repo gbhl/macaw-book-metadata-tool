@@ -1320,11 +1320,11 @@ class Internet_archive extends Controller {
 		}
 		
 		// Delete this later.
-		$dom = new DOMDocument;
-		$dom->preserveWhiteSpace = FALSE;
-		$dom->loadXML($segments_xml->asXML());
-		$dom->formatOutput = TRUE;
-		echo $dom->saveXml();
+		// $dom = new DOMDocument;
+		// $dom->preserveWhiteSpace = FALSE;
+		// $dom->loadXML($segments_xml->asXML());
+		// $dom->formatOutput = TRUE;
+		// echo $dom->saveXml();
 			
 		return $segments_xml->asXML();
 	}
@@ -1740,9 +1740,11 @@ class Internet_archive extends Controller {
 	// ----------------------------
 	function _get_metadata() {
 		// Converts MARC data to MODS to retrieve certain information.
-		$marc = $this->_get_marc($this->CI->book->get_metadata('marc_xml'));
-		$mods = $this->common->marc_to_mods($marc)
-				
+		$marc_xml = $this->CI->book->get_metadata('marc_xml');
+		$marc = $this->_get_marc($marc_xml);
+		$mods = $this->CI->common->marc_to_mods($marc_xml);
+		$mods =  simplexml_load_string($mods);
+		
 		$namespaces = $mods->getDocNamespaces();
 		$ns = '';
 		$root = '';
