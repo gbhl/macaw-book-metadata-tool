@@ -33,10 +33,15 @@ YAHOO.macaw.BHL_Segments = function(parent, data) {
 	// how to handle different types of fields.
 	YAHOO.macaw.BHL_Segments.metadataFields = [
 		{ id: 'segment_title', display_name: 'Title', type: 'text'},
+		{ id: 'segment_translated_title', display_name: 'Translated Title', type: 'text'},
 		{ id: 'segment_genre', display_name: 'Genre', type: 'select-one'},
+		{ id: 'segment_language', display_name: 'Language', type: 'select-one'},
 		{ id: 'segment_doi', display_name: 'DOI', type: 'text'},
 		{ id: 'segment_external_url', display_name: 'External URL', type: 'text'},
 		{ id: 'segment_download_url', display_name: 'Download URL', type: 'text'},
+		{ id: 'segment_volume', display_name: 'Volume', type: 'text'},
+		{ id: 'segment_issue', display_name: 'Issue', type: 'text'},
+		{ id: 'segment_date', display_name: 'Date', type: 'text'},
 		{ id: 'segment_authors', display_name: 'Authors', type: 'list'},
 		{ id: 'segment_identifiers', display_name: 'Identifiers', type: 'list'},
 		{ id: 'segment_keywords', display_name: 'Keywords', type: 'list'}
