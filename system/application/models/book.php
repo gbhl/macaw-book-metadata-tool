@@ -633,7 +633,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 			$max = $this->max_sequence();			
 			// Page doesn't exist, add it to the database
 			$data = array();
-			if ($this->db->dbdriver == 'mysql') {
+			if ($this->db->dbdriver == 'mysql' || $this->db->dbdriver == 'mysqli') {
 				$data = array(
 					'item_id' => $this->id,
 					'filebase' => $filebase,
@@ -1022,7 +1022,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 						'ia_ready_images' => (($info['ia_ready_images'] == 1 || substr(strtolower($info['ia_ready_images']),0,1) == 'y') ? 't' : 'f'),
 						'page_progression' => $info['page_progression']
 					);				
-				} elseif ($this->db->dbdriver == 'mysql') {
+				} elseif ($this->db->dbdriver == 'mysql' || $this->db->dbdriver == 'mysqli') {
 					$data = array(
 						'barcode' => $info['barcode'],
 						'status_code' => 'new',
@@ -1245,7 +1245,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 				'ia_ready_images' => ($this->ia_ready_images ? 't' : 'f'),
 				'page_progression' => $this->page_progression
 			);
-		} elseif ($this->db->dbdriver == 'mysql') {
+		} elseif ($this->db->dbdriver == 'mysql' || $this->db->dbdriver == 'mysqli') {
 			$data = array(
 				'pages_found' => $this->pages_found,
 				'pages_scanned' => $this->pages_scanned,
@@ -1570,7 +1570,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 			);
 			return $q->row();
 		
-		} elseif ($this->db->dbdriver == 'mysql') {
+		} elseif ($this->db->dbdriver == 'mysql' || $this->db->dbdriver == 'mysqli') {
 			$q = $this->db->query(
 				"select (select count(*) from item where status_code = 'new') as new,
 				(select count(*) from item where status_code = 'scanning') as scanning,
@@ -2044,7 +2044,7 @@ $this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->e
 	 */
 	function get_stalled_exports($org_id = NULL){
 		$query = null;
-		if ($this->db->dbdriver == 'mysql') {
+		if ($this->db->dbdriver == 'mysql' || $this->db->dbdriver == 'mysqli') {
 			$query = 'SELECT i.barcode, m.value as \'title\', o.name as \'org_name\', coalesce(b.bytes, 0) as \'bytes\', i.date_export_start, s.status_code '.
 				'FROM item i '.
 				'INNER JOIN organization o ON o.id = i.org_id '.

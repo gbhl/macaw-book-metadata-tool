@@ -85,7 +85,7 @@
 			$result = pg_query('select * from settings where name = \'installed\'');
 			$row = pg_fetch_assoc($result);		
 		}
-		if ($db['default']['dbdriver'] == 'mysql') {
+		if ($db['default']['dbdriver'] == 'mysql' || $db['default']['dbdriver'] == 'mysqli') {
 			$conn = mysql_connect(
 				$db['default']['hostname'].($db['default']['port'] ? ':'.$db['default']['port'] : ''), 
 				$db['default']['username'], 
@@ -300,11 +300,11 @@
 						} // if (!in_array('pgsql', $extensions))
 					} // if ($_POST['database_type'] == 'postgre')
 					
-					if ($_POST['database_type'] == 'mysql') {
-						if (!in_array('mysql', $extensions)) {
-							$errormessage .= 'PHP <strong>mysql</strong> extension not found. Please install it with apt, yum or other package manager (preferred), or recompile PHP using --with-mysql.<br><br>';
+					if ($_POST['database_type'] == 'mysqli') {
+						if (!in_array('mysqli', $extensions)) {
+							$errormessage .= 'PHP <strong>mysqli</strong> extension not found. Please install it with apt, yum or other package manager (preferred), or recompile PHP using --with-mysql.<br><br>';
 						} else {
-							$dsn = 'mysql:';
+							$dsn = 'mysqli:';
 							$dsn .= 'host='.$_POST['database_host'].';';
 							if (!isset($_POST['database_port'])) {
 								$dsn .= 'port='.$_POST['database_port'].';';
@@ -349,7 +349,7 @@
 								$success = 0;
 							} // if ($conn)
 						} // if (!in_array('pgsql', $extensions))
-					} // if ($_POST['database_type'] == 'mysql')
+					} // if ($_POST['database_type'] == 'mysqli')
 
 
 				} // if ($_POST['submit'] == 'Next >>')
@@ -389,7 +389,7 @@
 				$row = pg_fetch_assoc($result);
 			}
 
-			if ($db['default']['dbdriver'] == 'mysql') {
+			if ($db['default']['dbdriver'] == 'mysql' || $db['default']['dbdriver'] == 'mysqli') {
 				$conn = mysql_connect(
 					$db['default']['hostname'].($db['default']['port'] ? ':'.$db['default']['port'] : ''), 
 					$db['default']['username'], 
@@ -417,7 +417,7 @@
 						$result = pg_query_params($conn, 'UPDATE account SET full_name = $1 WHERE id = 1', array($_POST['admin_full_name']));	
 					}
 
-					if ($db['default']['dbdriver'] == 'mysql') {
+					if ($db['default']['dbdriver'] == 'mysql' || $db['default']['dbdriver'] == 'mysqli') {
 						$result = mysql_query('UPDATE account SET full_name = \''.mysql_real_escape_string($_POST['admin_full_name']).'\' WHERE id = 1', $conn);	
 					}
 
@@ -446,7 +446,7 @@
 									$result = pg_query_params($conn, 'UPDATE account SET password = $1 WHERE id = 1', array($pass_hash));
 								}
 				
-								if ($db['default']['dbdriver'] == 'mysql') {
+								if ($db['default']['dbdriver'] == 'mysql' || $db['default']['dbdriver'] == 'mysqli') {
 									$result = mysql_query('UPDATE account SET password = \''.$pass_hash.'\' WHERE id = 1', $conn);
 								}
 							}
@@ -706,7 +706,7 @@
 				$row = pg_fetch_assoc($result);
 			}
 
-			if ($db['default']['dbdriver'] == 'mysql') {
+			if ($db['default']['dbdriver'] == 'mysql' || $db['default']['dbdriver'] == 'mysqli') {
 				$conn = mysql_connect(
 					$db['default']['hostname'].($db['default']['port'] ? ':'.$db['default']['port'] : ''), 
 					$db['default']['username'], 
@@ -898,7 +898,7 @@
 										<td>
 											<select name="database_type">
 													<option value="postgre" <?php if ($db_dbdriver == 'postgre') { echo('selected'); } ?>>PostgreSQL</option>
-													<option value="mysql" <?php if ($db_dbdriver == 'mysql') { echo('selected'); } ?>>MySQL</option>
+													<option value="mysqli" <?php if ($db_dbdriver == 'mysqli') { echo('selected'); } ?>>MySQL</option>
 											</select>
 										</td>
 									</tr>

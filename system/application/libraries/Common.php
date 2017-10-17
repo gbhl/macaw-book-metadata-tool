@@ -570,7 +570,7 @@ class Common extends Controller {
 			if (count($row) == 0) {
 				$this->CI->db->query("create table settings (name varchar(64), value varchar(64))");
 			}		
-		} elseif ($this->CI->db->dbdriver == 'mysql') {
+		} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
 			$q = $this->CI->db->query("SELECT * FROM information_schema.tables WHERE table_schema = '".$this->CI->db->database."' AND table_name = 'settings' LIMIT 1;");
 			$row = $q->result();
 			if (count($row) == 0) {
@@ -593,7 +593,7 @@ class Common extends Controller {
 			$queries = null;
 			if ($this->CI->db->dbdriver == 'postgre') {
 				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-pgsql-1.7.sql');
-			} elseif ($this->CI->db->dbdriver == 'mysql') {
+			} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
 				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-1.7.sql');
 			}
 			try {
@@ -610,7 +610,7 @@ class Common extends Controller {
 			$queries = null;
 			if ($this->CI->db->dbdriver == 'postgre') {
 				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-pgsql-2.0.sql');
-			} elseif ($this->CI->db->dbdriver == 'mysql') {
+			} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
 				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.0.sql');
 			}
 			foreach (explode(';', $queries) as $q) {
@@ -626,7 +626,7 @@ class Common extends Controller {
 			$queries = null;
 			if ($this->CI->db->dbdriver == 'postgre') {
 				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-pgsql-2.1.sql');
-			} elseif ($this->CI->db->dbdriver == 'mysql') {
+			} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
 				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.1.sql');
 			}
 			foreach (explode(';', $queries) as $q) {
@@ -641,7 +641,7 @@ class Common extends Controller {
 			$queries = null;
 			if ($this->CI->db->dbdriver == 'postgre') {
 				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-pgsql-2.2.sql');
-			} elseif ($this->CI->db->dbdriver == 'mysql') {
+			} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
 				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.2.sql');
 			}
 			foreach (explode(';', $queries) as $q) {
@@ -657,7 +657,7 @@ class Common extends Controller {
 			$queries = null;
 			if ($this->CI->db->dbdriver == 'postgre') {
 				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-pgsql-2.3.sql');
-			} elseif ($this->CI->db->dbdriver == 'mysql') {
+			} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
 				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.3.sql');
 			}
 			foreach (explode(';', $queries) as $q) {
@@ -673,7 +673,7 @@ class Common extends Controller {
 			$queries = null;
 			if ($this->CI->db->dbdriver == 'postgre') {
 				return;
-			} elseif ($this->CI->db->dbdriver == 'mysql') {
+			} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
 				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.4.sql');
 			}
 			foreach (explode(';', $queries) as $q) {
@@ -901,7 +901,7 @@ class Common extends Controller {
 // 					)"
 // 				);
 			}
-		} elseif ($this->CI->db->dbdriver == 'mysql') {
+		} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
 			// Has this statistic already been generated
 			$q = $this->CI->db->query("SELECT * FROM (logging) WHERE date = date(now() - interval 1 day) AND statistic = 'pages';");
 			$found = false;

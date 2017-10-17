@@ -114,7 +114,7 @@ class Authentication extends Controller {
 	function clear_sessions() {
 		if ($this->CI->db->dbdriver == 'postgre') {
 			$q = $this->CI->db->query('DELETE FROM session WHERE last_activity < (extract(epoch from now()) - (86400 * 14));');
-		} elseif ($this->CI->db->dbdriver == 'mysql') {
+		} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
 			$q = $this->CI->db->query('DELETE FROM session WHERE last_activity < (unix_timestamp(now()) - (86400 * 14));');		
 		}
 	}
