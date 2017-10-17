@@ -434,7 +434,7 @@ YAHOO.macaw.BHL_Segments = function(parent, data) {
 				
 				// Populates the data source whenever data is requested by the widget.
 				oAC.dataRequestEvent.subscribe(function (type, args) {
-					var url = "http://www.biodiversitylibrary.org/api2/httpquery.ashx?op=AuthorSearch&apikey=d230a327-c544-4f8f-826d-727cf4da24b8&format=json&name=" + args[1];
+					var url = "https://www.biodiversitylibrary.org/api2/httpquery.ashx?op=AuthorSearch&apikey=d230a327-c544-4f8f-826d-727cf4da24b8&format=json&name=" + args[1];
 					var response = function() {
 						var http = new XMLHttpRequest();
 						http.onreadystatechange = function() {
