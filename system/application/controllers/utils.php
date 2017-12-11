@@ -701,6 +701,9 @@ class Utils extends Controller {
 			die;
 		}
 
+		// Looks like this is being encoded on the way in
+		$filename = html_entity_decode($filename);
+
 		$scans_dir = $this->cfg['data_directory'].'/'.$barcode.'/scans/';
 		$book_dir = $this->cfg['data_directory'].'/'.$barcode.'/';
 		$this->book->load($barcode);		
