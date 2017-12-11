@@ -438,17 +438,14 @@ class Book extends Model {
 				// Take the filebase and convert it into the proper filenames for preview and thumbnail files
 				#$p->thumbnail = $thumb_path.'/'.$p->filebase.'.'.$this->cfg['thumbnail_format'];
 				$filename = $p->filebase.'.'.$this->cfg['thumbnail_format'];
-				$p->thumbnail = 
-$this->config->item('base_url').'image.php?img='.$filename.'&ext='.$this->cfg['thumbnail_format'].'&code='.$this->barcode.'&type=thumbnail';
+				$p->thumbnail = $this->config->item('base_url').'image.php?img='.urlencode($filename).'&ext='.$this->cfg['thumbnail_format'].'&code='.$this->barcode.'&type=thumbnail';
 				
 				#$p->preview = $preview_path.'/'.$p->filebase.'.'.$this->cfg['preview_format'];
-				$p->preview = 
-$this->config->item('base_url').'image.php?img='.$filename.'&ext='.$this->cfg['thumbnail_format'].'&code='.$this->barcode.'&type=preview';
+				$p->preview = $this->config->item('base_url').'image.php?img='.urlencode($filename).'&ext='.$this->cfg['thumbnail_format'].'&code='.$this->barcode.'&type=preview';
 				
 				$p->scan_filename = $p->filebase.'.'.$p->extension;
 				#$p->scan = $scans_path.'/'.$p->scan_filename;
-				$p->scan = 
-$this->config->item('base_url').'image.php?img='.$p->scan_filename.'&ext='.$p->extension.'&code='.$this->barcode.'&type=original';
+				$p->scan = $this->config->item('base_url').'image.php?img='.urlencode($p->scan_filename).'&ext='.$p->extension.'&code='.$this->barcode.'&type=original';
 			}
 			// Make a more human readable of "250 K" or "1.5 MB"
 			$p->size = ($p->bytes < 1048576
