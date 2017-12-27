@@ -7,12 +7,12 @@
 <?php
 	include_once('system/application/config/version.php');
 ?>
-	<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/combo?2.9.0/build/reset-fonts-grids/reset-fonts-grids.css&2.9.0/build/base/base-min.css&2.9.0/build/assets/skins/sam/skin.css">
+	<link rel="stylesheet" type="text/css" href="/css/yui-combo.css">
 	<link rel="stylesheet" type="text/css" href="/css/macaw.css" id="macaw_css" />
 	<link rel="stylesheet" type="text/css" href="/inc/magnifier/assets/image-magnifier.css" />
 	
 	<!-- Combo-handled YUI JS files: -->
-	<script type="text/javascript" src="http://yui.yahooapis.com/combo?2.9.0/build/utilities/utilities.js&2.9.0/build/datasource/datasource-min.js&2.9.0/build/autocomplete/autocomplete-min.js&2.9.0/build/container/container-min.js&2.9.0/build/menu/menu-min.js&2.9.0/build/button/button-min.js&2.9.0/build/json/json-min.js&2.9.0/build/swf/swf-min.js&2.9.0/build/charts/charts-min.js&2.9.0/build/paginator/paginator-min.js&2.9.0/build/datatable/datatable-min.js&2.9.0/build/resize/resize-min.js&2.9.0/build/layout/layout-min.js&2.9.0/build/logger/logger-min.js&2.9.0/build/progressbar/progressbar-min.js&2.9.0/build/slider/slider-min.js&2.9.0/build/stylesheet/stylesheet-min.js&2.9.0/build/tabview/tabview-min.js&2.9.0/build/treeview/treeview-min.js"></script>
+	<script type="text/javascript" src="/js/yui-combo.js"></script>
 	<!-- http://developer.yahoo.com/yui/articles/hosting/?animation&autocomplete&base&button&charts&connection&container&datasource&datatable&dom&dragdrop&event&fonts&grids&json&layout&logger&menu&paginator&progressbar&reset&resize&slider&stylesheet&swf&tabview&treeview&yahoo&MIN -->
 	
 	<script type="text/javascript" src="/inc/magnifier/image-magnifier.js"></script>

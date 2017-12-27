@@ -6,7 +6,7 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=9" />
 	<title>Admin | Logs | Macaw</title>
 		<!-- 29/05/12 temp insert to retain old style -->
-	<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/combo?2.9.0/build/reset-fonts-grids/reset-fonts-grids.css&2.9.0/build/base/base-min.css&2.9.0/build/assets/skins/sam/skin.css"> 
+	<link rel="stylesheet" type="text/css" href="/css/yui-combo.css"> 
 	<?php $this->load->view('global/head_view') ?>
 	<script type="text/javascript">
 	<?php if ($filename) { ?>

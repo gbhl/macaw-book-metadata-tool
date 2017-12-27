@@ -11,7 +11,7 @@ if ($CI->clicheck->isCli()) {
 <html>
 <head>
 	<title>Database Error</title>
-	<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/combo?2.9.0/build/reset-fonts-grids/reset-fonts-grids.css&2.9.0/build/base/base-min.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo $CI->config->item('base_url'); ?>css/yui-combo.css">
 	<link rel="stylesheet" type="text/css" href="<?php echo $CI->config->item('base_url'); ?>css/macaw.css" id="macaw_css" />
 </head>
 <body class="yui-skin-sam">

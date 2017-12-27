@@ -926,7 +926,7 @@ table#admin_scheduled_jobs td {
 	padding: 10px;
 }
 .yui-skin-sam #admin_scheduled_jobs .yui-button {
-	background: url("http://yui.yahooapis.com/2.9.0/build/assets/skins/sam/sprite.png") repeat-x scroll 0 -10 transparent;
+	background: url("/assets/yui-290-skins-sam/sprite.png") repeat-x scroll 0 -10 transparent;
 }
 .yui-skin-sam #admin_scheduled_jobs .yui-button button,
 .yui-skin-sam #admin_scheduled_jobs .yui-button a,
@@ -1230,7 +1230,7 @@ table#admin_scheduled_jobs td {
 .yui-button#btnToggleThumbs,
 .yui-button#btnToggleList,
 .yui-button#btnAlphaReorder {
-	background: url(http://yui.yahooapis.com/2.9.0/build/assets/skins/sam/sprite.png) repeat-x 0 0;
+	background: url(/assets/yui-290-skins-sam/sprite.png) repeat-x 0 0;
 	padding:  0 1px;
 	border: 0;
 	margin: 0;
