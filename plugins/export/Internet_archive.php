@@ -1521,10 +1521,10 @@ class Internet_archive extends Controller {
 				if (preg_match('/(and|,)/', $p->page_number)) {
 					$pagenums = preg_split('/(and|,)/', $p->page_number);
 					foreach ($pagenums as $pgnum) {
-						$output .= '      <altPageNumber prefix="'.$prefix.'"'.($implied ? ' implied="1"' : '').'>'.trim($pgnum).'</altPageNumber>'."\n";
+						$output .= '      <altPageNumber prefix="'.htmlentities($prefix).'"'.($implied ? ' implied="1"' : '').'>'.trim($pgnum).'</altPageNumber>'."\n";
 					}
 				} else {
-					$output .= '      <altPageNumber prefix="'.$prefix.'"'.($implied ? ' implied="1"' : '').'>'.$p->page_number.'</altPageNumber>'."\n";
+					$output .= '      <altPageNumber prefix="'.htmlentities($prefix).'"'.($implied ? ' implied="1"' : '').'>'.$p->page_number.'</altPageNumber>'."\n";
 				}
 				$output .= '    </altPageNumbers>'."\n";
 			}
