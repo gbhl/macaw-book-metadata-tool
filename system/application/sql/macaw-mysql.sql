@@ -58,7 +58,7 @@ CREATE TABLE metadata (
     page_id int(11),
     fieldname varchar(32),
     counter int(11) DEFAULT 1,
-    value text,
+    value varchar(1024),
     value_large text
 ) ENGINE=InnoDB CHARACTER SET=utf8 COLLATE=utf8_unicode_ci;
 
@@ -131,10 +131,11 @@ INSERT INTO settings (name, value) values ('installed', '1');
 ALTER TABLE settings ADD CONSTRAINT settings_name_key_unique UNIQUE (name);
 
 ALTER TABLE `account` ADD INDEX (username);
-ALTER TABLE `metadata` ADD INDEX ( fieldname ) ;
-ALTER TABLE `metadata` ADD INDEX ( item_id, page_id ) ;
 ALTER TABLE `logging` ADD INDEX (date, statistic);
-ALTER TABLE `metadata` ADD INDEX ( item_id, page_id, fieldname, counter ) ;
 ALTER TABLE `permission` ADD INDEX (username, permission);
 ALTER TABLE `item` ADD INDEX (barcode);
+CREATE INDEX idx_metadata_fieldname_value ON metadata (fieldname, value(255));
+CREATE INDEX idx_metadata_fieldname_pageid ON metadata (fieldname, page_id);
+CREATE INDEX idx_metadata_item_page_field_counter ON metadata (item_id, page_id, fieldname, counter);
+CREATE INDEX idx_metadata_item_page ON metadata (item_id, page_id);
 
