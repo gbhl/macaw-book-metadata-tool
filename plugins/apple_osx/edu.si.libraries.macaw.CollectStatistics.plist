@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>edu.si.libraries.macaw.CollectStatistics</string>
+    <key>UserName</key>
+    <string>_www</string>
+    <key>WorkingDirectory</key>
+    <!-- UPDATE: Path to your Macaw webroot -->
+    <string>/usr/local/var/www/sites/macaw</string>
+    <key>ProgramArguments</key>
+    <array>
+    		<!-- UPDATE: Path to php used by apache -->
+        <string>/usr/local/opt/php55/bin/php</string>
+        <string>index.php</string>
+        <string>cron</string>
+        <string>statistics</string> 
+    </array>
+    <key>StartCalendarInterval</key>
+    <dict> <!-- Runs at 2am every day -->
+        <key>Hour</key>
+        <integer>2</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+    <key>StandardOutPath</key>
+    <!-- UPDATE: Path to your Macaw logs directory -->
+    <string>/usr/local/var/www/sites/macaw/system/application/logs/launchd.log</string>
+    <key>StandardErrorPath</key>
+    <!-- UPDATE: Path to your Macaw logs directory -->
+    <string>/usr/local/var/www/sites/macaw/system/application/logs/launchd.log</string>
+</dict>
+</plist>
