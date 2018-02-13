@@ -856,7 +856,7 @@ class Book extends Model {
 
 	function _dir_size($f) {
 		// Returns size of directory in kb
-		$io = popen ( '/usr/bin/du -sk ' . $f, 'r' );
+		$io = popen ( '/usr/bin/du -sk \''. $f."'", 'r' );
 		$size = fgets ( $io, 4096);
 		$size = substr ( $size, 0, strpos ( $size, "\t" ) );
 		pclose ( $io );
