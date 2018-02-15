@@ -445,10 +445,9 @@ class Internet_archive extends Controller {
 									}
 									print " $fs is too small (Q=$tqual)";
 									unlink($jp2path.'/'.$new_filebase.'.jp2');
-									$p2 = clone $preview;
-									$p2->setCompressionQuality($tqual);
-									$p2->setImageCompressionQuality($tqual);
-									$p2->writeImage($jp2path.'/'.$new_filebase.'.jp2');
+									$preview->setCompressionQuality($tqual);
+									$preview->setImageCompressionQuality($tqual);
+									$preview->writeImage($jp2path.'/'.$new_filebase.'.jp2');
 									$fs = filesize($jp2path.'/'.$new_filebase.'.jp2');
 								}
 					
