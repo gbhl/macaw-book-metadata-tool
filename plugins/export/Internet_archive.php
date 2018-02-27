@@ -570,7 +570,7 @@ class Internet_archive extends Controller {
 							$cmd .= ' --header "'.$k.':'.$metadata[$k].'"';
 						}
 					}
-					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_scandata.xml" "http://s3.us.archive.org/'.$id.'/'.$id.'_scandata.xml"';
+					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_scandata.xml" "http://s3.us.archive.org/'.$id.'/'.$id.'_scandata.xml" 2>&1';
 					echo "\n\n".$cmd."\n\n";
 
 					// execute the CURL command and echo back any responses
@@ -608,7 +608,7 @@ class Internet_archive extends Controller {
 					foreach (array_keys($metadata) as $k) {
 						$cmd .= ' --header "'.$k.':'.$metadata[$k].'"';
 					}
-					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_scandata.xml" "http://s3.us.archive.org/'.$id.'/'.$id.'_scandata.xml"';
+					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_scandata.xml" "http://s3.us.archive.org/'.$id.'/'.$id.'_scandata.xml" 2>&1';
 					echo "\n\n".$cmd."\n\n";
 
 					// execute the CURL command and echo back any responses
@@ -639,61 +639,62 @@ class Internet_archive extends Controller {
 				if ($file == '' || $file == 'pdf') {
 					// Gets the names of any PDF files that were used to upload pages.
 					$pdf = $this->CI->book->get_metadata('pdf_source');
-					if (!$pdf) break;
-					
-					$files = NULL;
-					
-					// Copies the file(s) to the export directory and renames them.
-					if (is_array($pdf)) {
-						$count = 1;
-						foreach ($pdf as $p) {
-							if (file_exists("{$this->cfg['data_directory']}/{$bc}/{$p}")){
-								copy("{$this->cfg['data_directory']}/{$bc}/{$p}", "{$fullpath}/{$id}_orig_{$count}.pdf");
-								$files[] = "{$id}_orig_{$count}.pdf";
-								$count++;
-							}
-						}
-					} else {
-						if (file_exists("{$this->cfg['data_directory']}/{$bc}/{$pdf}")){
-							copy("{$this->cfg['data_directory']}/{$bc}/{$pdf}", "{$fullpath}/{$id}_orig.pdf");
-								$files[] = "{$id}_orig.pdf";
-						}
-					}
-					
-					// Uses cURL to upload to the Internet Archive.
-					foreach ($files as $pdf) {
-						$cmd = $this->cfg['curl_exe'];
-						$cmd .= ' --location';
-						$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
-						$cmd .= ' --header "x-archive-queue-derive:0"';
-						$cmd .= ' --upload-file "'.$fullpath.'/'.$pdf.'" "http://s3.us.archive.org/'.$id.'/'.$pdf.'"';
-						echo "\n\n".$cmd."\n\n";
+					if ($pdf) {
 
-						if (!$this->cfg['testing']) {
-							// execute the CURL command and echo back any responses
-							$output = array();
-							exec($cmd, $output, $ret);
-							if (count($output)) {
-								foreach ($output as $o) {
-									echo $o."\n";
+						$files = NULL;
+
+						// Copies the file(s) to the export directory and renames them.
+						if (is_array($pdf)) {
+							$count = 1;
+							foreach ($pdf as $p) {
+								if (file_exists("{$this->cfg['data_directory']}/{$bc}/{$p}")){
+									copy("{$this->cfg['data_directory']}/{$bc}/{$p}", "{$fullpath}/{$id}_orig_{$count}.pdf");
+									$files[] = "{$id}_orig_{$count}.pdf";
+									$count++;
 								}
-							}
-							if ($ret) {
-								echo "ERROR!!!";
-								// If we had any sort of error from exec, we log what happened and set the status to error
-								$out = '';
-								foreach ($output as $o) {
-									$out .= $o."\n";
-								}
-								$this->CI->book->set_status('error');
-								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value for'.$pdf.'. Output was:'."\n".$out, $bc);
-								return;
 							}
 						} else {
-							echo "IN TEST MODE. NOT UPLOADING.\n\n";
-						} // if (!$this->cfg['testing'])
-					}
-				}
+							if (file_exists("{$this->cfg['data_directory']}/{$bc}/{$pdf}")){
+								copy("{$this->cfg['data_directory']}/{$bc}/{$pdf}", "{$fullpath}/{$id}_orig.pdf");
+									$files[] = "{$id}_orig.pdf";
+							}
+						}
+
+						// Uses cURL to upload to the Internet Archive.
+						foreach ($files as $pdf) {
+							$cmd = $this->cfg['curl_exe'];
+							$cmd .= ' --location';
+							$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
+							$cmd .= ' --header "x-archive-queue-derive:0"';
+							$cmd .= ' --upload-file "'.$fullpath.'/'.$pdf.'" "http://s3.us.archive.org/'.$id.'/'.$pdf.'" 2>&1';
+							echo "\n\n".$cmd."\n\n";
+
+							if (!$this->cfg['testing']) {
+								// execute the CURL command and echo back any responses
+								$output = array();
+								exec($cmd, $output, $ret);
+								if (count($output)) {
+									foreach ($output as $o) {
+										echo $o."\n";
+									}
+								}
+								if ($ret) {
+									echo "ERROR!!!";
+									// If we had any sort of error from exec, we log what happened and set the status to error
+									$out = '';
+									foreach ($output as $o) {
+										$out .= $o."\n";
+									}
+									$this->CI->book->set_status('error');
+									$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value for'.$pdf.'. Output was:'."\n".$out, $bc);
+									return;
+								}
+							} else {
+								echo "IN TEST MODE. NOT UPLOADING.\n\n";
+							} // if (!$this->cfg['testing'])
+						} // foreach ($files as $pdf)
+					} // if ($pdf)
+				} // if ($file == '' || $file == 'pdf')
 				
 				// Pause for 1 minute and to see if the bucket exists in IA. Then it's safe to continue...
 				echo "Sleeping while we wait for IA to create the bucket...";
@@ -725,7 +726,7 @@ class Internet_archive extends Controller {
 					$cmd .= ' --location';
 					$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
 					$cmd .= ' --header "x-archive-queue-derive:0"';
-					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_marc.xml" "http://s3.us.archive.org/'.$id.'/'.$id.'_marc.xml"';
+					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_marc.xml" "http://s3.us.archive.org/'.$id.'/'.$id.'_marc.xml" 2>&1';
 					echo "\n\n".$cmd."\n\n";
 
 					if (!$this->cfg['testing']) {
@@ -758,7 +759,7 @@ class Internet_archive extends Controller {
 					$cmd .= ' --location';
 					$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
 					$cmd .= ' --header "x-archive-queue-derive:0"';
-					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_segments.xml" "http://s3.us.archive.org/'.$id.'/'.$id.'_segments.xml"';
+					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_segments.xml" "http://s3.us.archive.org/'.$id.'/'.$id.'_segments.xml" 2>&1';
 					echo "\n\n".$cmd."\n\n";
 
 					if (!$this->cfg['testing']) {
@@ -798,7 +799,7 @@ class Internet_archive extends Controller {
 							$cmd .= ' --header "x-archive-queue-derive:1"';
 						}
 						$cmd .= ' --header "x-archive-size-hint:'.sprintf("%u", filesize($fullpath.'/'.$id.'_jp2.zip')).'"';
-						$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_jp2.zip" "http://s3.us.archive.org/'.$id.'/'.$id.'_jp2.zip"';
+						$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_jp2.zip" "http://s3.us.archive.org/'.$id.'/'.$id.'_jp2.zip" 2>&1';
 						echo "\n\n".$cmd."\n\n";
 
 						if (!$this->cfg['testing']) {
@@ -834,7 +835,7 @@ class Internet_archive extends Controller {
 						$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
 						$cmd .= ' --header "x-archive-queue-derive:1"';
 						$cmd .= ' --header "x-archive-size-hint:'.sprintf("%u", filesize($fullpath.'/'.$id.'_orig_jp2.tar')).'"';
-						$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_orig_jp2.tar" "http://s3.us.archive.org/'.$id.'/'.$id.'_orig_jp2.tar"';
+						$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_orig_jp2.tar" "http://s3.us.archive.org/'.$id.'/'.$id.'_orig_jp2.tar" 2>&1';
 						echo "\n\n".$cmd."\n\n";
 
 						if (!$this->cfg['testing']) {
@@ -1739,7 +1740,6 @@ class Internet_archive extends Controller {
 				// Get the height of the book
 				$matches = array();
 				
-				print "height is $height\n";
 				if (preg_match('/(\d+) ?(cm|in)/', $height, $matches)) {
 					// 45 cm.
 					// 35cm.
