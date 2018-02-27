@@ -38,9 +38,9 @@ class Main extends Controller {
 		if ($this->session->userdata('barcode')) {
 			$this->book->load($this->session->userdata('barcode'));
 			$status = $this->book->status;
-	
-		 	if ($status == 'new' || $status == 'scanning') {
-		 		redirect($this->config->item('base_url').'scan/monitor');
+			
+			if ($status == 'new' || $status == 'scanning') {
+				redirect($this->config->item('base_url').'scan/upload');
 		 	}
 		 	if ($status == 'scanned' || $status == 'reviewing') {
 		 		redirect($this->config->item('base_url').'scan/review');	
