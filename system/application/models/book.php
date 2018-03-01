@@ -1033,6 +1033,7 @@ class Book extends Model {
 
 				$this->db->insert('item', $data);
 				$item_id = $this->db->insert_id();
+				$this->id = $item_id;
 
 				$marc = array();
 
