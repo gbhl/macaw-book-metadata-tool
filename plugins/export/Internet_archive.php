@@ -649,14 +649,16 @@ class Internet_archive extends Controller {
 							foreach ($pdf as $p) {
 								if (file_exists("{$this->cfg['data_directory']}/{$bc}/{$p}")){
 									copy("{$this->cfg['data_directory']}/{$bc}/{$p}", "{$fullpath}/{$id}_orig_{$count}.pdf");
-									$files[] = "{$id}_orig_{$count}.pdf";
+									$result = $this->create_zip(array("{$id}_orig_{$count}.pdf"), "{$fullpath}/{$id}_orig_pdf_{$count}.zip");
+									$files[] = "{$id}_orig_pdf_{$count}.zip";
 									$count++;
 								}
 							}
 						} else {
 							if (file_exists("{$this->cfg['data_directory']}/{$bc}/{$pdf}")){
 								copy("{$this->cfg['data_directory']}/{$bc}/{$pdf}", "{$fullpath}/{$id}_orig.pdf");
-									$files[] = "{$id}_orig.pdf";
+								$result = $this->create_zip(array("{$fullpath}/{$id}_orig.pdf"), "{$fullpath}/{$id}_orig_pdf.zip");
+								$files[] = "{$id}_orig_pdf.zip";
 							}
 						}
 
@@ -2483,5 +2485,41 @@ class Internet_archive extends Controller {
 			return "OpenJPEG";
 		}
 	
+	}
+
+	function create_zip($files = array(), $destination = '', $overwrite = false) {
+		// if the zip file already exists and overwrite is false, return false
+		if (file_exists($destination) && !$overwrite) {
+			return false;
+		}
+		$valid_files = array();
+		//if files were passed in...
+		if (is_array($files)) {
+			//cycle through each file
+			foreach ($files as $file) {
+				//make sure the file exists
+				if (file_exists($file)) {
+					$valid_files[] = $file;
+				}
+			}
+		}
+		// if we have good files...
+		if (count($valid_files)) {
+			//create the archive
+			$zip = new ZipArchive();
+			if ($zip->open($destination,$overwrite ? ZIPARCHIVE::OVERWRITE : ZIPARCHIVE::CREATE) !== true) {
+				return false;
+			}
+			//add the files
+			foreach ($valid_files as $file) {
+				$zip->addFile($file,$file);
+			}
+			// close the zip -- done!
+			$zip->close();
+			// check to make sure the file exists
+			return file_exists($destination);
+		}	else {
+			return false;
+		}
 	}
 }
