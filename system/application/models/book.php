@@ -1104,6 +1104,10 @@ class Book extends Model {
 					}
 				}
 				
+				if ($info['marc_xml']) {
+					$marc_data = $info['marc_xml'];
+				}
+
 				if ($marc_data) {
 					// Create the the marc.xml and item.xml file,
 					write_file($path.'/marc.xml', $marc_data);
