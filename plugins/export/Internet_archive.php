@@ -649,7 +649,7 @@ class Internet_archive extends Controller {
 							foreach ($pdf as $p) {
 								if (file_exists("{$this->cfg['data_directory']}/{$bc}/{$p}")){
 									copy("{$this->cfg['data_directory']}/{$bc}/{$p}", "{$fullpath}/{$id}_orig_{$count}.pdf");
-									$result = $this->create_zip(array("{$id}_orig_{$count}.pdf"), "{$fullpath}/{$id}_orig_pdf_{$count}.zip");
+									$result = $this->create_zip(array("{$id}_orig_{$count}.pdf"), "{$id}_orig_pdf_{$count}.zip", $basepath.'/Internet_archive/'.$id.'/');
 									$files[] = "{$id}_orig_pdf_{$count}.zip";
 									$count++;
 								}
@@ -657,7 +657,7 @@ class Internet_archive extends Controller {
 						} else {
 							if (file_exists("{$this->cfg['data_directory']}/{$bc}/{$pdf}")){
 								copy("{$this->cfg['data_directory']}/{$bc}/{$pdf}", "{$fullpath}/{$id}_orig.pdf");
-								$result = $this->create_zip(array("{$fullpath}/{$id}_orig.pdf"), "{$fullpath}/{$id}_orig_pdf.zip");
+								$result = $this->create_zip(array("{$id}_orig.pdf"), "{$id}_orig_pdf.zip", $basepath.'/Internet_archive/'.$id.'/');
 								$files[] = "{$id}_orig_pdf.zip";
 							}
 						}
@@ -2487,11 +2487,16 @@ class Internet_archive extends Controller {
 	
 	}
 
-	function create_zip($files = array(), $destination = '', $overwrite = false) {
+	function create_zip($files = array(), $destination = '', $working_dir = '', $overwrite = false) {
 		// if the zip file already exists and overwrite is false, return false
 		if (file_exists($destination) && !$overwrite) {
 			return false;
 		}
+    // We don't want giant paths!
+    $curdir = getcwd();
+    if ($working_dir) {
+			chdir($working_dir);   
+    }
 		$valid_files = array();
 		//if files were passed in...
 		if (is_array($files)) {
@@ -2517,6 +2522,7 @@ class Internet_archive extends Controller {
 			// close the zip -- done!
 			$zip->close();
 			// check to make sure the file exists
+			chdir($curdir);
 			return file_exists($destination);
 		}	else {
 			return false;
