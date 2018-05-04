@@ -2129,17 +2129,17 @@ class Internet_archive extends Controller {
 
 			// Rights Holder
 			if ($this->CI->book->get_metadata('rights_holder')) {
-				$metadata['x-archive-meta-rights-holder'] = $this->CI->book->get_metadata('rights_holder');
+				$metadata['x-archive-meta-rights-holder'] = str_replace('"', "'", $this->CI->book->get_metadata('rights_holder'));
 			}
 			
 			// Scanning Institution
 			if ($this->CI->book->get_metadata('scanning_institution')) {
-				$metadata['x-archive-meta-scanning-institution'] = $this->CI->book->get_metadata('scanning_institution');
+				$metadata['x-archive-meta-scanning-institution'] = str_replace('"', "'", $this->CI->book->get_metadata('scanning_institution'));
 			}
 
 			// Copy Specific Information
 			if ($this->CI->book->get_metadata('copy_specific_information')) {
-				$metadata['x-archive-meta-copy-specific-information'] = $this->CI->book->get_metadata('copy_specific_information');
+				$metadata['x-archive-meta-copy-specific-information'] = str_replace('"', "'", $this->CI->book->get_metadata('copy_specific_information'));
 			}
 
 			return $metadata;
