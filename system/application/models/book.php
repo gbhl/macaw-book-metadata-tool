@@ -1334,7 +1334,7 @@ class Book extends Model {
 	 * @param string [$key] The fieldname of the metadata to get or set.
 	 * @return string The metadata for that item or an empty string otherwise.
 	 */
-	function get_metadata($key = '') {
+	function get_metadata($key = '', $allow_array = true) {
 		if ($key != '') {
 			$key = strtolower($key);
 			$results = array();
@@ -1348,7 +1348,11 @@ class Book extends Model {
 			} elseif (count($results) == 1) {
 				return $results[0];
 			} else {
-				return $results;
+			  if ($allow_array) {
+			    return $results;
+			  } else {
+			    return implode(';', $results);
+			  }
 			}			
 		} else {
 			return $this->metadata_array;
@@ -1526,17 +1530,17 @@ class Book extends Model {
 		$xml = '<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core 4.4.0">'.
 				  '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">'.
 				    '<rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/">'.
-				      '<dc:title>'.$this->get_metadata('title').'</dc:title>'.
+				      '<dc:title>'.$this->get_metadata('title', false).'</dc:title>'.
 				      '<dc:identifier>'.$this->barcode.'</dc:identifier>'.
-				      '<dc:rights>'.($this->get_metadata('copyright') ? "This image is protected by copyright." : "This image is in the public domain.").'</dc:rights>'.
-				      '<dc:source>'.$this->get_metadata('xmp_source').'</dc:source>'.
+				      '<dc:rights>'.($this->get_metadata('copyright', false) ? "This image is protected by copyright." : "This image is in the public domain.").'</dc:rights>'.
+				      '<dc:source>'.$this->get_metadata('xmp_source', false).'</dc:source>'.
 				      '<dc:creator>'.
 				        '<rdf:Seq>'.
-				          ($this->get_metadata('author') ? '<rdf:li>'.$this->get_metadata('author').'</rdf:li>' : '').
+				          ($this->get_metadata('author', false) ? '<rdf:li>'.$this->get_metadata('author', false).'</rdf:li>' : '').
 				          '<rdf:li>'.$this->get_contributor().'</rdf:li>'.
 				        '</rdf:Seq>'.
 				      '</dc:creator>'.
-				      '<dc:date>'.$this->get_metadata('year').'</dc:date>'.
+				      '<dc:date>'.$this->get_metadata('year', false).'</dc:date>'.
 				    '</rdf:Description>'.
 				  '</rdf:RDF>'.
 				'</x:xmpmeta>';
