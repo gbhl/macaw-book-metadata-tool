@@ -738,10 +738,13 @@ class Utils extends Controller {
 		
 		// Now that the files are split, they need to be processed
 		$existingFiles = get_dir_file_info($scans_dir);
+		$pdf_info = pathinfo($filename);
 		
 		$seq = $this->book->max_sequence() + 1;
 		foreach ($existingFiles as $fileName => $info) {
-			$this->book->import_one_image($fileName, $seq++, $missing);
+			if (strpos($fileName, $pdf_info['filename']) !== false) {
+				$this->book->import_one_image($fileName, $seq++, $missing);
+			}
 		}
 		// Indicate that we are done processing the PDF			
 		$this->db->query(
