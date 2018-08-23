@@ -594,13 +594,15 @@ class Internet_archive extends Controller {
               foreach ($output as $o) {
                 $out .= $o."\n";
               }
-						  if ($ret == 56 || $ret == 52) {
-                $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for uploading metadata. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
-						  } else {
-                $this->CI->book->set_status('error');
-                $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for uploading metadata. Output was:'."\n".$out, $bc);
-                return;
-						  }
+              $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for uploading metadata. Output was:'."\n".$out, $bc);
+
+              $message = "Error processing export.\n\n".
+                "Identifier: {$bc}\n\n".
+                "File: (metadata)\n\n".
+                "Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n".
+              $this->CI->common->email_error($message);
+
+              return;
 						} // if ($ret)
 					} else {
 						echo "IN TEST MODE. NOT UPLOADING.\n\n";
@@ -636,6 +638,11 @@ class Internet_archive extends Controller {
               foreach ($output as $o) {
                 $out .= $o."\n";
               }
+              $message = "Error processing export.\n\n".
+                "Identifier: {$bc}\n\n".
+                "File: {$id}_scandata.xml\n\n".
+                "Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n".
+              $this->CI->common->email_error($message);
 						  if ($ret == 56 || $ret == 52) {
                 $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for scandata.xml. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
 						  } else {
@@ -700,6 +707,11 @@ class Internet_archive extends Controller {
                   foreach ($output as $o) {
                     $out .= $o."\n";
                   }
+                  $message = "Error processing export.\n\n".
+                    "Identifier: {$bc}\n\n".
+                    "File: {$pdf}\n\n".
+                    "Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n".
+                  $this->CI->common->email_error($message);
                   if ($ret == 56 || $ret == 52) {
                     $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for '.$pdf.'. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
                   } else {
@@ -764,6 +776,11 @@ class Internet_archive extends Controller {
               foreach ($output as $o) {
                 $out .= $o."\n";
               }
+              $message = "Error processing export.\n\n".
+                "Identifier: {$bc}\n\n".
+                "File: {$id}_marc.xml\n\n".
+                "Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n".
+              $this->CI->common->email_error($message);
               if ($ret == 56 || $ret == 52) {
                 $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for marc.xml. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
               } else {
@@ -801,6 +818,11 @@ class Internet_archive extends Controller {
               foreach ($output as $o) {
                 $out .= $o."\n";
               }
+              $message = "Error processing export.\n\n".
+                "Identifier: {$bc}\n\n".
+                "File: {$id}_segments.xml\n\n".
+                "Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n".
+              $this->CI->common->email_error($message);
               if ($ret == 56 || $ret == 52) {
                 $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for segments.xml. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
               } else {
@@ -845,6 +867,11 @@ class Internet_archive extends Controller {
                 foreach ($output as $o) {
                   $out .= $o."\n";
                 }
+                $message = "Error processing export.\n\n".
+                  "Identifier: {$bc}\n\n".
+                  "File: {$id} - tar or ZIP\n\n".
+                  "Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n".
+                $this->CI->common->email_error($message);
                 if ($ret == 56 || $ret == 52) {
                   $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
                 } else {
@@ -885,6 +912,11 @@ class Internet_archive extends Controller {
                 foreach ($output as $o) {
                   $out .= $o."\n";
                 }
+                $message = "Error processing export.\n\n".
+                  "Identifier: {$bc}\n\n".
+                  "File: {$id} - tar or ZIP (2)\n\n".
+                  "Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n".
+                $this->CI->common->email_error($message);
                 if ($ret == 56 || $ret == 52) {
                   $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file (2). CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
                 } else {
