@@ -589,7 +589,7 @@ class Internet_archive extends Controller {
               foreach ($output as $o) {
                 $out .= $o."\n";
               }
-						  if ($ret == 56) {
+						  if ($ret == 56 || $ret == 52) {
                 $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for uploading metadata. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
 						  } else {
                 $this->CI->book->set_status('error');
@@ -631,7 +631,7 @@ class Internet_archive extends Controller {
               foreach ($output as $o) {
                 $out .= $o."\n";
               }
-						  if ($ret == 56) {
+						  if ($ret == 56 || $ret == 52) {
                 $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for scandata.xml. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
 						  } else {
                 $this->CI->book->set_status('error');
@@ -695,7 +695,7 @@ class Internet_archive extends Controller {
                   foreach ($output as $o) {
                     $out .= $o."\n";
                   }
-                  if ($ret == 56) {
+                  if ($ret == 56 || $ret == 52) {
                     $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for '.$pdf.'. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
                   } else {
                     $this->CI->book->set_status('error');
@@ -759,7 +759,7 @@ class Internet_archive extends Controller {
               foreach ($output as $o) {
                 $out .= $o."\n";
               }
-              if ($ret == 56) {
+              if ($ret == 56 || $ret == 52) {
                 $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for marc.xml. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
               } else {
                 $this->CI->book->set_status('error');
@@ -796,7 +796,7 @@ class Internet_archive extends Controller {
               foreach ($output as $o) {
                 $out .= $o."\n";
               }
-              if ($ret == 56) {
+              if ($ret == 56 || $ret == 52) {
                 $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for segments.xml. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
               } else {
                 $this->CI->book->set_status('error');
@@ -840,7 +840,7 @@ class Internet_archive extends Controller {
                 foreach ($output as $o) {
                   $out .= $o."\n";
                 }
-                if ($ret == 56) {
+                if ($ret == 56 || $ret == 52) {
                   $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
                 } else {
                   $this->CI->book->set_status('error');
@@ -880,7 +880,7 @@ class Internet_archive extends Controller {
                 foreach ($output as $o) {
                   $out .= $o."\n";
                 }
-                if ($ret == 56) {
+                if ($ret == 56 || $ret == 52) {
                   $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file (2). CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
                 } else {
                   $this->CI->book->set_status('error');
