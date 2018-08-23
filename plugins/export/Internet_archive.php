@@ -439,8 +439,8 @@ class Internet_archive extends Controller {
 								$tqual = $quality;
 								$fs = filesize($jp2path.'/'.$new_filebase.'.jp2');
 								while ($fs < 102400) {
-									$tqual++;
-									if ($tqual == 101) {
+									$tqual = $tqual + 2;
+									if ($tqual >= 100) {
 										break;
 									}
 									print " $fs is too small (Q=$tqual)";
@@ -496,7 +496,7 @@ class Internet_archive extends Controller {
 						// Make sure we are in the right directory
 						chdir($basepath.'/Internet_archive/'.$id.'/');
 						// We only add things that we are interested in, in this case, the entire directory (files AND directory)
-						$zip->addFile($id.'_jp2/');
+						$zip->addEmptyDir($id.'_jp2');
 						foreach ($filenames as $fn) {
 							$zip->addFile($fn);
 						}
@@ -562,7 +562,7 @@ class Internet_archive extends Controller {
 						}
 					}
 					$cmd = $this->cfg['curl_exe'];
-					$cmd .= ' --location';
+					$cmd .= ' --verbose --location';
 					$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
 					$cmd .= ' --header "x-archive-ignore-preexisting-bucket:1"';
 					foreach (array_keys($metadata) as $k) {
@@ -583,15 +583,19 @@ class Internet_archive extends Controller {
 							}
 						}
 						if ($ret) {
-							echo "ERROR!!!";
-							// If we had any sort of error from exec, we log what happened and set the status to error
-							$out = '';
-							foreach ($output as $o) {
-								$out .= $o."\n";
-							}
-							$this->CI->book->set_status('error');
-							$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value for uploading metadata. Output was:'."\n".$out, $bc);
-							return;
+              echo "ERROR!!! Return code = $ret";
+              // If we had any sort of error from exec, we log what happened and set the status to error
+              $out = '';
+              foreach ($output as $o) {
+                $out .= $o."\n";
+              }
+						  if ($ret == 56) {
+                $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for uploading metadata. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
+						  } else {
+                $this->CI->book->set_status('error');
+                $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for uploading metadata. Output was:'."\n".$out, $bc);
+                return;
+						  }
 						} // if ($ret)
 					} else {
 						echo "IN TEST MODE. NOT UPLOADING.\n\n";
@@ -600,7 +604,7 @@ class Internet_archive extends Controller {
 
 				if ($file == '' || $file == 'scandata') {
 					$cmd = $this->cfg['curl_exe'];
-					$cmd .= ' --location';
+					$cmd .= ' --verbose --location';
 					$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
 					$cmd .= ' --header "x-archive-auto-make-bucket:1"';
 					$cmd .= ' --header "x-archive-size-hint:'.sprintf("%u", filesize($fullpath.'/'.$id.'_scandata.xml')).'"';
@@ -621,15 +625,19 @@ class Internet_archive extends Controller {
 							}
 						}
 						if ($ret) {
-							echo "ERROR!!!";
-							// If we had any sort of error from exec, we log what happened and set the status to error
-							$out = '';
-							foreach ($output as $o) {
-								$out .= $o."\n";
-							}
-							$this->CI->book->set_status('error');
-							$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value for scandata.xml. Output was:'."\n".$out, $bc);
-							return;
+              echo "ERROR!!! Return code = $ret";
+              // If we had any sort of error from exec, we log what happened and set the status to error
+              $out = '';
+              foreach ($output as $o) {
+                $out .= $o."\n";
+              }
+						  if ($ret == 56) {
+                $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for scandata.xml. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
+						  } else {
+                $this->CI->book->set_status('error');
+                $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for scandata.xml. Output was:'."\n".$out, $bc);
+                return;
+						  }
 						} // if ($ret)
 					} else {
 						echo "IN TEST MODE. NOT UPLOADING.\n\n";
@@ -665,7 +673,7 @@ class Internet_archive extends Controller {
 						// Uses cURL to upload to the Internet Archive.
 						foreach ($files as $pdf) {
 							$cmd = $this->cfg['curl_exe'];
-							$cmd .= ' --location';
+							$cmd .= ' --verbose --location';
 							$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
 							$cmd .= ' --header "x-archive-queue-derive:0"';
 							$cmd .= ' --upload-file "'.$fullpath.'/'.$pdf.'" "http://s3.us.archive.org/'.$id.'/'.$pdf.'" 2>&1';
@@ -681,15 +689,19 @@ class Internet_archive extends Controller {
 									}
 								}
 								if ($ret) {
-									echo "ERROR!!!";
-									// If we had any sort of error from exec, we log what happened and set the status to error
-									$out = '';
-									foreach ($output as $o) {
-										$out .= $o."\n";
-									}
-									$this->CI->book->set_status('error');
-									$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value for'.$pdf.'. Output was:'."\n".$out, $bc);
-									return;
+                  echo "ERROR!!! Return code = $ret";
+                  // If we had any sort of error from exec, we log what happened and set the status to error
+                  $out = '';
+                  foreach ($output as $o) {
+                    $out .= $o."\n";
+                  }
+                  if ($ret == 56) {
+                    $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for '.$pdf.'. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
+                  } else {
+                    $this->CI->book->set_status('error');
+                    $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for '.$pdf.'. Output was:'."\n".$out, $bc);
+                    return;
+                  }
 								}
 							} else {
 								echo "IN TEST MODE. NOT UPLOADING.\n\n";
@@ -725,7 +737,7 @@ class Internet_archive extends Controller {
 
 				if ($file == '' || $file == 'marc') {
 					$cmd = $this->cfg['curl_exe'];
-					$cmd .= ' --location';
+					$cmd .= ' --verbose --location';
 					$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
 					$cmd .= ' --header "x-archive-queue-derive:0"';
 					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_marc.xml" "http://s3.us.archive.org/'.$id.'/'.$id.'_marc.xml" 2>&1';
@@ -741,15 +753,19 @@ class Internet_archive extends Controller {
 							}
 						}
 						if ($ret) {
-							echo "ERROR!!!";
-							// If we had any sort of error from exec, we log what happened and set the status to error
-							$out = '';
-							foreach ($output as $o) {
-								$out .= $o."\n";
-							}
-							$this->CI->book->set_status('error');
-							$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value for marc.xml. Output was:'."\n".$out, $bc);
-							return;
+              echo "ERROR!!! Return code = $ret";
+              // If we had any sort of error from exec, we log what happened and set the status to error
+              $out = '';
+              foreach ($output as $o) {
+                $out .= $o."\n";
+              }
+              if ($ret == 56) {
+                $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for marc.xml. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
+              } else {
+                $this->CI->book->set_status('error');
+                $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for marc.xml. Output was:'."\n".$out, $bc);
+                return;
+              }
 						}
 					} else {
 						echo "IN TEST MODE. NOT UPLOADING.\n\n";
@@ -758,7 +774,7 @@ class Internet_archive extends Controller {
 
 				if ($file == '' || $file == 'segments') {
 					$cmd = $this->cfg['curl_exe'];
-					$cmd .= ' --location';
+					$cmd .= ' --verbose --location';
 					$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
 					$cmd .= ' --header "x-archive-queue-derive:0"';
 					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_segments.xml" "http://s3.us.archive.org/'.$id.'/'.$id.'_segments.xml" 2>&1';
@@ -774,15 +790,19 @@ class Internet_archive extends Controller {
 							}
 						}
 						if ($ret) {
-							echo "ERROR!!!";
-							// If we had any sort of error from exec, we log what happened and set the status to error
-							$out = '';
-							foreach ($output as $o) {
-								$out .= $o."\n";
-							}
-							$this->CI->book->set_status('error');
-							$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value for segments.xml. Output was:'."\n".$out, $bc);
-							return;
+              echo "ERROR!!! Return code = $ret";
+              // If we had any sort of error from exec, we log what happened and set the status to error
+              $out = '';
+              foreach ($output as $o) {
+                $out .= $o."\n";
+              }
+              if ($ret == 56) {
+                $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for segments.xml. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
+              } else {
+                $this->CI->book->set_status('error');
+                $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for segments.xml. Output was:'."\n".$out, $bc);
+                return;
+              }
 						}
 					} else {
 						echo "IN TEST MODE. NOT UPLOADING.\n\n";
@@ -793,7 +813,7 @@ class Internet_archive extends Controller {
 					// Upload the "processed" jp2 files first.
 					if ($this->send_orig_jp2 == 'no' || $this->send_orig_jp2 == 'both') {
 						$cmd = $this->cfg['curl_exe'];
-						$cmd .= ' --location';
+						$cmd .= ' --verbose --location';
 						$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
 						if ($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') {
 							$cmd .= ' --header "x-archive-queue-derive:0"';
@@ -814,15 +834,19 @@ class Internet_archive extends Controller {
 								}
 							}
 							if ($ret) {
-								echo "ERROR!!!";
-								// If we had any sort of error from exec, we log what happened and set the status to error
-								$out = '';
-								foreach ($output as $o) {
-									$out .= $o."\n";
-								}
-								$this->CI->book->set_status('error');
-								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value for tar or ZIP file. Output was:'."\n".$out, $bc);
-								return;
+                echo "ERROR!!! Return code = $ret";
+                // If we had any sort of error from exec, we log what happened and set the status to error
+                $out = '';
+                foreach ($output as $o) {
+                  $out .= $o."\n";
+                }
+                if ($ret == 56) {
+                  $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
+                } else {
+                  $this->CI->book->set_status('error');
+                  $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file. Output was:'."\n".$out, $bc);
+                  return;
+                }
 							}
 						} else {
 							echo "IN TEST MODE. NOT UPLOADING.\n\n";
@@ -833,7 +857,7 @@ class Internet_archive extends Controller {
 					// IA might start creating the "processed" verisons
 					if ($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') {
 						$cmd = $this->cfg['curl_exe'];
-						$cmd .= ' --location';
+						$cmd .= ' --verbose --location';
 						$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
 						$cmd .= ' --header "x-archive-queue-derive:1"';
 						$cmd .= ' --header "x-archive-size-hint:'.sprintf("%u", filesize($fullpath.'/'.$id.'_orig_jp2.tar')).'"';
@@ -850,15 +874,19 @@ class Internet_archive extends Controller {
 								}
 							}
 							if ($ret) {
-								echo "ERROR!!!";
-								// If we had any sort of error from exec, we log what happened and set the status to error
-								$out = '';
-								foreach ($output as $o) {
-									$out .= $o."\n";
-								}
-								$this->CI->book->set_status('error');
-								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value for tar or ZIP file. Output was:'."\n".$out, $bc);
-								return;
+                echo "ERROR!!! Return code = $ret";
+                // If we had any sort of error from exec, we log what happened and set the status to error
+                $out = '';
+                foreach ($output as $o) {
+                  $out .= $o."\n";
+                }
+                if ($ret == 56) {
+                  $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file (2). CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
+                } else {
+                  $this->CI->book->set_status('error');
+                  $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file (2). Output was:'."\n".$out, $bc);
+                  return;
+                }
 							}
 						} else {
 							echo "IN TEST MODE. NOT UPLOADING.\n\n";
