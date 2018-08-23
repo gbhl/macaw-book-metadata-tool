@@ -427,6 +427,11 @@ class Internet_archive extends Controller {
 										}
 									}
 								}
+								// Allow an ultimate override from the item itself.
+                $tempq = $this->CI->book->get_metadata('jpeg2000_quality');
+                if ($tempq) {
+                  $quality = (int)$tempq;
+                }
 								$preview->setCompressionQuality($quality);
 								$preview->setImageCompressionQuality($quality);
 								echo " creating $new_filebase".".jp2 (Q=$quality)";
