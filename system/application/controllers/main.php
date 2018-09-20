@@ -13,7 +13,7 @@ class Main extends Controller {
 
 	var $cfg;
 
-	function Main() {
+	function __construct() {
 		parent::Controller();
 		$this->cfg = $this->config->item('macaw');
 	}

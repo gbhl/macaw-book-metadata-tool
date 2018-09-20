@@ -25,7 +25,7 @@
 
 class Exporter extends Model {
 
-	function Exporter() {
+	function __construct() {
 		// Call the Model constructor
 		parent::Model();
 		$this->load->helper('file');

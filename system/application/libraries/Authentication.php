@@ -29,7 +29,7 @@ class Authentication extends Controller {
 	var $CI;
 	var $cfg;
 
-	function Authentication() {
+	function __construct() {
 		$this->CI = get_instance();
 		$this->CI->load->library('session');
 		$this->cfg = $this->CI->config->item('macaw');

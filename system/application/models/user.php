@@ -36,7 +36,7 @@ class User extends Model {
 
     private $all_permissions = array('scan', 'QA', 'local_admin', 'admin');
 
-    function User()
+    function __construct()
     {
         // Call the Model constructor
         parent::Model();

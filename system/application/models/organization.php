@@ -33,7 +33,7 @@ class Organization extends Model {
 
     private $all_permissions = array('scan', 'QA', 'admin');
 
-    function Organization()
+    function __construct()
     {
         // Call the Model constructor
         parent::Model();

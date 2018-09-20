@@ -23,7 +23,7 @@ class Clicheck extends Controller {
 	var $CI;
 	var $cfg;
 
-	function Clicheck() {
+	function __construct() {
 		$this->CI = get_instance();
 		$this->CI->load->library('session');
 		$this->cfg = $this->CI->config->item('macaw');

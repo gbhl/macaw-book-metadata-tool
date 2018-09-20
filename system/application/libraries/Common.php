@@ -26,7 +26,7 @@ class Common extends Controller {
 	var $CI;
 	var $cfg;
 
-	function Common() {
+	function __construct() {
 		$this->CI = get_instance();
 		$this->CI->load->library('session');
 		$this->cfg = $this->CI->config->item('macaw');

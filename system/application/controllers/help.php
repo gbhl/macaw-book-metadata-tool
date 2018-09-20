@@ -12,7 +12,7 @@ class Help extends Controller {
 
 	var $cfg;
 
-	function Help() {
+	function __construct() {
 		parent::Controller();
 		$this->cfg = $this->config->item('macaw');
 	}

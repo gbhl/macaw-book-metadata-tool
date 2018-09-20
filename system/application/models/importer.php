@@ -21,7 +21,7 @@
 
 class Importer extends Model {
 
-	function Importer() {
+	function __construct() {
 		// Call the Model constructor
 		parent::Model();
 		$this->load->helper('file');

@@ -15,7 +15,7 @@ class Utils extends Controller {
 	/**
 	 * Function: Constructor
 	 */
-	function Utils() {
+	function __construct() {
 		parent::Controller();
 		$this->cfg = $this->config->item('macaw');
 	}

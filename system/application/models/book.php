@@ -57,7 +57,7 @@ class Book extends Model {
 
 	public $cfg;
 
-	function Book() {
+	function __construct() {
 		// Call the Model constructor
 		parent::Model();
 		$this->load->helper('file');

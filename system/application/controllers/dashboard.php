@@ -11,7 +11,7 @@
 
 class Dashboard extends Controller {
 
-	function Dashboard() {
+	function __construct() {
 		parent::Controller();
 	}
 
@@ -70,7 +70,7 @@ class Dashboard extends Controller {
 		}
 
 		$this->common->ajax_headers();
-		$names = split(',', $name);
+		$names = preg_split('/,/', $name);
 		$ret = array();
 
 		foreach ($names as $n) {
