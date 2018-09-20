@@ -64,7 +64,12 @@
 								dataPages.addRow([r.widgets.pages.data[i].day,  int(r.widgets.pages.data[i].pages)]);
 							}
 							var chartPages = new google.visualization.LineChart(document.getElementById('pages'));
-							options = {legend: { position: 'bottom' }, pointSize: 5,  vAxis: { minValue: int(r.widgets.pages.data[0].pages) - 10000 }, fontSize: 13};
+							options = {legend: { position: 'bottom' }, pointSize: 5,  vAxis: { minValue: 0 }, fontSize: 13};
+							if (r.widgets.pages.data.length > 0) {
+							  if (int(r.widgets.pages.data[0].pages) > 30000) {
+							    options.vAxis.minValue = (r.widgets.pages.data[0].pages) - 10000;
+							  }
+							}
 							chartPages.draw(dataPages, options);
 
 						}

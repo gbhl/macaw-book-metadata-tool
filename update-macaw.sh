@@ -29,7 +29,7 @@ echo "Changing to temporary directory..."
 pushd /tmp
 rm -fr macaw-book-metadata-tool-master
 echo "Getting latest code from GitHub..."
-curl -O -L https://github.com/gbhl/macaw-book-metadata-tool/archive/master.zip
+curl -O -L https://github.com/gbhl/macaw-book-metadata-tool/archive/php7.zip
 echo "Unzipping code from github..."
 unzip -q master.zip
 cd macaw-book-metadata-tool-master
