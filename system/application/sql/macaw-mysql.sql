@@ -83,7 +83,7 @@ CREATE TABLE page (
     id int(11) auto_increment NOT NULL,
     item_id int(11) NOT NULL,
     sequence_number int(11),
-    filebase varchar(128) NOT NULL,
+    filebase varchar(256) NOT NULL,
     `status` varchar(16) NOT NULL,
     created timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
     bytes int(11),
