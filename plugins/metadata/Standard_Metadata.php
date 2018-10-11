@@ -5,7 +5,7 @@
 		'Illustration', 'Index', 'Issue Start', 'Issue End', 'List of Illustrations', 'Map', 'Photograph', 'Table', 'Table of Contents', 'Text', 'Title Page',
 		'Specimen', 'Tissue',
 	);
-	$piece_types = array('Issue', 'No.', 'Part');
+	$piece_types = array('Issue', 'No.', 'Part', 'Suppl.');
 	$page_sides = array('Left (verso)', 'Right (recto)');
 
 	function option($val) {
