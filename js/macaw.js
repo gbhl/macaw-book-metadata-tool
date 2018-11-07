@@ -284,13 +284,19 @@ var formatStatus2 = function(elCell, oRecord, oColumn, oData) {
 		elCell.innerHTML = '<span style="color: #903">New</span>';
 
 	} else if (oData == 'scanning') {
-		elCell.innerHTML = '<span style="color: #F60"">Images Uploading</span>';
+		elCell.innerHTML = '<span style="color: #F60">Images Uploading</span>';
 
 	} else if (oData == 'scanned') {
-		elCell.innerHTML = '<span style="color: #F60"">Images Imported</span>';
+		elCell.innerHTML = '<span style="color: #F60">Images Imported</span>';
 
 	} else if (oData == 'reviewing') {
-		elCell.innerHTML = '<span style="color: #F60"">Metadata Entry</span>';
+		elCell.innerHTML = '<span style="color: #F60">Metadata Entry</span>';
+
+	} else if (oData == 'qa-ready') {
+		elCell.innerHTML = '<span style="color: #DA0">QA Ready</span>';
+
+	} else if (oData == 'qa-active') {
+		elCell.innerHTML = '<span style="color: #DA0">QA In Progtress</span>';
 
 	} else if (oData == 'reviewed') {
 		elCell.innerHTML = '<span style="color: #090">Metadata Complete</span>';
@@ -321,6 +327,12 @@ var formatStatus = function(elCell, oRecord, oColumn, oData) {
 
 	} else if (oData == 'reviewing') {
 		elCell.innerHTML = '<span style="color: #39F">In&nbsp;Progress</span>';
+
+	} else if (oData == 'qa-ready') {
+		elCell.innerHTML = '<span style="color: #DA0">QA&nbsp;Ready</span>';
+
+	} else if (oData == 'qa-active') {
+		elCell.innerHTML = '<span style="color: #DA0">QA&nbsp;In&nbsp;Progress</span>';
 
 	} else if (oData == 'reviewed') {
 		elCell.innerHTML = '<span style="color: #090">Completed</span>';

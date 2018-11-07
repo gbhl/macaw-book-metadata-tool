@@ -102,7 +102,7 @@ class Admin extends Controller {
 		if ($completed) {
 			$books = $this->book->get_all_books(true, $org_id, array('completed'));
 		} else {
-			$books = $this->book->get_all_books(true, $org_id, array('new','scanning','scanned','reviewing','reviewed','exporting'));
+			$books = $this->book->get_all_books(true, $org_id, array('new','scanning','scanned','reviewing','qa-ready','qa-active','reviewed','exporting'));
 		}
 
 		// Sort our records into the subarrays
@@ -112,7 +112,7 @@ class Admin extends Controller {
 				if ($b->date == '0000-00-00') { $b->date = ''; }
 				array_push($data['new_items'], $b);
 
-			} elseif ($b->status_code == 'scanning' || $b->status_code == 'scanned' || $b->status_code == 'reviewing' || $b->status_code == 'reviewed') {
+			} elseif ($b->status_code == 'scanning' || $b->status_code == 'scanned' || $b->status_code == 'reviewing') {
 				if (isset($b->date_review_end) && $b->date_review_end != '0000-00-00 00:00:00') {
 					$b->date = preg_replace('/ \d\d:\d\d:\d\d/','',$b->date_review_end);
 				} elseif (isset($b->date_review_start) && $b->date_review_start != '0000-00-00 00:00:00') {
@@ -124,6 +124,16 @@ class Admin extends Controller {
 				}
 				if ($b->date == '0000-00-00') { $b->date = ''; }
 				array_push($data['in_progress'], $b);
+
+			} elseif ($b->status_code == 'qa-ready' || $b->status_code == 'qa-active') {
+				$b->date = preg_replace('/ \d\d:\d\d:\d\d/','',$b->date_qa_start);
+				if ($b->date == '0000-00-00') { $b->date = ''; }
+				array_push($data['qa'], $b);
+
+			} elseif ($b->status_code == 'reviewed') {
+				$b->date = preg_replace('/ \d\d:\d\d:\d\d/','',$b->date_qa_end);
+				if ($b->date == '0000-00-00') { $b->date = ''; }
+				array_push($data['export_ready'], $b);
 
 			} elseif ($b->status_code == 'exporting') {
 				$b->date = preg_replace('/ \d\d:\d\d:\d\d/','',$b->date_export_start);
@@ -164,16 +174,28 @@ class Admin extends Controller {
 		$data = array('in_progress' => array());
 
 		// Get all books in the system along with their data
-		$books = $this->book->get_all_books(true, 0, array('new','scanning','scanned','reviewing','reviewed','exporting'));
+		$books = $this->book->get_all_books(true, 0, array('new','scanning','scanned','reviewing','qa-ready','reviewed','exporting'));
 
 		// Sort our records into the subarrays
 		foreach ($books as $b) {
-			if (in_array($b->status_code, array('new', 'scanning', 'scanned', 'reviewing', 'reviewed'))) {
+			if (in_array($b->status_code, array('new', 'scanning', 'scanned', 'reviewing'))) {
 				if ($this->user->has_permission('admin')) {
 					array_push($data['in_progress'], $b);
 				} elseif ($this->user->org_id == $b->org_id) {
 					array_push($data['in_progress'], $b);
 				}				
+			} elseif (in_array($b->status_code, array('qa-ready', 'qa-active'))) {
+				if ($this->user->has_permission('admin')) {
+					array_push($data['qa'], $b);
+				} elseif ($this->user->org_id == $b->org_id) {
+					array_push($data['qa'], $b);
+				}
+			} elseif (in_array($b->status_code, array('reviewed'))) {
+				if ($this->user->has_permission('admin')) {
+					array_push($data['export_ready'], $b);
+				} elseif ($this->user->org_id == $b->org_id) {
+					array_push($data['export_ready'], $b);
+				}
 			} 
 		}
 		

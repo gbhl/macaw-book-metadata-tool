@@ -337,7 +337,11 @@ class Scan extends Controller {
 			// Get our book
 			$this->book->load($this->session->userdata('barcode'));
 			$this->common->check_missing_metadata($this->book);
-			$this->book->set_status('reviewing');
+			if ($this->book->needs_qa && $this->book->status == 'qa-ready') {
+			  $this->book->set_status('qa-active');
+			} else {
+			  $this->book->set_status('reviewing');
+			}
 			$data = array();
 			$data['base_directory'] = $this->cfg['base_directory'];
 			$data['metadata_modules'] = $this->cfg['metadata_modules'];
@@ -638,7 +642,7 @@ class Scan extends Controller {
 					$this->session->set_userdata('message', 'Changes saved! ');
 				} else {
 					// Leave the book open
-					$this->book->set_status('reviewing');
+					$this->book->set_status('qa-ready');
 					// Email the QA staff that it needs to be reviewed
 					$this->_notify_qa($this->book->org_id);
 					$this->session->set_userdata('message', 'Changes saved and item sent for QA review!');

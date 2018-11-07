@@ -79,6 +79,8 @@ CREATE TABLE item (
     date_scanning_end timestamp with time zone,
     date_review_start timestamp with time zone,
     date_review_end timestamp with time zone,
+    date_qa_start timestamp with time zone,
+    date_qa_end timestamp with time zone,
     date_export_start timestamp with time zone,
     date_completed timestamp with time zone,
     date_archived timestamp with time zone,
