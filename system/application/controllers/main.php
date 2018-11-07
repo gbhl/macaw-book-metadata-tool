@@ -987,7 +987,7 @@ class Main extends Controller {
 	 * @since Version 1.0
 	 */
 	function listitems() {
-		$data['filter'] = array('all', 'new', 'in progress', 'completed');
+		$data['filter'] = array('All', 'New', 'In Progress', 'In QA', 'Completed');
 		$this->load->view('main/queue_view', $data);
 	}
 
