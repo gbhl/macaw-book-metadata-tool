@@ -31,6 +31,8 @@ CREATE TABLE item (
     date_scanning_end timestamp,
     date_review_start timestamp,
     date_review_end timestamp,
+    date_qa_start timestamp,
+    date_qa_end timestamp,
     date_export_start timestamp,
     date_completed timestamp,
     date_archived timestamp,

@@ -11,6 +11,11 @@
 			if (in_array($status, array('new','scanning','scanned','reviewing','reviewed'))) {
 				$can_edit_item = true;
 			}
+			if ($this->user->has_permission('QA')) {
+        if (in_array($status, array('qa-ready','qa-active'))) {
+          $can_edit_item = true;
+        }
+			}
 		} else {
 			$this->session->set_userdata('barcode', '');
 			$this->session->set_userdata('title', '');

@@ -203,6 +203,8 @@ class Book extends Model {
 				if ($q[0]->date_scanning_end == '0000-00-00 00:00:00')   {$q[0]->date_scanning_end = null;}
 				if ($q[0]->date_review_start == '0000-00-00 00:00:00')   {$q[0]->date_review_start = null;}
 				if ($q[0]->date_review_end == '0000-00-00 00:00:00')     {$q[0]->date_review_end = null;}
+				if ($q[0]->date_qa_start == '0000-00-00 00:00:00')       {$q[0]->date_qa_start = null;}
+				if ($q[0]->date_qa_end == '0000-00-00 00:00:00')         {$q[0]->date_qa_end = null;}
 				if ($q[0]->date_completed == '0000-00-00 00:00:00')      {$q[0]->date_completed = null;}
 				if ($q[0]->date_export_start == '0000-00-00 00:00:00')   {$q[0]->date_export_start = null;}
 				if ($q[0]->date_archived == '0000-00-00 00:00:00')       {$q[0]->date_archived = null;}
@@ -210,6 +212,10 @@ class Book extends Model {
 				if ($status == 'scanning'  && !$q[0]->date_scanning_start) { $data['date_scanning_start'] = date('Y-m-d H:i:s'); }
 				if ($status == 'scanned'   && !$q[0]->date_scanning_end)   { $data['date_scanning_end']   = date('Y-m-d H:i:s'); }
 				if ($status == 'reviewing' && !$q[0]->date_review_start)   { $data['date_review_start']   = date('Y-m-d H:i:s'); }
+				// QA dates will be null when no QA is needed
+				if ($status == 'qa-ready'  && !$q[0]->date_review_end)     { $data['date_review_end']     = date('Y-m-d H:i:s'); }
+				if ($status == 'qa-active' && !$q[0]->date_qa_start)       { $data['date_qa_start']       = date('Y-m-d H:i:s'); }
+				if ($status == 'reviewed'  &&  $q[0]->date_qa_start)       { $data['date_qa_end']         = date('Y-m-d H:i:s'); }
 				if ($status == 'reviewed'  && !$q[0]->date_review_end)     { $data['date_review_end']     = date('Y-m-d H:i:s'); }
 				if ($status == 'completed' && !$q[0]->date_completed)      { $data['date_completed']      = date('Y-m-d H:i:s'); }
 				if ($status == 'exporting' && !$q[0]->date_export_start)   { $data['date_export_start']   = date('Y-m-d H:i:s'); }
@@ -325,13 +331,25 @@ class Book extends Model {
 				}
 				break;
 			case 'reviewing':
-				if ($status != 'scanning' && $status != 'reviewing' && $status != 'reviewed' && $status != 'error') {
+				if ($status != 'scanning' && $status != 'reviewing' && $status != 'qa-ready' && $status != 'reviewed' && $status != 'error') {
 					$this->last_error = 'This item is being reviewed. You can only finish revewing it.';
 					throw new Exception($this->last_error);
 				}
 				break;
+			case 'qa-ready':
+				if ($status != 'qa-ready' && $status != 'qa-active' && $status != 'error') {
+					$this->last_error = 'This item is ready for QA. You can only check it for errors and accuracy.';
+					throw new Exception($this->last_error);
+				}
+				break;
+			case 'qa-active':
+				if ($status != 'reviewed' && $status != 'qa-ready' && $status != 'qa-active' && $status != 'error') {
+					$this->last_error = 'This item is in QA. You can only finish checking it.';
+					throw new Exception($this->last_error);
+				}
+				break;
 			case 'reviewed':
-				if ($status != 'reviewed' && $status != 'reviewing'  && $status != 'exporting' && $status != 'error') {
+				if ($status != 'reviewed' && $status != 'reviewing' && $status != 'exporting' && $status != 'error') {
 					$this->last_error = 'Cannot set status to "'.$status.'" when item has status "reviewed".';
 					throw new Exception($this->last_error);
 				}
@@ -375,6 +393,7 @@ class Book extends Model {
 		if ($type == 'book') {
 			if ($s == 'new'      || $s == 'scanning'  || $s == 'scanned'  ||
 			    $s == 'reviewing' ||  $s == 'reviewed' || $s == 'exporting' ||
+			    $s == 'qa-ready' ||  $s == 'qa-active' ||
 			    $s == 'completed' || $s == 'archived' || $s == 'error') {
 				return true;
 			}
@@ -829,7 +848,7 @@ class Book extends Model {
 			if (count($status) > 0) {
 				$s = array();
 				foreach ($status as $st) {
-					if (in_array(strtolower($st), array('new','scanning','scanned','reviewing','reviewed','exporting','completed','archived','error'))) {
+					if (in_array(strtolower($st), array('new','scanning','scanned','reviewing','qa-ready','qa-active','reviewed','exporting','completed','archived','error'))) {
 						$s[] = $st;
 					}
 				}
@@ -1563,6 +1582,8 @@ class Book extends Model {
 					 (select count(*) from item where status_code = 'scanning') as scanning,
 					 (select count(*) from item where status_code = 'scanned') as scanned,
 					 (select count(*) from item where status_code = 'reviewing') as reviewing,
+					 (select count(*) from item where status_code = 'qa-ready') as qa_ready,
+					 (select count(*) from item where status_code = 'qa-active') as qa_active,
 					 (select count(*) from item where status_code = 'reviewed') as reviewed,
 					 (select count(*) from item where status_code = 'exporting') as exporting,
 					 (select count(*) from item where status_code = 'completed') as completed,
@@ -1582,6 +1603,8 @@ class Book extends Model {
 				(select count(*) from item where status_code = 'scanning') as scanning,
 				(select count(*) from item where status_code = 'scanned') as scanned,
 				(select count(*) from item where status_code = 'reviewing') as reviewing,
+				(select count(*) from item where status_code = 'qa-ready') as qa_ready,
+				(select count(*) from item where status_code = 'qa-active') as qa_active,
 				(select count(*) from item where status_code = 'reviewed') as reviewed,
 				(select count(*) from item where status_code = 'exporting') as exporting,
 				(select count(*) from item where status_code = 'completed') as completed,
@@ -1609,6 +1632,10 @@ class Book extends Model {
 			return 'completed';
 		} elseif ($row->date_review_end) {
 			return 'reviewed';
+		} elseif ($row->date_qa_end) {
+			return 'qa_finished';
+		} elseif ($row->date_qa_start) {
+			return 'qa_ready';
 		} elseif ($row->date_review_start) {
 			return 'reviewing';
 		} elseif ($row->date_scanning_end) {

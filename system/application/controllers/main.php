@@ -42,9 +42,12 @@ class Main extends Controller {
 			if ($status == 'new' || $status == 'scanning') {
 				redirect($this->config->item('base_url').'scan/upload');
 		 	}
-		 	if ($status == 'scanned' || $status == 'reviewing') {
-		 		redirect($this->config->item('base_url').'scan/review');	
-		 			}
+      if ($status == 'scanned' || $status == 'reviewing') {
+        redirect($this->config->item('base_url').'scan/review');
+      }
+      if ($status == 'qa-ready' || $status == 'qa-active') {
+        redirect($this->config->item('base_url').'scan/review');
+      }
 		 	if ($status == 'exporting' || $status == 'completed' || $status == 'archived' || $status == 'reviewed') {
 		 	 	redirect($this->config->item('base_url').'scan/history');
 		 	}

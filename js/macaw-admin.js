@@ -298,6 +298,11 @@
 								filtered.push(data[i]);
 							}						
 
+						} else if (req == 'in qa') {
+							if (data[i].status_code == 'qa-ready' || data[i].status_code == 'qa-active') {
+								filtered.push(data[i]);
+							}
+
 						} else if (req == 'completed' ) {
 							if (data[i].status_code == 'reviewed') {
 								filtered.push(data[i]);
