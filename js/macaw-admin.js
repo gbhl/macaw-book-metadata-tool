@@ -272,10 +272,10 @@
 				{key:"author",			label:'Author',				sortable: true },
 				{key:"org_name",		label:'Contributor',	sortable: true },
 				{key:"bytes",				label: "Size",				sortable:true, formatter:formatBytes, minWidth:80,  sortOptions: { sortFunction: sortBytes }},
-				{key:"status_code",	label:'Status',				formatter: formatStatus, sortable: true }
+				{key:"status_code",	label:'Status',				formatter: formatStatus, sortable: true, sortOptions: { sortFunction: sortStatus }}
 			];
 
-			ListItems.dataSource = new YAHOO.util.DataSource(data.exporting ? data.exporting : data.in_progress);
+			ListItems.dataSource = new YAHOO.util.DataSource(data.exporting ? data.exporting : data.all_items);
 			ListItems.dataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
 			ListItems.dataSource.responseSchema = {	fields: ["barcode","title","author","org_name","bytes","status_code"] };
 			ListItems.dataSource.doBeforeCallback = function (req, raw, res, cb) {
@@ -303,7 +303,7 @@
 								filtered.push(data[i]);
 							}
 
-						} else if (req == 'completed' ) {
+						} else if (req == 'awaiting export' ) {
 							if (data[i].status_code == 'reviewed') {
 								filtered.push(data[i]);
 							}						
