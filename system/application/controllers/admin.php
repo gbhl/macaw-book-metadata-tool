@@ -171,13 +171,24 @@ class Admin extends Controller {
 		}
 
 		// Create an array of subarrays to subdivide the data
-		$data = array('in_progress' => array());
+		$data = array(
+		  'all_items' => array(),
+		  'in_progress' => array(),
+		  'qa' => array(),
+		  'export_ready' => array()
+		);
 
 		// Get all books in the system along with their data
-		$books = $this->book->get_all_books(true, 0, array('new','scanning','scanned','reviewing','qa-ready','reviewed','exporting'));
+		$books = $this->book->get_all_books(true, 0, array('new','scanning','scanned','reviewing','qa-ready','qa-active','reviewed','exporting'));
 
 		// Sort our records into the subarrays
 		foreach ($books as $b) {
+      if ($this->user->has_permission('admin')) {
+        array_push($data['all_items'], $b);
+      } elseif ($this->user->org_id == $b->org_id) {
+        array_push($data['all_items'], $b);
+      }				
+
 			if (in_array($b->status_code, array('new', 'scanning', 'scanned', 'reviewing'))) {
 				if ($this->user->has_permission('admin')) {
 					array_push($data['in_progress'], $b);
