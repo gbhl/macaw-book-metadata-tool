@@ -100,7 +100,7 @@ class Admin extends Controller {
 		}
 		$books = null;
 		if ($completed) {
-			$books = $this->book->get_all_books(true, $org_id, array('completed'));
+			$books = $this->book->get_all_books(true, $org_id, array('completed'), false);
 		} else {
 			$books = $this->book->get_all_books(true, $org_id, array('new','scanning','scanned','reviewing','qa-ready','qa-active','reviewed','exporting'));
 		}
