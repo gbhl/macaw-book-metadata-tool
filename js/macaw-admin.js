@@ -144,33 +144,41 @@
 			
 			var dsNew = new YAHOO.util.DataSource(data.new_items);
 			var dsProgress = new YAHOO.util.DataSource(data.in_progress);
+			var dsInQA = new YAHOO.util.DataSource(data.qa);
+			var dsAwaitingExport = new YAHOO.util.DataSource(data.export_ready);
 			var dsExporting = new YAHOO.util.DataSource(data.exporting);
 			var dsCompleted = new YAHOO.util.DataSource(data.completed);
 			var dsError = new YAHOO.util.DataSource(data.error);
 
 			dsNew.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
 			dsProgress.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
+			dsInQA.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
+			dsAwaitingExport.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
 			dsExporting.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
 			dsCompleted.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
 			dsError.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
 
 			dsNew.responseSchema 
 				= dsProgress.responseSchema 
-				= dsExporting.responseSchema 
+				= dsInQA.responseSchema
+				= dsAwaitingExport.responseSchema
+				= dsExporting.responseSchema
 				= dsCompleted.responseSchema 
 				= dsError.responseSchema 
 				= { fields: ["barcode","title","author","org_name","status_code","date","bytes"] };
 
 			var tblNew       = new YAHOO.widget.DataTable("divNew", Queues.myColumnDefs, dsNew);
 			var tblProgress  = new YAHOO.widget.DataTable("divInProgress", Queues.myColumnDefs, dsProgress);
+			var tblInQA      = new YAHOO.widget.DataTable("divInQA", Queues.myColumnDefs, dsInQA);
+			var tblAwaitingExport = new YAHOO.widget.DataTable("divAwaitingExport", Queues.myColumnDefs, dsAwaitingExport);
 			var tblExporting = new YAHOO.widget.DataTable("divExporting", Queues.myColumnDefs, dsExporting);
 			var tblCompleted = new YAHOO.widget.DataTable("divCompleted", Queues.myColumnDefs, dsCompleted);
 			var tblError     = new YAHOO.widget.DataTable("divErrors", Queues.myColumnDefs, dsError);
 
 			var myTabs = new YAHOO.widget.TabView('queues');
-			var tab3 = myTabs.getTab(3);
+			var tab5 = myTabs.getTab(5);
 			function handleClick(e) {Queues.initCompleted();}
-			tab3.addListener('click', handleClick);
+			tab5.addListener('click', handleClick);
 		},
 		initCompleted: function() {
 			var loadDataCallback = {

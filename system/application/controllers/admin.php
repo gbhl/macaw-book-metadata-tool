@@ -85,6 +85,8 @@ class Admin extends Controller {
 		$data = array(
 			'new_items' => array(),
 			'in_progress' => array(),
+			'qa' => array(),
+			'export_ready' => array(),
 			'exporting' => array(),
 			'completed' => array(),
 			'error' => array()

@@ -684,6 +684,36 @@ class Common extends Controller {
 			$this->CI->db->where('name','version');
 			$this->CI->db->set('value', '2.4');
 			$this->CI->db->update('settings');
+		} elseif ($version == "2.4") {
+			$queries = null;
+			if ($this->CI->db->dbdriver == 'postgre') {
+				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.5.sql');
+			} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
+				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.5.sql');
+			}
+			foreach (explode(';', $queries) as $q) {
+				if (preg_match('/[^\s\r\n]+/', $q)) {
+					$result = $this->CI->db->query($q);
+				}
+			}
+			$this->CI->db->where('name','version');
+			$this->CI->db->set('value', '2.5');
+			$this->CI->db->update('settings');
+		} elseif ($version == "2.5") {
+			$queries = null;
+			if ($this->CI->db->dbdriver == 'postgre') {
+				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.6.sql');
+			} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
+				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.6.sql');
+			}
+			foreach (explode(';', $queries) as $q) {
+				if (preg_match('/[^\s\r\n]+/', $q)) {
+					$result = $this->CI->db->query($q);
+				}
+			}
+			$this->CI->db->where('name','version');
+			$this->CI->db->set('value', '2.6');
+			$this->CI->db->update('settings');
 		}
 	}
 	
