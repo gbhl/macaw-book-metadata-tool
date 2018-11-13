@@ -796,7 +796,7 @@ class Book extends Model {
 	 *
 	 * @param boolean [$all] Whether or not to return all data from item as well as the standard metadata fields (default: false)
 	 */
-	function get_all_books($all = false, $org_id = 0, $status = array()) {
+	function get_all_books($all = false, $org_id = 0, $status = array(), $get_size = true) {
 		if ($all) {
 			$select = 'max(item.id) as item_id';
 			$select .= ", max(item.barcode) as barcode";
@@ -862,8 +862,14 @@ class Book extends Model {
 			$query = $this->db->get();
 			
 			$res = $query->result();
-			for ($i = 0; $i < count($res); $i++) {
-				$res[$i]->bytes = $this->_dir_size($this->cfg['data_directory'].'/'.$res[$i]->barcode)*1024;
+			if ($get_size) {
+				for ($i = 0; $i < count($res); $i++) {
+					$res[$i]->bytes = $this->_dir_size($this->cfg['data_directory'].'/'.$res[$i]->barcode)*1024;
+				}
+			} else {
+				for ($i = 0; $i < count($res); $i++) {
+					$res[$i]->bytes = 0;
+				}
 			}
 			return $res;
 		} else {
