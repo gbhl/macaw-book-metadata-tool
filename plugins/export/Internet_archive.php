@@ -1886,6 +1886,10 @@ class Internet_archive extends Controller {
 	}
 
 	function _get_marc($marcxml) {
+		# Make sure this is a string. If it's an array, we use the first one we can find.
+		if (is_array($marcxml)) {
+			$marcxml = array_shift($marcxml);
+		}
 		$marc = simplexml_load_string($marcxml);
 		if ($marc === false) {
 			return false;
