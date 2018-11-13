@@ -810,6 +810,8 @@ class Book extends Model {
 			$select .= ", max(item.date_scanning_start) as date_scanning_start";
 			$select .= ", max(item.date_scanning_end) as date_scanning_end";
 			$select .= ", max(item.date_review_start) as date_review_start";
+			$select .= ", max(item.date_qa_start) as date_qa_start";
+			$select .= ", max(item.date_qa_end) as date_qa_end";
 			$select .= ", max(item.date_review_end) as date_review_end";
 			$select .= ", max(item.date_export_start) as date_export_start";
 			$select .= ", max(item.date_completed) as date_completed";

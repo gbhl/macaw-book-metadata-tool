@@ -336,12 +336,23 @@ class Scan extends Controller {
 		try {
 			// Get our book
 			$this->book->load($this->session->userdata('barcode'));
-			$this->common->check_missing_metadata($this->book);
-			if ($this->book->needs_qa && $this->book->status == 'qa-ready') {
-			  $this->book->set_status('qa-active');
+			// Further permission checking
+			if ($this->book->needs_qa && ($this->book->status == 'qa-ready' || $this->book->status == 'qa-active')) {
+				if (!$this->user->has_permission('qa')) {
+					$this->session->set_userdata('errormessage', 'You do not have permission to edit items that are in QA.');
+					redirect($this->config->item('base_url').'main/listitems');
+					return;
+				} else {
+					$this->book->set_status('qa-active');
+				}
+			} elseif (!$this->book->needs_qa && ($this->book->status == 'qa-ready' || $this->book->status == 'qa-active')) {
+				$this->book->set_status('qa-active');
+				$this->book->set_status('reviewed');
+				$this->book->set_status('reviewing');
 			} else {
-			  $this->book->set_status('reviewing');
+				$this->book->set_status('reviewing');
 			}
+			$this->common->check_missing_metadata($this->book);
 			$data = array();
 			$data['base_directory'] = $this->cfg['base_directory'];
 			$data['metadata_modules'] = $this->cfg['metadata_modules'];
@@ -354,7 +365,7 @@ class Scan extends Controller {
 			// Set the error and redirect to the main page
 			$this->session->set_userdata('errormessage', $e->getMessage());
 			$this->logging->log('error', 'debug', 'Error in review() '. $e->getMessage());
-			redirect($this->config->item('base_url').'main');
+			redirect($this->config->item('base_url').'main/listitems');
 		} // try-catch
 	}
 
@@ -374,7 +385,7 @@ class Scan extends Controller {
 
 		$this->common->ajax_headers();
 		try {
-	        $this->book->load($this->session->userdata('barcode'));
+			$this->book->load($this->session->userdata('barcode'));
 		} catch (Exception $e) {
 			echo json_encode(array(
 				'pages' => array(),
@@ -424,7 +435,7 @@ class Scan extends Controller {
 
 		// Embedded ampersands in the data cause trouble.
 		$data = preg_replace('/\&/i', '&amp;', $this->input->post('data'));
-		//$this->logging->log('book', 'info', 'Submitted save data: '.$data, $this->session->userdata('barcode'));		
+		//$this->logging->log('book', 'info', 'Submitted save data: '.$data, $this->session->userdata('barcode'));
 		// Get the data from the page
 		$data = json_decode($data, true);
 
