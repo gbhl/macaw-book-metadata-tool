@@ -232,17 +232,17 @@ class Main extends Controller {
 				// Redirect depending on status
 				if ($this->book->status == 'new' || $this->book->status == 'scanning'){
 					redirect($this->config->item('base_url').'scan/upload');
-	
+
 				} elseif ($this->book->status == 'scanned' || $this->book->status == 'reviewing'){
 					redirect($this->config->item('base_url').'scan/review');
-	
-				} elseif ($this->book->status == 'reviewed' || $this->book->status == 'completed' || $this->book->status == 'exporting' || $this->book->status == 'archived'){			
-					if ($this->book->status == 'reviewed' && $this->user->has_permission('admin')) {
-						redirect($this->config->item('base_url').'scan/review');					
-					} else {
-						$this->session->set_userdata('warning', 'This item can no longer be edited. You are seeing the item\'s history instead.');
-						redirect($this->config->item('base_url').'scan/history');
-					}
+
+				} elseif ($this->book->status == 'reviewed') {
+          $this->session->set_userdata('warning', 'This item <em>was</em> ready to be exported. Be sure to click <strong>Review Complete</strong> when you are done.');
+  				redirect($this->config->item('base_url').'scan/review');
+
+				} elseif ($this->book->status == 'completed' || $this->book->status == 'exporting' || $this->book->status == 'archived'){
+          $this->session->set_userdata('warning', 'This item can no longer be edited. You are seeing the item\'s history instead.');
+          redirect($this->config->item('base_url').'scan/history');
 					
 				} else {
 					redirect($this->config->item('base_url').'main');
@@ -322,7 +322,7 @@ class Main extends Controller {
 		$this->common->check_missing_metadata($this->book);
 
 		// Fill in the data
-		$data['new'] = false;		
+		$data['new'] = false;
 		$data['identifier'] = $barcode;
 		$metadata = $this->book->get_metadata();
 
@@ -343,7 +343,7 @@ class Main extends Controller {
 			}
 		}
 		$data['bhl_institutions'] = $this->bhl->get_institutions();
-		
+
 		$data['is_local_admin'] = $this->user->has_permission('local_admin');
 		$data['is_admin'] = $this->user->has_permission('admin');
 		$data['item_title'] = $this->session->userdata('title');
@@ -359,17 +359,17 @@ class Main extends Controller {
 		$data['id'] = $this->book->id;
 		$data['organization'] = $this->book->org_name;
 		if (isset($this->cfg['copyright_values'])) {
-			$data['copyright_values'] = $this->cfg['copyright_values'];		
+			$data['copyright_values'] = $this->cfg['copyright_values'];
 		} else {
 			$data['copyright_values'] = array(
 				array('title' => 'Not in Copyright', 'value' => 0),
 				array('title' => 'In Copyright, Permission Granted', 'value' => 1),
 				array('title' => 'In Copyright, Due Dilligence', 'value' => 2)
-			);		
+			);
 		}
 		$copyright = $this->book->get_metadata('copyright');
 		if (is_array($copyright)) {
-			$copyright = $copyright[0];		
+			$copyright = $copyright[0];
 		}
 		$data['copyright'] = $copyright;
 		if (isset($this->cfg['cc_licenses'])) {
