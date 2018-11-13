@@ -258,6 +258,8 @@ class User extends Model {
 	 */
 	function has_permission($perm = '') {
 
+		$perm = strtolower($perm);
+
 		// Make sure we have loaded up the user's information
 		if (!$this->username) {
 			$this->load($this->session->userdata('username'));
@@ -307,12 +309,12 @@ class User extends Model {
 			foreach ($this->all_permissions as $a) {
 				// Admin always has admin permissions
 				if ($a == 'admin' && $this->username == 'admin') {
-					$this->permissions[$a] = 1;
+					$this->permissions[strtolower($a)] = 1;
 				} else {
 					if (in_array($a, $active_perms)) {
-						$this->permissions[$a] = 1;
+						$this->permissions[strtolower($a)] = 1;
 					} else {
-						$this->permissions[$a] = 0;
+						$this->permissions[strtolower($a)] = 0;
 					} // if (in_array($a, $active_perms))
 				} // if ($a == 'admin' && $this->username == 'admin')
 			} // foreach ($this->all_permissions as $a)
