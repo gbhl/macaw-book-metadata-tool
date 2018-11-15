@@ -7,4 +7,4 @@
 |
 */
 $version_rev = '2.6.0 (php7-ok)';
-$version_date = 'Sept 20, 2018';
+$version_date = 'Nov 15, 2018';
