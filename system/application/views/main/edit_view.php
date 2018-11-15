@@ -233,8 +233,8 @@
               <td><input type="checkbox" name="needs_qa" id="needs_qa" value="1" <?php if ($needs_qa) { echo("checked"); } ?> disabled> This item will be reviewed for Quality Assurance</td>
 				    <?php } ?>
 					<?php } else { ?>
-						<td style="color:#ccc" class="fieldname">Needs QA:</td>
-						<td style="color:#ccc"><input type="checkbox" name="needs_qa" id="needs_qa" value="1" disabled > This item will be NOT reviewed for Quality Assurance. Contributor has no QA user.</td>
+						<td style="color:#aaa" class="fieldname">Needs QA:</td>
+						<td style="color:#aaa"><input type="checkbox" name="needs_qa" id="needs_qa" value="1" disabled > This item will be NOT reviewed for Quality Assurance. Contributor has no <strong>QA Admin</strong> user.</td>
 					<?php } ?>
 				</tr>
 				<tr class="row">

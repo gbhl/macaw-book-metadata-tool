@@ -237,7 +237,6 @@ class Main extends Controller {
 					redirect($this->config->item('base_url').'scan/review');
 
 				} elseif ($this->book->status == 'reviewed') {
-          $this->session->set_userdata('warning', 'This item <em>was</em> ready to be exported. Be sure to click <strong>Review Complete</strong> when you are done.');
   				redirect($this->config->item('base_url').'scan/review');
 
 				} elseif ($this->book->status == 'completed' || $this->book->status == 'exporting' || $this->book->status == 'archived'){
