@@ -338,13 +338,15 @@ class Scan extends Controller {
 			$this->book->load($this->session->userdata('barcode'));
 			// Further permission checking
 			if ($this->book->needs_qa && ($this->book->status == 'qa-ready' || $this->book->status == 'qa-active')) {
-				if (!$this->user->has_permission('qa')) {
+				if (!$this->user->has_permission('qa') || $this->user->has_permission('qa_required')) {
 					$this->session->set_userdata('errormessage', 'You do not have permission to edit items that are in QA.');
 					redirect($this->config->item('base_url').'main/listitems');
 					return;
 				} else {
 					$this->book->set_status('qa-active');
 				}
+			} elseif ($this->book->status == 'qa-ready' || $this->book->status == 'qa-active') {
+			  $this->book->set_status('qa-active');
 			} elseif (!$this->book->needs_qa && ($this->book->status == 'qa-ready' || $this->book->status == 'qa-active')) {
 				$this->book->set_status('qa-active');
 				$this->book->set_status('reviewed');
@@ -645,9 +647,17 @@ class Scan extends Controller {
 			}
 		
 			// Does the book need to be QA'ed by someone?
-			if ($this->book->needs_qa) {
+
+			if ($this->user->has_permission('qa_required')) {
+				// Leave the book open
+				$this->book->set_status('qa-ready');
+				// Email the QA staff that it needs to be reviewed
+				$this->_notify_qa($this->book->org_id);
+				$this->session->set_userdata('message', 'Changes saved and item sent for QA review!');
+
+			} elseif ($this->book->needs_qa) {
 				// Is the person reviewing the book a QA person?
-				if ($this->user->has_permission('QA')) {
+				if ($this->user->has_permission('qa')) {
 					// Only a QA person can finish a book that's marked for QA
 					$this->book->set_status('reviewed');
 					$this->session->set_userdata('message', 'Changes saved! ');
