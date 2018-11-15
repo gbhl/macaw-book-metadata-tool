@@ -34,7 +34,7 @@ class User extends Model {
     public $permissions = '';
     public $terms_conditions = '';
 
-    private $all_permissions = array('scan', 'QA_required', 'QA', 'local_admin', 'admin');
+    private $all_permissions = array('scan', 'qa_required', 'qa', 'local_admin', 'admin');
 
     function __construct()
     {
@@ -371,7 +371,7 @@ class User extends Model {
 	function org_has_qa() {
 		// Get a list of all QA users and their email addresses
 		$qa_users = array();
-		$this->db->where('username in (select username from permission where permission = \'QA\' and org_id = '.$this->org_id.');');
+		$this->db->where('username in (select username from permission where lower(permission) = \'qa\' and org_id = '.$this->org_id.');');
 		$this->db->select('email');
 		$query = $this->db->get('account');
 		foreach ($query->result() as $row) {
