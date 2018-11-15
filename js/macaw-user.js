@@ -48,6 +48,9 @@
 				if (oRecord.getData('scan') == 1) {
 					html += '<img src="'+sBaseUrl+'/images/icons/book_open.png" height="16" width="16" alt="User can scan and review items." title="User can scan and review items.">&nbsp;';
 				}
+				if (oRecord.getData('qa_required') == 1) {
+					html += '<img src="'+sBaseUrl+'/images/icons/book_open_tick.png" height="16" width="16" alt="User can QA items." title="QA is required for this user.">&nbsp;';
+				}
 				if (oRecord.getData('qa') == 1) {
 					html += '<img src="'+sBaseUrl+'/images/icons/tick.png" height="16" width="16" alt="User can QA items." title="User can QA items.">&nbsp;';
 				}
@@ -73,7 +76,7 @@
 			var myDataSource = new YAHOO.util.XHRDataSource(sBaseUrl+'/admin/account_list/');
 			myDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
 			myDataSource.responseSchema = {
-				fields: ["id", "username", "last_login", "full_name", "email", "organization", "scan", "qa", "admin", "local_admin"]
+				fields: ["id", "username", "last_login", "full_name", "email", "organization", "scan", "qa_required", "qa", "admin", "local_admin"]
 			};
 
 			User.tblUsers = new YAHOO.widget.DataTable("accounts", myColumnDefs, myDataSource);
@@ -212,7 +215,7 @@
 					General.showErrorMessage(r.error);
 				} else {
 					General.showMessage(r.message);
-					User.refreshList();
+					User.initList();
 				}
 			};
 
@@ -269,6 +272,11 @@
 				} else if (data.org_id[0] == '' || data.org_id[0] == null || !data.org_id[0]) {
 					General.showErrorMessage('Please select a contributor.');
 					return false;
+
+				} else if (data['permissions[]'].find(function(el) {return el == 'qa';}) && data['permissions[]'].find(function(el) {return el == 'qa_required';})) {
+					General.showErrorMessage('Please select either <strong>QA Required</strong> or <strong>QA Admin</strong>, but not both.');
+					return false;
+
 
 				} else {
 					return true;
