@@ -104,7 +104,8 @@ class Common extends Controller {
 		if (preg_match('/^(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:[.](?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}$/', $ip)) {
 			$host = `host $ip`;
 			$host = preg_replace('/\.$/', '', $host);
-			return trim((($host ? end ( explode (' ', $host)) : $ip)));
+			$foo = explode (' ', $host);
+			return trim((($host ? end ($foo) : $ip)));
 		} else {
 			return false;
 		}
