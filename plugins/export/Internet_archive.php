@@ -2213,6 +2213,15 @@ class Internet_archive extends Controller {
 				$metadata['x-archive-meta-copy-specific-information'] = str_replace('"', "'", $this->CI->book->get_metadata('copy_specific_information'));
 			}
 
+      // DOI 
+      if ($this->CI->book->get_metadata('identifier_doi')) {
+              $metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('identifier_doi'));
+      } elseif ($this->CI->book->get_metadata('identifier-doi')) {
+              $metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('identifier-doi'));
+      } elseif ($this->CI->book->get_metadata('doi')) {
+              $metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('doi'));
+      }
+
 			return $metadata;
 		} else {
 			return null;
