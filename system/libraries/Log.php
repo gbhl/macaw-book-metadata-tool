@@ -37,7 +37,7 @@ class CI_Log {
 	 *
 	 * @access	public
 	 */
-	function CI_Log()
+	function __construct()
 	{
 		$config =& get_config();
 		

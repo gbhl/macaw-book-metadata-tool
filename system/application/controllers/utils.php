@@ -89,7 +89,7 @@ class Utils extends Controller {
 	}
 
 	/**
-	 * Export data for an item to a TAR file
+	 * Reopen/reset an item
 	 *
 	 * CLI: Given a barcode on the command line, this will reset the item so that it can be
 	 * re-uploaded to the internet archive.
@@ -112,25 +112,58 @@ class Utils extends Controller {
 
 		// Set the status to reviewing
 		$this->book->load($barcode);
+		echo "Setting status back to reviewed...\n";
 		$this->db->query("update item set status_code = 'reviewed' where id = ".$this->book->id);
 
-		// Delete the IA Export status 
+		// Delete the IA Export status
+		echo "Clearing IA Export status...\n";
 		$this->db->query("delete from item_export_status where item_id = ".$this->book->id." and export_module = 'Internet_archive'");
-		
+
 		// Delete the IA derived images on disk
 		$this->db->select('identifier');
 		$this->db->where('item_id', $this->book->id);
 		$query = $this->db->get('custom_internet_archive');
 		if ($row = $query->row()) {
 			if ($row->identifier) {
-				$cmd = 'rm -fr '.$this->cfg['data_directory'].'/import_export/'.$row->identifier;
-				`$cmd`;
+				if (file_exists($this->cfg['data_directory'].'/import_export/'.$row->identifier)) {
+					echo "Clearing IA Export files...\n";
+					$cmd = 'rm -fr '.$this->cfg['data_directory'].'/import_export/'.$row->identifier;
+					`$cmd`;
+				} else {
+					echo "No IA Export files to clear...\n";
+				}
 			}
+		}
+ 		echo "Recreating the directory structure ...\n";
+ 		$pth = $this->cfg['data_directory'].'/'.$barcode;
+		if (!file_exists($pth)) {
+			mkdir($pth);
+			echo "data/$barcode created...\n";
+		} else {
+			echo "data/$barcode already exists...\n";
+		}
+		if (!file_exists($pth.'/thumbs')) {
+			mkdir($pth.'/thumbs');
+			echo "data/$barcode/thumbs created...\n";
+		} else {
+			echo "data/$barcode/thumbs already exists...\n";
+		}
+		if (!file_exists($pth.'/preview')) {
+			mkdir($pth.'/preview');
+			echo "data/$barcode/preview created...\n";
+		} else {
+			echo "data/$barcode/preview already exists...\n";
+		}
+		if (!file_exists($pth.'/scans')) {
+			mkdir($pth.'/scans');
+			echo "data/$barcode/scans created...\n";
+		} else {
+			echo "data/$barcode/scans already exists...\n";
 		}
 
 		// Give command to start re-uploading the item
-		print "Item has been reset. Please use the following command to re-upload to the Internet Archive.\n\n";
-		print "    sudo -u WWW_USER php index.php cron export Internet_archive ".$barcode."\n\n";
+		print "Item has been reset. Please make your changes and use the following command to re-upload to the Internet Archive.\n";
+		print "    sudo -u WWW_USER php index.php cron export Internet_archive ".$barcode."\n";
 	}
 
 	/**
