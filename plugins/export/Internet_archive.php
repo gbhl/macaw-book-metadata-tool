@@ -567,7 +567,7 @@ class Internet_archive extends Controller {
 						}
 					}
 					$cmd = $this->cfg['curl_exe'];
-					$cmd .= ' --verbose --location';
+					$cmd .= ' --location';
 					$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
 					$cmd .= ' --header "x-archive-ignore-preexisting-bucket:1"';
 					foreach (array_keys($metadata) as $k) {
@@ -611,7 +611,7 @@ class Internet_archive extends Controller {
 
 				if ($file == '' || $file == 'scandata') {
 					$cmd = $this->cfg['curl_exe'];
-					$cmd .= ' --verbose --location';
+					$cmd .= ' --location';
 					$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
 					$cmd .= ' --header "x-archive-auto-make-bucket:1"';
 					$cmd .= ' --header "x-archive-size-hint:'.sprintf("%u", filesize($fullpath.'/'.$id.'_scandata.xml')).'"';
@@ -686,7 +686,7 @@ class Internet_archive extends Controller {
 						// Uses cURL to upload to the Internet Archive.
 						foreach ($files as $pdf) {
 							$cmd = $this->cfg['curl_exe'];
-							$cmd .= ' --verbose --location';
+							$cmd .= ' --location';
 							$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
 							$cmd .= ' --header "x-archive-queue-derive:0"';
 							$cmd .= ' --upload-file "'.$fullpath.'/'.$pdf.'" "http://s3.us.archive.org/'.$id.'/'.$pdf.'" 2>&1';
@@ -756,7 +756,7 @@ class Internet_archive extends Controller {
 
 				if ($file == '' || $file == 'marc') {
 					$cmd = $this->cfg['curl_exe'];
-					$cmd .= ' --verbose --location';
+					$cmd .= ' --location';
 					$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
 					$cmd .= ' --header "x-archive-queue-derive:0"';
 					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_marc.xml" "http://s3.us.archive.org/'.$id.'/'.$id.'_marc.xml" 2>&1';
@@ -799,7 +799,7 @@ class Internet_archive extends Controller {
 
 				if ($file == '' || $file == 'segments') {
 					$cmd = $this->cfg['curl_exe'];
-					$cmd .= ' --verbose --location';
+					$cmd .= ' --location';
 					$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
 					$cmd .= ' --header "x-archive-queue-derive:0"';
 					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_segments.xml" "http://s3.us.archive.org/'.$id.'/'.$id.'_segments.xml" 2>&1';
@@ -844,7 +844,7 @@ class Internet_archive extends Controller {
 					// Upload the "processed" jp2 files first.
 					if ($this->send_orig_jp2 == 'no' || $this->send_orig_jp2 == 'both') {
 						$cmd = $this->cfg['curl_exe'];
-						$cmd .= ' --verbose --location';
+						$cmd .= ' --location';
 						$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
 						if ($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') {
 							$cmd .= ' --header "x-archive-queue-derive:0"';
@@ -894,7 +894,7 @@ class Internet_archive extends Controller {
 					// IA might start creating the "processed" verisons
 					if ($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') {
 						$cmd = $this->cfg['curl_exe'];
-						$cmd .= ' --verbose --location';
+						$cmd .= ' --location';
 						$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
 						$cmd .= ' --header "x-archive-queue-derive:1"';
 						$cmd .= ' --header "x-archive-size-hint:'.sprintf("%u", filesize($fullpath.'/'.$id.'_orig_jp2.tar')).'"';
