@@ -89,7 +89,7 @@ class Utils extends Controller {
 	}
 
 	/**
-	 * Export data for an item to a TAR file
+	 * Reopen/reset an item
 	 *
 	 * CLI: Given a barcode on the command line, this will reset the item so that it can be
 	 * re-uploaded to the internet archive.
