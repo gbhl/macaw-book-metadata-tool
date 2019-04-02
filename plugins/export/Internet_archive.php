@@ -1713,6 +1713,7 @@ class Internet_archive extends Controller {
 			elseif ($p[$i] == 'List of Illustrations') { $p[$i] = 'List of Illustrations'; }
 			elseif ($p[$i] == 'Photograph') { $p[$i] = 'Photograph'; }
 			elseif ($p[$i] == 'Table') { $p[$i] = 'Table'; }
+      elseif ($p[$i] == 'Specimen') { $p[$i] = 'Specimen'; }
 			elseif ($p[$i] == 'Suppress') { $p[$i] = 'Delete'; }
 			elseif ($p[$i] == 'Tissue') { $p[$i] = 'Delete'; }
 			elseif ($p[$i] == 'White card') { $p[$i] = 'Delete'; }
