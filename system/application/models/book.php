@@ -1419,12 +1419,13 @@ class Book extends Model {
 	 * @param boolean [$overwrite] Whether we should overwrite existing values or not. Defaults to true.
 	 */
 	function set_metadata($key = '', $value = '', $overwrite = true) {
-	
 		if ($key != '') {
 			$key = preg_replace('/\s/', '_', strtolower($key));
 			
 			// Checks for a redundant Scanning Instition and ignores it if found.
 			if ($key == 'scanning_institution' && $value == $this->get_contributor()){
+				$msg = 'The Scanning Institution was not saved because it is the same as the Contributor. Please refer to the <a href="https://docs.google.com/document/d/1-_XCe2LmbroQfnOC1Y5_tNpAhzI1BOiFVjkJH_ykvak/edit">Macaw User Guide</a> for details.';
+				$this->session->set_userdata('warning', $msg);
 				return;
 			}
 			
