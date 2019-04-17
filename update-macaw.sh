@@ -29,10 +29,10 @@ echo "Changing to temporary directory..."
 pushd /tmp
 rm -fr macaw-book-metadata-tool-*
 echo "Getting latest code from GitHub..."
-curl -O -L https://github.com/gbhl/macaw-book-metadata-tool/archive/php7-qa-status.zip
+curl -o master.zip -L https://github.com/gbhl/macaw-book-metadata-tool/archive/master.zip
 echo "Unzipping code from github..."
-unzip -q php7-qa-status.zip
-cd macaw-book-metadata-tool-php7-qa-status
+unzip -q master.zip
+cd macaw-book-metadata-tool-master
 echo "Copying new code into Macaw installation at $MACAW_PATH..."
 sudo cp -a * $MACAW_PATH/. 
 echo "Changing ownership of Macaw files to $WWW_USER"
