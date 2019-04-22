@@ -411,6 +411,10 @@ class Utils extends Controller {
 	 * 
 	 * @since Version 1.6
 	 */
+	function import_csv($filename, $filename2 = null, $username = 'admin') {
+	  return $this->csvimport($filename, $filename2, $username);
+	}
+
 	function csvimport($filename, $filename2 = null, $username = 'admin') {
 		// Import the file
 		$errors = array();
