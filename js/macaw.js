@@ -382,6 +382,22 @@ var sortBytes = function(a, b, desc, field) {
 	return (compState !== 0) ? compState : comp(a.getData("Column1"), b.getData("Column1"), desc);
 };
 
+var sortNoCase = function(a, b, desc, field) {
+	// Deal with empty values
+	if(!YAHOO.lang.isValue(a)) {
+		return (!YAHOO.lang.isValue(b)) ? 0 : 1;
+	} else if(!YAHOO.lang.isValue(b)) {
+		return -1;
+	}
+
+	// First compare by Column2
+	var comp = YAHOO.util.Sort.compare;
+	var compState = comp(a.getData(field).toLowerCase(), b.getData(field).toLowerCase(), desc);
+
+	// If values are equal, then compare by Column1
+	return (compState !== 0) ? compState : comp(a.getData("Column1"), b.getData("Column1"), desc);
+};
+
 
 var sortStatus = function(a, b, desc, field) {
 	// Deal with empty values
