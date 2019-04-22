@@ -275,7 +275,7 @@
 		loadTables: function(data) {
 			
 			var myColumnDefs = [
-				{key:"barcode",			label:'Barcode',			formatter:YAHOO.widget.DataTable.formatLink,	sortable: true },
+				{key:"barcode",			label:'Barcode',			formatter:YAHOO.widget.DataTable.formatLink, sortable: true, sortOptions: { sortFunction: sortNoCase } },
 				{key:"title",				label:'Title',				sortable: true },
 				{key:"author",			label:'Author',				sortable: true },
 				{key:"org_name",		label:'Contributor',	sortable: true },
