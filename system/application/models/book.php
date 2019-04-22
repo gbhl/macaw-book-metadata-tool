@@ -828,11 +828,7 @@ class Book extends Model {
 			if ($org_id > 0) {
 				$this->db->where('item.org_id', $org_id);
 			}
-			$order_by = 'item.barcode';
 			foreach ($this->cfg['metadata_fields'] as $m) {
-				if (in_array($m, array('title','name'))) { // See if we can find a field to search on
-					$order_by = 'max(m'.$count.'.value)';
-				}
 				// Max is a bit of a hack, but we don't know what aggregate functions we find in
 				// different databases. Fingers crossed this is sufficient.
 				$select .= ', max(m'.$count.'.value) as '.$m;
@@ -860,7 +856,7 @@ class Book extends Model {
 			$this->db->from('item');
 			$this->db->select($select);
 			$this->db->group_by('item.id');
-			$this->db->order_by($order_by);
+			$this->db->order_by('lower(item.barcode)');
 			$query = $this->db->get();
 			
 			$res = $query->result();
