@@ -52,6 +52,7 @@ class Book extends Model {
 	public $date_review_end = '';
 	public $ia_ready_images = '';
 	public $page_progression = '';
+	public $total_mbytes = 0;
 	
 	var $metadata_array = array();
 
@@ -119,6 +120,7 @@ class Book extends Model {
 					$this->ia_ready_images = false;
 				}
 				$this->page_progression    = $row->page_progression;
+				$this->total_mbytes        = $row->total_mbytes;
 				$this->metadata_array      = $this->_populate_metadata();
 			}
 
@@ -816,6 +818,7 @@ class Book extends Model {
 			$select .= ", max(item.date_export_start) as date_export_start";
 			$select .= ", max(item.date_completed) as date_completed";
 			$select .= ", max(item.date_archived) as date_archived";
+			$select .= ", max(item.total_mbytes) as total_mbytes";
 			// Max on BOOL doesn't work
 			// $select .= ", max(item.missing_pages) as missing_pages";
 			// $select .= ", max(item.needs_qa) as needs_qa";
@@ -861,9 +864,13 @@ class Book extends Model {
 			
 			$res = $query->result();
 			if ($get_size) {
-				for ($i = 0; $i < count($res); $i++) {
-					$res[$i]->bytes = $this->_dir_size($this->cfg['data_directory'].'/'.$res[$i]->barcode)*1024;
-				}
+        for ($i = 0; $i < count($res); $i++) {
+          if (!$res[$i]->total_mbytes) {
+            $res[$i]->bytes = $this->_dir_size($this->cfg['data_directory'].'/'.$res[$i]->barcode)*1024;
+          } else {
+            $res[$i]->bytes = $res[$i]->total_mbytes*1024;
+          }
+        }
 			} else {
 				for ($i = 0; $i < count($res); $i++) {
 					$res[$i]->bytes = 0;
@@ -1268,7 +1275,8 @@ class Book extends Model {
 				'scan_time' => $this->scan_time,
 				'needs_qa' => ($this->needs_qa ? 't' : 'f'),
 				'ia_ready_images' => ($this->ia_ready_images ? 't' : 'f'),
-				'page_progression' => $this->page_progression
+				'page_progression' => $this->page_progression,
+				'total_mbytes' => $this->total_mbytes
 			);
 		} elseif ($this->db->dbdriver == 'mysql' || $this->db->dbdriver == 'mysqli') {
 			$data = array(
@@ -1277,7 +1285,8 @@ class Book extends Model {
 				'scan_time' => $this->scan_time,
 				'needs_qa' => ($this->needs_qa ? 1 : 0),
 				'ia_ready_images' => ($this->ia_ready_images ? 1 : 0),
-				'page_progression' => $this->page_progression
+				'page_progression' => $this->page_progression,
+				'total_mbytes' => $this->total_mbytes
 			);
 		}
 

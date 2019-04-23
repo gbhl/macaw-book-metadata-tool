@@ -26,6 +26,7 @@ CREATE TABLE item (
     scan_time int(11),
     needs_qa bool,
     org_id int(11),
+    total_mbytes int(11) default 0,
     date_created timestamp,
     date_scanning_start timestamp,
     date_scanning_end timestamp,
