@@ -74,6 +74,7 @@ CREATE TABLE item (
     scan_time integer,
     needs_qa boolean,
     org_id integer,
+    total_mbytes integer default 0,
     date_created timestamp with time zone,
     date_scanning_start timestamp with time zone,
     date_scanning_end timestamp with time zone,
