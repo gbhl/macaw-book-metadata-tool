@@ -866,9 +866,9 @@ class Book extends Model {
 			if ($get_size) {
         for ($i = 0; $i < count($res); $i++) {
           if (!$res[$i]->total_mbytes) {
-            $res[$i]->bytes = $this->_dir_size($this->cfg['data_directory'].'/'.$res[$i]->barcode)*1024;
+            $res[$i]->bytes = intval($this->_dir_size($this->cfg['data_directory'].'/'.$res[$i]->barcode))*1024;
           } else {
-            $res[$i]->bytes = $res[$i]->total_mbytes*1024;
+            $res[$i]->bytes = intval($res[$i]->total_mbytes)*1024;
           }
         }
 			} else {
