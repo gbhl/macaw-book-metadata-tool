@@ -776,8 +776,8 @@
 					<tr>
 						<td id="segment_authors" colspan="6">
 							<label for="segment_authors_list">Authors: 
-								<img style="display: none" src="<?php echo $this->config->item('base_url'); ?>images/icons/add.png" id="btnShowAuthorDlg" class="icon" onClick="AuthorComponent.showDialog(this)">
-								<img style="display: none" src="<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearAuthorType" onClick="AuthorComponent.removeAll()" class="icon" onMouseOver="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';"></label>
+								<img style="display: none" src="<?php echo $this->config->item('base_url'); ?>images/icons/add.png" id="btnShowAuthorDlg" class="icon" onClick="AuthorComponent.showDialog(this)" title="Add new author">
+								<img style="display: none" src="<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearAuthorType" onClick="AuthorComponent.removeAll()" class="icon" onMouseOver="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';" title="Remove all authors"></label>
 							</label>
 						</td>
 					</tr>

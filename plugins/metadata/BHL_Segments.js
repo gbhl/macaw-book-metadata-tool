@@ -385,13 +385,23 @@ this.AuthorComponent = function() {
 			// Populates the data source whenever data is requested by the widget.
 			oAC.dataRequestEvent.subscribe(function (type, args) {
 				var url = "https://www.biodiversitylibrary.org/api2/httpquery.ashx?op=AuthorSearch&apikey=d230a327-c544-4f8f-826d-727cf4da24b8&format=json&name=" + args[1];
+				// var url = "https://www.biodiversitylibrary.org/api3?op=AuthorSearch&apikey=d230a327-c544-4f8f-826d-727cf4da24b8&format=json&authorname=" + args[1];
+				// If the value is exactly a number, assume we are searching on ID instead
+				// TODO: this needs more testing. it's not exactly working.
+				// if (!isNaN(args[1].trim())) {
+				//   url = "https://www.biodiversitylibrary.org/api3?op=GetAuthorMetadata&apikey=d230a327-c544-4f8f-826d-727cf4da24b8&format=json&id=" + args[1].trim()				
+				// }
 				var response = function() {
 					var http = new XMLHttpRequest();
 					http.onreadystatechange = function() {
 						if (http.readyState == 4 && http.status == 200) {
 							var data = JSON.parse(http.responseText);
+							// for (i=0; i<data["Result"].length;i++) {
+							//   data["Result"][i]['FullerForm'] = data["Result"][i]['Name'];
+							// }
 							oDS = new YAHOO.util.LocalDataSource(data["Result"]);
 							oDS.responseSchema = {fields: ["Name", "CreatorID", "FullerForm", "Dates", "CreatorUrl"]};
+							// oDS.responseSchema = {fields: ["Name", "AuthorID", "FullerForm", "Dates", "CreatorUrl"]};
 							args[0].dataSource = oDS;
 						}
 					}
@@ -486,9 +496,11 @@ this.AuthorComponent = function() {
 				var author = segment.author_list[a];
 
 				var bhlIcon = document.createElement("span");
+				bhlIcon.title = "View this author at BHL";
 				bhlIcon.className = "bhl-icon";
 
 				var deleteButton = document.createElement("a");
+				deleteButton.title = "Remove this author";
 				deleteButton.className = "remove-button";
 				Event.addListener(deleteButton, "click", removeAuthor);
 				
@@ -506,6 +518,7 @@ this.AuthorComponent = function() {
 					a.href = "http://www.biodiversitylibrary.org/creator/" + author["source"];
 					a.target = "_blank";
 					a.id = "author" + ul.children.length;
+  				a.title = "View this author at BHL";
 					a.appendChild(text);
 					a.appendChild(bhlIcon);
 					li.appendChild(a);
