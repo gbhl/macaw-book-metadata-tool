@@ -862,7 +862,7 @@ td.yui-dt-last {
 	display: block;
 	float: left;
 }
-#thumbs, #list, #thumbs_missing { /* Important that these have the same size */
+#thumbs, #list, #extra, #thumbs_missing { /* Important that these have the same size */
 	height: 23.1em;
 	overflow: auto;
 	border: .1em solid #CCCCCC;
@@ -882,6 +882,15 @@ td.yui-dt-last {
 #list table td {
 	padding: 0.05em;
 }
+#extra {
+	display: none;
+}
+#btnToggleExtra {
+  display: none;
+}
+#extra {
+  background-color: #eee;
+}
 .yui-skin-sam .yui-dt table {
 	width: 100%;
 }
@@ -891,7 +900,7 @@ td.yui-dt-last {
 #btnToggleListThumbs, #slidertag, #slider {
 	float: right;
 }
-#btnToggleThumbs, #btnToggleList {
+#btnToggleThumbs, #btnToggleList, #btnToggleExtra {
 	margin: 0 1px 0 -1px;
 }
 #slider {
@@ -1229,6 +1238,7 @@ table#admin_scheduled_jobs td {
 .yui-button#btnSelectInverse,
 .yui-button#btnToggleThumbs,
 .yui-button#btnToggleList,
+.yui-button#btnToggleExtra,
 .yui-button#btnAlphaReorder {
 	background: url(/assets/yui-290-skins-sam/sprite.png) repeat-x 0 0;
 	padding:  0 1px;
@@ -1245,6 +1255,7 @@ table#admin_scheduled_jobs td {
 .yui-button#btnSelectInverse button,
 .yui-button#btnToggleThumbs button,
 .yui-button#btnToggleList button, 
+.yui-button#btnToggleExtra button, 
 .yui-button#btnAlphaReorder button {
 	text-indent: 1.5em;
 	padding: 1px 3px;
@@ -1253,7 +1264,8 @@ table#admin_scheduled_jobs td {
 	border-radius: 4px 4px 4px 4px;
 }
 .yui-button#btnToggleThumbs button,
-.yui-button#btnToggleList button {
+.yui-button#btnToggleList button,
+.yui-button#btnToggleExtra button {
 	text-indent: -10000em;
 	padding: 0;
 	width: 30px;
@@ -1265,12 +1277,17 @@ table#admin_scheduled_jobs td {
 .yui-button#btnToggleList button { 
 	border-radius: 0 4px 4px 0;
 }
+.yui-button#btnToggleExtra button { 
+	border-radius: 0 4px 4px 0;
+}
 #btnToggleThumbs.yui-button-checked, 
-#btnToggleList.yui-button-checked {
+#btnToggleList.yui-button-checked,
+#btnToggleExtra.yui-button-checked {
 	background-position: 0 -1400px;
 }
 #btnToggleThumbs.yui-button-checked button, 
-#btnToggleList.yui-button-checked button {
+#btnToggleList.yui-button-checked button,
+#btnToggleExtra.yui-button-checked button {
 	border-color: #304369;
 }
 .yui-button#btnSelectAll button {
@@ -1289,6 +1306,9 @@ table#admin_scheduled_jobs td {
 	background: url(../images/icons/application_view_tile.png) center center no-repeat;
 }
 .yui-button#btnToggleList button {
+	background: url(../images/icons/application_view_list.png) center center no-repeat;
+}
+.yui-button#btnToggleExtra button {
 	background: url(../images/icons/application_view_list.png) center center no-repeat;
 }
 .yui-button#btnAlphaReorder button {

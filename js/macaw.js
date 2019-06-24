@@ -40,6 +40,7 @@ Event.throwErrors = true;
 
 // Our main object that describes the book we are currently editing
 var oBook;
+var onBookLoaded = new YAHOO.util.CustomEvent("onBookLoaded");
 
 // Library objects used in various places
 var Barcode;

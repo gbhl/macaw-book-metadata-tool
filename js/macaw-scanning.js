@@ -265,6 +265,7 @@
 							oBook.render('thumbs', null);
 							oBook.zoom(27);
 							Scanning.resizeMissingWindow();
+							onBookLoaded.fire();
 						}
 					}
 				},
@@ -277,10 +278,9 @@
 			// Call the URL to get the data
 			var transaction = YAHOO.util.Connect.asyncRequest('GET', sBaseUrl+'/scan/get_thumbnails/non_missing', loadDataCallback, null);
 
-
 			oBookMissing = new YAHOO.macaw.Book();
 
-			// This callback is used when loading the data. It basicallly sends
+			// This callback is used when loading the data. It basically sends
 			// the data to the book object and then renders the book on the page.
 			var loadDataCallback2 = {
 				success: function (o){
@@ -295,6 +295,7 @@
 							oBookMissing.render('thumbs_missing', null);
 							oBookMissing.zoom(27);
 							Scanning.resizeMissingWindow();
+							onBookLoaded.fire();
 						}
 					}
 				},
@@ -365,6 +366,7 @@
 						} else {
 							oBook.load(r, false);
 							oBook.render('thumbs','list');
+							onBookLoaded.fire();
 						}
 					}
 				},
@@ -378,8 +380,12 @@
 			var transaction = YAHOO.util.Connect.asyncRequest('GET', sBaseUrl+'/scan/get_thumbnails', loadDataCallback, null);
 
 			// Set up the rest of the screen: set up the buttons
+			events = Event.getListeners(document.getElementById('btnSave'));
 			var obtnSave = new YAHOO.widget.Button("btnSave");
 			obtnSave.on("click", oBook.save, null, oBook);
+			for (e in events) {
+				obtnSave.on(events[e].type, events[e].fn);
+			}
 
 			var obtnFinished = new YAHOO.widget.Button("btnFinished");
 			obtnFinished.on("click", oBook.finish, null, oBook);
@@ -420,7 +426,6 @@
 
 			// Auto-save the metadata every 2 minutes
 			timeoutAutoSave = setTimeout("Scanning.autoSaveTimeout();", 120000);
-
 		},
 
 		// ----------------------------
@@ -455,11 +460,18 @@
 
 			if (val == 'Ls') {
 				Dom.setStyle('list','display','block');
+				Dom.setStyle('extra','display','none');
 				Dom.setStyle('thumbs','display','none');
+				Dom.setStyle('slider','display','none');
+			} else if (val == 'Ex') {
+				Dom.setStyle('list','display','none');
+				Dom.setStyle('thumbs','display','none');
+				Dom.setStyle('extra','display','block');
 				Dom.setStyle('slider','display','none');
 			} else {
 				Dom.setStyle('list','display','none');
 				Dom.setStyle('thumbs','display','block');
+				Dom.setStyle('extra','display','none');
 				Dom.setStyle('slider','display','block');
 			}
 		},
@@ -521,6 +533,7 @@
 
 				Dom.setStyle('thumbs', 'height', intHeight+'px');
 				Dom.setStyle('list', 'height', intHeight+'px');
+				Dom.setStyle('extra', 'height', intHeight+'px');
 
 				Dom.setX('save_buttons', Dom.getX('sliderbg') - Dom.get('save_buttons').clientWidth - 20 - 16);
 				Dom.setY('save_buttons', Dom.getY('sliderbg') + 2);
@@ -536,6 +549,7 @@
 
 				Dom.setStyle('thumbs', 'height', intHeight+'px');
 				Dom.setStyle('list', 'height', intHeight+'px');
+				Dom.setStyle('extra', 'height', intHeight+'px');
 // 				Dom.setStyle('preview', 'height', intHeight +'px');
 
 				var buttonWidths = Dom.get('btnSave').clientWidth + Dom.get('btnFinished').clientWidth + 26;
