@@ -849,7 +849,6 @@ class Utils extends Controller {
 
 			// Spit it out in a pretty format
 			printf($format, iconv('UTF-8', 'ISO-8859-1//TRANSLIT', $orgs[$i]->name), $orgs[$i]->item_count, $orgs[$i]->page_count, ($hidekey ? '********' : $orgs[$i]->access_key), $orgs[$i]->key_user);
-			}
 		}
 	}
 }
