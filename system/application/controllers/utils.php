@@ -798,7 +798,7 @@ class Utils extends Controller {
 	function contributor_stats($hidekey = null) {
 		setlocale(LC_CTYPE, 'en_US');
 		$format = "%-50s  %5s  %6s  %-16s  %-40s\n";
-    printf($format, 'CONTRIBUTOR', 'ITEMS', 'PAGES', 'ACCESS_KEY', 'IA EMAIL');
+		printf($format, 'CONTRIBUTOR', 'ITEMS', 'PAGES', 'ACCESS_KEY', 'IA EMAIL');
 
 		// Get a list of contributors
 		$orgs = $this->db->query(
@@ -848,7 +848,7 @@ class Utils extends Controller {
 			}
 
 			// Spit it out in a pretty format
-			printf($format, iconv('UTF-8', 'ISO-8859-1//TRANSLIT', $orgs[$i]->name), $orgs[$i]->item_count, $orgs[$i]->page_count, ($hidekey ? '********' : $orgs[$i]->access_key), $orgs[$i]->key_user);
+			printf($format, iconv('UTF-8', 'ASCII//TRANSLIT', $orgs[$i]->name), $orgs[$i]->item_count, $orgs[$i]->page_count, ($hidekey ? '********' : $orgs[$i]->access_key), $orgs[$i]->key_user);
 		}
 	}
 }
