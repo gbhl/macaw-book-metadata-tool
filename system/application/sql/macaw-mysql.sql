@@ -141,4 +141,5 @@ CREATE INDEX idx_metadata_fieldname_value ON metadata (fieldname, value(255));
 CREATE INDEX idx_metadata_fieldname_pageid ON metadata (fieldname, page_id);
 CREATE INDEX idx_metadata_item_page_field_counter ON metadata (item_id, page_id, fieldname, counter);
 CREATE INDEX idx_metadata_item_page ON metadata (item_id, page_id);
+create index idx_metadata_fieldname_value_pageid on metadata(fieldname, value(255), page_id);
 
