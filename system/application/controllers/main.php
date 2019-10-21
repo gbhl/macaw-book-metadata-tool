@@ -473,8 +473,8 @@ class Main extends Controller {
 			if (!is_array($collections)) { $collections = array($collections); }
 			$new = array();
 			foreach ($collection as $c) {
-				if (!in_array($c, $collections)){
-					$new[] = $c;
+				if (!in_array(trim($c), $collections)){
+					$new[] = trim($c);
 				}
 			}
 			if (count($new) > 0) {
