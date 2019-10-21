@@ -540,19 +540,6 @@ class Internet_archive extends Controller {
 					$this->CI->logging->log('book', 'debug', 'Created '.$id.'_scandata.xml', $bc);
 				}
 				
-				if ($file == '' || $file == 'segments') {
-					// create the IDENTIFIER_segments.xml file
-					// TO TEST:
-					//
-					// sudo -u apache php index.php cron export Internet_archive ButterflyBook segments
-					//
-					write_file($fullpath.'/'.$id.'_segments.xml', $this->_create_segments_xml($id, $this->CI->book, $pages));
-					$this->CI->logging->log('book', 'debug', 'Created '.$id.'_segments.xml', $bc);
-					if ($file == 'segments') { 
-						return;
-					}
-				}
-
 				// upload the files to internet archive
 				if ($file == 'meta') {
 					$old_metadata = $this->_get_ia_meta_xml($b, $id);
@@ -797,49 +784,6 @@ class Internet_archive extends Controller {
 					} // if (!$this->cfg['testing'])
 				} //if ($file == '' || $file == 'marc')
 
-				if ($file == '' || $file == 'segments') {
-					$cmd = $this->cfg['curl_exe'];
-					$cmd .= ' --location';
-					$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
-					$cmd .= ' --header "x-archive-queue-derive:0"';
-					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_segments.xml" "http://s3.us.archive.org/'.$id.'/'.$id.'_segments.xml" 2>&1';
-					echo "\n\n".$cmd."\n\n";
-
-					if (!$this->cfg['testing']) {
-						// execute the CURL command and echo back any responses
-						$output = array();
-						exec($cmd, $output, $ret);
-						if (count($output)) {
-							foreach ($output as $o) {
-								echo $o."\n";
-							}
-						}
-						if ($ret) {
-              echo "ERROR!!! Return code = $ret";
-              // If we had any sort of error from exec, we log what happened and set the status to error
-              $out = '';
-              foreach ($output as $o) {
-                $out .= $o."\n";
-              }
-              $message = "Error processing export.\n\n".
-                "Identifier: {$bc}\n\n".
-                "File: {$id}_segments.xml\n\n".
-                "Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
-              $this->CI->common->email_error($message);
-              if ($ret == 56 || $ret == 52) {
-                $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for segments.xml. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
-                return;
-              } else {
-                $this->CI->book->set_status('error');
-                $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for segments.xml. Output was:'."\n".$out, $bc);
-                return;
-              }
-						}
-					} else {
-						echo "IN TEST MODE. NOT UPLOADING.\n\n";
-					} // if (!$this->cfg['testing'])
-				} //if ($file == '' || $file == 'segments')
-					
 				if ($file == '' || $file == 'scans') {
 					// Upload the "processed" jp2 files first.
 					if ($this->send_orig_jp2 == 'no' || $this->send_orig_jp2 == 'both') {
