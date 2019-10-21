@@ -13,6 +13,9 @@
 //     2010/08/06 JMR - Created, initial coding completed.
 // ------------------------------
 
+var onPagesHighlighted = new YAHOO.util.CustomEvent("onPagesHighlighted");
+var onNoPagesHighlighted = new YAHOO.util.CustomEvent("onNoPagesHighlighted");
+
 YAHOO.macaw.Pages = function(parent, data, mdModules) {
 	this.pages = new Array();
 	this.parent = parent;
@@ -159,6 +162,7 @@ YAHOO.macaw.Pages = function(parent, data, mdModules) {
 	this.highlight = function(idx) {
 		this.pages[idx].highlight();
 		this.setMetadataFields();
+		onPagesHighlighted.fire();
 	}
 
 	// ----------------------------
@@ -175,6 +179,7 @@ YAHOO.macaw.Pages = function(parent, data, mdModules) {
 	this.unhighlight = function(idx) {
 		this.pages[idx].unhighlight();
 		this.setMetadataFields();
+		onPagesHighlighted.fire();
 	}
 
 
@@ -199,6 +204,7 @@ YAHOO.macaw.Pages = function(parent, data, mdModules) {
 		}
 		this.setMetadataFields();
 		this.setPreviewImage();
+		onPagesHighlighted.fire();
 	}
 
 	// ----------------------------
@@ -228,6 +234,7 @@ YAHOO.macaw.Pages = function(parent, data, mdModules) {
 		}
 		this.setMetadataFields();
 		this.setPreviewImage();
+		onPagesHighlighted.fire();
 	}
 
 	// ----------------------------
@@ -251,6 +258,7 @@ YAHOO.macaw.Pages = function(parent, data, mdModules) {
 		}
 		this.setMetadataFields();
 		this.setPreviewImage();
+		onNoPagesHighlighted.fire();
 	}
 
 	// ----------------------------
@@ -276,6 +284,7 @@ YAHOO.macaw.Pages = function(parent, data, mdModules) {
 		}
 		this.setMetadataFields();
 		this.setPreviewImage();
+		onPagesHighlighted.fire();
 	}
 
 	// ----------------------------
@@ -304,6 +313,7 @@ YAHOO.macaw.Pages = function(parent, data, mdModules) {
 		}
 		this.setMetadataFields();
 		this.setPreviewImage();
+		onPagesHighlighted.fire();
 	}
 
 	// ----------------------------

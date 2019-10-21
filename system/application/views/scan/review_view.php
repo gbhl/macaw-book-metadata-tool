@@ -55,6 +55,7 @@
 					<div class="yui-u first" style="width: 100%">
 						<ul id="thumbs"></ul>
 						<div id="list"></div>
+						<div id="extra"></div>
 					</div>
 				</div>
 				<div class="yui-gc">
@@ -70,7 +71,7 @@
 							<button id="btnAlphaReorder" title="Reorder all pages Alphanumerically">Alphanumeric Re-sort</Button>
 						</div>
 						<div id="btnToggleListThumbs" class="yui-buttongroup">
-							<input id="btnToggleThumbs" type="radio" name="list_or_thumbs" value="Th" checked title="Thumbnail View"><input id="btnToggleList" type="radio" name="list_or_thumbs" value="Ls" title="List View">
+							<input id="btnToggleThumbs" type="radio" name="list_or_thumbs" value="Th" checked title="Thumbnail View"><input id="btnToggleList" type="radio" name="list_or_thumbs" value="Ls" title="List View"><input id="btnToggleExtra" type="radio" name="list_or_thumbs" value="Ex" title="Extra">
 						</div>
 						<div id="slider">
 							<div class="icon"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/picture.png" border="0" height="16" width="16" title="Zoom Out"></div>
