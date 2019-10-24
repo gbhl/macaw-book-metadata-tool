@@ -953,10 +953,10 @@ class Book extends Model {
 	function add($info) {
 		// Prevent Blind SQL Injection
 		if (isset($info['barcode'])) {
-			$info['barcode'] = $this->db->escape_str($info['barcode']);
+			$info['barcode'] = trim($this->db->escape_str($info['barcode']));
 		}
 		if (isset($info['identifier'])) {
-			$info['barcode'] = $info['identifier'];
+			$info['barcode'] = trim($info['identifier']);
 		}
 		if ($info['barcode']) {
 			// If we have a barcode, let's make sure it doesn't already exist
