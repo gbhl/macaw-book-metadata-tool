@@ -50,16 +50,17 @@ class bhl_segments extends Controller {
         }
     }
     
-    function load_segments() {
+    function load_segments($itemID) {
         if (!$this->common->check_session(true)) {
 			return;
         }
 
         // Make sure the table exists.
         $this->_check_custom_table();
-
-        // Get the item ID.
-        $itemID = json_decode($this->input->post('data'));
+        if (!$itemID) {
+            // Get the item ID.
+            $itemID = json_decode($this->input->post('data'));
+        }
 
         // Get the segments from the database.
         $segments = NULL;

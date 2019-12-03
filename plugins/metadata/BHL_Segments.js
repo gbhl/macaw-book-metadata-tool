@@ -652,7 +652,7 @@ Event.onDOMReady( function() {
 				scope: this
 		};
 
-		var data = "data=" + JSON.stringify(oBook.itemID);	
+		var data = "data=" + JSON.stringify(oBook.itemID); 
 		var transaction = YAHOO.util.Connect.asyncRequest("POST", sBaseUrl + '/bhl_segments/load_segments', callback, data);
 	});
 });
