@@ -239,7 +239,7 @@
 				</tr>
 				<tr class="row">
 					<td class="fieldname">IA Ready Images: </td>
-					<td><input type="checkbox" name="ia_ready_images" id="ia_ready_images" value="1" <?php if ($ia_ready_images) { echo("checked"); } ?>> The images uploaded for this item are Internet-Archive-ready JPEG-2000 images.</td>
+					<td><input type="checkbox" name="ia_ready_images" id="ia_ready_images" value="1" <?php if ($ia_ready_images) { echo("checked"); } ?>> The images uploaded are compressed to Internet-Archives standards for JPEG 2000 images.</td>
 				</tr>
 				<tr class="row">
 					<td class="fieldname">Text Direction:</td>
