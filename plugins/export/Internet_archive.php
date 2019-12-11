@@ -2033,6 +2033,7 @@ class Internet_archive extends Controller {
 		$ret = ($mods->xpath($root.$ns."abstract"));
 		if ($ret && count($ret) > 0) {
 			$metadata['x-archive-meta-abstract'] = str_replace('"', "'", $ret[0].'');
+			$metadata['x-archive-meta-abstract'] = preg_replace('/[\r\n]/','<br/>',$metadata['x-archive-meta-abstract']);
 		}
 
 		//modified JC 4/2/12
