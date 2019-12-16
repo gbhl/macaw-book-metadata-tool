@@ -26,11 +26,14 @@ CREATE TABLE item (
     scan_time int(11),
     needs_qa bool,
     org_id int(11),
+    total_mbytes int(11) default 0,
     date_created timestamp,
     date_scanning_start timestamp,
     date_scanning_end timestamp,
     date_review_start timestamp,
     date_review_end timestamp,
+    date_qa_start timestamp,
+    date_qa_end timestamp,
     date_export_start timestamp,
     date_completed timestamp,
     date_archived timestamp,
@@ -138,4 +141,5 @@ CREATE INDEX idx_metadata_fieldname_value ON metadata (fieldname, value(255));
 CREATE INDEX idx_metadata_fieldname_pageid ON metadata (fieldname, page_id);
 CREATE INDEX idx_metadata_item_page_field_counter ON metadata (item_id, page_id, fieldname, counter);
 CREATE INDEX idx_metadata_item_page ON metadata (item_id, page_id);
+create index idx_metadata_fieldname_value_pageid on metadata(fieldname, value(255), page_id);
 

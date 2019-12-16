@@ -411,6 +411,10 @@ class Utils extends Controller {
 	 * 
 	 * @since Version 1.6
 	 */
+	function import_csv($filename, $filename2 = null, $username = 'admin') {
+	  return $this->csvimport($filename, $filename2, $username);
+	}
+
 	function csvimport($filename, $filename2 = null, $username = 'admin') {
 		// Import the file
 		$errors = array();
@@ -788,6 +792,95 @@ class Utils extends Controller {
 		if ($this->book->status == 'new' || $this->book->status == 'scanning') {
 			$this->book->set_status('scanning');
 			$this->book->set_status('scanned');
+		}
+	}
+
+	function contributor_stats($hidekey = null) {
+		setlocale(LC_CTYPE, 'en_US');
+		$format = "%-50s  %5s  %6s  %-16s  %-40s\n";
+		printf($format, 'CONTRIBUTOR', 'ITEMS', 'PAGES', 'ACCESS_KEY', 'IA EMAIL');
+
+		// Get a list of contributors
+		$orgs = $this->db->query(
+			'SELECT id, substr(name,1,45) as name, access_key '.
+			'FROM organization o INNER JOIN ('.
+			'select max(access_key) as access_key, org_id '.
+			'FROM custom_internet_archive_keys '.
+			'GROUP BY org_id) '.
+			'as k ON o.id = k.org_id '.
+			'ORDER BY o.name'
+		)->result();
+
+		for ($i=1; $i < count($orgs); $i++) {
+			// Get a count of completed items for each contributor
+			$item_count = $this->db->query(
+				'SELECT count(*) as c FROM item i WHERE i.org_id = '.$orgs[$i]->id.
+				' AND i.status_code IN (\'completed\', \'exporting\') '
+			)->result();
+			$orgs[$i]->item_count = $item_count[0]->c;
+
+			// Get a count of pages for each completed item for each contributor
+			$page_count = $this->db->query(
+				'SELECT count(*) as c FROM page p INNER JOIN item i ON p.item_id = i.id WHERE i.org_id = '.$orgs[$i]->id.
+				' AND i.status_code IN (\'completed\', \'exporting\') '
+			)->result();
+			$orgs[$i]->page_count = $page_count[0]->c;
+
+			// Get the IA ID of the most recent completed item for the contributor
+			$last_item = $this->db->query(
+				'SELECT id FROM item i WHERE i.org_id = '.$orgs[$i]->id.
+				' AND i.status_code IN (\'completed\', \'exporting\') '.
+				' ORDER BY COALESCE(date_completed, date_export_start, 0) desc'
+			)->result();
+
+			if (count($last_item) > 0) {
+				$ia = $this->db->query(
+					'SELECT identifier FROM custom_internet_archive WHERE item_id = '.$last_item[0]->id
+				)->result();
+
+				// Get the email address from IA's Metadata API for the most recent completed item
+				$url = 'https://archive.org/metadata/'.$ia[0]->identifier.'/metadata/uploader';
+				$uploader = file_get_contents($url);
+				$uploader = json_decode($uploader);
+				$orgs[$i]->key_user = $uploader->result;
+			} else {
+				$orgs[$i]->key_user = 'UNKNOWN';
+			}
+
+			// Spit it out in a pretty format
+			printf($format, iconv('UTF-8', 'ASCII//TRANSLIT', $orgs[$i]->name), $orgs[$i]->item_count, $orgs[$i]->page_count, ($hidekey ? '********' : $orgs[$i]->access_key), $orgs[$i]->key_user);
+		}
+	}
+	function check_all_marc($hidekey = null) {
+		$books = $this->book->get_all_books();
+		
+		// Loop through the books
+		print "Barcode\tIA Identifier\tContributor\tDate Completed\tMessage\n";
+		foreach ($books as $b) {
+			try {
+				$this->book->load($b->barcode);
+				if ($this->book->status != 'completed') { continue; }
+				$marc = $this->book->get_metadata('marc_xml');
+				if (is_array($marc)) {
+					$marc = $marc[0];
+				}
+				if ($marc) {
+					$ret = $this->common->validate_marc($marc);
+					if ($ret) {
+						$this->db->where('barcode', $b->barcode);
+						$row = $this->db->get('item')->row();				
+						print "{$b->barcode}\t";
+						$id = $this->book->get_metadata('ia_identifier');
+						print (is_array($id) ? $id[0] :  $id)."\t";
+						$c = $this->book->get_contributor();
+						print (is_array($c) ? implode(' | ', $c)  :  $c)."\t";
+						print "{$row->date_completed}\t";
+						print preg_replace('/[\r\n]/','',$ret)."\n";
+					}
+				}
+			} catch (Exception $e) {
+
+			}
 		}
 	}
 }

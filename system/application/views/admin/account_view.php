@@ -18,7 +18,8 @@
 		<div id="key">
 			<h3>Legend</h3>
 			<div><img src="<?php echo $this->config->item('base_url'); ?>images/icons/book_open.png" height="16" width="16"> Edit and Review</div>
-			<div><img src="<?php echo $this->config->item('base_url'); ?>images/icons/tick.png" height="16" width="16"> Quality Assurance</div>
+			<div><img src="<?php echo $this->config->item('base_url'); ?>images/icons/book_open_tick.png" height="16" width="16"> QA Required</div>
+			<div><img src="<?php echo $this->config->item('base_url'); ?>images/icons/tick.png" height="16" width="16"> QA Admin</div>
 			<div><img src="<?php echo $this->config->item('base_url'); ?>images/icons/building_wizard.png" height="16" width="16"> Local Admin</div>
 			<div><img src="<?php echo $this->config->item('base_url'); ?>images/icons/wizard_hat.png" height="16" width="16"> Super Admin</div>
 		</div>

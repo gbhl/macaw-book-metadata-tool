@@ -247,4 +247,25 @@ class Cron extends Controller {
 		// TODO: Do the command to load the demo item
 	}
 
+  function calculate_sizes() {
+    // Loop through the items in the books folder
+    if ($h = opendir($this->cfg['data_directory'])) {
+      while (false != ($f = readdir($h))) {
+        try {
+          if ($f != '.' && $f != '..' && $f != 'import_export' && $f != 'archive') {
+            if (!is_file($f) && !preg_match('/_delete/', $f)) {
+              // Count the size
+              $this->book->load($f);
+              $this->book->total_mbytes = $this->book->_dir_size($this->cfg['data_directory'].'/'.$f);
+              // Save the size to the book
+              $this->book->update();
+            }
+          }
+        } catch (Exception $e) {
+          // Nothing
+        }
+      }
+    }
+  }
+
 }

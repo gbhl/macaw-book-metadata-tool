@@ -61,19 +61,23 @@
 		<td colspan="3">
 			<?php
 				foreach (array_keys($permissions) as $p) {
-					echo('<input type="checkbox" name="permissions[]" value="'.$p.'"');
+					echo('<input type="checkbox" name="permissions[]" value="'.$p.'" id="perm_'.$p.'"');
 					echo(($permissions[$p] ? ' checked' : ''));
 					if (!$is_admin && !$is_local_admin || ($p == 'admin' && !$is_admin)) { 
 						echo(' disabled'); 
 					}
 					if ($p == 'scan') {
-						echo("> Edit Metadata &nbsp;&nbsp;&nbsp;&nbsp;");
+						echo("> <label for=\"perm_{$p}\">Edit&nbsp;Metadata</label>&nbsp;&nbsp;");
 					} elseif ($p == 'local_admin') {
-						echo("> Local Admin&nbsp;&nbsp;&nbsp;&nbsp;");
+						echo("> <label for=\"perm_{$p}\">Local&nbsp;Admin</label>&nbsp;&nbsp;");
+					} elseif ($p == 'qa') {
+						echo("> <label for=\"perm_{$p}\">QA&nbsp;Admin</label>&nbsp;&nbsp;");
+					} elseif ($p == 'qa_required') {
+						echo("> <label for=\"perm_{$p}\">QA&nbsp;Required</label>&nbsp;&nbsp;");
 					} elseif ($p == 'admin') {
-						echo("> Admin&nbsp;&nbsp;&nbsp;&nbsp;");
+						echo("> <label for=\"perm_{$p}\">Admin</label>&nbsp;&nbsp;&nbsp;&nbsp;");
 					} else {
-						echo("> $p&nbsp;&nbsp;&nbsp;&nbsp;");
+						echo("> <label for=\"perm_{$p}\">$p</label>&nbsp;&nbsp;&nbsp;&nbsp;");
 					}
 				}
 			?>

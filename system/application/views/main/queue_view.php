@@ -15,7 +15,7 @@
 			<li class="selected"><a href="#tab2">In Progress</a></li>
 			<select id="queue-filter">
 				<?php foreach ($filter as $f) { ?>
-					<option value="<?php echo $f ?>"><?php echo $f ?></option>
+					<option value="<?php echo strtolower($f) ?>"><?php echo $f ?></option>
 				<?php } ?>
 			</select>
 		</ul>

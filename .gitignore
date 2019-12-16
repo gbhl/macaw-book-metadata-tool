@@ -29,6 +29,11 @@ plugins/metadata/*
 # These are also created when we install 
 
 books
+logs
 incoming
 system/application/logs
 system/application/logs/books
+
+########################################
+# VS CODE
+.vscode

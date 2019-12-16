@@ -285,13 +285,19 @@ var formatStatus2 = function(elCell, oRecord, oColumn, oData) {
 		elCell.innerHTML = '<span style="color: #903">New</span>';
 
 	} else if (oData == 'scanning') {
-		elCell.innerHTML = '<span style="color: #F60"">Images Uploading</span>';
+		elCell.innerHTML = '<span style="color: #F60">Images Uploading</span>';
 
 	} else if (oData == 'scanned') {
-		elCell.innerHTML = '<span style="color: #F60"">Images Imported</span>';
+		elCell.innerHTML = '<span style="color: #F60">Images Imported</span>';
 
 	} else if (oData == 'reviewing') {
-		elCell.innerHTML = '<span style="color: #F60"">Metadata Entry</span>';
+		elCell.innerHTML = '<span style="color: #F60">Metadata Entry</span>';
+
+	} else if (oData == 'qa-ready') {
+		elCell.innerHTML = '<span style="color: #DA0">QA Ready</span>';
+
+	} else if (oData == 'qa-active') {
+		elCell.innerHTML = '<span style="color: #DA0">QA In Progtress</span>';
 
 	} else if (oData == 'reviewed') {
 		elCell.innerHTML = '<span style="color: #090">Metadata Complete</span>';
@@ -323,8 +329,14 @@ var formatStatus = function(elCell, oRecord, oColumn, oData) {
 	} else if (oData == 'reviewing') {
 		elCell.innerHTML = '<span style="color: #39F">In&nbsp;Progress</span>';
 
+	} else if (oData == 'qa-ready') {
+		elCell.innerHTML = '<span style="color: #DA0">QA&nbsp;Ready</span>';
+
+	} else if (oData == 'qa-active') {
+		elCell.innerHTML = '<span style="color: #DA0">QA&nbsp;In&nbsp;Progress</span>';
+
 	} else if (oData == 'reviewed') {
-		elCell.innerHTML = '<span style="color: #090">Completed</span>';
+		elCell.innerHTML = '<span style="color: #090">Awaiting&nbsp;Export</span>';
 
 	} else if (oData == 'uploading') {
 		elCell.innerHTML = '<span style="color: #360">Uploading</span>';
@@ -369,6 +381,47 @@ var sortBytes = function(a, b, desc, field) {
 	
 	// If values are equal, then compare by Column1
 	return (compState !== 0) ? compState : comp(a.getData("Column1"), b.getData("Column1"), desc);
+};
+
+var sortNoCase = function(a, b, desc, field) {
+	// Deal with empty values
+	if(!YAHOO.lang.isValue(a)) {
+		return (!YAHOO.lang.isValue(b)) ? 0 : 1;
+	} else if(!YAHOO.lang.isValue(b)) {
+		return -1;
+	}
+
+	// First compare by Column2
+	var comp = YAHOO.util.Sort.compare;
+	var compState = comp(a.getData(field).toLowerCase(), b.getData(field).toLowerCase(), desc);
+
+	// If values are equal, then compare by Column1
+	return (compState !== 0) ? compState : comp(a.getData("Column1"), b.getData("Column1"), desc);
+};
+
+
+var sortStatus = function(a, b, desc, field) {
+	// Deal with empty values
+	if(!YAHOO.lang.isValue(a)) {
+		return (!YAHOO.lang.isValue(b)) ? 0 : 1;
+	} else if(!YAHOO.lang.isValue(b)) {
+		return -1;
+	}
+
+  // Convert the words to numbers
+  valueList = {
+    'new': 1, 'scanning': 2, 'scanned': 3, 'reviewing': 4, 
+    'qa-ready': 5, 'qa-active': 6, 'reviewed': 7, 'exporting': 8, 
+    'completed': 9, 'archived': 10, 'error': 11
+  };
+
+  a = valueList[a.getData(field)];
+  b = valueList[b.getData(field)];
+
+
+	// First compare by Column2
+	var comp = YAHOO.util.Sort.compare;
+	return comp(a, b, desc);
 };
 
 
