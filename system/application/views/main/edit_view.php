@@ -225,16 +225,21 @@
 				</tr>
 				<tr class="row">
 				  <?php if ($org_has_qa) { ?>
-					<td class="fieldname">Needs QA:</td>
-						<td><input type="checkbox" name="needs_qa" id="needs_qa" value="1" <?php if ($needs_qa) { echo("checked"); } ?>> This item will be reviewed for Quality Assurance</td>
+				    <?php if ($is_qa_user) { ?>
+              <td class="fieldname">Needs QA:</td>
+              <td><input type="checkbox" name="needs_qa" id="needs_qa" value="1" <?php if ($needs_qa) { echo("checked"); } ?>> This item will be reviewed for Quality Assurance</td>
+				    <?php } else { ?>
+              <td class="fieldname">Needs QA:</td>
+              <td><input type="checkbox" name="needs_qa" id="needs_qa" value="1" <?php if ($needs_qa) { echo("checked"); } ?> disabled> This item will be reviewed for Quality Assurance</td>
+				    <?php } ?>
 					<?php } else { ?>
-						<td style="color:#ccc" class="fieldname">Needs QA:</td>
-						<td style="color:#ccc"><input type="checkbox" name="needs_qa" id="needs_qa" value="1" disabled > This item will be NOT reviewed for Quality Assurance. Contributor has no QA user.</td>
+						<td style="color:#aaa" class="fieldname">Needs QA:</td>
+						<td style="color:#aaa"><input type="checkbox" name="needs_qa" id="needs_qa" value="1" disabled > This item will be NOT reviewed for Quality Assurance. Contributor has no <strong>QA Admin</strong> user.</td>
 					<?php } ?>
 				</tr>
 				<tr class="row">
 					<td class="fieldname">IA Ready Images: </td>
-					<td><input type="checkbox" name="ia_ready_images" id="ia_ready_images" value="1" <?php if ($ia_ready_images) { echo("checked"); } ?>> The images uploaded for this item are Internet-Archive-ready JPEG-2000 images.</td>
+					<td><input type="checkbox" name="ia_ready_images" id="ia_ready_images" value="1" <?php if ($ia_ready_images) { echo("checked"); } ?>> The images uploaded are compressed to Internet-Archives standards for JPEG 2000 images.</td>
 				</tr>
 				<tr class="row">
 					<td class="fieldname">Text Direction:</td>
@@ -271,9 +276,9 @@
 					foreach ($metadata as $i) { ?>
 					<?php if ($i['fieldname'] == 'scanning_institution' || $i['fieldname'] == 'rights_holder') { ?> 
 						<tr class="row" id="existing_field_<?php echo($c) ?>">
-							<td class="fieldname"><?php echo($i['fieldname'] == 'scanning_institution' ? 'Scanning Institution' : ($i['fieldname'] == 'rights_holder' ? 'Rights Holder' : $i['fieldname'])); ?>:</td>
+							<td class="fieldname"><?php echo($i['fieldname'] == 'scanning_institution' ? 'Added By:' : ($i['fieldname'] == 'rights_holder' ? 'Rights Holder:' : $i['fieldname'].':')); ?></td>
 							<td>
-								<select name="<?php echo($i['fieldname']); ?>" style="width: 100%" onChange="FIELDS.checkOther(this)">
+								<select name="<?php echo($i['fieldname']); ?>" style="width: 96%" onChange="FIELDS.checkOther(this)">
 									<option value="">(none)</option>
 									<?php
 										$other = true;
@@ -336,9 +341,9 @@
 							$counter++;
 				?>
 						<tr class="row" id="newfields_<?php echo($counter); ?>">
-							<td class="fieldname"><?php echo($f == 'scanning_institution' ? 'Scanning Institution' : ($f == 'rights_holder' ? 'Rights Holder' : $f)); ?><input type="hidden" name="new_fieldname_<?php echo($counter); ?>" maxlength="32" value="<?php echo($f); ?>" class="txt-fieldname"></td>
+							<td class="fieldname"><?php echo($f == 'scanning_institution' ? 'Added By:' : ($f == 'rights_holder' ? 'Rights Holder:' : $f.':')); ?><input type="hidden" name="new_fieldname_<?php echo($counter); ?>" maxlength="32" value="<?php echo($f); ?>" class="txt-fieldname"></td>
 							<td>
-								<select name="new_value_<?php echo($counter); ?>" id="new_value_<?php echo($counter); ?>" style="width: 100%" onChange="FIELDS.checkOther(this);">
+								<select name="new_value_<?php echo($counter); ?>" id="new_value_<?php echo($counter); ?>" style="width: 96%" onChange="FIELDS.checkOther(this);">
 									<option value="">(none)</option>
 									<option value="(other)">(Other)</option>
 									<?php 

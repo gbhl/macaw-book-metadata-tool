@@ -478,12 +478,12 @@ class Common extends Controller {
 				return 'The MARC XML is invalid. A leader is required.';
 			}
 
-//			// Checks for either a 001 or a 035 field.
-//			$ret1 = $xml->xpath($root.$rec.$ns.'controlfield[@tag="001"][text()]');
-//			$ret2 = $xml->xpath($root.$rec.$ns.'datafield[@tag="035"]/'.$ns.'subfield[@code="a"][text()][contains(., "OCoLC")]');
-//			if (empty($ret1) && empty($ret2)) {
-//				return 'The MARC XML is invalid. A 001 field or 035 $a field is required.';				
-//			}
+			// Checks for either a 001 or a 035 field.
+			$ret1 = $xml->xpath($root.$rec.$ns.'controlfield[@tag="001"][text()]');
+			$ret2 = $xml->xpath($root.$rec.$ns.'datafield[@tag="035"]/'.$ns.'subfield[@code="a"][text()][contains(., "OCoLC")]');
+			if (empty($ret1) && empty($ret2)) {
+				return 'The MARC XML is invalid. A 001 field or 035 $a field is required.';				
+			}
 			
 			// Checks for a 008 field.
 			$ret = $xml->xpath($root.$rec.$ns.'controlfield[@tag="008"][text()]');
@@ -684,6 +684,51 @@ class Common extends Controller {
 			}
 			$this->CI->db->where('name','version');
 			$this->CI->db->set('value', '2.4');
+			$this->CI->db->update('settings');
+		} elseif ($version == "2.4") {
+			$queries = null;
+			if ($this->CI->db->dbdriver == 'postgre') {
+				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.5.sql');
+			} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
+				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.5.sql');
+			}
+			foreach (explode(';', $queries) as $q) {
+				if (preg_match('/[^\s\r\n]+/', $q)) {
+					$result = $this->CI->db->query($q);
+				}
+			}
+			$this->CI->db->where('name','version');
+			$this->CI->db->set('value', '2.5');
+			$this->CI->db->update('settings');
+		} elseif ($version == "2.5") {
+			$queries = null;
+			if ($this->CI->db->dbdriver == 'postgre') {
+				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.6.sql');
+			} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
+				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.6.sql');
+			}
+			foreach (explode(';', $queries) as $q) {
+				if (preg_match('/[^\s\r\n]+/', $q)) {
+					$result = $this->CI->db->query($q);
+				}
+			}
+			$this->CI->db->where('name','version');
+			$this->CI->db->set('value', '2.6');
+			$this->CI->db->update('settings');
+		} elseif ($version == "2.6") {
+			$queries = null;
+			if ($this->CI->db->dbdriver == 'postgre') {
+				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.7.sql');
+			} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
+				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.7.sql');
+			}
+			foreach (explode(';', $queries) as $q) {
+				if (preg_match('/[^\s\r\n]+/', $q)) {
+					$result = $this->CI->db->query($q);
+				}
+			}
+			$this->CI->db->where('name','version');
+			$this->CI->db->set('value', '2.7');
 			$this->CI->db->update('settings');
 		}
 	}

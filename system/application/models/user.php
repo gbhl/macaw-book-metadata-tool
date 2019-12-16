@@ -34,7 +34,7 @@ class User extends Model {
     public $permissions = '';
     public $terms_conditions = '';
 
-    private $all_permissions = array('scan', 'QA', 'local_admin', 'admin');
+    private $all_permissions = array('scan', 'qa_required', 'qa', 'local_admin', 'admin');
 
     function __construct()
     {
@@ -225,10 +225,11 @@ class User extends Model {
 		$this->db->select(
 			'account.id, account.username, account.last_login, account.created, account.modified, account.widgets, '.
 			'account.full_name, account.email, organization.name as organization, '.
-			'(select count(*) from permission p where permission = \'scan\' and p.username = account.username) as scan, '.
-			'(select count(*) from permission p where permission = \'local_admin\' and p.username = account.username) as local_admin, '.
-			'(select count(*) from permission p where permission = \'admin\' and p.username = account.username) as admin, '.
-			'(select count(*) from permission p where permission = \'QA\' and p.username = account.username) as qa'
+			'(select count(*) from permission p where lower(permission) = \'scan\' and p.username = account.username) as scan, '.
+			'(select count(*) from permission p where lower(permission) = \'local_admin\' and p.username = account.username) as local_admin, '.
+			'(select count(*) from permission p where lower(permission) = \'admin\' and p.username = account.username) as admin, '.
+			'(select count(*) from permission p where lower(permission) = \'qa_required\' and p.username = account.username) as qa_required, '.
+			'(select count(*) from permission p where lower(permission) = \'qa\' and p.username = account.username) as qa'
 		);
 		if ($org_id > 0) {
 			$this->db->where('account.org_id', $org_id);
@@ -257,6 +258,8 @@ class User extends Model {
 	 * @since Version 1.2
 	 */
 	function has_permission($perm = '') {
+
+		$perm = strtolower($perm);
 
 		// Make sure we have loaded up the user's information
 		if (!$this->username) {
@@ -307,12 +310,12 @@ class User extends Model {
 			foreach ($this->all_permissions as $a) {
 				// Admin always has admin permissions
 				if ($a == 'admin' && $this->username == 'admin') {
-					$this->permissions[$a] = 1;
+					$this->permissions[strtolower($a)] = 1;
 				} else {
-					if (in_array($a, $active_perms)) {
-						$this->permissions[$a] = 1;
+					if (in_array(strtolower($a), $active_perms)) {
+						$this->permissions[strtolower($a)] = 1;
 					} else {
-						$this->permissions[$a] = 0;
+						$this->permissions[strtolower($a)] = 0;
 					} // if (in_array($a, $active_perms))
 				} // if ($a == 'admin' && $this->username == 'admin')
 			} // foreach ($this->all_permissions as $a)
@@ -330,6 +333,9 @@ class User extends Model {
 	 * @since Version 1.2
 	 */
 	function set_permissions($new_perms) {
+		for ($i = 0; $i < count($new_perms); $i++) {
+			$new_perms[$i] = strtolower($new_perms[$i]);
+		}
 		// Wipe the permissions from memory, just in case
 		$this->permissions = null;
 
@@ -340,11 +346,11 @@ class User extends Model {
 		// Use our list of available permissions to add what was sent in
 		foreach ($this->all_permissions as $a) {
 			// If an available perm matches one passed in...
-			if (in_array($a, $new_perms)) {
+			if (in_array(strtolower($a), $new_perms)) {
 				// ...we save to the database
 				$this->db->insert('permission', array(
 					'username' => $this->username,
-					'permission' => $a
+					'permission' => strtolower($a)
 				));
 			} // if (in_array($a, $new_perms))
 		} // foreach ($this->all_permissions as $a)
@@ -365,7 +371,7 @@ class User extends Model {
 	function org_has_qa() {
 		// Get a list of all QA users and their email addresses
 		$qa_users = array();
-		$this->db->where('username in (select username from permission where permission = \'QA\' and org_id = '.$this->org_id.');');
+		$this->db->where('username in (select username from permission where lower(permission) = \'qa\' and org_id = '.$this->org_id.');');
 		$this->db->select('email');
 		$query = $this->db->get('account');
 		foreach ($query->result() as $row) {

@@ -336,8 +336,32 @@ class Scan extends Controller {
 		try {
 			// Get our book
 			$this->book->load($this->session->userdata('barcode'));
+
+			// This book is in the QA queue
+			if ($this->book->status == 'qa-ready' || $this->book->status == 'qa-active') {
+				// Only those authorized can edit QA items
+				if ($this->user->has_permission('qa') || $this->user->has_permission('local_admin') || $this->user->has_permission('admin')) {
+					$this->book->set_status('qa-active');
+				} else {
+					$this->session->set_userdata('errormessage', 'You do not have permission to edit items that are in QA.');
+					redirect($this->config->item('base_url').'main/listitems');
+					return;
+				}
+			} elseif (!$this->book->needs_qa && ($this->book->status == 'qa-ready' || $this->book->status == 'qa-active')) {
+				$this->book->set_status('qa-active');
+				$this->book->set_status('reviewed');
+				$this->book->set_status('reviewing');
+			} elseif ($this->user->has_permission('qa_required') && $this->book->status == 'reviewed') {
+				$this->session->set_userdata('errormessage', 'You do not have permission to edit an item that is ready for export.');
+				redirect($this->config->item('base_url').'main/listitems');
+				return;
+			} else {
+				if ($this->book->status == 'reviewed') {
+					$this->session->set_userdata('warning', 'This item <em>was</em> ready to be exported. Be sure to click <strong>Review Complete</strong> when you are done.');
+				}
+				$this->book->set_status('reviewing');
+			}
 			$this->common->check_missing_metadata($this->book);
-			$this->book->set_status('reviewing');
 			$data = array();
 			$data['base_directory'] = $this->cfg['base_directory'];
 			$data['metadata_modules'] = $this->cfg['metadata_modules'];
@@ -350,7 +374,7 @@ class Scan extends Controller {
 			// Set the error and redirect to the main page
 			$this->session->set_userdata('errormessage', $e->getMessage());
 			$this->logging->log('error', 'debug', 'Error in review() '. $e->getMessage());
-			redirect($this->config->item('base_url').'main');
+			redirect($this->config->item('base_url').'main/listitems');
 		} // try-catch
 	}
 
@@ -370,7 +394,7 @@ class Scan extends Controller {
 
 		$this->common->ajax_headers();
 		try {
-	        $this->book->load($this->session->userdata('barcode'));
+			$this->book->load($this->session->userdata('barcode'));
 		} catch (Exception $e) {
 			echo json_encode(array(
 				'pages' => array(),
@@ -420,7 +444,7 @@ class Scan extends Controller {
 
 		// Embedded ampersands in the data cause trouble.
 		$data = preg_replace('/\&/i', '&amp;', $this->input->post('data'));
-		//$this->logging->log('book', 'info', 'Submitted save data: '.$data, $this->session->userdata('barcode'));		
+		//$this->logging->log('book', 'info', 'Submitted save data: '.$data, $this->session->userdata('barcode'));
 		// Get the data from the page
 		$data = json_decode($data, true);
 
@@ -630,15 +654,23 @@ class Scan extends Controller {
 			}
 		
 			// Does the book need to be QA'ed by someone?
-			if ($this->book->needs_qa) {
+
+			if ($this->user->has_permission('qa_required')) {
+				// Leave the book open
+				$this->book->set_status('qa-ready');
+				// Email the QA staff that it needs to be reviewed
+				$this->_notify_qa($this->book->org_id);
+				$this->session->set_userdata('message', 'Changes saved and item sent for QA review!');
+
+			} elseif ($this->book->needs_qa) {
 				// Is the person reviewing the book a QA person?
-				if ($this->user->has_permission('QA')) {
+				if ($this->user->has_permission('qa')) {
 					// Only a QA person can finish a book that's marked for QA
 					$this->book->set_status('reviewed');
 					$this->session->set_userdata('message', 'Changes saved! ');
 				} else {
 					// Leave the book open
-					$this->book->set_status('reviewing');
+					$this->book->set_status('qa-ready');
 					// Email the QA staff that it needs to be reviewed
 					$this->_notify_qa($this->book->org_id);
 					$this->session->set_userdata('message', 'Changes saved and item sent for QA review!');
@@ -673,13 +705,23 @@ class Scan extends Controller {
 
 		// Get a list of all QA users and their email addresses
 		$qa_users = array();
-		$this->db->where('username in (select username from permission where permission = \'QA\' and org_id = '.$org_id.');');
+		$this->db->where('username in (select username from permission where lower(permission) = \'qa\' and org_id = '.$org_id.');');
 		$this->db->select('email');
 		$query = $this->db->get('account');
 		foreach ($query->result() as $row) {
 			array_push($qa_users, $row->email);
 		}
-		
+
+		// If we didn't get any QA users, let's send to the local admin users
+		if (count($qa_users) == 0) {
+      $this->db->where('username in (select username from permission where lower(permission) = \'local_admin\' and org_id = '.$org_id.');');
+      $this->db->select('email');
+			$query = $this->db->get('account');
+			foreach ($query->result() as $row) {
+				array_push($qa_users, $row->email);
+			}
+		}
+
 		// If we didn't get any QA users, let's send to the admin users
 		if (count($qa_users) == 0) {
 			$this->db->where('id = 1');
@@ -689,7 +731,9 @@ class Scan extends Controller {
 				array_push($qa_users, $row->email);
 			}
 		}
-		
+
+		$this->logging->log('error', 'info', print_r($qa_users,true));
+
 		if (count($qa_users) > 0) {
 			// Generate the message we're going to send
 			$this->load->library('email');

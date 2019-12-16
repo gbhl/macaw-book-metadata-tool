@@ -31,8 +31,6 @@ class Organization extends Model {
     public $ia_api_key = '';
     public $ia_secret_key = '';
 
-    private $all_permissions = array('scan', 'QA', 'admin');
-
     function __construct()
     {
         // Call the Model constructor

@@ -540,19 +540,6 @@ class Internet_archive extends Controller {
 					$this->CI->logging->log('book', 'debug', 'Created '.$id.'_scandata.xml', $bc);
 				}
 				
-				if ($file == '' || $file == 'segments') {
-					// create the IDENTIFIER_segments.xml file
-					// TO TEST:
-					//
-					// sudo -u apache php index.php cron export Internet_archive ButterflyBook segments
-					//
-					write_file($fullpath.'/'.$id.'_segments.xml', $this->_create_segments_xml($id, $this->CI->book, $pages));
-					$this->CI->logging->log('book', 'debug', 'Created '.$id.'_segments.xml', $bc);
-					if ($file == 'segments') { 
-						return;
-					}
-				}
-
 				// upload the files to internet archive
 				if ($file == 'meta') {
 					$old_metadata = $this->_get_ia_meta_xml($b, $id);
@@ -797,49 +784,6 @@ class Internet_archive extends Controller {
 					} // if (!$this->cfg['testing'])
 				} //if ($file == '' || $file == 'marc')
 
-				if ($file == '' || $file == 'segments') {
-					$cmd = $this->cfg['curl_exe'];
-					$cmd .= ' --location';
-					$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
-					$cmd .= ' --header "x-archive-queue-derive:0"';
-					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_segments.xml" "http://s3.us.archive.org/'.$id.'/'.$id.'_segments.xml" 2>&1';
-					echo "\n\n".$cmd."\n\n";
-
-					if (!$this->cfg['testing']) {
-						// execute the CURL command and echo back any responses
-						$output = array();
-						exec($cmd, $output, $ret);
-						if (count($output)) {
-							foreach ($output as $o) {
-								echo $o."\n";
-							}
-						}
-						if ($ret) {
-              echo "ERROR!!! Return code = $ret";
-              // If we had any sort of error from exec, we log what happened and set the status to error
-              $out = '';
-              foreach ($output as $o) {
-                $out .= $o."\n";
-              }
-              $message = "Error processing export.\n\n".
-                "Identifier: {$bc}\n\n".
-                "File: {$id}_segments.xml\n\n".
-                "Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
-              $this->CI->common->email_error($message);
-              if ($ret == 56 || $ret == 52) {
-                $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for segments.xml. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
-                return;
-              } else {
-                $this->CI->book->set_status('error');
-                $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for segments.xml. Output was:'."\n".$out, $bc);
-                return;
-              }
-						}
-					} else {
-						echo "IN TEST MODE. NOT UPLOADING.\n\n";
-					} // if (!$this->cfg['testing'])
-				} //if ($file == '' || $file == 'segments')
-					
 				if ($file == '' || $file == 'scans') {
 					// Upload the "processed" jp2 files first.
 					if ($this->send_orig_jp2 == 'no' || $this->send_orig_jp2 == 'both') {
@@ -1713,6 +1657,7 @@ class Internet_archive extends Controller {
 			elseif ($p[$i] == 'List of Illustrations') { $p[$i] = 'List of Illustrations'; }
 			elseif ($p[$i] == 'Photograph') { $p[$i] = 'Photograph'; }
 			elseif ($p[$i] == 'Table') { $p[$i] = 'Table'; }
+      elseif ($p[$i] == 'Specimen') { $p[$i] = 'Specimen'; }
 			elseif ($p[$i] == 'Suppress') { $p[$i] = 'Delete'; }
 			elseif ($p[$i] == 'Tissue') { $p[$i] = 'Delete'; }
 			elseif ($p[$i] == 'White card') { $p[$i] = 'Delete'; }
@@ -1837,6 +1782,9 @@ class Internet_archive extends Controller {
 					// Fallback, take the first number we can find.
 					$height = $matches[1];
 				}
+				if ($height == 0) {
+					return 300;
+				}
 
 				if ($unit == 'in') {
 					return round($pages[0]->height / $height);
@@ -1886,6 +1834,10 @@ class Internet_archive extends Controller {
 	}
 
 	function _get_marc($marcxml) {
+		# Make sure this is a string. If it's an array, we use the first one we can find.
+		if (is_array($marcxml)) {
+			$marcxml = array_shift($marcxml);
+		}
 		$marc = simplexml_load_string($marcxml);
 		if ($marc === false) {
 			return false;
@@ -2081,6 +2033,7 @@ class Internet_archive extends Controller {
 		$ret = ($mods->xpath($root.$ns."abstract"));
 		if ($ret && count($ret) > 0) {
 			$metadata['x-archive-meta-abstract'] = str_replace('"', "'", $ret[0].'');
+			$metadata['x-archive-meta-abstract'] = preg_replace('/[\r\n]/','<br/>',$metadata['x-archive-meta-abstract']);
 		}
 
 		//modified JC 4/2/12

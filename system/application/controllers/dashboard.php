@@ -130,11 +130,13 @@ class Dashboard extends Controller {
 
 		$row = $this->book->get_status_counts();
 		$reviewing = $row->scanning + $row->scanned + $row->reviewing; // Things in progress
+		$qa = $row->qa_ready + $row->qa_active; // Things in QA
 
 		$data = array();
 		$data['title'] = 'Summary';
 		$data['html'] = '<div id="summary-widget">'.$row->new.' new item'.($row->new > 1 || $row->new == 0 ? 's' : '').'.<br>'.
 		               $reviewing.' item'.($reviewing > 1 || $reviewing == 0 ? 's' : '').' in progress.<br>'.
+		               $qa.' item'.($qa > 1 || $qa == 0 ? 's' : '').' in QA.<br>'.
 		               $row->reviewed.' item'.($row->reviewed > 1 || $row->reviewed == 0 ? 's' : '').' ready to export.<br>'.
 		               $row->exporting.' item'.($row->exporting > 1 || $row->exporting == 0 ? 's' : '').' being exported.<br>'.
 		               $row->completed.' item'.($row->completed > 1 || $row->completed == 0 ? 's' : '').' completed.<br>'.

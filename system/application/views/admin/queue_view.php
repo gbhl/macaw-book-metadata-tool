@@ -16,13 +16,17 @@
 			<ul class="yui-nav">
 				<li class="selected"><a href="#tab1">New</a></li>
 				<li><a href="#tab2">In Progress</a></li>
-				<li><a href="#tab3">Exporting</a></li>
-				<li><a href="#tab4">Completed</a></li>
-				<li><a href="#tab5">Errors</a></li>
+				<li><a href="#tab3">In QA</a></li>
+				<li><a href="#tab4">Awaiting Export</a></li>
+				<li><a href="#tab5">Exporting</a></li>
+				<li><a href="#tab6">Completed</a></li>
+				<li><a href="#tab7">Errors</a></li>
 				</ul>
 			<div class="yui-content">
 				<div><div id="divNew"></div></div>
 				<div><div id="divInProgress"></div></div>
+				<div><div id="divInQA"></div></div>
+				<div><div id="divAwaitingExport"></div></div>
 				<div><div id="divExporting"></div></div>
 				<div><div id="divCompleted"></div></div>
 				<div><div id="divErrors"></div></div>
