@@ -797,8 +797,8 @@ class Utils extends Controller {
 
 	function contributor_stats($hidekey = null) {
 		setlocale(LC_CTYPE, 'en_US');
-		$format = "%-50s  %5s  %6s  %-16s  %-40s\n";
-		printf($format, 'CONTRIBUTOR', 'ITEMS', 'PAGES', 'ACCESS_KEY', 'IA EMAIL');
+		$format = "%-50s  %5s  %6s %11s  %-16s  %-40s\n";
+		printf($format, 'CONTRIBUTOR', 'ITEMS', 'PAGES', 'LAST', 'ACCESS_KEY', 'IA EMAIL');
 
 		// Get a list of contributors
 		$orgs = $this->db->query(
@@ -828,7 +828,7 @@ class Utils extends Controller {
 
 			// Get the IA ID of the most recent completed item for the contributor
 			$last_item = $this->db->query(
-				'SELECT id FROM item i WHERE i.org_id = '.$orgs[$i]->id.
+				'SELECT id, COALESCE(date_completed, date_export_start, 0) as date_completed FROM item i WHERE i.org_id = '.$orgs[$i]->id.
 				' AND i.status_code IN (\'completed\', \'exporting\') '.
 				' ORDER BY COALESCE(date_completed, date_export_start, 0) desc'
 			)->result();
@@ -843,12 +843,14 @@ class Utils extends Controller {
 				$uploader = file_get_contents($url);
 				$uploader = json_decode($uploader);
 				$orgs[$i]->key_user = $uploader->result;
+				$orgs[$i]->last_date = substr($last_item[0]->date_completed,0,10);
 			} else {
+				$orgs[$i]->last_date = '';
 				$orgs[$i]->key_user = 'UNKNOWN';
 			}
 
 			// Spit it out in a pretty format
-			printf($format, iconv('UTF-8', 'ASCII//TRANSLIT', $orgs[$i]->name), $orgs[$i]->item_count, $orgs[$i]->page_count, ($hidekey ? '********' : $orgs[$i]->access_key), $orgs[$i]->key_user);
+			printf($format, iconv('UTF-8', 'ASCII//TRANSLIT', $orgs[$i]->name), $orgs[$i]->item_count, $orgs[$i]->page_count, $orgs[$i]->last_date, ($hidekey ? '********' : $orgs[$i]->access_key), $orgs[$i]->key_user);
 		}
 	}
 	function check_all_marc($hidekey = null) {
