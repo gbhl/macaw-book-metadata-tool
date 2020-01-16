@@ -565,7 +565,15 @@ class Utils extends Controller {
 							
 							foreach (array_keys($p) as $k) {
 								if ($k != 'identifier' && $k != 'filename') {
-									$this->book->set_page_metadata($row->id, $k, $p[$k], 1);
+									if ($k == 'page_type') {
+										$page_types = explode(',', $p[$k]);
+										$cpt = 1;
+										foreach ($page_types as $pt) {
+											$this->book->set_page_metadata($row->id, $k, $pt, $cpt++);
+										}
+									} else {
+										$this->book->set_page_metadata($row->id, $k, $p[$k], 1);
+									}
 								}
 							}
 							// While importing, write our progress to "$filename.txt"
