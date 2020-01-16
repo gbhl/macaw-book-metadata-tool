@@ -851,4 +851,36 @@ class Utils extends Controller {
 			printf($format, iconv('UTF-8', 'ASCII//TRANSLIT', $orgs[$i]->name), $orgs[$i]->item_count, $orgs[$i]->page_count, ($hidekey ? '********' : $orgs[$i]->access_key), $orgs[$i]->key_user);
 		}
 	}
+	function check_all_marc($hidekey = null) {
+		$books = $this->book->get_all_books();
+		
+		// Loop through the books
+		print "Barcode\tIA Identifier\tContributor\tDate Completed\tMessage\n";
+		foreach ($books as $b) {
+			try {
+				$this->book->load($b->barcode);
+				if ($this->book->status != 'completed') { continue; }
+				$marc = $this->book->get_metadata('marc_xml');
+				if (is_array($marc)) {
+					$marc = $marc[0];
+				}
+				if ($marc) {
+					$ret = $this->common->validate_marc($marc);
+					if ($ret) {
+						$this->db->where('barcode', $b->barcode);
+						$row = $this->db->get('item')->row();				
+						print "{$b->barcode}\t";
+						$id = $this->book->get_metadata('ia_identifier');
+						print (is_array($id) ? $id[0] :  $id)."\t";
+						$c = $this->book->get_contributor();
+						print (is_array($c) ? implode(' | ', $c)  :  $c)."\t";
+						print "{$row->date_completed}\t";
+						print preg_replace('/[\r\n]/','',$ret)."\n";
+					}
+				}
+			} catch (Exception $e) {
+
+			}
+		}
+	}
 }
