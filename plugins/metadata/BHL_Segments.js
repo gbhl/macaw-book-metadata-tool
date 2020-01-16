@@ -45,7 +45,7 @@ this.SegmentComponent = function() {
 
 		// Prefill fields from the page metadata if available.
 		var fields = ["volume", "year", "piece"];
-		for (f in fields) {
+		for (var f in fields) {
 			var field = pgs[0].getMetadataValue(fields[f]);
 			if (field.length > 0) {
 				switch (fields[f]) {
@@ -54,7 +54,7 @@ this.SegmentComponent = function() {
 						break;
 					case "piece":
 						var piece = pgs[0].getMetadataValue("piece_text");
-						for (p in field) {
+						for (var p in field) {
 							if (field[p] == "Issue") {
 								segment["issue"] = piece[p];
 								break;
@@ -68,7 +68,7 @@ this.SegmentComponent = function() {
 		}
 
 		segment.title = "New Segment " + segment.id;
-		for (p in pgs) {
+		for (var p in pgs) {
 			segment.page_list.push(pgs[p].pageID);
 		}
 		segments.push(segment);
@@ -80,7 +80,7 @@ this.SegmentComponent = function() {
 	var removeSegment = function() {
 		if (confirm("Delete this segment?")) {
 			var segment = getCurrentSegment();
-			for (i = 0; i < segments.length; i++) {
+			for (var i = 0; i < segments.length; i++) {
 				if (segments[i] == segment) {
 					segments.splice(i, 1);
 					updateDropdown();
@@ -104,7 +104,7 @@ this.SegmentComponent = function() {
 		var pages = oBook.pages.arrayHighlighted();
 		
 		segment.page_list = [];
-		for (p in pages) {
+		for (var p in pages) {
 			segment.page_list.push(pages[p].pageID);
 		}
 
@@ -114,7 +114,7 @@ this.SegmentComponent = function() {
 	// Get the currently selected segment.
 	var getCurrentSegment = function() {
 		var segmentList = Dom.get("segmentList");
-		for (i = 0; i < segments.length; i++) {
+		for (var i = 0; i < segments.length; i++) {
 			if (segments[i].id == segmentList.value) {
 				return segments[i];
 			}
@@ -126,7 +126,7 @@ this.SegmentComponent = function() {
 		var segment = getCurrentSegment();
 
 		// Load the metadata.
-		for (f in metadataFields) {
+		for (var f in metadataFields) {
 			var control = Dom.get(metadataFields[f].id);
 			if (segment) {
 				switch (metadataFields[f].type) {
@@ -141,7 +141,7 @@ this.SegmentComponent = function() {
 						break;
 					case "list":
 						var buttons = control.getElementsByTagName("img");
-						for (i = 0; i < buttons.length; i++) {
+						for (var i = 0; i < buttons.length; i++) {
 							buttons[i].style.display = "inline";
 						}
 						break;
@@ -155,7 +155,7 @@ this.SegmentComponent = function() {
 						break;
 					case "list":
 						var buttons = control.getElementsByTagName("img");
-						for (i = 0; i < buttons.length; i++) {
+						for (var i = 0; i < buttons.length; i++) {
 							buttons[i].style.display = "none";
 						}
 						break;
@@ -166,12 +166,12 @@ this.SegmentComponent = function() {
 		// Highlight the pages if a segment is selected.
 		oBook.pages.selectNone();
 		if (segment) {
-			for (p in segment.page_list) {
+			for (var p in segment.page_list) {
 				var page = oBook.pages.find("pageID", segment.page_list[p]);
 				oBook.pages.highlight(page);
 			}
 		}
-		AuthorComponent.refreshList();	
+		AuthorComponent.refreshList();
 	}
 
 	// Event for when a segment's metdata field is changed.
@@ -180,7 +180,7 @@ this.SegmentComponent = function() {
 
 		// Get the metadata field and update the value.
 		var metadataField = null;
-		for (m in metadataFields) {
+		for (var m in metadataFields) {
 			if (metadataFields[m].id == obj.id) {
 				metadataField = metadataFields[m];
 			}
@@ -199,12 +199,12 @@ this.SegmentComponent = function() {
 		var dropdown = Dom.get("segmentList");
 
 		// Clear the dropdown.
-		for (i = Dom.get("segmentList").children.length - 1; i > 0; i--) {
+		for (var i = Dom.get("segmentList").children.length - 1; i > 0; i--) {
 			dropdown.remove(i);
 		}
 
 		// Add the segments.
-		for (i = 0; i < segments.length; i++) {
+		for (var i = 0; i < segments.length; i++) {
 			// Generate an ID.
 			segments[i].id = i + 1;
 
@@ -226,41 +226,37 @@ this.SegmentComponent = function() {
 
 	// Updates the extra table with a list of segments.
 	var updateTable = function() {
+		var selectedSegment = null;
 		var div = Dom.get("extra");
 		div.innerHTML = null;
-
-		var table = document.createElement("table");
+		
 		var columns = [];
-		var section;
-
-		// Add the headers to the table.
-		var header = document.createElement("thead");
-		var tr = document.createElement("tr");
-		for (f in metadataFields) {
+		for (var f in metadataFields) {
 			var column = metadataFields[f].display_name;
-			var td = document.createElement("td");
-			td.innerHTML = column;
-			tr.appendChild(td);
-			columns.push( { key: column} );
+			columns.push({ key: column, sortable: true });
 		}
-		columns.push( { key: "id" } );
-		header.appendChild(tr);
-		table.appendChild(header);
+		columns.push({ key: "Page Spans", sortable: true });
+		columns.push({ key: "id" });
+		
 
-		// Add the data to the table.
-		var body = document.createElement("tbody");
-		for (i = 0; i < segments.length; i++) {
-			tr = document.createElement("tr");
+		// Generate the dataset.
+		var data = [];
+		for (var i = 0; i< segments.length; i++) {
+			var record = [];
 
-			for (f in metadataFields) {
-				td = document.createElement("td");
+			var segment = SegmentComponent.getCurrentSegment();
+			if (segment != null && segment.id == segments[i].id) {
+				selectedSegment = data.length;
+			}
+
+			for (var f in metadataFields) {
 				switch (metadataFields[f].type) {
 					case "select-one":
 						if (segments[i][metadataFields[f].field]) {
 							var select = Dom.get(metadataFields[f].id);
-							for (o in select.options) {
+							for (var o in select.options) {
 								if (select.options[o].value == segments[i][metadataFields[f].field]) {
-									td.innerHTML = select.options[o].innerHTML;
+									record.push(select.options[o].innerHTML);
 									break;
 								}
 							}
@@ -268,37 +264,42 @@ this.SegmentComponent = function() {
 						break;
 					case "list":
 						var authors = [];
-						for (a in segments[i].author_list) {
+						for (var a in segments[i].author_list) {
 							authors.push(segments[i].author_list[a].name);
 						}
-						td.innerHTML = authors.join("; ");
+						record.push(authors.join("; "));
 						break;
 					default:
 						if (segments[i][metadataFields[f].field]) {
-							td.innerHTML = segments[i][metadataFields[f].field];
+							record.push(segments[i][metadataFields[f].field]);
 						}
 				}
-				tr.appendChild(td);
 			}
-			
-			// Add the ID of the segment.
-			td = document.createElement("td");
-			td.innerHTML = segments[i].id;
-			tr.appendChild(td);
-
-			body.appendChild(tr);
+			var pages = [];
+			for (var p = 0; p < segments[i].page_list.length; p++) {
+				var test = oBook.pages.find('pageID', segments[i].page_list[p]);
+				pages.push(oBook.pages.pages[test]);
+			}
+			record.push(buildSequence(pages));
+			record.push(segments[i].id);
+			data.push(record);
 		}
-		table.appendChild(body);
-		div.appendChild(table);
 
-		// Turn the table into a YUI table.
-		var ds = new YAHOO.util.DataSource(table);
-		ds.responseType = YAHOO.util.DataSource.TYPE_HTMLTABLE;
+		var ds = new YAHOO.util.LocalDataSource(data);
+		ds.responseType = YAHOO.util.LocalDataSource.TYPE_JSARRAY;
 		ds.responseSchema = { fields: columns };
 
 		var dt = new YAHOO.widget.DataTable(div, columns, ds);
 		dt.hideColumn(dt.getColumn(columns.length - 1))
 		dt.set("selectionMode", "single");
+
+
+
+		// Works.
+		if (selectedSegment != null) {
+			dt.selectRow(selectedSegment);
+		}
+
 		dt.subscribe("rowClickEvent", function (e) {
 			this.unselectAllRows();
 			this.selectRow(e.target);
@@ -396,7 +397,7 @@ this.AuthorComponent = function() {
 					http.onreadystatechange = function() {
 						if (http.readyState == 4 && http.status == 200) {
 							var data = JSON.parse(http.responseText);
-							// for (i=0; i<data["Result"].length;i++) {
+							// for (var i=0; i<data["Result"].length;i++) {
 							//   data["Result"][i]['FullerForm'] = data["Result"][i]['Name'];
 							// }
 							oDS = new YAHOO.util.LocalDataSource(data["Result"]);
@@ -492,7 +493,7 @@ this.AuthorComponent = function() {
 			if (!segment.author_list) {
 				segment.author_list = [];
 			}
-			for (a in segment.author_list) {
+			for (var a in segment.author_list) {
 				var author = segment.author_list[a];
 
 				var bhlIcon = document.createElement("span");
@@ -550,46 +551,17 @@ this.checkPages = function() {
 
 		var pages = oBook.pages.arrayHighlighted();
 		if (segment.page_list.length == pages.length) {
-			for (p in pages) {
+			for (var p in pages) {
 				if (pages[p].pageID != segment.page_list[p]) {
 					mismatch = true;
 					break;
 				}
 			}
 			if (!mismatch) {
-				var sequences = [];
-				for (var p = 0; p < pages.length; p++) {
-					var start = pages[p];
-					var end = start;
-					while (p < pages.length - 1 && pages[p].metadata["sequence"] - pages[p + 1].metadata["sequence"] == -1) {
-						end = pages[p + 1];
-						p++;
-					}
-
-					// var pageNumber = pages[p].getMetadataValue("page_number")
-					// var pagePrefix = pages[p].getMetadataValue("page_prefix")
-					// pages[p]..metadata["sequence"]
-
-					var pagePrefix = start.getMetadataValue("page_prefix").join("");
-					var startNumber = start.getMetadataValue("page_number").join("");
-					if (start == end) {
-						if (pagePrefix && startNumber) {
-							sequences.push(pagePrefix + " " + startNumber);
-						} else {
-							sequences.push("Seq " + start.metadata["sequence"]);
-						}
-					} else {
-						var endNumber = end.getMetadataValue("page_number").join("");
-						if (pagePrefix && startNumber && endNumber) {
-							sequences.push(pagePrefix + " " + startNumber + " - " + endNumber);
-						} else {
-							sequences.push("Seq " + start.metadata["sequence"] + " - " + end.metadata["sequence"]);
-						}
-					}
-				}
-
+				var sequences = buildSequence(pages);
 				pageText.innerHTML = "Selected: " + sequences.join(", ");
 				pageText.style.display = "inline";
+				SegmentComponent.updateTable();
 				return;
 			}
 		}
@@ -598,6 +570,37 @@ this.checkPages = function() {
 		warningText.style.display = "inline";
 	}
 }
+
+this.buildSequence = function(pages) {
+	var sequences = [];
+	for (var p = 0; p < pages.length; p++) {
+		var start = pages[p];
+		var end = start;
+		while (p < pages.length - 1 && pages[p].metadata["sequence"] - pages[p + 1].metadata["sequence"] == -1) {
+			end = pages[p + 1];
+			p++;
+		}
+
+		var pagePrefix = start.getMetadataValue("page_prefix").join("");
+		var startNumber = start.getMetadataValue("page_number").join("");
+		if (start == end) {
+			if (pagePrefix && startNumber) {
+				sequences.push(pagePrefix + " " + startNumber);
+			} else {
+				sequences.push("Seq " + start.metadata["sequence"]);
+			}
+		} else {
+			var endNumber = end.getMetadataValue("page_number").join("");
+			if (pagePrefix && startNumber && endNumber) {
+				sequences.push(pagePrefix + " " + startNumber + " - " + endNumber);
+			} else {
+				sequences.push("Seq " + start.metadata["sequence"] + " - " + end.metadata["sequence"]);
+			}
+		}
+	}
+	return sequences;
+}
+
 
 Event.onAvailable("btnSelectNone-button", function() {
 	var el = document.getElementById("btnSelectNone-button");
