@@ -14,23 +14,28 @@ class bhl_segments extends Controller {
 	// Saves the segment data to the database.
     function save_segments() {
         if (!$this->common->check_session(true)) {
-			return;
+					return;
         }
-        
         // Make sure the table exists.
         $this->_check_custom_table();
 
-        // Get the data and decode it.
-        $data = $this->input->post('data');
-        $data = json_decode($data, TRUE);
+				// Get the data and decode it.
+
+//				print_r($this->input->post('data'));
+				$data = rawurldecode($this->input->post('data'));
+//				print_r($data);
+				$data = json_decode($data, TRUE);
+//				print_r($data);
+//				die;
 
         // Remove the segments saved to the database.
-        $query = $this->db->query("DELETE FROM custom_bhl_segments WHERE item_id = {$data['itemID']}");
+        $query = $this->db->query("DELETE FROM custom_bhl_segments WHERE item_id = ?", array($data['itemID']));
         
         // Insert the data.
         foreach ($data['segments'] as $segment) {
-            $columns = NULL;
-            $values = NULL;
+            $columns = [];
+            $placeholders = [];
+            $values = [];
 
             foreach ($segment as $field => $value) {
                 if ($field == 'id' || is_null($value) || empty($value)) {
@@ -40,13 +45,13 @@ class bhl_segments extends Controller {
                 if (is_array($value)) {
                     $value = json_encode($value);
                 }
-                $values[] = "'{$value}'";
+                $values[] = $value;
+                $placeholders[] = '?';
             }
+						$columns = implode(',', $columns);
+						$placeholders = implode(',', $placeholders);
 
-            $columns = implode(',', $columns);
-            $values = implode(',', $values);
-
-            $query = $this->db->query("INSERT INTO custom_bhl_segments ({$columns}) VALUES ({$values})");
+            $query = $this->db->query("INSERT INTO custom_bhl_segments ({$columns}) VALUES ({$placeholders})", $values);
         }
     }
     
@@ -64,7 +69,7 @@ class bhl_segments extends Controller {
 
         // Get the segments from the database.
         $segments = NULL;
-        $query = $this->db->query("SELECT * FROM custom_bhl_segments WHERE item_id = {$itemID}");
+        $query = $this->db->query("SELECT * FROM custom_bhl_segments WHERE item_id = ?", array($itemID));
         foreach ($query->result() as $row) {
             $segment = NULL;
             foreach ($row as $field => $value) {
@@ -98,7 +103,7 @@ class bhl_segments extends Controller {
                 'page_list' => ['type' => 'text'],
                 'title' => ['type' => 'varchar', 'constraint' => '500'],
                 'translated_title' => ['type' => 'varchar', 'constraint' => '500'],
-                'volume' => ['type' => 'varchar', 'constraint' => '10'],
+                'volume' => ['type' => 'varchar', 'constraint' => '50'],
                 'issue' => ['type' => 'varchar', 'constraint' => '10'],
                 'series' => ['type' => 'varchar', 'constraint' => '10'],
                 'date' => ['type' => 'varchar', 'constraint' => '100'],
