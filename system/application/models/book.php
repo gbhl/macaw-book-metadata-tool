@@ -2093,7 +2093,7 @@ class Book extends Model {
 	function get_stalled_exports($org_id = NULL){
 		$query = null;
 		if ($this->db->dbdriver == 'mysql' || $this->db->dbdriver == 'mysqli') {
-			$query = 'SELECT i.barcode, m.value as \'title\', o.name as \'org_name\', coalesce(b.bytes, 0) as \'bytes\', i.date_export_start, s.status_code '.
+			$query = 'SELECT i.barcode, m.value as \'title\', o.name as \'org_name\', coalesce(b.bytes, 0) as \'bytes\', i.date_export_start, s.status_code, ia.identifier '.
 				'FROM item i '.
 				'INNER JOIN organization o ON o.id = i.org_id '.
 				'LEFT OUTER JOIN ( '.
@@ -2105,11 +2105,12 @@ class Book extends Model {
 				') b ON o.id = b.org_id '.
 				'LEFT JOIN metadata m ON m.item_id = i.id AND lower(m.fieldname) = \'title\' '.
 				'LEFT JOIN item_export_status s ON s.item_id = i.id '.
+				'LEFT JOIN custom_internet_archive ia on i.id = ia.item_id '.
 				'WHERE i.status_code = \'exporting\' '.
 				'AND NOT s.status_code = \'completed\' '. 
-				'AND i.date_export_start < NOW() - INTERVAL 1 WEEK';
+				'AND i.date_export_start < NOW() - INTERVAL 3 DAY';
 		} elseif ($this->db->dbdriver == 'postgre') {
-			$query = 'SELECT i.barcode, m.value as title, o.name as org_name, coalesce(b.bytes, 0) as bytes, i.date_export_start, s.status_code '.
+			$query = 'SELECT i.barcode, m.value as title, o.name as org_name, coalesce(b.bytes, 0) as bytes, i.date_export_start, s.status_code, ia.identifier '.
 				'FROM item i '.
 				'INNER JOIN organization o ON o.id = i.org_id '.
 				'LEFT OUTER JOIN ( '.
@@ -2121,9 +2122,10 @@ class Book extends Model {
 				') b ON o.id = b.org_id '.
 				'LEFT JOIN metadata m ON m.item_id = i.id AND lower(m.fieldname) = \'title\' '.
 				'LEFT JOIN item_export_status s ON s.item_id = i.id '.
+				'LEFT JOIN custom_internet_archive ia on i.id = ia.item_id '.
 				'WHERE i.status_code = \'exporting\' '.
 				'AND NOT s.status_code = \'completed\' '. 
-				'AND i.date_export_start < NOW() - INTERVAL \'1 WEEK\'';
+				'AND i.date_export_start < NOW() - INTERVAL \'3 DAY\'';
 		}
 
 		if ($org_id){
