@@ -565,7 +565,15 @@ class Utils extends Controller {
 							
 							foreach (array_keys($p) as $k) {
 								if ($k != 'identifier' && $k != 'filename') {
-									$this->book->set_page_metadata($row->id, $k, $p[$k], 1);
+									if ($k == 'page_type') {
+										$page_types = explode(',', $p[$k]);
+										$cpt = 1;
+										foreach ($page_types as $pt) {
+											$this->book->set_page_metadata($row->id, $k, $pt, $cpt++);
+										}
+									} else {
+										$this->book->set_page_metadata($row->id, $k, $p[$k], 1);
+									}
 								}
 							}
 							// While importing, write our progress to "$filename.txt"
@@ -797,8 +805,8 @@ class Utils extends Controller {
 
 	function contributor_stats($hidekey = null) {
 		setlocale(LC_CTYPE, 'en_US');
-		$format = "%-50s  %5s  %6s  %-16s  %-40s\n";
-		printf($format, 'CONTRIBUTOR', 'ITEMS', 'PAGES', 'ACCESS_KEY', 'IA EMAIL');
+		$format = "%-50s  %5s  %6s %11s  %-16s  %-40s\n";
+		printf($format, 'CONTRIBUTOR', 'ITEMS', 'PAGES', 'LAST', 'ACCESS_KEY', 'IA EMAIL');
 
 		// Get a list of contributors
 		$orgs = $this->db->query(
@@ -828,7 +836,7 @@ class Utils extends Controller {
 
 			// Get the IA ID of the most recent completed item for the contributor
 			$last_item = $this->db->query(
-				'SELECT id FROM item i WHERE i.org_id = '.$orgs[$i]->id.
+				'SELECT id, COALESCE(date_completed, date_export_start, 0) as date_completed FROM item i WHERE i.org_id = '.$orgs[$i]->id.
 				' AND i.status_code IN (\'completed\', \'exporting\') '.
 				' ORDER BY COALESCE(date_completed, date_export_start, 0) desc'
 			)->result();
@@ -843,12 +851,14 @@ class Utils extends Controller {
 				$uploader = file_get_contents($url);
 				$uploader = json_decode($uploader);
 				$orgs[$i]->key_user = $uploader->result;
+				$orgs[$i]->last_date = substr($last_item[0]->date_completed,0,10);
 			} else {
+				$orgs[$i]->last_date = '';
 				$orgs[$i]->key_user = 'UNKNOWN';
 			}
 
 			// Spit it out in a pretty format
-			printf($format, iconv('UTF-8', 'ASCII//TRANSLIT', $orgs[$i]->name), $orgs[$i]->item_count, $orgs[$i]->page_count, ($hidekey ? '********' : $orgs[$i]->access_key), $orgs[$i]->key_user);
+			printf($format, iconv('UTF-8', 'ASCII//TRANSLIT', $orgs[$i]->name), $orgs[$i]->item_count, $orgs[$i]->page_count, $orgs[$i]->last_date, ($hidekey ? '********' : $orgs[$i]->access_key), $orgs[$i]->key_user);
 		}
 	}
 	function check_all_marc($hidekey = null) {
@@ -882,5 +892,86 @@ class Utils extends Controller {
 
 			}
 		}
+	}
+	function export_csv($barcode = null) {
+		if (!$barcode) {
+			print "Barcode is requred!\n";
+			die;
+		}
+		if (!$this->book->exists($barcode)) {
+			echo "Item not found with barcode $barcode.\n";
+			die;
+		}
+
+		$q = $this->db->query(
+			'select m.fieldname, m.value, m.value_large
+			from metadata m inner join item i on m.item_id = i.id 
+			where i.barcode = \''.$barcode.'\' and page_id is null '
+		);
+		$cols = [];
+		$vals = [];
+		$cols[] = 'identifier';
+		$vals[] = $barcode;
+		foreach ($q->result() as $r) {
+			if ($r->fieldname != 'from_pdf' && $r->fieldname != 'ia_identifier' && $r->fieldname != 'pdf_source') {
+				$cols[] = $r->fieldname;
+				$vals[] = ($r->value_large ? $r->value_large : $r->value);	
+			}
+		}	
+		$fn = '/tmp/'.preg_replace('/[^a-zA-Z0-9]+/', '-', $barcode).'-item.csv'; 
+		$fh = fopen($fn, 'w');
+		fputcsv($fh, $cols);
+		fputcsv($fh, $vals);
+		fclose($fh);
+		print "$fn saved.\n";
+
+		$q = $this->db->query(
+			'select max(i.barcode) as identifier, p.filebase as filename, 
+			max(m1.value) as page_prefix,
+			max(m2.value) as page_number,
+			max(m3.value) as page_number_implicit,
+			group_concat(m4.value) as page_type,
+			max(m5.value) as year,
+			max(m6.value) as volume,
+			max(m7.value) as piece,
+			max(m8.value) as piece_text,
+			max(m9.value) as page_side,
+			max(m10.value) as notes
+			from page p 
+			inner join item i on p.item_id = i.id
+			left outer join (select * from metadata where item_id = 15500 and fieldname = \'page_prefix\') m1 on m1.page_id = p.id 
+			left outer join (select * from metadata where item_id = 15500 and fieldname = \'page_number\') m2 on m2.page_id = p.id 
+			left outer join (select * from metadata where item_id = 15500 and fieldname = \'page_number_implicit\') m3 on m3.page_id = p.id 
+			left outer join (select * from metadata where item_id = 15500 and fieldname = \'page_type\') m4 on m4.page_id = p.id 
+			left outer join (select * from metadata where item_id = 15500 and fieldname = \'year\') m5 on m5.page_id = p.id 
+			left outer join (select * from metadata where item_id = 15500 and fieldname = \'volume\') m6 on m6.page_id = p.id 
+			left outer join (select * from metadata where item_id = 15500 and fieldname = \'piece\') m7 on m7.page_id = p.id 
+			left outer join (select * from metadata where item_id = 15500 and fieldname = \'piece_text\') m8 on m8.page_id = p.id 
+			left outer join (select * from metadata where item_id = 15500 and fieldname = \'page_side\') m9 on m9.page_id = p.id 
+			left outer join (select * from metadata where item_id = 15500 and fieldname = \'notes\') m10 on m10.page_id = p.id 
+			where i.barcode = \''.$barcode.'\'
+			group by p.filebase;'
+		);
+
+		$cols = [
+			'identifier','filename','page_prefix',
+			'page_number','page_number_implicit',
+			'page_type','year','volume','piece',
+			'piece_text','page_side','notes'
+		];
+		$fn = '/tmp/'.preg_replace('/[^a-zA-Z0-9]+/', '-', $barcode).'-pages.csv'; 
+		$fh = fopen($fn, 'w');
+		fputcsv($fh, $cols);
+		foreach ($q->result() as $r) {
+			$vals = [];
+			foreach ($cols as $c) {
+				$vals[] = $r->$c;
+			}
+			fputcsv($fh, $vals);
+		}
+		fclose($fh);
+		print "$fn saved.\n";
+
+
 	}
 }

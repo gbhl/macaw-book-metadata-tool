@@ -280,6 +280,10 @@ var formatBytes = function(elLiner, oRecord, oColumn, oData) {
 	elLiner.innerHTML = Math.round(int(oData)/1024/1024)+' MB';
 }
 
+var formatIAIdentifier = function (elLiner, oRecord, oColumn, oData) {
+	elLiner.innerHTML = '<a href="https://archive.org/details/' + oData + '">Details</a>&nbsp;<a href="https://archive.org/history/' + oData +'">History</a>';
+}
+
 var formatStatus2 = function(elCell, oRecord, oColumn, oData) {
 	if (oData == 'new') {
 		elCell.innerHTML = '<span style="color: #903">New</span>';

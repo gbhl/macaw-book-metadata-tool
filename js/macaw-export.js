@@ -46,6 +46,7 @@
 			var myColumnDefs = [
 				{key:"barcode",				label:'Barcode',		sortable: true, formatter: YAHOO.widget.DataTable.formatLink},
 				{key:"title",				label:'Title',			sortable: true },
+				{key:"identifier",			label:'IA',	sortable: true, formatter: formatIAIdentifier },
 				{key:"org_name",			label:'Contributor',	sortable: true },
 				{key:"bytes",				label:'Size',			sortable: true, formatter: formatBytes, minWidth: 80,  sortOptions: { sortFunction: sortBytes }},
 				{key:"date_export_start",	label:'Date Started',	sortable: true },
@@ -55,7 +56,7 @@
 			var myDataSource = new YAHOO.util.DataSource(data.exporting);
 			myDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
 			myDataSource.responseSchema = {
-				fields: ["barcode", "title", "org_name", "bytes", "date_export_start", "status_code"]
+				fields: ["barcode", "title", "org_name", "bytes", "date_export_start", "status_code", "identifier"]
 			};
 			
 			var items = new YAHOO.widget.DataTable("items", myColumnDefs, myDataSource);	
