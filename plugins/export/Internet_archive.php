@@ -484,6 +484,7 @@ class Internet_archive extends Controller {
 
 				// Export the TAR and/or ZIP files.
 				if ($file == '' || $file == 'scans') {
+					sleep(10);
 					if (($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') && (!file_exists($archive_file_orig) || !$id)) {
 						// Create the TAR file
 						$tar = new Archive_Tar($archive_file_orig); // name of archive
