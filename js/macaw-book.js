@@ -161,6 +161,16 @@ YAHOO.macaw.Book = function() {
 		strPOST = strPOST.replace(/\&/g,'%26')
 
 		// Connect to the server to save the data
+				// Get the CSRF Token and add it to the data
+				//	<input type="hidden" name="li_token" value="e024ddb2a0b7222fa6eb296e9b0c9def">
+				token_name = 'li_token';
+				token_value = 'NULL';
+				els = document.getElementsByTagName("meta");
+				for (i = 0; i < els.length; i++) {
+					if (els[i].name == 'csrf-name') { token_name = els[i].content; }
+					if (els[i].name == 'csrf-token') { token_value = els[i].content; }
+				}
+				strPOST = strPOST + "&" + token_name + "=" + token_value;
 
 		var transaction = YAHOO.util.Connect.asyncRequest('POST', sBaseUrl+'/scan/save_pages', saveCallback, strPOST);
 	}
