@@ -2165,6 +2165,9 @@ class Book extends Model {
 	 */
 	function set_author($marc){
 		$xml = simplexml_load_string($marc);
+		if (!$xml) {
+			return false;
+		}
 		$namespaces = $xml->getNamespaces();
 		foreach ($namespaces as $prefix => $namespace){
 			if (in_array($prefix, array('marc', ''))){
