@@ -441,7 +441,7 @@ class Main extends Controller {
 			if ($field == 'year') {
 				if (strlen(trim($val[0])) > 0) {
 					if (!preg_match('/^\d\d\d\d$/', $val[0]) && !preg_match('/^\d\d\d\d-\d\d\d\d$/', $val[0])) {
-						$errormessages[] = 'The year must be empty, YYYY, or YYYY-YYYY.';
+						$errormessages[] = 'Volume-specific 4-digit year or year range of publication is required. Format: YYYY or YYYY-YYYY. If year is unknown, leave BLANK.';
 					}
 				}
 			}
