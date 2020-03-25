@@ -100,7 +100,7 @@ class Utils extends Controller {
 	 *
 	 * @since Version 2.2
 	 */
-	function reset_item($barcode) {
+	function reset_item($barcode, $from_ia = false) {
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
 			die;
@@ -112,8 +112,8 @@ class Utils extends Controller {
 
 		// Set the status to reviewing
 		$this->book->load($barcode);
-		echo "Setting status back to reviewed...\n";
-		$this->db->query("update item set status_code = 'reviewed' where id = ".$this->book->id);
+		echo "Setting status back to reviewing...\n";
+		$this->db->query("update item set status_code = 'reviewing' where id = ".$this->book->id);
 
 		// Delete the IA Export status
 		echo "Clearing IA Export status...\n";
@@ -123,8 +123,10 @@ class Utils extends Controller {
 		$this->db->select('identifier');
 		$this->db->where('item_id', $this->book->id);
 		$query = $this->db->get('custom_internet_archive');
+		$identifier = '';
 		if ($row = $query->row()) {
 			if ($row->identifier) {
+				$identifier = $row->identifier;
 				if (file_exists($this->cfg['data_directory'].'/import_export/'.$row->identifier)) {
 					echo "Clearing IA Export files...\n";
 					$cmd = 'rm -fr '.$this->cfg['data_directory'].'/import_export/'.$row->identifier;
@@ -134,31 +136,142 @@ class Utils extends Controller {
 				}
 			}
 		}
+
  		echo "Recreating the directory structure ...\n";
  		$pth = $this->cfg['data_directory'].'/'.$barcode;
 		if (!file_exists($pth)) {
 			mkdir($pth);
-			echo "data/$barcode created...\n";
+			echo "books/$barcode created...\n";
 		} else {
-			echo "data/$barcode already exists...\n";
+			echo "books/$barcode already exists...\n";
 		}
 		if (!file_exists($pth.'/thumbs')) {
 			mkdir($pth.'/thumbs');
-			echo "data/$barcode/thumbs created...\n";
+			echo "books/$barcode/thumbs created...\n";
 		} else {
-			echo "data/$barcode/thumbs already exists...\n";
+			echo "books/$barcode/thumbs already exists...\n";
 		}
 		if (!file_exists($pth.'/preview')) {
 			mkdir($pth.'/preview');
-			echo "data/$barcode/preview created...\n";
+			echo "books/$barcode/preview created...\n";
 		} else {
-			echo "data/$barcode/preview already exists...\n";
+			echo "books/$barcode/preview already exists...\n";
 		}
 		if (!file_exists($pth.'/scans')) {
 			mkdir($pth.'/scans');
-			echo "data/$barcode/scans created...\n";
+			echo "books/$barcode/scans created...\n";
 		} else {
-			echo "data/$barcode/scans already exists...\n";
+			echo "books/$barcode/scans already exists...\n";
+		}
+
+		function _progress($ch, $dl_max, $dl, $ul_max, $ul) {
+			if ($dl_max > 0) {
+				echo chr(13)."  Progress: ".round($dl / $dl_max * 100,0)."%";	
+			} else {
+				echo chr(13)."  Progress: 0%";	
+			}
+			
+			flush();
+		}
+
+		if (substr(strtolower($from_ia),0,1) == 't' || substr(strtolower($from_ia),0,1) == 'y' ||  $from_ia == '1') {
+			if ($identifier) {
+				// Download the JP2 ZIP file from IA
+				$fname = "{$identifier}_jp2.zip";
+				$zipfile = "{$pth}/{$fname}";
+				$url = "https://archive.org/download/{$identifier}/{$fname}";
+				echo "Downloading $fname from the Internet Archive...\n";
+				set_time_limit(0);
+				if (!file_exists($zipfile)) {
+					$fh = fopen($zipfile, "w+");
+					$ch = curl_init();
+					curl_setopt($ch, CURLOPT_URL, $url);
+					curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+					curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+					curl_setopt($ch, CURLOPT_PROGRESSFUNCTION, '_progress');
+					curl_setopt($ch, CURLOPT_NOPROGRESS, false); // needed to make progress function work
+					curl_setopt($ch, CURLOPT_HEADER, 0);
+					curl_setopt($ch, CURLOPT_FILE, $fh);
+					curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+					curl_exec($ch); 
+					curl_close($ch);
+					fclose($fh);
+					echo "\n";
+				}
+				
+				// Extract the images to the scans folder
+				echo "Exracting images...\n";
+				$zip = new ZipArchive;
+				print "$zipfile\n";
+				$x = $zip->open($zipfile);
+				if ($x) {
+					for($i = 0; $i < $zip->numFiles; $i++) {
+						$filename = $zip->getNameIndex($i);
+						$fileinfo = pathinfo($filename);
+						if (substr($fileinfo['basename'],-4,4) == '.jp2') {
+							copy("zip://{$zipfile}#{$filename}", "{$pth}/scans/{$fileinfo['basename']}");
+						}
+					}
+					$zip->close();                  
+				}
+
+				print "Creating thumbs/previews and updating database...\n";
+				// Update the name and extension in the pages table
+				// Get the existing pages
+				$pages = [];
+				$query = $this->db->query('select * from page where item_id = ? order by sequence_number', array($this->book->id));
+				$pages = $query->result();
+				foreach ($pages as $p) {
+					print "  Sequence Number {$p->sequence_number}\n";
+					$files = glob("{$pth}/scans/*_".sprintf('%04d', $p->sequence_number).".jp2");
+					if (count($files) == 0 ) {
+						print "Could not find a file for sequence number ".$p->sequence_number."\n";
+						continue;
+					}
+					if (count($files) > 1 ) {
+						print "Found more than one file for sequence number ".$p->sequence_number."\n";
+						continue;
+					}
+					$fileinfo = pathinfo($files[0]);
+
+					// Create the preview JPEG
+					$preview = new Imagick($files[0]);
+					$this->common->get_largest_image($preview);
+
+					// get the dimensions, we're going to want them later
+					$dimensions = $preview->getImageGeometry();
+
+					// Create the preview image
+					$preview->resizeImage(1500, 2000, Imagick::FILTER_POINT, 0);
+					try {
+						$preview->writeImage("{$pth}/preview/".$fileinfo['filename'].".jpg");
+					} catch (Exception $e) {
+						print '  Exception (preview image): '.$e->getMessage()."\n";
+					}
+
+					// Create the thumbnail image
+					$preview->resizeImage(180, 300, Imagick::FILTER_POINT, 0);
+					try {
+						$preview->writeImage("{$pth}/thumbs/".$fileinfo['filename'].".jpg");
+					} catch (Exception $e) {
+						print '  Exception (thumbnail image): '.$e->getMessage()."\n";
+					}
+
+					$preview->clear();
+					$preview->destroy();
+
+					$data = [];
+					$data[] = $fileinfo['filename'];
+					$data[] = filesize($files[0]);
+					$data[] = 'jp2';
+					$data[] = $dimensions['width'];
+					$data[] = $dimensions['height'];
+					$data[] = $this->book->id;
+					$data[] = $p->id;
+					$query = $this->db->query('update page set filebase = ?, bytes = ?, extension = ?, width = ?, height = ? where item_id = ? and id = ?', $data);
+					print_r($query);
+				}
+			}
 		}
 
 		// Give command to start re-uploading the item
