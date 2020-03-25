@@ -411,6 +411,7 @@ class Main extends Controller {
 	 */
 	function edit_save() {
 		$this->common->check_session();
+		$errormessages = [];
 		
 		// Permission Checking
 		if (!$this->user->has_permission('scan')) {
@@ -436,6 +437,15 @@ class Main extends Controller {
 		$this->book->unset_metadata('', true); // Wipe all all item metadata
 		
 		foreach ($_REQUEST as $field => $val) {			
+			// Validate the year. Arguably this shouldn't be here, but for now, it'll do.
+			if ($field == 'year') {
+				if (strlen(trim($val[0])) > 0) {
+					if (!preg_match('/^\d\d\d\d$/', $val[0]) && !preg_match('/^\d\d\d\d-\d\d\d\d$/', $val[0])) {
+						$errormessages[] = 'The year must be empty, YYYY, or YYYY-YYYY.';
+					}
+				}
+			}
+
 			if ($field != 'id' && $field != 'needs_qa' && $field != 'ia_ready_images' && $field != 'page_progression' && $field != 'idenitifer' &&
 			    $field != 'scanning_institution[]' && $field != 'scanning_institution_other' && $field != 'rights_holder[]' && $field != 'rights_holder_other') {
 				$matches = array();
@@ -478,7 +488,7 @@ class Main extends Controller {
 				}
 			}
 			if (count($new) > 0) {
-				$this->session->set_userdata('errormessage', "It looks like the following collection(s) are new. Please verify the spelling and accuracy. <strong>".implode(', ', $new)."</strong>");
+				$errormessages[] = "It looks like the following collection(s) are new. Please verify the spelling and accuracy. <strong>".implode(', ', $new)."</strong>";
 			}
 		}
 
@@ -521,7 +531,7 @@ class Main extends Controller {
 		$marc = $this->book->get_metadata('marc_xml');
 		$marc = $this->common->clean_marc($marc);
 		if ($msg = $this->common->validate_marc($marc)){
-			$this->session->set_userdata('errormessage', $msg);
+			$errormessages[] = $msg;
 		} else {
 			$this->book->set_metadata('marc_xml', $marc);
 		}
@@ -534,6 +544,9 @@ class Main extends Controller {
 		$this->session->set_userdata('author', $this->book->get_metadata('author'));
 
 		$this->session->set_userdata('message', 'Changes saved!');
+		if (count($errormessages) > 0) {
+			$this->session->set_userdata('errormessage', '<ul><li>'.implode('</li><li>', $errormessages).'</li></ul>');
+		}
 		//Changed redirect to review with new style and workflow
 		redirect($this->config->item('base_url').'main/edit');	
 	}
@@ -789,6 +802,16 @@ class Main extends Controller {
 		
 		// Apply the metadata
 		foreach ($_REQUEST as $field => $val) {
+			
+			// Validate the year. Arguably this shouldn't be here, but for now, it'll do.
+			if ($field == 'year') {
+				if (strlen(trim($val[0])) > 0) {
+					if (!preg_match('/^\d\d\d\d$/', $val[0]) && !preg_match('/^\d\d\d\d-\d\d\d\d$/', $val[0])) {
+						$this->session->set_userdata('errormessage', 'The year must be empty, YYYY, or YYYY-YYYY.');
+					}
+				}
+			}
+
 			if ($field != 'id' && $field != 'needs_qa' && $field != 'ia_ready_images' && $field != 'page_progression' && $field != 'idenitifer') {
 				$matches = array();
 				if (preg_match('/^new_fieldname_(\d+)$/', $field, $matches)) {
