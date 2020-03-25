@@ -163,18 +163,24 @@ td.yui-dt-last {
 }
 #message {
 	border-color: #c7d7b8;
-	color: #697f54;
+	color: #446c1e;
 	background: #E8EEE0;
 }
 #warning {
-	border-color: #f3c2b1;
-	color: #D88629;
+	border-color: #fac287;
+	color: rgb(233, 137, 28);
 	background: #FFF0C9;
 }
 #errormessage {
-	border-color: #f3c2b1;
-	color:#c76d55;
-	background: #f8e9e1;
+	border-color: #f3b5b1;
+	color:#cb1616;
+	background: #f8e3e1;
+}
+#errormessage ul {
+	margin: 0 0 0 60px;
+}
+#errormessage li {
+	list-style: disc outside;
 }
 #message .icon {
 	 background: url(../images/round_info_green_icon.png) no-repeat center left;
