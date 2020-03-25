@@ -446,8 +446,10 @@ class Main extends Controller {
 				}
 			}
 
-			if ($field != 'id' && $field != 'needs_qa' && $field != 'ia_ready_images' && $field != 'page_progression' && $field != 'idenitifer' &&
-			    $field != 'scanning_institution[]' && $field != 'scanning_institution_other' && $field != 'rights_holder[]' && $field != 'rights_holder_other') {
+			if ($field != 'id' && $field != 'needs_qa' && $field != 'ia_ready_images' && $field != 'page_progression' && $field != 'idenitifer'
+					&& $field != 'scanning_institution[]' && $field != 'scanning_institution_other' 
+					&& $field != 'rights_holder[]' && $field != 'rights_holder_other'
+					&& $field != 'contributor[]' && $field != 'contributor_other') {
 				$matches = array();
 				if (preg_match('/^new_fieldname_(\d+)$/', $field, $matches)) {
 					$c = $matches[1];
@@ -515,6 +517,19 @@ class Main extends Controller {
 			}
 		}
 		
+		$contributor = null;
+		if (array_key_exists('contributor', $_POST)) {
+			if ($_POST['contributor'] != '(other)') {
+				$this->book->set_metadata('contributor', $_POST['contributor'], false);
+				$contributor = $_POST['contributor'];
+			} else {
+				if (array_key_exists('contributor_other', $_POST)) {
+					$this->book->set_metadata('contributor', $_POST['contributor_other'], false);
+					$contributor = $_POST['contributor_other'];
+				}
+			}
+		}
+
 		if (array_key_exists('copyright', $_POST)) {
 			if (isset($_POST['copyright'][0])) {
 				if ($_POST['copyright'][0] == '1' && !$rights_holder) {
@@ -817,7 +832,9 @@ class Main extends Controller {
 				if (preg_match('/^new_fieldname_(\d+)$/', $field, $matches)) {
 					$c = $matches[1];
 					if (isset($_REQUEST['new_fieldname_'.$c]) && isset($_REQUEST['new_value_'.$c]) && $_REQUEST['new_value_'.$c] != '') {
-						if ($_REQUEST['new_fieldname_'.$c] == 'scanning_institution' || $_REQUEST['new_fieldname_'.$c] == 'rights_holder') {
+						if ($_REQUEST['new_fieldname_'.$c] == 'scanning_institution' 
+								|| $_REQUEST['new_fieldname_'.$c] == 'rights_holder'
+								|| $_REQUEST['new_fieldname_'.$c] == 'contributor') {
 							if ($_REQUEST['new_value_'.$c] == '(other)') {
 								$this->book->set_metadata(trim($_REQUEST['new_fieldname_'.$c]), $_REQUEST['new_value_'.$c.'_other'], false);
 							} else {

@@ -274,9 +274,18 @@
 					
 				<?php  $c = 0;
 					foreach ($metadata as $i) { ?>
-					<?php if ($i['fieldname'] == 'scanning_institution' || $i['fieldname'] == 'rights_holder') { ?> 
+					<?php if ($i['fieldname'] == 'scanning_institution' || $i['fieldname'] == 'rights_holder' || $i['fieldname'] == 'contributor') { ?> 
 						<tr class="row" id="existing_field_<?php echo($c) ?>">
-							<td class="fieldname"><?php echo($i['fieldname'] == 'scanning_institution' ? 'Added By:' : ($i['fieldname'] == 'rights_holder' ? 'Rights Holder:' : $i['fieldname'].':')); ?></td>
+							<td class="fieldname">
+								<?php
+									if ($i['fieldname'] == 'scanning_institution') {
+										echo 'Added By:';
+									} elseif ($i['fieldname'] == 'rights_holder') {
+										echo 'Rights Holder:';
+									} elseif ($i['fieldname'] == 'contributor') {
+										echo 'Holding Institution:';
+									}
+								?></td>
 							<td>
 								<select name="<?php echo($i['fieldname']); ?>" style="width: 96%" onChange="FIELDS.checkOther(this)">
 									<option value="">(none)</option>
@@ -337,11 +346,21 @@
 					$counter = 900;
 					foreach ($missing_metadata as $mod => $fields) {
 						foreach ($fields as $f) {
-							if ($f != 'scanning_institution' && $f != 'rights_holder') { continue; }
+							if ($f != 'scanning_institution' && $f != 'rights_holder' && $f != 'contributor') { continue; }
 							$counter++;
 				?>
 						<tr class="row" id="newfields_<?php echo($counter); ?>">
-							<td class="fieldname"><?php echo($f == 'scanning_institution' ? 'Added By:' : ($f == 'rights_holder' ? 'Rights Holder:' : $f.':')); ?><input type="hidden" name="new_fieldname_<?php echo($counter); ?>" maxlength="32" value="<?php echo($f); ?>" class="txt-fieldname"></td>
+							<td class="fieldname">
+								<?php 
+									if ($f == 'scanning_institution') {
+										echo 'Added By:';
+									} elseif ($f == 'rights_holder') {
+										echo 'Rights Holder:';
+									} elseif ($f == 'contributor') {
+										echo 'Holding Institution:';
+									}
+								?>
+								<input type="hidden" name="new_fieldname_<?php echo($counter); ?>" maxlength="32" value="<?php echo($f); ?>" class="txt-fieldname"></td>
 							<td>
 								<select name="new_value_<?php echo($counter); ?>" id="new_value_<?php echo($counter); ?>" style="width: 96%" onChange="FIELDS.checkOther(this);">
 									<option value="">(none)</option>
@@ -362,7 +381,7 @@
 
 				<?php
 						foreach ($fields as $f) {
-							if ($f == 'scanning_institution' || $f == 'rights_holder') {
+							if ($f == 'scanning_institution' || $f == 'rights_holder' || $f == 'contributor') {
 								continue;
 							}
 							$counter++;
