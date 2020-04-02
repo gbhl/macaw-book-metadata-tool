@@ -1228,7 +1228,7 @@ class Internet_archive extends Controller {
 							if ($this->cfg['purge_ia_deriatives']) {
 								echo 'The purging IA export directory '.$id."\n";
 								$cmd = 'rm -fr '.$this->cfg['data_directory'].'/import_export/Internet_archive/'.$id;
-								system($cmd);
+//								system($cmd);
 							}
 						}
 
@@ -1855,12 +1855,12 @@ class Internet_archive extends Controller {
 		];
 		
 		// Main XML element.
-		$segments_xml = new SimpleXMLElement('<segmentData></segmentData>');
+		$segments_xml = new SimpleXMLElement('<bhlSegmentData></bhlSegmentData>');
 
 		// Query the database and check the results.
-		$query = $this->CI->db->query("SELECT*  FROM custom_bhl_segments WHERE item_id = {$book->id}");
+		$query = $this->CI->db->query("SELECT * FROM custom_bhl_segments WHERE item_id = {$book->id}");
 		if (count($query->result()) == 0) {
-			return NULL;
+				return NULL;
 		}
 
 		// Go through the results.
@@ -1885,10 +1885,28 @@ class Internet_archive extends Controller {
 				$author_xml = $authors_xml->addChild('author');
 
 				// Add the name and (if applicable) dates.
-				if ($author->dates) {
-					$author_xml->addChild('name', "{$author->name}, {$author->dates}");
-				} else {
-					$author_xml->addChild('name', "{$author->name}");
+				if ($author->name) {
+					if ($author->dates) {
+						$author_xml->addChild('name', "{$author->name}, {$author->dates}");
+					} else {
+						$author_xml->addChild('name', "{$author->name}");
+					}
+				}
+				if ($author->first_name) {
+					$author_xml->addChild('firstName', "{$author->first_name}");
+				}
+				if ($author->last_name) {
+					$author_xml->addChild('lastName', "{$author->last_name}");
+				}
+				if ($author->start_date) {
+					$author_xml->addChild('startDate', "{$author->start_date}");
+				}
+				if ($author->end_date) {
+					$author_xml->addChild('endDate', "{$author->end_date}");
+				}
+				if ($author->identifier_type && $author->identifier_value) {
+					$id_xml = $author_xml->addChild('identifier', "{$author->identifier_value}");
+					$id_xml->addAttribute('typeId', $author->identifier_type);
 				}
 
 				// Check if the author has an ID in BHL.
@@ -1907,6 +1925,7 @@ class Internet_archive extends Controller {
 
 			$segment_xml->addChild('doi', $row->doi);
 		}
+
 		$segments_xml = str_replace('<?xml version="1.0"?>', '', $segments_xml->asXML());
 		
 		$xml = new DOMDocument("1.0");
@@ -1935,68 +1954,68 @@ class Internet_archive extends Controller {
 		$dpi = $this->_get_dpi($book, $pages);
 
 		$output = '<book>'."\n";
-		$output .= ' <bookData>'."\n";
-		$output .= '  <bookId>'.$id.'</bookId>'."\n";
-		$output .= '  <leafCount>'.count($pages).'</leafCount>'."\n";
-		$output .= '  <dpi>'.$dpi.'</dpi>'."\n";
+		$output .= '  <bookData>'."\n";
+		$output .= '    <bookId>'.$id.'</bookId>'."\n";
+		$output .= '    <leafCount>'.count($pages).'</leafCount>'."\n";
+		$output .= '    <dpi>'.$dpi.'</dpi>'."\n";
 		if ($book->page_progression == 'rtl') {
-			$output .= '  <globalHandedness>'."\n";
-			$output .= '    <page-progression>rl</page-progression>'."\n";
-			$output .= '    <scanned-right-to-left>true</scanned-right-to-left>'."\n";
-			$output .= '    <scanned-upside-down>false</scanned-upside-down>'."\n";
-			$output .= '    <needs-rectification>false</needs-rectification>'."\n";
-			$output .= '  </globalHandedness>'."\n";
+			$output .= '    <globalHandedness>'."\n";
+			$output .= '      <page-progression>rl</page-progression>'."\n";
+			$output .= '      <scanned-right-to-left>true</scanned-right-to-left>'."\n";
+			$output .= '      <scanned-upside-down>false</scanned-upside-down>'."\n";
+			$output .= '      <needs-rectification>false</needs-rectification>'."\n";
+			$output .= '    </globalHandedness>'."\n";
 		}
-		$output .= '  <pageNumData>'."\n";
+		$output .= '    <pageNumData>'."\n";
 		$c = 1;
 		foreach ($pages as $p) {
 			if (property_exists($p, 'page_number')) {
 				if ($p->page_number) {
-					$output .= '    <assertion>'."\n";
-					$output .= '  	<leafNum>'.$c.'</leafNum>'."\n";
-					$output .= '  	<pageNum>'.$p->page_number.'</pageNum>'."\n";
-					$output .= '    </assertion>'."\n";
+					$output .= '      <assertion>'."\n";
+					$output .= '      	<leafNum>'.$c.'</leafNum>'."\n";
+					$output .= '      	<pageNum>'.$p->page_number.'</pageNum>'."\n";
+					$output .= '      </assertion>'."\n";
 				}
 			}
 			$c++;
 		}
-		$output .= '  </pageNumData>'."\n";
-		$output .= ' </bookData>'."\n";
-		$output .= ' <pageData>'."\n";
+		$output .= '    </pageNumData>'."\n";
+		$output .= '  </bookData>'."\n";
+		$output .= '  <pageData>'."\n";
 
 		$c = 1;
 
 		foreach ($pages as $p) {
-			$output .= '  <page leafNum="'.$c.'">'."\n";
+			$output .= '    <page leafNum="'.$c.'">'."\n";
 			// Basic Info
 			if ($c == 1) {
-				$output .= '    <bookStart>true</bookStart>'."\n";
+				$output .= '      <bookStart>true</bookStart>'."\n";
 			}
 			if (property_exists($p, 'page_type')) {
-				$output .= '    <pageType>'.$this->_get_pagetype($p->page_type).'</pageType>'."\n";
+				$output .= '      <pageType>'.$this->_get_pagetype($p->page_type).'</pageType>'."\n";
 			} else {
-				$output .= '    <pageType>Normal</pageType>'."\n";
+				$output .= '      <pageType>Normal</pageType>'."\n";
 			}
-			$output .= '    <addToAccessFormats>true</addToAccessFormats>'."\n";
-			$output .= '    <origWidth>'.$p->width.'</origWidth>'."\n";
-			$output .= '    <origHeight>'.$p->height.'</origHeight>'."\n";
+			$output .= '      <addToAccessFormats>true</addToAccessFormats>'."\n";
+			$output .= '      <origWidth>'.$p->width.'</origWidth>'."\n";
+			$output .= '      <origHeight>'.$p->height.'</origHeight>'."\n";
 
 			// Crop Box
-			$output .= '    <cropBox>'."\n";
-			$output .= '      <x>0</x>'."\n";
-			$output .= '      <y>0</y>'."\n";
-			$output .= '      <w>'.$p->width.'</w>'."\n";
-			$output .= '      <h>'.$p->height.'</h>'."\n";
-			$output .= '    </cropBox>'."\n";
+			$output .= '      <cropBox>'."\n";
+			$output .= '        <x>0</x>'."\n";
+			$output .= '        <y>0</y>'."\n";
+			$output .= '        <w>'.$p->width.'</w>'."\n";
+			$output .= '        <h>'.$p->height.'</h>'."\n";
+			$output .= '      </cropBox>'."\n";
 
 			// Page Number
 			if (property_exists($p, 'page_number')) {
 				if ($p->page_number) {
 					if (preg_match('/(and|,)/', $p->page_number)) {
 						$pagenums = preg_split('/(and|,)/', $p->page_number);
-						$output .= '    <pageNumber>'.trim($pagenums[0]).'</pageNumber>'."\n";
+						$output .= '      <pageNumber>'.trim($pagenums[0]).'</pageNumber>'."\n";
 					} else {
-						$output .= '    <pageNumber>'.$p->page_number.'</pageNumber>'."\n";
+						$output .= '      <pageNumber>'.$p->page_number.'</pageNumber>'."\n";
 					}
 				}
 			}
@@ -2012,25 +2031,25 @@ class Internet_archive extends Controller {
 				if (property_exists($p, 'page_prefix')) {
 					$prefix = $p->page_prefix;
 				}
-				$output .= '    <altPageNumbers>'."\n";
+				$output .= '      <altPageNumbers>'."\n";
 				if (preg_match('/(and|,)/', $p->page_number)) {
 					$pagenums = preg_split('/(and|,)/', $p->page_number);
 					foreach ($pagenums as $pgnum) {
-						$output .= '      <altPageNumber prefix="'.htmlentities($prefix,ENT_XML1).'"'.($implied ? ' implied="1"' : '').'>'.trim($pgnum).'</altPageNumber>'."\n";
+						$output .= '        <altPageNumber prefix="'.htmlentities($prefix,ENT_XML1).'"'.($implied ? ' implied="1"' : '').'>'.trim($pgnum).'</altPageNumber>'."\n";
 					}
 				} else {
-					$output .= '      <altPageNumber prefix="'.htmlentities($prefix,ENT_XML1).'"'.($implied ? ' implied="1"' : '').'>'.$p->page_number.'</altPageNumber>'."\n";
+					$output .= '        <altPageNumber prefix="'.htmlentities($prefix,ENT_XML1).'"'.($implied ? ' implied="1"' : '').'>'.$p->page_number.'</altPageNumber>'."\n";
 				}
-				$output .= '    </altPageNumbers>'."\n";
+				$output .= '      </altPageNumbers>'."\n";
 			}
 
 			// Recto/Verso
 			if (property_exists($p, 'page_side')) {
 				if ($p->page_side) {
 					if (preg_match('/Left/i', $p->page_side)) {
-						$output .= '    <handSide>LEFT</handSide>'."\n";
+						$output .= '      <handSide>LEFT</handSide>'."\n";
 					} elseif (preg_match('/Right/i', $p->page_side)) {
-						$output .= '    <handSide>RIGHT</handSide>'."\n";
+						$output .= '      <handSide>RIGHT</handSide>'."\n";
 					}
 				}
 			}
@@ -2043,23 +2062,23 @@ class Internet_archive extends Controller {
 			}
 
 			// Always send alternate page types
-			$output .= '    <altPageTypes>'."\n";
+			$output .= '      <altPageTypes>'."\n";
 			foreach ($page_types as $pt) {
-				$output .= '      <altPageType>'.$pt.'</altPageType>'."\n";
+				$output .= '        <altPageType>'.$pt.'</altPageType>'."\n";
 			}
-			$output .= '    </altPageTypes>'."\n";
+			$output .= '      </altPageTypes>'."\n";
 
 			// Caption, because we can
 			if (property_exists($p, 'caption')) {
 				if ($p->caption) {
-					$output .= '    <caption>'.$p->caption.'</caption>'."\n";
+					$output .= '      <caption>'.$p->caption.'</caption>'."\n";
 				}
 			}
 
 			// Volume
 			if (property_exists($p, 'volume')) {
 				if ($p->volume) {
-					$output .= '    <volume>'.$p->volume.'</volume>'."\n";
+					$output .= '      <volume>'.$p->volume.'</volume>'."\n";
 				}
 			}
 
@@ -2069,15 +2088,15 @@ class Internet_archive extends Controller {
 				if (count($p->piece)) {
 					$i = array_search('Issue', $p->piece);
 					if (isset($i)) {
-						$output .= '    <piece prefix="'.$p->piece[$i].'">'.$p->piece_text[$i].'</piece>'."\n";
+						$output .= '      <piece prefix="'.$p->piece[$i].'">'.$p->piece_text[$i].'</piece>'."\n";
 					} else {
 						$i = array_search('No.', $p->piece);
 						if (isset($i)) {
-							$output .= '    <piece prefix="'.$p->piece[$i].'">'.$p->piece_text[$i].'</piece>'."\n";
+							$output .= '      <piece prefix="'.$p->piece[$i].'">'.$p->piece_text[$i].'</piece>'."\n";
 						} else {
 							$i = array_search('Part', $p->piece);
 							if (isset($i)) {
-								$output .= '    <piece prefix="'.$p->piece[$i].'">'.$p->piece_text[$i].'</piece>'."\n";
+								$output .= '      <piece prefix="'.$p->piece[$i].'">'.$p->piece_text[$i].'</piece>'."\n";
 							}
 						}
 					}
@@ -2087,18 +2106,18 @@ class Internet_archive extends Controller {
 			// Year
 			if (property_exists($p, 'year')) {
 				if ($p->year) {
-					$output .= '    <year>'.$p->year.'</year>'."\n";
+					$output .= '      <year>'.$p->year.'</year>'."\n";
 				}
 			}
 
-			$output .= '  </page>'."\n";
+			$output .= '    </page>'."\n";
 			$c++;
 		}
-		$output .= ' </pageData>'."\n";
+		$output .= '  </pageData>';
 		
 		// Segments.
 		if ($segments = $this->_create_segments_xml($id, $book, $pages)) {
-			$output .= "{$segments}\n";
+			$output .= preg_replace('/^/m','  ', $segments);
 		}
 
 		$output .= '</book>';

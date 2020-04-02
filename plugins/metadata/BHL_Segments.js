@@ -21,6 +21,7 @@ var AuthorComponent = null;
 this.SegmentComponent = function() {
 	var metadataFields = [
 		{ id: "segment_title", display_name: "Title", type: "text", field: "title"},
+		{ id: "segment_translated_title", display_name: "Translated Title", type: "text", field: "translated_title" },
 		{ id: "segment_genre", display_name: "Genre", type: "select-one", field: "genre"},
 		{ id: "segment_language", display_name: "Language", type: "select-one", field: "language"},
 		{ id: "segment_doi", display_name: "DOI", type: "text", field: "doi"},
@@ -225,6 +226,7 @@ this.SegmentComponent = function() {
 	}
 
 	// Updates the extra table with a list of segments.
+	// TODO
 	var updateTable = function() {
 		var selectedSegment = null;
 		var div = Dom.get("extra");
@@ -252,13 +254,11 @@ this.SegmentComponent = function() {
 			for (var f in metadataFields) {
 				switch (metadataFields[f].type) {
 					case "select-one":
-						if (segments[i][metadataFields[f].field]) {
-							var select = Dom.get(metadataFields[f].id);
-							for (var o in select.options) {
-								if (select.options[o].value == segments[i][metadataFields[f].field]) {
-									record.push(select.options[o].innerHTML);
-									break;
-								}
+						var select = Dom.get(metadataFields[f].id);
+						for (var o in select.options) {
+							if (select.options[o].value == segments[i][metadataFields[f].field]) {
+								record.push(select.options[o].innerHTML);
+								break;
 							}
 						}
 						break;
@@ -270,9 +270,7 @@ this.SegmentComponent = function() {
 						record.push(authors.join("; "));
 						break;
 					default:
-						if (segments[i][metadataFields[f].field]) {
-							record.push(segments[i][metadataFields[f].field]);
-						}
+						record.push(segments[i][metadataFields[f].field]);
 				}
 			}
 			var pages = [];
@@ -313,6 +311,66 @@ this.SegmentComponent = function() {
 		})
 	}
 
+	var validateSegments = function () {
+		var errors = '';
+		for (var i = 0; i < segments.length; i++) {
+			if (!segments[i].title) {
+				errors += '   * Title is required for each segment.\n';
+				break;
+			}
+		}
+		// for (var i = 0; i < segments.length; i++) {
+		// 	if (!segments[i].date) {
+		// 		errors += '   * Date is required for each segment.\n';
+		// 		break;
+		// 	}
+		// }
+		// for (var i = 0; i < segments.length; i++) {
+		// 	if (!segments[i].volume && !segments[i].issue && !segments[i].series) {
+		// 		errors += '   * Volume, Issue and/or Series is required for each segment.\n';
+		// 		break;
+		// 	}
+		// }
+		for (var i = 0; i < segments.length; i++) {
+			if (!segments[i].genre) {
+				errors += '   * Genre is required for each segment. ';
+				break;
+			}
+		}
+		return errors;
+	}
+
+	var saveSegments = function () {
+		var callback = {
+			failure: function (ob) {
+				var y = 10;
+			},
+			scope: this
+		};
+
+		segmentErrors = validateSegments();
+		if (segmentErrors != "") {
+			window.setTimeout(function () { oBook.modified = true; }, 5000) 
+			alert('One or more segments had errors. Please correct them before saving: \n\n' + segmentErrors);
+		}
+
+		var data = "data=" + encodeURIComponent(JSON.stringify({
+			"itemID": oBook.itemID,
+			"segments": segments
+		}));
+
+		// Get the CSRF Token and add it to the data
+		//	<input type="hidden" name="li_token" value="e024ddb2a0b7222fa6eb296e9b0c9def">
+		token_name = 'li_token';
+		token_value = 'NULL';
+		els = document.getElementsByTagName("meta");
+		for (i = 0; i < els.length; i++) {
+			if (els[i].name == 'csrf-name') { token_name = els[i].content; }
+			if (els[i].name == 'csrf-token') { token_value = els[i].content; }
+		}
+		data = data + "&" + token_name + "=" + token_value;
+		var transaction = YAHOO.util.Connect.asyncRequest("POST", sBaseUrl + '/bhl_segments/save_segments', callback, data);
+	}
 	return {
 		addSegment: addSegment,
 		removeSegment: removeSegment,
@@ -322,16 +380,19 @@ this.SegmentComponent = function() {
 		selectionChanged: selectionChanged,
 		metadataChanged: metadataChanged,
 		updateDropdown: updateDropdown,
+		saveSegments: saveSegments,
 		updateTable: updateTable
 	}
 }
 
 this.AuthorComponent = function() {
-    var fields = [
-        "name",
-        "identifier_type", 
-        "identifier_value",
-        "dates",
+	var fields = [
+		"last_name",
+		"first_name",
+		"identifier_type", 
+		"identifier_value",
+		"start_date",
+		"end_date",
 		"source"
 	];
 	
@@ -360,14 +421,22 @@ this.AuthorComponent = function() {
 							}
 						}
 					});
-					
-					// Add the data to the segment.
-					var segment = SegmentComponent.getCurrentSegment();
-					segment.author_list.push(data);
-		
-					closeDialog();
-					SegmentComponent.updateTable();
-					refreshList();
+					// Validation
+					if (!data['last_name'].trim()) {
+						alert('A last name is required for each author.')
+					} else {
+						// Add the data to the segment.
+						var segment = SegmentComponent.getCurrentSegment();
+						data['name'] = data["last_name"]
+							+ (data["first_name"] ? ', ' + data["first_name"] : '')
+							+ ((data["start_date"] || data["end_date"]) ? ' (' + data["start_date"] + '-' + data["end_date"] + ')' : '');
+						segment.author_list.push(data);
+
+						closeDialog();
+						SegmentComponent.updateTable();
+						refreshList();
+					}
+
 				}, isDefault: true },
 				{ text: "Cancel", handler: closeDialog }
 			]
@@ -381,7 +450,7 @@ this.AuthorComponent = function() {
 		var request = function() {
 			// Empty data source to initialize the widget. 
 			var oDS = [];
-			var oAC = new YAHOO.widget.AutoComplete("segment_author_name", "segment_author_name_autocomplete", new YAHOO.util.LocalDataSource(oDS));
+			var oAC = new YAHOO.widget.AutoComplete("segment_author_last_name", "segment_author_name_autocomplete", new YAHOO.util.LocalDataSource(oDS));
 			
 			// Populates the data source whenever data is requested by the widget.
 			oAC.dataRequestEvent.subscribe(function (type, args) {
@@ -397,12 +466,8 @@ this.AuthorComponent = function() {
 					http.onreadystatechange = function() {
 						if (http.readyState == 4 && http.status == 200) {
 							var data = JSON.parse(http.responseText);
-							// for (var i=0; i<data["Result"].length;i++) {
-							//   data["Result"][i]['FullerForm'] = data["Result"][i]['Name'];
-							// }
 							oDS = new YAHOO.util.LocalDataSource(data["Result"]);
 							oDS.responseSchema = {fields: ["Name", "CreatorID", "FullerForm", "Dates", "CreatorUrl"]};
-							// oDS.responseSchema = {fields: ["Name", "AuthorID", "FullerForm", "Dates", "CreatorUrl"]};
 							args[0].dataSource = oDS;
 						}
 					}
@@ -417,15 +482,25 @@ this.AuthorComponent = function() {
 				link.style.visibility = "visible";
 				link.innerHTML = "(View on BHL: " + args[2][1] + ")";
 				
-				var el = Dom.get("segment_author_dates");
-				el.value = args[2][3];
+				var elStart = Dom.get("segment_author_start_date");
+				var elEnd = Dom.get("segment_author_start_date");
+				var dates = args[2][3].split('-');
+				elStart.value = dates[0];
+				elEnd.value = dates[1];
 				
-				var el = ["segment_author_identifier_type", "segment_author_identifier_value", "segment_author_dates"];
+				var el = ["segment_author_identifier_type", "segment_author_identifier_value", "segment_author_start_date", "segment_author_end_date"];
 				el.forEach(function(e) {
 					e = Dom.get(e);
 					e.disabled = true;
 					e.value = "";
 				});
+
+				var elFirst = Dom.get('segment_author_first_name');
+				var elLast = Dom.get('segment_author_last_name');
+				var name = args[2][0].split(',');
+				elLast.value = name[0].trim();
+				if (typeof name[1] != 'undefined') { elFirst.value = name[1].trim(); }
+				
 			});
 			
 			oAC.textboxKeyEvent.subscribe(function (type, args) {
@@ -434,7 +509,7 @@ this.AuthorComponent = function() {
 				link.style.visibility = "hidden";
 				link.innerHTML = "";
 									
-				var el = ["segment_author_identifier_type", "segment_author_identifier_value", "segment_author_dates"];
+				var el = ["segment_author_identifier_type", "segment_author_identifier_value", "segment_author_start_date", "segment_author_end_date"];
 				el.forEach(function(e) {
 					e = Dom.get(e);
 					e.disabled = false;
@@ -448,8 +523,11 @@ this.AuthorComponent = function() {
 		}();
 		
 		// Removes the auto-added YUI2 CSS.
-		Dom.get("segment_author_name").parentElement.classList.remove("yui-ac");
-		Dom.get("segment_author_name").classList.remove("yui-ac-input");
+		// Dom.get("segment_author_last_name").parentElement.classList.remove("yui-ac");
+		// Dom.get("segment_author_last_name").classList.remove("yui-ac-input");
+		// Dom.get("segment_author_first_name").parentElement.classList.remove("yui-ac");
+		// Dom.get("segment_author_first_name").classList.remove("yui-ac-input");
+		// Dom.get('segment_author_last_name').focus();
 	}
 
 	// Close the author dialog.
@@ -466,7 +544,7 @@ this.AuthorComponent = function() {
 	// Remove an author from the current segment.
 	var removeAuthor = function(obj) {
 		var segment = SegmentComponent.getCurrentSegment();
-		segment.author_list.splice(obj.toElement.id.match(/\d+/), 1);
+		segment.author_list.splice(obj.target.id.match(/\d+/), 1);
 		SegmentComponent.updateTable();
 		refreshList();
 	}
@@ -493,6 +571,7 @@ this.AuthorComponent = function() {
 			if (!segment.author_list) {
 				segment.author_list = [];
 			}
+			var count = 0;
 			for (var a in segment.author_list) {
 				var author = segment.author_list[a];
 
@@ -503,14 +582,15 @@ this.AuthorComponent = function() {
 				var deleteButton = document.createElement("a");
 				deleteButton.title = "Remove this author";
 				deleteButton.className = "remove-button";
+				deleteButton.id = "authorIndex-"+count;
 				Event.addListener(deleteButton, "click", removeAuthor);
 				
 				var li = document.createElement("li");
 				li.appendChild(deleteButton);
 
-				var text = author["name"];
-				if (author["dates"]) {
-					text = text + " (" + author["dates"] + ")";
+				var text = author["last_name"] + (author["first_name"] ? ', ' + author["first_name"] : '') 
+				if (author["start_date"] || author["end_date"]) {
+					text = text + " (" + author["start_date"] + '-' + author["end_date"]+ ")";
 				}
 				if (author["source"]) {
 					text = document.createTextNode(text);
@@ -527,6 +607,7 @@ this.AuthorComponent = function() {
 					li.appendChild(document.createTextNode(text));
 				}
 				ul.appendChild(li);
+				count++;
 			}
 		}
 	}
@@ -602,6 +683,7 @@ this.buildSequence = function(pages) {
 }
 
 
+
 Event.onAvailable("btnSelectNone-button", function() {
 	var el = document.getElementById("btnSelectNone-button");
 	YAHOO.util.Event.addListener(el, "click", function() {
@@ -613,6 +695,12 @@ Event.onAvailable("btnSelectNone-button", function() {
 /* This runs once the page has loaded.        */
 /* ****************************************** */
 Event.onDOMReady( function() {
+
+	// setTimeout(function () {
+
+
+	// }, 3)
+	
 	SegmentComponent = SegmentComponent();
 	AuthorComponent = AuthorComponent();
 
@@ -624,22 +712,6 @@ Event.onDOMReady( function() {
 		checkPages();
 	});
 
-	var el = document.getElementById("btnSave");
-	YAHOO.util.Event.addListener(el, "click", function() {
-		var callback = {
-				failure: function(ob) {
-					var y = 10;
-				},
-				scope: this
-		};
-
-		var data = "data=" + JSON.stringify({
-			"itemID": oBook.itemID,
-			"segments" : segments
-		});
-		var transaction = YAHOO.util.Connect.asyncRequest("POST", sBaseUrl + '/bhl_segments/save_segments', callback, data);
-	});
-
 	onBookLoaded.subscribe(function() {
 		var callback = {
 				success: function(obj) {
@@ -648,6 +720,14 @@ Event.onDOMReady( function() {
 					}
 					SegmentComponent.updateDropdown();
 					SegmentComponent.updateTable();
+
+					var elbtnSave = document.getElementById("btnSave");
+					YAHOO.util.Event.addListener(elbtnSave, "click", SegmentComponent.saveSegments);
+
+					var elbtnFinished = document.getElementById("btnFinished");
+					YAHOO.util.Event.addListener(elbtnFinished, "click", SegmentComponent.saveSegments);
+
+
 				},
 				failure: function(ob) {
 					var y = 10;
@@ -655,8 +735,8 @@ Event.onDOMReady( function() {
 				scope: this
 		};
 
-		var data = "data=" + JSON.stringify(oBook.itemID);	
-		var transaction = YAHOO.util.Connect.asyncRequest("POST", sBaseUrl + '/bhl_segments/load_segments', callback, data);
+		var data = "data=" + JSON.stringify(oBook.itemID); 
+		var transaction = YAHOO.util.Connect.asyncRequest("GET", sBaseUrl + '/bhl_segments/load_segments/' + oBook.itemID, callback);
 	});
 });
 
