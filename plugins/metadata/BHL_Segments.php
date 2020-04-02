@@ -575,14 +575,14 @@
 	}
 ?>
 
-
 <style type="text/css">
 	#bhl-segments {line-height: 200%;}
 	#bhl-segments textarea {height:30px;width: 80%;}
 
-	#bhl-segments td label img {
+	#bhl-segments td label img,
+	#bhl-segments td img {
 		cursor: pointer;
-		padding-bottom: 5px;
+		padding-bottom: 3px;
 	}
 	#bhl-segments td input,
 	#bhl-segments td select {
@@ -594,6 +594,14 @@
 	#bhl-segments td input:disabled,
 	#bhl-segments td select:disabled {
 		background-color: #f2f2f2;
+	}
+	#bhl-segments #segmentPages {
+		float: right;
+	}
+	#bhl-segments #segmentWarning {
+		color: red;
+		display: none;
+		float: right;
 	}
 	#bhl-segments .table-wrapper {
 		padding: 0px !important;
@@ -637,6 +645,15 @@
 	#bhl-segments .remove-button:hover {
 		background: url(../images/icons/delete.png) no-repeat;
 	}
+
+	#bhl-segments .bhl-icon {
+		background: url(../images/icons/bhl.png) no-repeat;
+		background-size: 20px;
+		display: inline-block;
+		height: 15px;
+		margin-left: 4px;
+		width: 20px;
+	}
 		
 	#bhl-segments .yui-dt-col-extra {
 		white-space:nowrap;
@@ -650,114 +667,136 @@
 		width: 100%;
 		border: 1px solid #808080;
 	}
+
+	#btnToggleExtra { display: inline-block; }
+	#btnToggleList.yui-button button { border-radius: 0; }
+	#btnToggleExtra.yui-button button { 
+    background: url(../images/icons/bhl.png) no-repeat;
+    background-size: 24px;
+    background-position: 3px 0px;	
+  }
 </style>
 
 <div id="bhl-segments">
-	<table border="0" cellspacing="0" cellpadding="3" width="100%" style="height: 146px">
+	<table border="0" cellspacing="0" cellpadding="3" width="100%">
 		<tr>
-			<td width="65%" valign="top">
+			<td valign="top">
+				<label for="segmentList">Segment:</label>
+			</td>
+			<td width="30%" valign="top">
+				<select id="segmentList" onChange="SegmentComponent.selectionChanged(this);" >
+					<option value="" selected></option>
+				</select>
+			</td>
+			<td width="70%">
+				<img id="btnAddSegment" src="<?php echo $this->config->item('base_url'); ?>images/icons/add.png" onClick="SegmentComponent.addSegment();" class="icon" title="Add new segment">
+				<img id="btnDeleteSegment" src="<?php echo $this->config->item('base_url'); ?>images/icons/delete.png" onClick="SegmentComponent.removeSegment();" class="icon" title="Remove segment">
+				<img id="btnDeleteSegment" src="<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png" onClick="SegmentComponent.removeAllSegments();" class="icon" title="Remove all segments">
+				<span id="segmentMessages">
+
+					<span id="segmentPages"></span>
+					<span id="segmentWarning">
+						<img  src="<?php echo $this->config->item('base_url'); ?>images/icons/error.png" class="icon">
+						WARNING: Selected pages do not match segment pages.
+						<img id="btnupdateSegmentPages" src="<?php echo $this->config->item('base_url'); ?>images/icons/pages_refresh.png" onClick="SegmentComponent.updatePages(this);" class="icon" title="Update pages for segment">
+					</span>
+				</div>
+			</td>
+		</tr>
+	</table>
+
+	<hr>
+
+	<table border="0" cellspacing="0" cellpadding="3" width="100%">
+		<tr>
+			<td colspan="2" class="table-wrapper" valign="top">
 				<table border="0" cellspacing="0" cellpadding="0" width="100%">
 					<tr>
-						<td><label for="segment_title">Title:</label></td>
-						<td width="35%">
-							<input type="text" id="segment_title" onChange="YAHOO.macaw.BHL_Segments.metadataChange(this);" title="Segment Title">
-						</td>
-						<td><label for="segment_translated_title">Translated Title:</label></td>
-						<td width="35%">
-							<input type="text" id="segment_translated_title" onChange="YAHOO.macaw.BHL_Segments.metadataChange(this);" title="Translated Segment Title">
-						</td>
-					</tr>
-					<tr>				
-						<td><label for="segment_external_url">External URL:</label></td>
-						<td>
-							<input type="text" id="segment_external_url" onChange="YAHOO.macaw.BHL_Segments.metadataChange(this);" title="Segment Title">
-						</td>
-						<td><label for="segment_download_url">Download URL:</label></td>
-						<td>
-							<input type="text" id="segment_download_url" onChange="YAHOO.macaw.BHL_Segments.metadataChange(this);" title="Segment Title">
+						<td colspan="8" class="table-wrapper">
+							<table border="0" cellspacing="0" cellpadding="0" width="100%">
+								<tr>
+									<td><label for="segment_title">Segment Title:</label></td>
+									<td width="35%">
+										<input type="text" id="segment_title" onChange="SegmentComponent.metadataChanged(this);" title="Segment Title" disabled>
+									</td>
+									<td><label for="segment_translated_title">Translated Title:</label></td>
+									<td width="35%">
+										<input type="text" id="segment_translated_title" onChange="SegmentComponent.metadataChanged(this);" title="Translated Segment Title" disabled>
+									</td>
+								</tr>
+							</table>
 						</td>
 					</tr>
 					<tr>
-						<td colspan="4" class="table-wrapper">
+						<td><label for="segment_volume">Volume:</label></td>
+						<td width="25%">
+							<input type="text" id="segment_volume" onChange="SegmentComponent.metadataChanged(this);" title="Segment Volume" disabled>
+						</td>
+						<td><label for="segment_issue">Issue:</label></td>
+						<td width="25%">
+							<input type="text" id="segment_issue" onChange="SegmentComponent.metadataChanged(this);" title="Segment Issue" disabled>
+						</td>
+						<td><label for="segment_series">Series:</label></td>
+						<td width="25%">
+							<input type="text" id="segment_series" onChange="SegmentComponent.metadataChanged(this);" title="Segment Series" disabled>
+						</td>
+						<td><label for="segment_date">Date:</label></td>
+						<td width="25%">
+							<input type="text" id="segment_date" onChange="SegmentComponent.metadataChanged(this);" title="Segment Date" disabled>
+						</td>
+					</tr>	
+					<tr>
+						<td colspan="8" class="table-wrapper">
 							<table border="0" cellspacing="0" cellpadding="0" width="100%">
 								<td><label for="segment_genre">Genre:</label></td>
 								<td width="25%">
-									<select id="segment_genre" onChange="YAHOO.macaw.BHL_Segments.metadataChange(this);">
+									<select id="segment_genre" onChange="SegmentComponent.metadataChanged(this);"  disabled>
 										<option value=""></option>
 										<?php echo(implode('', array_map('createOption', $segment_genres))); ?>
 									</select>
 								</td>
 								<td><label for="segment_language">Language:</label></td>
 								<td width="25%">
-									<select id="segment_language" onChange="YAHOO.macaw.BHL_Segments.metadataChange(this);">
+									<select id="segment_language" onChange="SegmentComponent.metadataChanged(this);"  disabled>
 										<option value=""></option>
 										<?php echo(implode('', array_map('createOption', $segment_languages))); ?>
 									</select>
 								</td>
 								<td><label for="segment_doi">DOI:</label></td>
 								<td width="30%">
-									<input type="text" id="segment_doi" onChange="YAHOO.macaw.BHL_Segments.metadataChange(this);" title="Segment Title">
+									<input type="text" id="segment_doi" onChange="SegmentComponent.metadataChanged(this);" title="Segment DOI" disabled>
 								</td>
-							</table>
+							</table>							
 						</td>
-					</tr>
-					<tr>
-						<td id="tdIdentifier" colspan="2" width="25%">
-							<label for="segment_identifiers">Identifiers: 
-								<img src="<?php echo $this->config->item('base_url'); ?>images/icons/add.png" id="btnShowIdentifierDlg" class="icon">
-								<img src="<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearIdentifierType" class="icon" onMouseOver="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';"></label>
-							</label>
-						</td>
-						<td id="tdKeyword" colspan="2" width="25%">
-							<label for="segment_keywords">Keywords: 
-								<img src="<?php echo $this->config->item('base_url'); ?>images/icons/add.png" id="btnShowKeywordDlg" class="icon">
-								<img src="<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearKeywordType" class="icon" onMouseOver="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';"></label>
-							</label>
-						</td>						
-					</tr>
-					<tr>
-						<td colspan="2" class="list">
-							<ul id="segment_identifiers" class="identifier-list"></ul>
-						</td>
-						<td colspan="2" class="list">
-							<ul id="segment_keywords" class="keyword-list"></ul>
-						</td>						
-					</tr>
+					</tr>				
 				</table>
 			</td>
-			<td width="35%" valign="top" height="100%">
+			<td width="40%" valign="top">
 				<table border="0" cellspacing="0" cellpadding="0" width="100%">
 					<tr>
-						<td><label for="segment_volume">Volume:</label></td>
-						<td width="30%">
-							<input type="text" id="segment_volume" onChange="YAHOO.macaw.BHL_Segments.metadataChange(this);" title="Segment Volume">
-						</td>	
-						<td><label for="segment_issue">Issue:</label></td>
-						<td width="30%">
-							<input type="text" id="segment_issue" onChange="YAHOO.macaw.BHL_Segments.metadataChange(this);" title="Segment Issue">
-						</td>	
-						<td><label for="segment_date">Date:</label></td>
-						<td width="30%">
-							<input type="text" id="segment_date" onChange="YAHOO.macaw.BHL_Segments.metadataChange(this);" title="Segment Date">
-						</td>			
-					</tr>
-					<tr>
-						<td id="tdAuthor" colspan="6">
-							<label for="segment_authors">Authors: 
-								<img src="<?php echo $this->config->item('base_url'); ?>images/icons/add.png" id="btnShowAuthorDlg" class="icon">
-								<img src="<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearAuthorType" class="icon" onMouseOver="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';"></label>
+						<td id="segment_authors" colspan="6">
+							<label for="segment_authors_list">Authors: 
+								<img style="display: none" src="<?php echo $this->config->item('base_url'); ?>images/icons/add.png" id="btnShowAuthorDlg" class="icon" onClick="AuthorComponent.showDialog(this)" title="Add new author">
+								<img style="display: none" src="<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearAuthorType" onClick="AuthorComponent.removeAll()" class="icon" onMouseOver="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';" title="Remove all authors"></label>
 							</label>
 						</td>
 					</tr>
 					<tr>
 						<td class="list" colspan="6">
-							<ul id="segment_authors" class="author-list"></ul>
+							<ul id="segment_authors_list" class="author-list"></ul>
 						</td>
 					</tr>
 				</table>
 			</td>
 		</tr>
 	</table>
+
+	<div id="dlgSegmentPages" style="display:none;margin-top:-200px">
+		<div style="border: 1px solid #999; padding: 5px; line-height: 1.7; margin: 0 0 5px;">
+
+		</div>
+	</div>
+	
 	<div id="dlgAuthor" style="display:none;margin-top:-200px">
 		<div style="border: 1px solid #999; padding: 5px; line-height: 1.7; margin: 0 0 5px;">
 			<table border="0" cellspacing="0" cellpadding="0" width="100%">
@@ -791,23 +830,6 @@
 					</td>
 				</tr>
 			</table>
-		</div>
-	</div>
-	<div id="dlgIdentifier" style="display:none;margin-top:-200px">
-		<div style="border: 1px solid #999; padding: 5px; line-height: 1.7; margin: 0 0 5px;">
-			<strong>Type:</strong><br>
-			<select id="segment_identifier_type">
-				<option value=""></option>
-				<?php echo(implode('', array_map('createOption', $segment_identifiers))); ?>
-			</select><br>
-			<strong>Value:</strong><br>
-			<input type="text" id="segment_identifier_value"><br>
-		</div>
-	</div>
-	<div id="dlgKeyword" style="display:none;margin-top:-200px">
-		<div style="border: 1px solid #999; padding: 5px; line-height: 1.7; margin: 0 0 5px;">
-			<strong>Keyword:</strong><br>
-			<input type="text" id="segment_keyword"><br>
 		</div>
 	</div>
 </div>

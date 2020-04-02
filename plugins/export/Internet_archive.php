@@ -1280,163 +1280,640 @@ class Internet_archive extends Controller {
 	// This should call Book.get_item_metadata().
 	// ----------------------------
 	function _create_segments_xml($id, $book, $pages) {
+		$segment_genres = [
+			1 => 'Article',
+			2 => 'Book',
+			3 => 'BookItem',
+			4 => 'Chapter',
+			8 => 'Conference',
+			6 => 'Issue',
+			5 => 'Journal',
+			14 => 'Letter',
+			9 => 'Preprint',
+			7 => 'Proceeding',
+			13 => 'Thesis',
+			11 => 'Treatment',
+			10 => 'Unknown'
+		];
+			
+		$segment_identifiers = [
+			6 => 'Abbreviation',
+			31 => 'BioLib.cz',
+			16 => 'BioStor',
+			7 => 'BPH',
+			20 => 'Catalogue of Life',
+			10 => 'CODEN',
+			9 => 'DDC',
+			5 => 'DLC',
+			18 => 'EOL',
+			30 => 'EUNIS',
+			28 => 'GBIF Taxonomic Backbone',
+			19 => 'GNI',
+			13 => 'GPO',
+			24 => 'Index Fungorum',
+			34 => 'Index to Organism Names',
+			26 => 'Interim Reg. of Marine/Nonmarine Genera',
+			3 => 'ISBN',
+			2 => 'ISSN',
+			22 => 'ITIS',
+			36 => 'JSTOR',
+			14 => 'MARC001',
+			12 => 'NAL',
+			17 => 'NameBank',
+			23 => 'NCBI',
+			11 => 'NLM',
+			35 => 'OAI',
+			1 => 'OCLC',
+			37 => 'Soulsby',
+			33 => 'The International Plant Names Index',
+			8 => 'TL2',
+			32 => 'Tropicos',
+			25 => 'Union 4',
+			15 => 'VIAF',
+			21 => 'Wikispecies',
+			4 => 'WonderFetch',
+			27 => 'WoRMS',
+			29 => 'ZooBank'
+		];
+			
+		$segment_languages = [
+			'aar' => 'Afar',
+			'abk' => 'Abkhaz',
+			'ace' => 'Achinese',
+			'ach' => 'Acoli',
+			'ada' => 'Adangme',
+			'ady' => 'Adygei',
+			'afa' => 'Afroasiatic (Other)',
+			'afh' => 'Afrihili (Artificial language)',
+			'afr' => 'Afrikaans',
+			'ain' => 'Ainu',
+			'-ajm' => 'Aljamía',
+			'aka' => 'Akan',
+			'akk' => 'Akkadian',
+			'alb' => 'Albanian',
+			'ale' => 'Aleut',
+			'alg' => 'Algonquian (Other)',
+			'alt' => 'Altai',
+			'amh' => 'Amharic',
+			'ang' => 'English, Old (ca. 450-1100)',
+			'anp' => 'Angika',
+			'apa' => 'Apache languages',
+			'ara' => 'Arabic',
+			'arc' => 'Aramaic',
+			'arg' => 'Aragonese',
+			'arm' => 'Armenian',
+			'arn' => 'Mapuche',
+			'arp' => 'Arapaho',
+			'art' => 'Artificial (Other)',
+			'arw' => 'Arawak',
+			'asm' => 'Assamese',
+			'ast' => 'Bable',
+			'ath' => 'Athapascan (Other)',
+			'aus' => 'Australian languages',
+			'ava' => 'Avaric',
+			'ave' => 'Avestan',
+			'awa' => 'Awadhi',
+			'aym' => 'Aymara',
+			'aze' => 'Azerbaijani',
+			'bad' => 'Banda languages',
+			'bai' => 'Bamileke languages',
+			'bak' => 'Bashkir',
+			'bal' => 'Baluchi',
+			'bam' => 'Bambara',
+			'ban' => 'Balinese',
+			'baq' => 'Basque',
+			'bas' => 'Basa',
+			'bat' => 'Baltic (Other)',
+			'bej' => 'Beja',
+			'bel' => 'Belarusian',
+			'bem' => 'Bemba',
+			'ben' => 'Bengali',
+			'ber' => 'Berber (Other)',
+			'bho' => 'Bhojpuri',
+			'bih' => 'Bihari (Other)',
+			'bik' => 'Bikol',
+			'bin' => 'Edo',
+			'bis' => 'Bislama',
+			'bla' => 'Siksika',
+			'bnt' => 'Bantu (Other)',
+			'bos' => 'Bosnian',
+			'bra' => 'Braj',
+			'bre' => 'Breton',
+			'btk' => 'Batak',
+			'bua' => 'Buriat',
+			'bug' => 'Bugis',
+			'bul' => 'Bulgarian',
+			'bur' => 'Burmese',
+			'byn' => 'Bilin',
+			'cad' => 'Caddo',
+			'cai' => 'Central American Indian (Other)',
+			'-cam' => 'Khmer',
+			'car' => 'Carib',
+			'cat' => 'Catalan',
+			'cau' => 'Caucasian (Other)',
+			'ceb' => 'Cebuano',
+			'cel' => 'Celtic (Other)',
+			'cha' => 'Chamorro',
+			'chb' => 'Chibcha',
+			'che' => 'Chechen',
+			'chg' => 'Chagatai',
+			'chi' => 'Chinese',
+			'chk' => 'Chuukese',
+			'chm' => 'Mari',
+			'chn' => 'Chinook jargon',
+			'cho' => 'Choctaw',
+			'chp' => 'Chipewyan',
+			'chr' => 'Cherokee',
+			'chu' => 'Church Slavic',
+			'chv' => 'Chuvash',
+			'chy' => 'Cheyenne',
+			'cmc' => 'Chamic languages',
+			'cop' => 'Coptic',
+			'cor' => 'Cornish',
+			'cos' => 'Corsican',
+			'cpe' => 'Creoles and Pidgins, English-based (Other)',
+			'cpf' => 'Creoles and Pidgins, French-based (Other)',
+			'cpp' => 'Creoles and Pidgins, Portuguese-based (Other)',
+			'cre' => 'Cree',
+			'crh' => 'Crimean Tatar',
+			'crp' => 'Creoles and Pidgins (Other)',
+			'csb' => 'Kashubian',
+			'cus' => 'Cushitic (Other)',
+			'cze' => 'Czech',
+			'dak' => 'Dakota',
+			'dan' => 'Danish',
+			'dar' => 'Dargwa',
+			'day' => 'Dayak',
+			'del' => 'Delaware',
+			'den' => 'Slavey',
+			'dgr' => 'Dogrib',
+			'din' => 'Dinka',
+			'div' => 'Divehi',
+			'doi' => 'Dogri',
+			'dra' => 'Dravidian (Other)',
+			'dsb' => 'Lower Sorbian',
+			'dua' => 'Duala',
+			'dum' => 'Dutch, Middle (ca. 1050-1350)',
+			'dut' => 'Dutch',
+			'dyu' => 'Dyula',
+			'dzo' => 'Dzongkha',
+			'efi' => 'Efik',
+			'egy' => 'Egyptian',
+			'eka' => 'Ekajuk',
+			'elx' => 'Elamite',
+			'eng' => 'English',
+			'enm' => 'English, Middle (1100-1500)',
+			'epo' => 'Esperanto',
+			'-esk' => 'Eskimo languages',
+			'-esp' => 'Esperanto',
+			'est' => 'Estonian',
+			'-eth' => 'Ethiopic',
+			'ewe' => 'Ewe',
+			'ewo' => 'Ewondo',
+			'fan' => 'Fang',
+			'fao' => 'Faroese',
+			'-far' => 'Faroese',
+			'fat' => 'Fanti',
+			'fij' => 'Fijian',
+			'fil' => 'Filipino',
+			'fin' => 'Finnish',
+			'fiu' => 'Finno-Ugrian (Other)',
+			'fon' => 'Fon',
+			'fre' => 'French',
+			'-fri' => 'Frisian',
+			'frm' => 'French, Middle (ca. 1300-1600)',
+			'fro' => 'French, Old (ca. 842-1300)',
+			'frr' => 'North Frisian',
+			'frs' => 'East Frisian',
+			'fry' => 'Frisian',
+			'ful' => 'Fula',
+			'fur' => 'Friulian',
+			'gaa' => 'Gã',
+			'-gae' => 'Scottish Gaelix',
+			'-gag' => 'Galician',
+			'-gal' => 'Oromo',
+			'gay' => 'Gayo',
+			'gba' => 'Gbaya',
+			'gem' => 'Germanic (Other)',
+			'geo' => 'Georgian',
+			'ger' => 'German',
+			'gez' => 'Ethiopic',
+			'gil' => 'Gilbertese',
+			'gla' => 'Scottish Gaelic',
+			'gle' => 'Irish',
+			'glg' => 'Galician',
+			'glv' => 'Manx',
+			'gmh' => 'German, Middle High (ca. 1050-1500)',
+			'goh' => 'German, Old High (ca. 750-1050)',
+			'gon' => 'Gondi',
+			'gor' => 'Gorontalo',
+			'got' => 'Gothic',
+			'grb' => 'Grebo',
+			'grc' => 'Greek, Ancient (to 1453)',
+			'gre' => 'Greek, Modern (1453-)',
+			'grn' => 'Guarani',
+			'gsw' => 'Swiss German',
+			'-gua' => 'Guarani',
+			'guj' => 'Gujarati',
+			'gwi' => "Gwich'in",
+			'hai' => 'Haida',
+			'hat' => 'Haitian French Creole',
+			'hau' => 'Hausa',
+			'haw' => 'Hawaiian',
+			'heb' => 'Hebrew',
+			'her' => 'Herero',
+			'hil' => 'Hiligaynon',
+			'him' => 'Western Pahari languages',
+			'hin' => 'Hindi',
+			'hit' => 'Hittite',
+			'hmn' => 'Hmong',
+			'hmo' => 'Hiri Motu',
+			'hrv' => 'Croatian',
+			'hsb' => 'Upper Sorbian',
+			'hun' => 'Hungarian',
+			'hup' => 'Hupa',
+			'iba' => 'Iban',
+			'ibo' => 'Igbo',
+			'ice' => 'Icelandic',
+			'ido' => 'Ido',
+			'iii' => 'Sichuan Yi',
+			'ijo' => 'Ijo',
+			'iku' => 'Inuktitut',
+			'ile' => 'Interlingue',
+			'ilo' => 'Iloko',
+			'ina' => 'Interlingua (International Auxiliary Language Association)',
+			'inc' => 'Indic (Other)',
+			'ind' => 'Indonesian',
+			'ine' => 'Indo-European (Other)',
+			'inh' => 'Ingush',
+			'-int' => 'Interlingua (International Auxiliary Language Association)',
+			'ipk' => 'Inupiaq',
+			'ira' => 'Iranian (Other)',
+			'-iri' => 'Irish',
+			'iro' => 'Iroquoian (Other)',
+			'ita' => 'Italian',
+			'jav' => 'Javanese',
+			'jbo' => 'Lojban (Artificial language)',
+			'jpn' => 'Japanese',
+			'jpr' => 'Judeo-Persian',
+			'jrb' => 'Judeo-Arabic',
+			'kaa' => 'Kara-Kalpak',
+			'kab' => 'Kabyle',
+			'kac' => 'Kachin',
+			'kal' => 'Kalâtdlisut',
+			'kam' => 'Kamba',
+			'kan' => 'Kannada',
+			'kar' => 'Karen languages',
+			'kas' => 'Kashmiri',
+			'kau' => 'Kanuri',
+			'kaw' => 'Kawi',
+			'kaz' => 'Kazakh',
+			'kbd' => 'Kabardian',
+			'kha' => 'Khasi',
+			'khi' => 'Khoisan (Other)',
+			'khm' => 'Khmer',
+			'kho' => 'Khotanese',
+			'kik' => 'Kikuyu',
+			'kin' => 'Kinyarwanda',
+			'kir' => 'Kyrgyz',
+			'kmb' => 'Kimbundu',
+			'kok' => 'Konkani',
+			'kom' => 'Komi',
+			'kon' => 'Kongo',
+			'kor' => 'Korean',
+			'kos' => 'Kosraean',
+			'kpe' => 'Kpelle',
+			'krc' => 'Karachay-Balkar',
+			'krl' => 'Karelian',
+			'kro' => 'Kru (Other)',
+			'kru' => 'Kurukh',
+			'kua' => 'Kuanyama',
+			'kum' => 'Kumyk',
+			'kur' => 'Kurdish',
+			'-kus' => 'Kusaie',
+			'kut' => 'Kootenai',
+			'lad' => 'Ladino',
+			'lah' => 'Lahndā',
+			'lam' => 'Lamba (Zambia and Congo)',
+			'-lan' => 'Occitan (post 1500)',
+			'lao' => 'Lao',
+			'-lap' => 'Sami',
+			'lat' => 'Latin',
+			'lav' => 'Latvian',
+			'lez' => 'Lezgian',
+			'lim' => 'Limburgish',
+			'lin' => 'Lingala',
+			'lit' => 'Lithuanian',
+			'lol' => 'Mongo-Nkundu',
+			'loz' => 'Lozi',
+			'ltz' => 'Luxembourgish',
+			'lua' => 'Luba-Lulua',
+			'lub' => 'Luba-Katanga',
+			'lug' => 'Ganda',
+			'lui' => 'Luiseño',
+			'lun' => 'Lunda',
+			'luo' => 'Luo (Kenya and Tanzania)',
+			'lus' => 'Lushai',
+			'mac' => 'Macedonian',
+			'mad' => 'Madurese',
+			'mag' => 'Magahi',
+			'mah' => 'Marshallese',
+			'mai' => 'Maithili',
+			'mak' => 'Makasar',
+			'mal' => 'Malayalam',
+			'man' => 'Mandingo',
+			'mao' => 'Maori',
+			'map' => 'Austronesian (Other)',
+			'mar' => 'Marathi',
+			'mas' => 'Maasai',
+			'-max' => 'Manx',
+			'may' => 'Malay',
+			'mdf' => 'Moksha',
+			'mdr' => 'Mandar',
+			'men' => 'Mende',
+			'mga' => 'Irish, Middle (ca. 1100-1550)',
+			'mic' => 'Micmac',
+			'min' => 'Minangkabau',
+			'mis' => 'Miscellaneous languages',
+			'mkh' => 'Mon-Khmer (Other)',
+			'-mla' => 'Malagasy',
+			'mlg' => 'Malagasy',
+			'mlt' => 'Maltese',
+			'mnc' => 'Manchu',
+			'mni' => 'Manipuri',
+			'mno' => 'Manobo languages',
+			'moh' => 'Mohawk',
+			'-mol' => 'Moldavian',
+			'mon' => 'Mongolian',
+			'mos' => 'Mooré',
+			'mul' => 'Multiple languages',
+			'mun' => 'Munda (Other)',
+			'mus' => 'Creek',
+			'mwl' => 'Mirandese',
+			'mwr' => 'Marwari',
+			'myn' => 'Mayan languages',
+			'myv' => 'Erzya',
+			'nah' => 'Nahuatl',
+			'nai' => 'North American Indian (Other)',
+			'nap' => 'Neapolitan Italian',
+			'nau' => 'Nauru',
+			'nav' => 'Navajo',
+			'nbl' => 'Ndebele (South Africa)',
+			'nde' => 'Ndebele (Zimbabwe)',
+			'ndo' => 'Ndonga',
+			'nds' => 'Low German',
+			'nep' => 'Nepali',
+			'new' => 'Newari',
+			'nia' => 'Nias',
+			'nic' => 'Niger-Kordofanian (Other)',
+			'niu' => 'Niuean',
+			'nno' => 'Norwegian (Nynorsk)',
+			'nob' => 'Norwegian (Bokmål)',
+			'nog' => 'Nogai',
+			'non' => 'Old Norse',
+			'nor' => 'Norwegian',
+			'nqo' => "N'Ko",
+			'nso' => 'Northern Sotho',
+			'nub' => 'Nubian languages',
+			'nwc' => 'Newari, Old',
+			'nya' => 'Nyanja',
+			'nym' => 'Nyamwezi',
+			'nyn' => 'Nyankole',
+			'nyo' => 'Nyoro',
+			'nzi' => 'Nzima',
+			'oci' => 'Occitan (post-1500)',
+			'oji' => 'Ojibwa',
+			'ori' => 'Oriya',
+			'orm' => 'Oromo',
+			'osa' => 'Osage',
+			'oss' => 'Ossetic',
+			'ota' => 'Turkish, Ottoman',
+			'oto' => 'Otomian languages',
+			'paa' => 'Papuan (Other)',
+			'pag' => 'Pangasinan',
+			'pal' => 'Pahlavi',
+			'pam' => 'Pampanga',
+			'pan' => 'Panjabi',
+			'pap' => 'Papiamento',
+			'pau' => 'Palauan',
+			'peo' => 'Old Persian (ca. 600-400 B.C.)',
+			'per' => 'Persian',
+			'phi' => 'Philippine (Other)',
+			'phn' => 'Phoenician',
+			'pli' => 'Pali',
+			'pol' => 'Polish',
+			'pon' => 'Pohnpeian',
+			'por' => 'Portuguese',
+			'pra' => 'Prakrit languages',
+			'pro' => 'Provençal (to 1500)',
+			'pus' => 'Pushto',
+			'que' => 'Quechua',
+			'raj' => 'Rajasthani',
+			'rap' => 'Rapanui',
+			'rar' => 'Rarotongan',
+			'roa' => 'Romance (Other)',
+			'roh' => 'Raeto-Romance',
+			'rom' => 'Romani',
+			'rum' => 'Romanian',
+			'run' => 'Rundi',
+			'rup' => 'Aromanian',
+			'rus' => 'Russian',
+			'sad' => 'Sandawe',
+			'sag' => 'Sango (Ubangi Creole)',
+			'sah' => 'Yakut',
+			'sai' => 'South American Indian (Other)',
+			'sal' => 'Salishan languages',
+			'sam' => 'Samaritan Aramaic',
+			'san' => 'Sanskrit',
+			'-sao' => 'Samoan',
+			'sas' => 'Sasak',
+			'sat' => 'Santali',
+			'-scc' => 'Serbian',
+			'scn' => 'Sicilian Italian',
+			'sco' => 'Scots',
+			'-scr' => 'Croatian',
+			'sel' => 'Selkup',
+			'sem' => 'Semitic (Other)',
+			'sga' => 'Irish, Old (to 1100)',
+			'sgn' => 'Sign languages',
+			'shn' => 'Shan',
+			'-sho' => 'Shona',
+			'sid' => 'Sidamo',
+			'sin' => 'Sinhalese',
+			'sio' => 'Siouan (Other)',
+			'sit' => 'Sino-Tibetan (Other)',
+			'sla' => 'Slavic (Other)',
+			'slo' => 'Slovak',
+			'slv' => 'Slovenian',
+			'sma' => 'Southern Sami',
+			'sme' => 'Northern Sami',
+			'smi' => 'Sami',
+			'smj' => 'Lule Sami',
+			'smn' => 'Inari Sami',
+			'smo' => 'Samoan',
+			'sms' => 'Skolt Sami',
+			'sna' => 'Shona',
+			'snd' => 'Sindhi',
+			'-snh' => 'Sinhalese',
+			'snk' => 'Soninke',
+			'sog' => 'Sogdian',
+			'som' => 'Somali',
+			'son' => 'Songhai',
+			'sot' => 'Sotho',
+			'spa' => 'Spanish',
+			'srd' => 'Sardinian',
+			'srn' => 'Sranan',
+			'srp' => 'Serbian',
+			'srr' => 'Serer',
+			'ssa' => 'Nilo-Saharan (Other)',
+			'-sso' => 'Sotho',
+			'ssw' => 'Swazi',
+			'suk' => 'Sukuma',
+			'sun' => 'Sundanese',
+			'sus' => 'Susu',
+			'sux' => 'Sumerian',
+			'swa' => 'Swahili',
+			'swe' => 'Swedish',
+			'-swz' => 'Swazi',
+			'syc' => 'Syriac',
+			'syr' => 'Syriac, Modern',
+			'-tag' => 'Tagalog',
+			'tah' => 'Tahitian',
+			'tai' => 'Tai (Other)',
+			'-taj' => 'Tajik',
+			'tam' => 'Tamil',
+			'-tar' => 'Tatar',
+			'tat' => 'Tatar',
+			'tel' => 'Telugu',
+			'tem' => 'Temne',
+			'ter' => 'Terena',
+			'tet' => 'Tetum',
+			'tgk' => 'Tajik',
+			'tgl' => 'Tagalog',
+			'tha' => 'Thai',
+			'tib' => 'Tibetan',
+			'tig' => 'Tigré',
+			'tir' => 'Tigrinya',
+			'tiv' => 'Tiv',
+			'tkl' => 'Tokelauan',
+			'tlh' => 'Klingon (Artificial language)',
+			'tli' => 'Tlingit',
+			'tmh' => 'Tamashek',
+			'tog' => 'Tonga (Nyasa)',
+			'ton' => 'Tongan',
+			'tpi' => 'Tok Pisin',
+			'-tru' => 'Truk',
+			'tsi' => 'Tsimshian',
+			'tsn' => 'Tswana',
+			'tso' => 'Tsonga',
+			'-tsw' => 'Tswana',
+			'tuk' => 'Turkmen',
+			'tum' => 'Tumbuka',
+			'tup' => 'Tupi languages',
+			'tur' => 'Turkish',
+			'tut' => 'Altaic (Other)',
+			'tvl' => 'Tuvaluan',
+			'twi' => 'Twi',
+			'tyv' => 'Tuvinian',
+			'udm' => 'Udmurt',
+			'uga' => 'Ugaritic',
+			'uig' => 'Uighur',
+			'ukr' => 'Ukrainian',
+			'umb' => 'Umbundu',
+			'und' => 'Undetermined',
+			'urd' => 'Urdu',
+			'uzb' => 'Uzbek',
+			'vai' => 'Vai',
+			'ven' => 'Venda',
+			'vie' => 'Vietnamese',
+			'vol' => 'Volapük',
+			'vot' => 'Votic',
+			'wak' => 'Wakashan languages',
+			'wal' => 'Wolayta',
+			'war' => 'Waray',
+			'was' => 'Washoe',
+			'wel' => 'Welsh',
+			'wen' => 'Sorbian (Other)',
+			'wln' => 'Walloon',
+			'wol' => 'Wolof',
+			'xal' => 'Oirat',
+			'xho' => 'Xhosa',
+			'yao' => 'Yao (Africa)',
+			'yap' => 'Yapese',
+			'yid' => 'Yiddish',
+			'yor' => 'Yoruba',
+			'ypk' => 'Yupik languages',
+			'zap' => 'Zapotec',
+			'zbl' => 'Blissymbolics',
+			'zen' => 'Zenaga',
+			'zha' => 'Zhuang',
+			'znd' => 'Zande languages',
+			'zul' => 'Zulu',
+			'zun' => 'Zuni',
+			'zxx' => 'No linguistic content',
+			'zza' => 'Zaza'
+		];
+		
 		// Main XML element.
-		$segments_xml = new SimpleXMLElement('<segments></segments>');
-		
-		$segments = array();				// Keeps a reference to each segment and its pages.
-		$title = NULL; $authors = array();	// Compares the current and previous segments.
-		
-		foreach ($pages as $page){
-			// Extracts the title and authors for comparison to the previous page.
-			$_title = (property_exists($page, 'segment_title') ? trim($page->segment_title) : FALSE);
-			$_authors = array();
-			if (property_exists($page, 'segment_authors')){
-				// Ensures the authors are formatted as an array.
-				if (!is_array($page->segment_authors)){
-					$_authors = array($page->segment_authors);
+		$segments_xml = new SimpleXMLElement('<segmentData></segmentData>');
+
+		// Query the database and check the results.
+		$query = $this->CI->db->query("SELECT*  FROM custom_bhl_segments WHERE item_id = {$book->id}");
+		if (count($query->result()) == 0) {
+			return NULL;
+		}
+
+		// Go through the results.
+		foreach ($query->result() as $row) {
+			$segment_xml = $segments_xml->addChild('segment');
+			$segment_xml->title = $row->title;
+			if ($row->translated_title) {
+				$segment_xml->translatedTitle = $row->translated_title;
+			}
+			$segment_xml->volume = $row->volume;
+			$segment_xml->issue = $row->issue;
+			$segment_xml->series = $row->series;
+			$segment_xml->date = $row->date;
+			$segment_xml->language = $row->language;
+			
+			$genre_xml = $segment_xml->addChild('genre', $segment_genres[$row->genre]);
+			$genre_xml->addAttribute('id', $row->genre);
+
+			// Add the authors.
+			$authors_xml = $segment_xml->addChild('authors');
+			foreach (json_decode($row->author_list) as $author) {
+				$author_xml = $authors_xml->addChild('author');
+
+				// Add the name and (if applicable) dates.
+				if ($author->dates) {
+					$author_xml->addChild('name', "{$author->name}, {$author->dates}");
 				} else {
-					$_authors = $page->segment_authors;
+					$author_xml->addChild('name', "{$author->name}");
+				}
+
+				// Check if the author has an ID in BHL.
+				if (isset($author->source)) {
+					$author_xml->addAttribute('authorId', $author->source);
+				} else {
+					$author_xml->addAttribute('authorId', '');
 				}
 			}
-			
-			// Checks if this is the first segment or a new segment.
-			if (count($segments) == 0 || 
-				strtolower($title) != strtolower($_title) || 
-				count($authors) != count($_authors) || 
-				count(array_diff($authors, $_authors)) > 0) {
-					
-				// Gets the index for the segment.
-				$index = count($segments);
-				
-				// Creates a reference to the XML node and adds the title.
-				$segments[$index]['ref'] = $segments_xml->addChild('segment');
-				$segments[$index]['ref']->addChild('title', $_title);
-				
-				// If there are authors, iterate through them and add them to the XML.
-				if (isset($page->segment_authors)){
-										
-					$authors = $segments[$index]['ref']->addChild('authors');
-					for ($i = 0; $i < count($_authors); $i++){
-						$author = $authors->addChild('author');
-						if ($json = json_decode($_authors[$i])){
-							if (isset($json->segment_author_source)){
-								// The author was selected from the BHL API list.
-								$author->addChild('creatorID', $json->segment_author_source);
-							} else {
-								// The author's information was manually entered.
-								$author->addChild('name', trim($json->segment_author_name));
-								$author->addChild('dates', trim($json->segment_author_dates));
-								
-								$identifiers = $author->addChild('identifiers');
-								$identifier = $identifiers->addChild('identifier', trim($json->segment_author_identifier_value));
-								$identifier->addAttribute('type', trim($json->segment_author_identifier_type));
-							}
-						}
-					}
-				}
+
+			// Add the pages.
+			$pages_xml = $segment_xml->addChild('leafNums');
+			foreach (json_decode($row->page_list) as $page) {
+				$pages_xml->addChild('leafNum', $page);
 			}
-			
-			// Adds the external URL to the XML if it exists.
-			if (isset($page->segment_external_url) && !$segments[$index]['ref']->externalURL){
-				$segments[$index]['ref']->addChild('externalURL', $page->segment_external_url);
-			}
-			
-			// Adds the download URL to the XML if it exists.
-			if (isset($page->segment_download_url) && !$segments[$index]['ref']->downloadURL){
-				$segments[$index]['ref']->addChild('downloadURL', $page->segment_download_url);
-			}
-			
-			// Adds the genre to the XML if it exists.
-			if (isset($page->segment_genre) && !$segments[$index]['ref']->genre){
-				$segments[$index]['ref']->addChild('genre', $page->segment_genre);
-			}
-			
-			// Adds the DOI to the XML if it exists.
-			if (isset($page->segment_doi) && !$segments[$index]['ref']->doi){
-				$segments[$index]['ref']->addChild('doi', $page->segment_doi);
-			}
-			
-			// If there are identifiers, iterate through them and add them to the XML.
-			if (isset($page->segment_identifiers)){
-				// Ensures the identifiers are formatted as an array.
-				if (!is_array($page->segment_identifiers)) $page->segment_identifiers = array($page->segment_identifiers);
-				
-				for ($i = 0; $i < count($page->segment_identifiers); $i++){					
-					if ($json = json_decode($page->segment_identifiers[$i])){
-						$type = $json->segment_identifier_type;
-						$value = $json->segment_identifier_value;
-						
-						// Skips the identifier if there is no value.
-						if (!$value){
-							continue;
-						}
-						
-						// Creates the XML identifiers element if it does not already exist.
-						if (!$segments[$index]['ref']->identifiers){
-							$segments[$index]['ref']->addChild('identifiers');
-						}
-						
-						// Adds only unique identifiers.
-						if (count($segments[$index]['ref']->identifiers->children()) == 0 ||
-							count($segments[$index]['ref']->identifiers->xpath("identifier[@type=\"{$type}\" and text()=\"{$value}\"]")) == 0){
-							$identifier = $segments[$index]['ref']->identifiers->addChild('identifier', $value);
-							$identifier->addAttribute('type', $type);
-						}
-					}
-				}
-			}
-			
-			
-			// If there are keywords, iterate through them and add them to the XML.
-			if (isset($page->segment_keywords)){
-				// Ensures the keywords are formatted as an array.
-				if (!is_array($page->segment_keywords)) $page->segment_keywords = array($page->segment_keywords);
-				
-				for ($i = 0; $i < count($page->segment_keywords); $i++){
-					// Creates the XML keywords element if it does not already exist.
-					if ($i == 0 && !$segments[$index]['ref']->keywords){
-						$segments[$index]['ref']->addChild('keywords');
-					}
-					
-					// Adds only unique keywords.
-					if (count($segments[$index]['ref']->keywords->children()) == 0 ||
-						count($segments[$index]['ref']->keywords->xpath("keyword[text()=\"{$page->segment_keywords[$i]}\"]")) == 0){
-						$segments[$index]['ref']->keywords->addChild('keyword', $page->segment_keywords[$i]);
-					}
-				}
-			}
-			
-			// Saves the sequence number.
-			$segments[$index]['sequence'][] = $page->sequence_number;
-			
-			// Saves the title and authors for look-ahead.
-			$title = $_title;
-			$authors = $_authors;
+
+			$segment_xml->addChild('doi', $row->doi);
 		}
+		$segments_xml = str_replace('<?xml version="1.0"?>', '', $segments_xml->asXML());
 		
-		// Iterates through each segment and adds the pages and ranges to the XML.
-		foreach ($segments as $segment){
-			// Sorts the pages as a precaution.
-			ksort($segment['sequence']);
-			
-			// Gets the start and end pages.
-			$start = $segment['sequence'][0];
-			$end = $segment['sequence'][count($segment['sequence']) - 1];
-			
-			// Adds the XML.
-			$segment['ref']->addChild('startPage', $start);
-			$segment['ref']->addChild('endPage', $end);
-			$segment['ref']->addChild('pageRange', "{$start}-{$end}");
-		}
-		
-		// Delete this later.
-		// $dom = new DOMDocument;
-		// $dom->preserveWhiteSpace = FALSE;
-		// $dom->loadXML($segments_xml->asXML());
-		// $dom->formatOutput = TRUE;
-		// echo $dom->saveXml();
-			
-		return $segments_xml->asXML();
+		$xml = new DOMDocument("1.0");
+		$xml->preserveWhiteSpace = false;
+		$xml->formatOutput = true;
+		$xml->loadXML($segments_xml);
+		return str_replace('<?xml version="1.0"?>', '', $xml->saveXML());
 	}
 
 	// ----------------------------
@@ -1617,8 +2094,13 @@ class Internet_archive extends Controller {
 			$output .= '  </page>'."\n";
 			$c++;
 		}
-
 		$output .= ' </pageData>'."\n";
+		
+		// Segments.
+		if ($segments = $this->_create_segments_xml($id, $book, $pages)) {
+			$output .= "{$segments}\n";
+		}
+
 		$output .= '</book>';
 		return $output;
 	}
