@@ -113,7 +113,7 @@ class Utils extends Controller {
 		// Set the status to reviewing
 		$this->book->load($barcode);
 		echo "Setting status back to reviewing...\n";
-		$this->db->query("update item set status_code = 'reviewing' where id = ".$this->book->id);
+		$this->db->query("update item set status_code = 'reviewing', ia_ready_images = 1 where id = ".$this->book->id);
 
 		// Delete the IA Export status
 		echo "Clearing IA Export status...\n";
