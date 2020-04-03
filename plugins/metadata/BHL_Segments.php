@@ -585,24 +585,31 @@
 		cursor: pointer;
 		padding-bottom: 3px;
 	}
-	#bhl-segments td input,
 	#bhl-segments td select {
 		width: 100%;
 		box-sizing: border-box;
-		-webkit-box-sizing:border-box;
-		-moz-box-sizing: border-box;
+	}
+	#bhl-segments td input {
+		width: 100%;
+		box-sizing: border-box;
+		border: 1px solid #000;
+		padding: 1px 3px;
+		height: 22px;
+		vertical-align: top;
 	}
 	#bhl-segments td input#segment_author_last_name {
-		width: 55%;
+		width: 53%;
 	}
 	#bhl-segments td input#segment_author_first_name {
-		width: 42%;
+		width: 44%;
 	}
 	#bhl-segments td input#segment_author_start_date {
-		width: 43%;
+		width: 40%;
+		text-align:center;
 	}
 	#bhl-segments td input#segment_author_end_date {
-		width: 43%;
+		width: 40%;
+		text-align:center;
 	}
 	#bhl-segments td input:disabled,
 	#bhl-segments td select:disabled {
@@ -672,13 +679,9 @@
 		white-space:nowrap;
 	}
 	
-	.yui-skin-sam .yui-ac-container,
-	.yui-skin-sam .yui-ac-content ul {
+	#bhl-segments .yui-ac {
+		border: 0;
 		width: 100%;
-	}
-	#bhl-segments .yui-skin-sam .yui-ac-content {
-		width: 100%;
-		border: 1px solid #808080;
 	}
 
 	#btnToggleExtra { display: inline-block; }
@@ -688,6 +691,16 @@
     background-size: 24px;
     background-position: 3px 0px;	
   }
+
+	/* styles for results container */
+	.yui-skin-sam #bhl-segments .yui-ac-container {
+			width:100%;
+	}
+	/* styles for result item */
+	.yui-skin-sam #bhl-segments .yui-ac-content li {
+			padding:2px 4px;line-height:1;
+	}
+
 </style>
 
 <div id="bhl-segments">
@@ -815,7 +828,7 @@
 			<table border="0" cellspacing="0" cellpadding="0" width="100%">
 				<tr>
 					<td width="70%">
-						<strong>Name:</strong> <a ID="segment_author_source" target="_blank" style="visibility: hidden;"></a>
+						<strong>Name:</strong> <a id="segment_author_source" target="_blank" style="visibility: hidden;"></a>
 						<div id="myAutoComplete">
 							<input type="text" id="segment_author_last_name" placeholder="search last name" tabindex="50" maxlength="150">
 							<input type="text" id="segment_author_first_name" placeholder="first name" tabindex="52" maxlength="150">
@@ -825,7 +838,7 @@
 					<td width="30%">
 						<strong>Dates:</strong>
 						<div>
-						<input type="text" id="segment_author_start_date" placeholder="yyyy" tabindex="53" size="5">-<input type="text" id="segment_author_end_date" placeholder="yyyy" tabindex="54" size="5">
+						<input type="text" id="segment_author_start_date" placeholder="yyyy" tabindex="53" size="5">&mdash;<input type="text" id="segment_author_end_date" placeholder="yyyy" tabindex="54" size="5">
 						</div>
 					</td>
 				</tr>

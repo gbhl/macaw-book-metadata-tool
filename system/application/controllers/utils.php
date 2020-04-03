@@ -113,7 +113,7 @@ class Utils extends Controller {
 		// Set the status to reviewing
 		$this->book->load($barcode);
 		echo "Setting status back to reviewing...\n";
-		$this->db->query("update item set status_code = 'reviewing' where id = ".$this->book->id);
+		$this->db->query("update item set status_code = 'reviewing', ia_ready_images = 1 where id = ".$this->book->id);
 
 		// Delete the IA Export status
 		echo "Clearing IA Export status...\n";
@@ -180,24 +180,26 @@ class Utils extends Controller {
 				$fname = "{$identifier}_jp2.zip";
 				$zipfile = "{$pth}/{$fname}";
 				$url = "https://archive.org/download/{$identifier}/{$fname}";
-				echo "Downloading $fname from the Internet Archive...\n";
-				set_time_limit(0);
-				if (!file_exists($zipfile)) {
-					$fh = fopen($zipfile, "w+");
-					$ch = curl_init();
-					curl_setopt($ch, CURLOPT_URL, $url);
-					curl_setopt($ch, CURLOPT_TIMEOUT, 60);
-					curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-					curl_setopt($ch, CURLOPT_PROGRESSFUNCTION, '_progress');
-					curl_setopt($ch, CURLOPT_NOPROGRESS, false); // needed to make progress function work
-					curl_setopt($ch, CURLOPT_HEADER, 0);
-					curl_setopt($ch, CURLOPT_FILE, $fh);
-					curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-					curl_exec($ch); 
-					curl_close($ch);
-					fclose($fh);
-					echo "\n";
-				}
+				chdir($pth);
+				`wget $url`;
+				// echo "Downloading $fname from the Internet Archive...\n";
+				// set_time_limit(0);
+				// if (!file_exists($zipfile)) {
+				// 	$fh = fopen($zipfile, "w+");
+				// 	$ch = curl_init();
+				// 	curl_setopt($ch, CURLOPT_URL, $url);
+				// 	curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+				// 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+				// 	curl_setopt($ch, CURLOPT_PROGRESSFUNCTION, '_progress');
+				// 	curl_setopt($ch, CURLOPT_NOPROGRESS, false); // needed to make progress function work
+				// 	curl_setopt($ch, CURLOPT_HEADER, 0);
+				// 	curl_setopt($ch, CURLOPT_FILE, $fh);
+				// 	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+				// 	curl_exec($ch); 
+				// 	curl_close($ch);
+				// 	fclose($fh);
+				// 	echo "\n";
+				// }
 				
 				// Extract the images to the scans folder
 				echo "Exracting images...\n";

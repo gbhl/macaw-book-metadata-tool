@@ -395,7 +395,6 @@ this.AuthorComponent = function() {
 		"end_date",
 		"source"
 	];
-	
 	// Show the author dialog.
 	var showDialog = function() {
 		YAHOO.macaw.dlgAuthor = new YAHOO.widget.SimpleDialog("pnlAuthor", {
@@ -403,131 +402,117 @@ this.AuthorComponent = function() {
 			Y: parseInt(Dom.getY("btnShowAuthorDlg") - 200),
 			X: parseInt(Dom.getX("btnShowAuthorDlg")),
 			buttons: [
-				{ text: "Add", handler: function() {
-					// Get the author data.
-					var data = {};
-					fields.forEach(function(e) {
-						var el = Dom.get("segment_author_" + e);
-						if (el) {
-							if (e == "source" && el.href !== undefined) {
-								// Special handling for the hyperlink.
-								var value = el.href.match(/\d+$/);
-								if (value) {
-									data[e] = value[0];
+				{
+					text: "Add", handler: function () {
+						// Get the author data.
+						var data = {};
+						fields.forEach(function (e) {
+							var el = Dom.get("segment_author_" + e);
+							if (el) {
+								if (e == "source" && el.href !== undefined) {
+									// Special handling for the hyperlink.
+									var value = el.href.match(/\d+$/);
+									if (value) {
+										data[e] = value[0];
+									}
+								} else {
+									// Everything else.
+									data[e] = el.value;
 								}
-							} else {
-								// Everything else.
-								data[e] = el.value;
 							}
+						});
+						// Validation
+						if (!data['last_name'].trim()) {
+							alert('A last name is required for each author.')
+						} else {
+							// Add the data to the segment.
+							var segment = SegmentComponent.getCurrentSegment();
+							data['name'] = data["last_name"]
+								+ (data["first_name"] ? ', ' + data["first_name"] : '')
+								+ ((data["start_date"] || data["end_date"]) ? ' (' + data["start_date"] + '-' + data["end_date"] + ')' : '');
+							segment.author_list.push(data);
+
+							closeDialog();
+							SegmentComponent.updateTable();
+							refreshList();
 						}
-					});
-					// Validation
-					if (!data['last_name'].trim()) {
-						alert('A last name is required for each author.')
-					} else {
-						// Add the data to the segment.
-						var segment = SegmentComponent.getCurrentSegment();
-						data['name'] = data["last_name"]
-							+ (data["first_name"] ? ', ' + data["first_name"] : '')
-							+ ((data["start_date"] || data["end_date"]) ? ' (' + data["start_date"] + '-' + data["end_date"] + ')' : '');
-						segment.author_list.push(data);
 
-						closeDialog();
-						SegmentComponent.updateTable();
-						refreshList();
-					}
-
-				}, isDefault: true },
+					}, isDefault: true
+				},
 				{ text: "Cancel", handler: closeDialog }
 			]
 		});
-		
+
 		YAHOO.macaw.dlgAuthor.setHeader("Add an author");
 		YAHOO.macaw.dlgAuthor.setBody(Dom.get("dlgAuthor").innerHTML);
 		YAHOO.macaw.dlgAuthor.render("segment_authors");
 		YAHOO.macaw.dlgAuthor.show();
 
-		var request = function() {
-			// Empty data source to initialize the widget. 
-			var oDS = [];
-			var oAC = new YAHOO.widget.AutoComplete("segment_author_last_name", "segment_author_name_autocomplete", new YAHOO.util.LocalDataSource(oDS));
-			
-			// Populates the data source whenever data is requested by the widget.
-			oAC.dataRequestEvent.subscribe(function (type, args) {
-				var url = "https://www.biodiversitylibrary.org/api2/httpquery.ashx?op=AuthorSearch&apikey=d230a327-c544-4f8f-826d-727cf4da24b8&format=json&name=" + args[1];
-				// var url = "https://www.biodiversitylibrary.org/api3?op=AuthorSearch&apikey=d230a327-c544-4f8f-826d-727cf4da24b8&format=json&authorname=" + args[1];
-				// If the value is exactly a number, assume we are searching on ID instead
-				// TODO: this needs more testing. it's not exactly working.
-				// if (!isNaN(args[1].trim())) {
-				//   url = "https://www.biodiversitylibrary.org/api3?op=GetAuthorMetadata&apikey=d230a327-c544-4f8f-826d-727cf4da24b8&format=json&id=" + args[1].trim()				
-				// }
-				var response = function() {
-					var http = new XMLHttpRequest();
-					http.onreadystatechange = function() {
-						if (http.readyState == 4 && http.status == 200) {
-							var data = JSON.parse(http.responseText);
-							oDS = new YAHOO.util.LocalDataSource(data["Result"]);
-							oDS.responseSchema = {fields: ["Name", "CreatorID", "FullerForm", "Dates", "CreatorUrl"]};
-							args[0].dataSource = oDS;
-						}
-					}
-					http.open("GET", url, true);
-					http.send();
-				}();
-			});
-			oAC.itemSelectEvent.subscribe(function (type, args) {
-				// Toggles the external BHL link.
-				var link = Dom.get("segment_author_source");
-				link.href = args[2][4];
-				link.style.visibility = "visible";
-				link.innerHTML = "(View on BHL: " + args[2][1] + ")";
-				
+		var apiKey = 'd230a327-c544-4f8f-826d-727cf4da24b8';
+
+		// BHL API 2
+		var dsBHL = new YAHOO.util.XHRDataSource("https://beta.biodiversitylibrary.org/api2/httpquery.ashx");
+		dsBHL.responseSchema = {
+			resultsList: "Result",
+			fields: ["Name", "CreatorID", "FullerForm", "Dates", "CreatorUrl"],
+			metaFields: {
+				status: "Status",
+				error: "ErrorMessage",
+			}
+		};
+		// End API 2
+
+		// BHL API 3
+		// var dsBHL = new YAHOO.util.XHRDataSource("https://beta.biodiversitylibrary.org/api3");
+		// dsBHL.responseSchema = {
+		// 	resultsList : "Result",
+		// 	fields : ["Name", "AuthorID", "FullerForm", "Dates", "CreatorUrl"],
+		// 	metaFields : {
+		// 		status : "Status",
+		// 		error : "ErrorMessage",
+		// 	}
+		// };
+		// End API 3
+		dsBHL.responseType = YAHOO.util.XHRDataSource.TYPE_JSON;
+
+		var oAC = new YAHOO.widget.AutoComplete("segment_author_last_name", "segment_author_name_autocomplete", dsBHL);
+		oAC.generateRequest = function (sQuery) {
+			return '?op=AuthorSearch&apikey=' + apiKey + '&format=json&name=' + sQuery + '&authorname=' + sQuery;
+		};
+		oAC.animSpeed = 0.1
+		oAC.minQueryLength = 2;
+		oAC.allowBrowserAutocomplete = false;
+		oAC.formatResult = function (oResultData, sQuery, sResultMatch) {
+			if (oResultData[3]) {
+				return (sResultMatch + " (" + oResultData[3] + ")");
+			} else {
+				return (sResultMatch)
+			}
+
+		};
+
+		oAC.itemSelectEvent.subscribe(function (type, args) {
+			// Toggles the external BHL link.
+			var link = Dom.get("segment_author_source");
+			link.href = args[2][4];
+			link.style.visibility = "visible";
+			link.innerHTML = "(View on BHL: " + args[2][1] + ")";
+
+			if (args[2][3]) {
 				var elStart = Dom.get("segment_author_start_date");
-				var elEnd = Dom.get("segment_author_start_date");
+				var elEnd = Dom.get("segment_author_end_date");
 				var dates = args[2][3].split('-');
 				elStart.value = dates[0];
 				elEnd.value = dates[1];
-				
-				var el = ["segment_author_identifier_type", "segment_author_identifier_value", "segment_author_start_date", "segment_author_end_date"];
-				el.forEach(function(e) {
-					e = Dom.get(e);
-					e.disabled = true;
-					e.value = "";
-				});
+			}
 
-				var elFirst = Dom.get('segment_author_first_name');
-				var elLast = Dom.get('segment_author_last_name');
-				var name = args[2][0].split(',');
-				elLast.value = name[0].trim();
-				if (typeof name[1] != 'undefined') { elFirst.value = name[1].trim(); }
-				
-			});
-			
-			oAC.textboxKeyEvent.subscribe(function (type, args) {
-				var link = Dom.get("segment_author_source");
-				link.href = "";
-				link.style.visibility = "hidden";
-				link.innerHTML = "";
-									
-				var el = ["segment_author_identifier_type", "segment_author_identifier_value", "segment_author_start_date", "segment_author_end_date"];
-				el.forEach(function(e) {
-					e = Dom.get(e);
-					e.disabled = false;
-					e.value = "";
-				});
-			});
-			return {
-				oDS: oDS,
-				oAC: oAC
-			};
-		}();
-		
-		// Removes the auto-added YUI2 CSS.
-		// Dom.get("segment_author_last_name").parentElement.classList.remove("yui-ac");
-		// Dom.get("segment_author_last_name").classList.remove("yui-ac-input");
-		// Dom.get("segment_author_first_name").parentElement.classList.remove("yui-ac");
-		// Dom.get("segment_author_first_name").classList.remove("yui-ac-input");
-		// Dom.get('segment_author_last_name').focus();
+			var elFirst = Dom.get('segment_author_first_name');
+			var elLast = Dom.get('segment_author_last_name');
+			var name = args[2][0].split(',');
+			elLast.value = name[0].trim();
+			if (typeof name[1] != 'undefined') { elFirst.value = name[1].trim(); }
+
+		});
 	}
 
 	// Close the author dialog.
@@ -694,13 +679,7 @@ Event.onAvailable("btnSelectNone-button", function() {
 /* ****************************************** */
 /* This runs once the page has loaded.        */
 /* ****************************************** */
-Event.onDOMReady( function() {
-
-	// setTimeout(function () {
-
-
-	// }, 3)
-	
+Event.onDOMReady(function() {
 	SegmentComponent = SegmentComponent();
 	AuthorComponent = AuthorComponent();
 
