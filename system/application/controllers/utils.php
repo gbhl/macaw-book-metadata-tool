@@ -181,27 +181,8 @@ class Utils extends Controller {
 				$zipfile = "{$pth}/{$fname}";
 				$url = "https://archive.org/download/{$identifier}/{$fname}";
 				echo "Downloading $fname from the Internet Archive...\n";
-				chdir($pth);
-				`wget $url`;
+				`wget -O $pth/$fname $url`;
 
-				// set_time_limit(0);
-				// if (!file_exists($zipfile)) {
-				// 	$fh = fopen($zipfile, "w+");
-				// 	$ch = curl_init();
-				// 	curl_setopt($ch, CURLOPT_URL, $url);
-				// 	curl_setopt($ch, CURLOPT_TIMEOUT, 60);
-				// 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-				// 	curl_setopt($ch, CURLOPT_PROGRESSFUNCTION, '_progress');
-				// 	curl_setopt($ch, CURLOPT_NOPROGRESS, false); // needed to make progress function work
-				// 	curl_setopt($ch, CURLOPT_HEADER, 0);
-				// 	curl_setopt($ch, CURLOPT_FILE, $fh);
-				// 	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-				// 	curl_exec($ch); 
-				// 	curl_close($ch);
-				// 	fclose($fh);
-				// 	echo "\n";
-				// }
-				
 				// Extract the images to the scans folder
 				echo "Exracting images...\n";
 				$zip = new ZipArchive;
