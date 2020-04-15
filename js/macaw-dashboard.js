@@ -86,9 +86,6 @@
 
 			// Initialize the continue button
 			var continueClick = function () { window.location = sBaseUrl+'/main'; }
-			// Continue Button removed from Dashboard page
-			//  var obtnContinue = new YAHOO.widget.Button("btnContinue");
-			//  obtnContinue.on("click", continueClick);
 
 		},
 
@@ -122,14 +119,6 @@
 			divHandle.innerHTML = l_widget.title;
 			divHandle.id = handle_id;
 
-			/* Create the close button */
-// 			var aClose = Dom.get(document.createElement('a'));
-// 			Dom.addClass(aClose, 'container-close');
-// 			Dom.setStyle(aClose, 'text-indent', '-10000em');
-// 			aClose.href = "#";
-// 			aClose.id = "Widget-close-"+name;
-// 			YAHOO.util.Event.addListener(aClose, "click", YAHOO.macaw.Dashboard.removeWidget, name);
-
 
 			/* Create the body div for the widget */
 			var divBody = Dom.get(document.createElement('div'));
@@ -147,7 +136,6 @@
 			divBody.appendChild(divSWF);
 			divWidget.appendChild(divHandle);
 			divWidget.appendChild(divBody);
-// 			divWidget.appendChild(aClose);
 
 			YAHOO.macaw.Dashboard.registered.push({
 				"name": name,
@@ -254,45 +242,6 @@
 				});
 			}
 		},
-// 
-// 		addWidget: function (v, col) {
-// 			// Make sure we're adding someting
-// 			if (v != '' && v != null && v) {
-// 				// Make sure the widget isn't already on the page
-// 				if (!YAHOO.macaw.Dashboard.widgetRegister(v, col)) {
-// 					General.showErrorMessage('That widget is already in the dashboard.');
-// 				}
-// 			}
-// 			YAHOO.macaw.Dashboard.saveUserWidgets();
-// 		},
-// 
-// 		removeWidget: function(e, id) {
-// 			// find the item in the array of registered widgets
-// 			var info = null;
-// 			for (i = 0; i < YAHOO.macaw.Dashboard.registered.length; i++) {
-// 				if (YAHOO.macaw.Dashboard.registered[i].name == id) {
-// 					info = YAHOO.macaw.Dashboard.registered[i]
-// 					break;
-// 				}
-// 			}
-// 
-// 			if (info != null) {
-// 				// id = "Widget"+id;
-// 				var ch = new Elem('Widget' + id);
-// 				var parent = new Elem('Column' + info.column);
-// 				// Delete the object and all its children
-// 				parent.removeChild(ch);
-// 
-// 				// Remove the name from the list of registered widgets
-// 				YAHOO.macaw.Dashboard.registered.splice(i, 1);
-// 				YAHOO.macaw.Dashboard.saveUserWidgets();
-// 
-// 			} else {
-// 				General.showErrorMessage('Couldn\'t find the widget to delete. Strange...');
-// 			}
-// 			return false; // Prevent the A tag from clicking through to reload the page.
-// 		},
-// 
 		saveUserWidgets: function() {
 
 			// Do nothing, we don't care

@@ -121,11 +121,6 @@ class Dashboard extends Controller {
 	 *
 	 */
 	function _get_summary_widget() {
-		// 	{ title: 'Summary',
-		// 	  html: '35 Books ready to be scanned<blockquote>10 at Library<br>25 at Pennsy<br></blockquote>12 Books scanned,
-		//           pending check-in<br><br>62 Books scanned total<br><br>3,585 Pages scanned total<br><br>Avg Time per Page / Book:   18 s / 2.5 h<br>',
-		// 	  column: 1
-		// 	}
 		$data = array();
 
 		$row = $this->book->get_status_counts();

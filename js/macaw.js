@@ -47,45 +47,6 @@ var Scanning;
 var timeoutAutoSave;
 
 // ----------------------------
-// Extend the array object to add a "array.map()" method for more flexible
-// array handling activities
-// ----------------------------
-// if (!Array.prototype.map) {
-// 	Array.prototype.map = function(fun /*, thisp*/) {
-// 		var len = this.length;
-// 		if (typeof fun != "function") {
-// 			throw new TypeError();
-// 		}
-// 		var res = new Array(len);
-// 		var thisp = arguments[1];
-// 		for (var i = 0; i < len; i++) {
-// 			if (i in this) {
-// 				res[i] = fun.call(thisp, this[i], i, this);
-// 			}
-// 		}
-//
-// 		return res;
-// 	};
-//
-// }
-
-// ----------------------------
-// Extend the array object to add a "array.inArray()" method
-// to find something in the array.
-// ----------------------------
-// if (!Array.prototype.inArray) {
-// 	Array.prototype.inArray = function(txt) {
-// 		var len = this.length;
-// 		while (i--) {
-// 			if (this[i] == txt) {
-// 				return true
-// 			}
-// 		}
-// 		return false;
-// 	};
-// }
-
-// ----------------------------
 // Focus Tracking
 //
 // When handling keypress for setting page types, we need to know if the focus

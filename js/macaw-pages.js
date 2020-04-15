@@ -491,9 +491,7 @@ YAHOO.macaw.Pages = function(parent, data, mdModules) {
 	this.renderMultipleMetadata = function() {
 		if (this.parent.addingMissingPages) return;
 
-//		for (var i in this.pages) {
 			this.pages[0].metadata.unrender();
-//		}
 		Dom.get('sequence_number').innerHTML = '[Multiple Pages Selected]';
 		this.enableMetadata();
 	}
@@ -518,10 +516,6 @@ YAHOO.macaw.Pages = function(parent, data, mdModules) {
 		Dom.get('sequence_number').innerHTML = '';
 		// TODO: Verify that we only need to operate on just the first page
 		this.pages[0].metadata.unrender();
-// TODO: Probably not needed
-// 		for (var i in this.pages) {
-// 			this.pages[i].metadata.unrender();
-// 		}
 		this.disableMetadata();
 	}
 
@@ -770,12 +764,6 @@ YAHOO.macaw.Pages = function(parent, data, mdModules) {
 
 		// Is there exactly one highligted item left?
 		if (arrHighlighted.length == 1) {
-			// Set the main image
-// 			if (!arrHighlighted[0].imgPreview) {
-// 				var img = new Image;
-// 				img.src = arrHighlighted[0].urlPreview;
-// 				arrHighlighted[0].imgPreview = img;
-// 			}
 			Dom.get('preview_img').src = arrHighlighted[0].urlPreview;
 			Dom.setStyle('preview_img', 'cursor', "url('"+sBaseUrl+"/inc/magnifier/assets/mag-cursor.gif'),auto");
 
