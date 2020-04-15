@@ -110,6 +110,8 @@ class Utils extends Controller {
 			die;
 		}
 
+
+		$this->logging->log('book', 'info', 'Beginning item reset from the command line.', $barcode);
 		// Set the status to reviewing
 		$this->book->load($barcode);
 		echo "Setting status back to reviewing...\n";
@@ -177,6 +179,7 @@ class Utils extends Controller {
 		if (substr(strtolower($from_ia),0,1) == 't' || substr(strtolower($from_ia),0,1) == 'y' ||  $from_ia == '1') {
 			if ($identifier) {
 				// Download the JP2 ZIP file from IA
+				$this->logging->log('book', 'info', 'Downloading images from the Internet Archive.', $barcode);
 				$fname = "{$identifier}_jp2.zip";
 				$zipfile = "{$pth}/{$fname}";
 				$url = "https://archive.org/download/{$identifier}/{$fname}";
@@ -184,13 +187,13 @@ class Utils extends Controller {
 				`wget -O $pth/$fname $url`;
 
 				// Extract the images to the scans folder
-				echo "Exracting images...\n";
+				$this->logging->log('book', 'info', 'Extracting images from the Internet Archive.', $barcode);
 				$zip = new ZipArchive;
 				print "$zipfile\n";
 				$x = $zip->open($zipfile);
 				$numfiles = $zip->numFiles;
 				if ($x) {
-					for($i = 0; $i < $zip->numFiles; $i++) {
+					for($i = 0; $i < $numfiles; $i++) {
 						$filename = $zip->getNameIndex($i);
 						$fileinfo = pathinfo($filename);
 						if (substr($fileinfo['basename'],-4,4) == '.jp2') {
@@ -201,6 +204,7 @@ class Utils extends Controller {
 				}
 
 				print "Creating thumbs/previews and updating database...\n";
+				$this->logging->log('book', 'info', 'Creating thumb/preview derivative images and updating database.', $barcode);
 				// Update the name and extension in the pages table
 				// Get the existing pages
 				$pages = [];
@@ -254,12 +258,14 @@ class Utils extends Controller {
 					$data[] = $this->book->id;
 					$data[] = $p->id;
 					$query = $this->db->query('update page set filebase = ?, bytes = ?, extension = ?, width = ?, height = ? where item_id = ? and id = ?', $data);
+					print "\n";
 				}
-				print "\n";
+				$this->logging->log('book', 'info', 'Item images restored successfully.', $barcode);
 			}
 		}
 
 		// Give command to start re-uploading the item
+		$this->logging->log('book', 'info', 'Item status was reset from the command line.', $barcode);
 		print "Item has been reset. Please make your changes and use the following command to re-upload to the Internet Archive.\n";
 		print "    sudo -u WWW_USER php index.php cron export Internet_archive ".$barcode."\n";
 	}
