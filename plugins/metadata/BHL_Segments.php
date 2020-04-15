@@ -1,19 +1,21 @@
 <?php
-	$segment_genres = array(
+	$segment_genres = array(	
 		array("1", "Article"),
 		array("2", "Book"),
-		array("3", "BookItem"),
 		array("4", "Chapter"),
 		array("8", "Conference"),
+		array("14", "Correspondence"),
 		array("6", "Issue"),
-		array("5", "Journal"),
-		array("14", "Letter"),
+		array("17", "List"),
+		array("16", "Manuscript"),
+		array("18", "Notes"),
 		array("9", "Preprint"),
 		array("7", "Proceeding"),
+		array("15", "Review"),
 		array("13", "Thesis"),
 		array("11", "Treatment"),
 		array("10", "Unknown"));
-		
+
 	$segment_identifiers = array(
 		array("6", "Abbreviation"),
 		array("31", "BioLib.cz"),
