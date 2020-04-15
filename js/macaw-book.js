@@ -590,11 +590,13 @@ YAHOO.macaw.Book = function() {
 				var idx = oBookMissing.pages.find('thumbnailID', dragged_id);
 				var pg = oBookMissing.pages.remove(idx);
 				oBook.pages.append(pg[0]);
+				pg[0].inserted = true;
 
 			} else if (id == 'thumbs_missing' && from_id == 'thumbs') {
 				var idx = oBook.pages.find('thumbnailID', dragged_id);
 				var pg = oBook.pages.remove(page_id);
 				oBookMissing.pages.append(pg[0]);
+				pg[0].inserted = false;
 			}
 
 			// Purge all other click listeners on what we dragged
