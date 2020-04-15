@@ -199,6 +199,7 @@ this.SegmentComponent = function() {
 	var updateDropdown = function(segment = null) {
 		var dropdown = Dom.get("segmentList");
 
+		if (!dropdown) { return; } // We are probably on the missing pages page.
 		// Clear the dropdown.
 		for (var i = Dom.get("segmentList").children.length - 1; i > 0; i--) {
 			dropdown.remove(i);
@@ -230,6 +231,7 @@ this.SegmentComponent = function() {
 	var updateTable = function() {
 		var selectedSegment = null;
 		var div = Dom.get("extra");
+		if (!div) { return; } // We are probably on the missing pages page.
 		div.innerHTML = null;
 		
 		var columns = [];
@@ -341,6 +343,10 @@ this.SegmentComponent = function() {
 	}
 
 	var saveSegments = function () {
+		if (window.location.toString().match(/\/scan\/missing\/insert/)) {
+			// We don't save segments whew inserting pages.
+			return;
+		}
 		var callback = {
 			failure: function (ob) {
 				var y = 10;
