@@ -329,7 +329,8 @@ YAHOO.macaw.Pages = function(parent, data, mdModules) {
 			data.push( {
 				'page_id': this.pages[i].pageID,
 				'metadata': this.pages[i].metadata.getSaveData(),
-				'deleted': this.pages[i].deleted
+				'deleted': this.pages[i].deleted,
+				'inserted': this.pages[i].inserted
 			} );
 		}
 		return data;

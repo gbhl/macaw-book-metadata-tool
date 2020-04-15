@@ -563,7 +563,10 @@ class Scan extends Controller {
 				if (!$data['inserted_missing']) {
 					$this->book->set_missing_flag($page['page_id'], false);
 				}
-			}
+				if ($page['inserted']) {
+					$this->logging->log('book', 'info', 'Page inserted before sequence Number '.$sequence_count.'.', $this->session->userdata('barcode'));
+				}
+			} // if ($page['deleted']) else clause
 
 		} // foreach ($data->pages as $p)
 
