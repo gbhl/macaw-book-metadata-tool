@@ -13,15 +13,6 @@ Macaw is built in PHP using CodeIgniter and uses MySQL for the database. Further
 
 Documentation can be found at the following URLs:
 
-* Quick Start Checklist 
-  This document contains a list of steps to use in Macaw. It's merely a checklist of steps.
-  https://docs.google.com/document/d/1klRRmw1JXVrLtuEsh84WLsi7k8dIo4T8PVQhZ-ol4TQ/edit?usp=sharing
-
-* Mini-HowTo
-  This contains more step-by-step information on using Macaw and entering metadata that satisfy 
-  the needs of BHL. Also contains screenshots of important steps in the process.
-  https://docs.google.com/document/d/1whTl3GNzoRbMkXKZQBVDp5KOVH7uRYSApXazDxRkfDY/edit?usp=sharing
-
 * General User Documentation
   This is the detailed user documentation of all the components of Macaw. Content in this document is
   targeted towards those who use BHL "In the Cloud" 
