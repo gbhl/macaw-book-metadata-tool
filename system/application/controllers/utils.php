@@ -115,7 +115,11 @@ class Utils extends Controller {
 		// Set the status to reviewing
 		$this->book->load($barcode);
 		echo "Setting status back to reviewing...\n";
-		$this->db->query("update item set status_code = 'reviewing', ia_ready_images = 1 where id = ".$this->book->id);
+		if ($this->db->dbdriver == 'mysql' || $this->db->dbdriver == 'mysqli') {
+			$this->db->query("update item set status_code = 'reviewing', ia_ready_images = 1 where id = ".$this->book->id);
+		} elseif ($this->db->dbdriver == 'postgre') {
+			$this->db->query("update item set status_code = 'reviewing', ia_ready_images = 't' where id = ".$this->book->id);
+		}
 
 		// Delete the IA Export status
 		echo "Clearing IA Export status...\n";
@@ -887,6 +891,8 @@ class Utils extends Controller {
 		
 		// Now that the files are split, they need to be processed
 		$existingFiles = get_dir_file_info($scans_dir);
+		$existingFiles = $this->_dedupe_files($existingFiles);
+
 		$pdf_info = pathinfo($filename);
 		
 		$seq = $this->book->max_sequence() + 1;
@@ -905,6 +911,26 @@ class Utils extends Controller {
 			$this->book->set_status('scanning');
 			$this->book->set_status('scanned');
 		}
+	}
+
+	function _dedupe_files($files) {
+		$good_files = [];
+		foreach ($files as $fname => $data) {
+			$pi = pathinfo($fname);
+			$bn = $pi['filename'];
+			if (isset($good_files[$bn])) {
+				if ($data['date'] > $good_files[$bn]['date']) {
+					$good_files[$bn] = $data;
+				}
+			} else {
+				$good_files[$bn] = $data;
+			}
+		} // foreach ($files as $f)
+		$files = [];
+		foreach ($good_files as $f => $data) {
+			$files[$data['name']] = $data;
+		}
+		return $files;
 	}
 
 	function contributor_stats($hidekey = null) {
