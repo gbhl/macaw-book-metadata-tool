@@ -39,10 +39,16 @@ class BHL extends Controller {
 		if (!$this->cfg['bhl_api_key']) {
 			return array();
 		}
-		
+		// SSL options
+		$arrContextOptions=array(
+			"ssl"=>array(
+				"verify_peer"=>false,
+				"verify_peer_name"=>false,
+			),
+		);
 		// Get the institutions
 		$url = 'https://www.biodiversitylibrary.org/api2/httpquery.ashx?op=GetInstitutions&format=json&apikey='.$this->cfg['bhl_api_key'];
-		$json = file_get_contents($url);
+    $json = file_get_contents($url, false, stream_context_create($arrContextOptions));
 		if ($json) {
 			$json = json_decode($json);
 			if ($json->Status == 'ok') {
