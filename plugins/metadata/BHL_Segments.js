@@ -171,8 +171,27 @@ this.SegmentComponent = function() {
 				var page = oBook.pages.find("pageID", segment.page_list[p]);
 				oBook.pages.highlight(page);
 			}
+			glowPages(segment.page_list);
+		} else {
+			glowPages([]);
 		}
 		AuthorComponent.refreshList();
+	}
+
+	var glowPages = function(segment_pages) {
+		// Unglow all the pages
+		for (var p in oBook.pages.pages) {
+			el = oBook.pages.pages[p].elemINFO;
+			el.style.opacity = '0';
+			el.style.backgroundColor = 'none';
+		}
+		// Glow those that are selected
+		for (var p in segment_pages) {
+			var page = oBook.pages.find("pageID", segment_pages[p]);
+			el = oBook.pages.pages[page].elemINFO;
+			el.style.opacity = '.3';
+			el.style.backgroundColor = 'green';			
+		}
 	}
 
 	// Event for when a segment's metdata field is changed.
@@ -199,6 +218,7 @@ this.SegmentComponent = function() {
 	var updateDropdown = function(segment = null) {
 		var dropdown = Dom.get("segmentList");
 
+		if (!dropdown) { return; } // We are probably on the missing pages page.
 		// Clear the dropdown.
 		for (var i = Dom.get("segmentList").children.length - 1; i > 0; i--) {
 			dropdown.remove(i);
@@ -230,6 +250,7 @@ this.SegmentComponent = function() {
 	var updateTable = function() {
 		var selectedSegment = null;
 		var div = Dom.get("extra");
+		if (!div) { return; } // We are probably on the missing pages page.
 		div.innerHTML = null;
 		
 		var columns = [];
@@ -341,6 +362,10 @@ this.SegmentComponent = function() {
 	}
 
 	var saveSegments = function () {
+		if (window.location.toString().match(/\/scan\/missing\/insert/)) {
+			// We don't save segments whew inserting pages.
+			return;
+		}
 		var callback = {
 			failure: function (ob) {
 				var y = 10;
@@ -381,11 +406,14 @@ this.SegmentComponent = function() {
 		metadataChanged: metadataChanged,
 		updateDropdown: updateDropdown,
 		saveSegments: saveSegments,
-		updateTable: updateTable
+		updateTable: updateTable,
+		glowPages: glowPages
 	}
 }
 
 this.AuthorComponent = function() {
+	// Track whether the author dialog box is open
+	var authorDialogOpen = false;
 	var fields = [
 		"last_name",
 		"first_name",
@@ -447,11 +475,12 @@ this.AuthorComponent = function() {
 		YAHOO.macaw.dlgAuthor.setBody(Dom.get("dlgAuthor").innerHTML);
 		YAHOO.macaw.dlgAuthor.render("segment_authors");
 		YAHOO.macaw.dlgAuthor.show();
+		this.authorDialogOpen = true;
 
 		var apiKey = 'd230a327-c544-4f8f-826d-727cf4da24b8';
 
 		// BHL API 2
-		var dsBHL = new YAHOO.util.XHRDataSource("https://beta.biodiversitylibrary.org/api2/httpquery.ashx");
+		var dsBHL = new YAHOO.util.XHRDataSource("https://www.biodiversitylibrary.org/api2/httpquery.ashx");
 		dsBHL.responseSchema = {
 			resultsList: "Result",
 			fields: ["Name", "CreatorID", "FullerForm", "Dates", "CreatorUrl"],
@@ -477,6 +506,16 @@ this.AuthorComponent = function() {
 
 		var oAC = new YAHOO.widget.AutoComplete("segment_author_last_name", "segment_author_name_autocomplete", dsBHL);
 		oAC.generateRequest = function (sQuery) {
+			// Handle searching both first and last names
+			var fname = Dom.get('segment_author_first_name');
+			var lname = Dom.get('segment_author_last_name');
+			if (lname.value && fname.value) {
+				sQuery = lname.value + ", " + fname.value;
+			} else if (lname.value && !fname.value) {
+				sQuery = lname.value;
+			} else if (!lname.value && fname.value) {
+				sQuery = fname.value;
+			}
 			return '?op=AuthorSearch&apikey=' + apiKey + '&format=json&name=' + sQuery + '&authorname=' + sQuery;
 		};
 		oAC.animSpeed = 0.1
@@ -513,12 +552,21 @@ this.AuthorComponent = function() {
 			if (typeof name[1] != 'undefined') { elFirst.value = name[1].trim(); }
 
 		});
+
+		// Make the first name field trigger the search, too.
+		var fNameSearch = function() {
+			var req = oAC.generateRequest();
+			oAC.sendQuery(req);
+		}
+		YAHOO.util.Event.addListener("segment_author_first_name", "keyup", fNameSearch);
+
 	}
 
 	// Close the author dialog.
 	var closeDialog = function() {
 		YAHOO.macaw.dlgAuthor.hide();
 		YAHOO.macaw.dlgAuthor.destroy();
+		this.authorDialogOpen = true;
 		
 		Event.removeListener(document, "click");
 		if (YAHOO.macaw.dlgAuthor.id = "pnlAuthor") {
@@ -598,43 +646,58 @@ this.AuthorComponent = function() {
 	}
 
 	return {
-        showDialog : showDialog,
-        refreshList : refreshList,
-        removeAuthor : removeAuthor,
+		showDialog : showDialog,
+		refreshList : refreshList,
+		removeAuthor : removeAuthor,
 		removeAll : removeAll
 	}
 }
 
 this.checkPages = function() {
 	var segment = SegmentComponent.getCurrentSegment();
+	var pageText = Dom.get("segmentPages");
+	var warningText = Dom.get("segmentWarning");
+	warningText.style.display = "none";
+	pageText.style.display = "none";
 
+
+	// Decide if there's a mismatch in the selected pages.
 	if (segment) {
-		var mismatch = false;
-		var warningText = Dom.get("segmentWarning");
-		var pageText = Dom.get("segmentPages");
-		warningText.style.display = "none";
-		pageText.style.display = "none";
+		// Update the display of segment pages.
+		var sequences = buildSegmentSequence(segment.page_list);
+		pageText.innerHTML = "Pages: " + sequences.join(", ");
+		pageText.style.display = "inline";
+		SegmentComponent.updateTable();
 
 		var pages = oBook.pages.arrayHighlighted();
-		if (segment.page_list.length == pages.length) {
-			for (var p in pages) {
-				if (pages[p].pageID != segment.page_list[p]) {
-					mismatch = true;
-					break;
-				}
-			}
-			if (!mismatch) {
-				var sequences = buildSequence(pages);
-				pageText.innerHTML = "Selected: " + sequences.join(", ");
-				pageText.style.display = "inline";
-				SegmentComponent.updateTable();
+
+		// Basic check, if there are more or less pages, it's a warning
+		if (pages.length != segment.page_list.length) {
+			// Show the warning.
+			warningText.style.display = "inline";
+			return;
+		}
+
+		// If the lenghts are the same, we compare the page IDs
+		for (var p in pages) {
+			if (pages[p].pageID != segment.page_list[p]) {
+				// Show the warning.
+				warningText.style.display = "inline";
 				return;
 			}
 		}
-
-		// Show the warning.
-		warningText.style.display = "inline";
+	} else {
+		pageText.innerHTML = '';
 	}
+}
+
+this.buildSegmentSequence = function(segment_page_ids) {
+	pgs = [];
+	for (i=0; i<segment_page_ids.length;i++) {
+		idx = oBook.pages.find('pageID', segment_page_ids[i])
+		pgs.push(oBook.pages.pages[idx]);
+	}
+	return buildSequence(pgs);
 }
 
 this.buildSequence = function(pages) {
@@ -886,5 +949,11 @@ YAHOO.macaw.BHL_Segments = function(parent, data) {
 	// Return Value / Effect
 	//     The fields are empty or otherwise initialized
 	// ----------------------------
-	this.unrender = function() {}
+	this.unrender = function() {
+		// When we have no pages selexted, make sure the author
+		// search dialog doesn't remain open.
+		if (AuthorComponent.authorDialogOpen) {
+			AuthorComponent.closeDialog();
+		};
+	}
 }
