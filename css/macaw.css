@@ -966,7 +966,7 @@ table#admin_scheduled_jobs td {
 #metadata_form .yui-button a:visited {
 	min-height: 1.25em;
 	font-size: 90%;
-	padding: 0px 3px;
+	padding: 3px 10px;
 }
 #metadata_form #btnTogglePageTypes button,
 #metadata_form #btnTogglePieceTypes  button,

@@ -1,19 +1,21 @@
 <?php
-	$segment_genres = array(
+	$segment_genres = array(	
 		array("1", "Article"),
 		array("2", "Book"),
-		array("3", "BookItem"),
 		array("4", "Chapter"),
 		array("8", "Conference"),
+		array("14", "Correspondence"),
 		array("6", "Issue"),
-		array("5", "Journal"),
-		array("14", "Letter"),
+		array("17", "List"),
+		array("16", "Manuscript"),
+		array("18", "Notes"),
 		array("9", "Preprint"),
 		array("7", "Proceeding"),
+		array("15", "Review"),
 		array("13", "Thesis"),
 		array("11", "Treatment"),
 		array("10", "Unknown"));
-		
+
 	$segment_identifiers = array(
 		array("6", "Abbreviation"),
 		array("31", "BioLib.cz"),
@@ -616,10 +618,12 @@
 		background-color: #f2f2f2;
 	}
 	#bhl-segments #segmentPages {
-		float: right;
+		margin-left: 10px;
+		background-color: #B2D9B0;
+		padding: 3px;
 	}
 	#bhl-segments #segmentWarning {
-		color: red;
+		color: #990000;
 		display: none;
 		float: right;
 	}
@@ -722,9 +726,8 @@
 
 					<span id="segmentPages"></span>
 					<span id="segmentWarning">
-						<img  src="<?php echo $this->config->item('base_url'); ?>images/icons/error.png" class="icon">
-						WARNING: Selected pages do not match segment pages.
-						<img id="btnupdateSegmentPages" src="<?php echo $this->config->item('base_url'); ?>images/icons/pages_refresh.png" onClick="SegmentComponent.updatePages(this);" class="icon" title="Update pages for segment">
+						Segment page selection has changed. Update now:
+						<img id="btnupdateSegmentPages" src="<?php echo $this->config->item('base_url'); ?>images/icons/pages_refresh.png" onClick="SegmentComponent.updatePages(this);" class="icon" title="Update segment pages to currently selected pages.">
 					</span>
 				</div>
 			</td>
@@ -742,11 +745,11 @@
 							<table border="0" cellspacing="0" cellpadding="0" width="100%">
 								<tr>
 									<td><label for="segment_title">Segment Title:</label></td>
-									<td width="35%">
+									<td width="34%">
 										<input type="text" id="segment_title" onChange="SegmentComponent.metadataChanged(this);" title="Segment Title" maxlength="2000" disabled>
 									</td>
 									<td><label for="segment_translated_title">Translated Title:</label></td>
-									<td width="35%">
+									<td width="34%">
 										<input type="text" id="segment_translated_title" onChange="SegmentComponent.metadataChanged(this);" title="Translated Segment Title" maxlength="2000">
 									</td>
 								</tr>
@@ -830,7 +833,7 @@
 					<td width="70%">
 						<strong>Name:</strong> <a id="segment_author_source" target="_blank" style="visibility: hidden;"></a>
 						<div id="myAutoComplete">
-							<input type="text" id="segment_author_last_name" placeholder="search last name" tabindex="50" maxlength="150">
+							<input type="text" id="segment_author_last_name" placeholder="last name" tabindex="50" maxlength="150">
 							<input type="text" id="segment_author_first_name" placeholder="first name" tabindex="52" maxlength="150">
 							<div id="segment_author_name_autocomplete"></div>
 						</div>
