@@ -171,8 +171,27 @@ this.SegmentComponent = function() {
 				var page = oBook.pages.find("pageID", segment.page_list[p]);
 				oBook.pages.highlight(page);
 			}
+			glowPages(segment.page_list);
+		} else {
+			glowPages([]);
 		}
 		AuthorComponent.refreshList();
+	}
+
+	var glowPages = function(segment_pages) {
+		// Unglow all the pages
+		for (var p in oBook.pages.pages) {
+			el = oBook.pages.pages[p].elemINFO;
+			el.style.opacity = '0';
+			el.style.backgroundColor = 'none';
+		}
+		// Glow those that are selected
+		for (var p in segment_pages) {
+			var page = oBook.pages.find("pageID", segment_pages[p]);
+			el = oBook.pages.pages[page].elemINFO;
+			el.style.opacity = '.3';
+			el.style.backgroundColor = 'green';			
+		}
 	}
 
 	// Event for when a segment's metdata field is changed.
@@ -387,7 +406,8 @@ this.SegmentComponent = function() {
 		metadataChanged: metadataChanged,
 		updateDropdown: updateDropdown,
 		saveSegments: saveSegments,
-		updateTable: updateTable
+		updateTable: updateTable,
+		glowPages: glowPages
 	}
 }
 
@@ -626,43 +646,58 @@ this.AuthorComponent = function() {
 	}
 
 	return {
-        showDialog : showDialog,
-        refreshList : refreshList,
-        removeAuthor : removeAuthor,
+		showDialog : showDialog,
+		refreshList : refreshList,
+		removeAuthor : removeAuthor,
 		removeAll : removeAll
 	}
 }
 
 this.checkPages = function() {
 	var segment = SegmentComponent.getCurrentSegment();
+	var pageText = Dom.get("segmentPages");
+	var warningText = Dom.get("segmentWarning");
+	warningText.style.display = "none";
+	pageText.style.display = "none";
 
+
+	// Decide if there's a mismatch in the selected pages.
 	if (segment) {
-		var mismatch = false;
-		var warningText = Dom.get("segmentWarning");
-		var pageText = Dom.get("segmentPages");
-		warningText.style.display = "none";
-		pageText.style.display = "none";
+		// Update the display of segment pages.
+		var sequences = buildSegmentSequence(segment.page_list);
+		pageText.innerHTML = "Pages: " + sequences.join(", ");
+		pageText.style.display = "inline";
+		SegmentComponent.updateTable();
 
 		var pages = oBook.pages.arrayHighlighted();
-		if (segment.page_list.length == pages.length) {
-			for (var p in pages) {
-				if (pages[p].pageID != segment.page_list[p]) {
-					mismatch = true;
-					break;
-				}
-			}
-			if (!mismatch) {
-				var sequences = buildSequence(pages);
-				pageText.innerHTML = "Selected: " + sequences.join(", ");
-				pageText.style.display = "inline";
-				SegmentComponent.updateTable();
+
+		// Basic check, if there are more or less pages, it's a warning
+		if (pages.length != segment.page_list.length) {
+			// Show the warning.
+			warningText.style.display = "inline";
+			return;
+		}
+
+		// If the lenghts are the same, we compare the page IDs
+		for (var p in pages) {
+			if (pages[p].pageID != segment.page_list[p]) {
+				// Show the warning.
+				warningText.style.display = "inline";
 				return;
 			}
 		}
-
-		// Show the warning.
-		warningText.style.display = "inline";
+	} else {
+		pageText.innerHTML = '';
 	}
+}
+
+this.buildSegmentSequence = function(segment_page_ids) {
+	pgs = [];
+	for (i=0; i<segment_page_ids.length;i++) {
+		idx = oBook.pages.find('pageID', segment_page_ids[i])
+		pgs.push(oBook.pages.pages[idx]);
+	}
+	return buildSequence(pgs);
 }
 
 this.buildSequence = function(pages) {
