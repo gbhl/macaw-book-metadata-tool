@@ -346,12 +346,37 @@ this.SegmentComponent = function() {
 		// 		break;
 		// 	}
 		// }
-		// for (var i = 0; i < segments.length; i++) {
-		// 	if (!segments[i].volume && !segments[i].issue && !segments[i].series) {
-		// 		errors += '   * Volume, Issue and/or Series is required for each segment.\n';
-		// 		break;
-		// 	}
-		// }
+		for (var i = 0; i < segments.length; i++) {
+			if (!segments[i].volume && !segments[i].issue) { // Either is required
+				errors += '   * Volume and/or Issue are required and must be numeric.\n';
+				break;
+			}
+		}
+		for (var i = 0; i < segments.length; i++) {
+			var volume = segments[i].volume + "";
+			if (volume != "null" && !volume.match(/^\d+$/)) { // Volume must be numeric
+				errors += '   * Volume must be numeric.\n';
+				break;
+			}
+		}
+		for (var i = 0; i < segments.length; i++) {
+			var issue = segments[i].issue + "";
+			if (issue != "null" && !issue.match(/^\d+$/)) { // Issue must be numeric
+				errors += '   * Issue must be numeric.\n';
+			}
+		}
+		for (var i = 0; i < segments.length; i++) {
+			var series = segments[i].series + "";
+			if (series != "null" && !series.match(/^\d+$/)) { // Issue must be numeric
+				errors += '   * Series must be numeric.\n';
+			}
+		}
+		for (var i = 0; i < segments.length; i++) {
+			var date = segments[i].date + "";
+			if (date != "null" && !date.match(/^\d\d\d\d$/)) { // Issue must be numeric
+				errors += '   * Date must be a four digit year (YYYY).\n';
+			}
+		}
 		for (var i = 0; i < segments.length; i++) {
 			if (!segments[i].genre) {
 				errors += '   * Genre is required for each segment. ';
