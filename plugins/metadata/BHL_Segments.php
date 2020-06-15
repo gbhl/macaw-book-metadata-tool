@@ -618,10 +618,12 @@
 		background-color: #f2f2f2;
 	}
 	#bhl-segments #segmentPages {
-		float: right;
+		margin-left: 10px;
+		background-color: #B2D9B0;
+		padding: 3px;
 	}
 	#bhl-segments #segmentWarning {
-		color: red;
+		color: #990000;
 		display: none;
 		float: right;
 	}
@@ -724,9 +726,8 @@
 
 					<span id="segmentPages"></span>
 					<span id="segmentWarning">
-						<img  src="<?php echo $this->config->item('base_url'); ?>images/icons/error.png" class="icon">
-						WARNING: Selected pages do not match segment pages.
-						<img id="btnupdateSegmentPages" src="<?php echo $this->config->item('base_url'); ?>images/icons/pages_refresh.png" onClick="SegmentComponent.updatePages(this);" class="icon" title="Update pages for segment">
+						Segment page selection has changed. Update now:
+						<img id="btnupdateSegmentPages" src="<?php echo $this->config->item('base_url'); ?>images/icons/pages_refresh.png" onClick="SegmentComponent.updatePages(this);" class="icon" title="Update segment pages to currently selected pages.">
 					</span>
 				</div>
 			</td>
