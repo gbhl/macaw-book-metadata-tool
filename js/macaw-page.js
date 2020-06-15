@@ -35,6 +35,7 @@ YAHOO.macaw.Page = function(parent, data, mdModules) {
 	this.elemDataTableRow = null;
 	this.elemThumbnailLI = null;
 	this.elemThumbnailIMG = null;
+	this.elemINFO = null;
 	this.imgPreview = null;
 	
 	this.deleted = false;
@@ -91,6 +92,7 @@ YAHOO.macaw.Page = function(parent, data, mdModules) {
 		// Remeber some stuff
 		this.elemThumbnailLI = new_thumb;
 		this.elemThumbnailIMG = new_img;
+		this.elemINFO = new_info;
 
 		// Make the new thumbnail drag-droppable
 		// TODO: I don't think this should bve this.parent.select. or even this.parent.parent.select. What does it do?
