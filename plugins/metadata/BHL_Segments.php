@@ -744,11 +744,11 @@
 							<table border="0" cellspacing="0" cellpadding="0" width="100%">
 								<tr>
 									<td><label for="segment_title">Segment Title:</label></td>
-									<td width="35%">
+									<td width="34%">
 										<input type="text" id="segment_title" onChange="SegmentComponent.metadataChanged(this);" title="Segment Title" maxlength="2000" disabled>
 									</td>
 									<td><label for="segment_translated_title">Translated Title:</label></td>
-									<td width="35%">
+									<td width="34%">
 										<input type="text" id="segment_translated_title" onChange="SegmentComponent.metadataChanged(this);" title="Translated Segment Title" maxlength="2000">
 									</td>
 								</tr>
@@ -832,7 +832,7 @@
 					<td width="70%">
 						<strong>Name:</strong> <a id="segment_author_source" target="_blank" style="visibility: hidden;"></a>
 						<div id="myAutoComplete">
-							<input type="text" id="segment_author_last_name" placeholder="search last name" tabindex="50" maxlength="150">
+							<input type="text" id="segment_author_last_name" placeholder="last name" tabindex="50" maxlength="150">
 							<input type="text" id="segment_author_first_name" placeholder="first name" tabindex="52" maxlength="150">
 							<div id="segment_author_name_autocomplete"></div>
 						</div>
