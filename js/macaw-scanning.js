@@ -419,6 +419,11 @@
 			// var myLogReader = new YAHOO.widget.LogReader();
 			if (Scanning.metadataModules.length > 1) {
 				Scanning.metadataTabs = new YAHOO.widget.TabView("metadata_tabs");
+				// When we switch tabs, adjust the heights of the window.
+				for (i = 0; i < Scanning.metadataModules.length; i++) {
+					var tab = Scanning.metadataTabs.getTab(i);
+					tab.addListener('click', Scanning.resizeWindow);
+				}
 			}
 
 			// For starters, make sure the layout of the window is proper

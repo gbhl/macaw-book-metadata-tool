@@ -392,6 +392,8 @@ this.SegmentComponent = function() {
 }
 
 this.AuthorComponent = function() {
+	// Track whether the author dialog box is open
+	var authorDialogOpen = false;
 	var fields = [
 		"last_name",
 		"first_name",
@@ -453,11 +455,12 @@ this.AuthorComponent = function() {
 		YAHOO.macaw.dlgAuthor.setBody(Dom.get("dlgAuthor").innerHTML);
 		YAHOO.macaw.dlgAuthor.render("segment_authors");
 		YAHOO.macaw.dlgAuthor.show();
+		this.authorDialogOpen = true;
 
 		var apiKey = 'd230a327-c544-4f8f-826d-727cf4da24b8';
 
 		// BHL API 2
-		var dsBHL = new YAHOO.util.XHRDataSource("https://beta.biodiversitylibrary.org/api2/httpquery.ashx");
+		var dsBHL = new YAHOO.util.XHRDataSource("https://www.biodiversitylibrary.org/api2/httpquery.ashx");
 		dsBHL.responseSchema = {
 			resultsList: "Result",
 			fields: ["Name", "CreatorID", "FullerForm", "Dates", "CreatorUrl"],
@@ -483,6 +486,16 @@ this.AuthorComponent = function() {
 
 		var oAC = new YAHOO.widget.AutoComplete("segment_author_last_name", "segment_author_name_autocomplete", dsBHL);
 		oAC.generateRequest = function (sQuery) {
+			// Handle searching both first and last names
+			var fname = Dom.get('segment_author_first_name');
+			var lname = Dom.get('segment_author_last_name');
+			if (lname.value && fname.value) {
+				sQuery = lname.value + ", " + fname.value;
+			} else if (lname.value && !fname.value) {
+				sQuery = lname.value;
+			} else if (!lname.value && fname.value) {
+				sQuery = fname.value;
+			}
 			return '?op=AuthorSearch&apikey=' + apiKey + '&format=json&name=' + sQuery + '&authorname=' + sQuery;
 		};
 		oAC.animSpeed = 0.1
@@ -519,12 +532,21 @@ this.AuthorComponent = function() {
 			if (typeof name[1] != 'undefined') { elFirst.value = name[1].trim(); }
 
 		});
+
+		// Make the first name field trigger the search, too.
+		var fNameSearch = function() {
+			var req = oAC.generateRequest();
+			oAC.sendQuery(req);
+		}
+		YAHOO.util.Event.addListener("segment_author_first_name", "keyup", fNameSearch);
+
 	}
 
 	// Close the author dialog.
 	var closeDialog = function() {
 		YAHOO.macaw.dlgAuthor.hide();
 		YAHOO.macaw.dlgAuthor.destroy();
+		this.authorDialogOpen = true;
 		
 		Event.removeListener(document, "click");
 		if (YAHOO.macaw.dlgAuthor.id = "pnlAuthor") {
@@ -892,5 +914,11 @@ YAHOO.macaw.BHL_Segments = function(parent, data) {
 	// Return Value / Effect
 	//     The fields are empty or otherwise initialized
 	// ----------------------------
-	this.unrender = function() {}
+	this.unrender = function() {
+		// When we have no pages selexted, make sure the author
+		// search dialog doesn't remain open.
+		if (AuthorComponent.authorDialogOpen) {
+			AuthorComponent.closeDialog();
+		};
+	}
 }
