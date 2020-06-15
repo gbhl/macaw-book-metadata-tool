@@ -478,45 +478,63 @@ this.AuthorComponent = function() {
 		this.authorDialogOpen = true;
 
 		var apiKey = 'd230a327-c544-4f8f-826d-727cf4da24b8';
-
-		// BHL API 2
-		var dsBHL = new YAHOO.util.XHRDataSource("https://www.biodiversitylibrary.org/api2/httpquery.ashx");
-		dsBHL.responseSchema = {
-			resultsList: "Result",
-			fields: ["Name", "CreatorID", "FullerForm", "Dates", "CreatorUrl"],
-			metaFields: {
-				status: "Status",
-				error: "ErrorMessage",
-			}
-		};
-		// End API 2
-
-		// BHL API 3
-		// var dsBHL = new YAHOO.util.XHRDataSource("https://beta.biodiversitylibrary.org/api3");
-		// dsBHL.responseSchema = {
-		// 	resultsList : "Result",
-		// 	fields : ["Name", "AuthorID", "FullerForm", "Dates", "CreatorUrl"],
-		// 	metaFields : {
-		// 		status : "Status",
-		// 		error : "ErrorMessage",
-		// 	}
-		// };
-		// End API 3
+		var apiVersion = 2;
+		var dsBHL;
+		// Are we using API version 2 or 3, if so, the calls and return 
+		// structure are different.
+		if (apiVersion == 2) {
+			// API v2 uses CREATORID
+			dsBHL = new YAHOO.util.XHRDataSource("https://www.biodiversitylibrary.org/");
+			dsBHL.responseSchema = {
+				resultsList: "Result",
+				fields: ["Name", "CreatorID", "FullerForm", "Dates", "CreatorUrl"],
+				metaFields: {
+					status: "Status",
+					error: "ErrorMessage"
+				}
+			};
+		} else if (apiVersion == 3) {
+			// API v3 uses AUTHORID
+			dsBHL = new YAHOO.util.XHRDataSource("https://www.biodiversitylibrary.org/");
+			dsBHL.responseSchema = {
+				resultsList : "Result",
+				fields : ["Name", "AuthorID", "FullerForm", "Dates", "CreatorUrl"],
+				metaFields : {
+					status : "Status",
+					error : "ErrorMessage"
+				}
+			};
+		}
 		dsBHL.responseType = YAHOO.util.XHRDataSource.TYPE_JSON;
 
 		var oAC = new YAHOO.widget.AutoComplete("segment_author_last_name", "segment_author_name_autocomplete", dsBHL);
 		oAC.generateRequest = function (sQuery) {
-			// Handle searching both first and last names
-			var fname = Dom.get('segment_author_first_name');
-			var lname = Dom.get('segment_author_last_name');
-			if (lname.value && fname.value) {
-				sQuery = lname.value + ", " + fname.value;
-			} else if (lname.value && !fname.value) {
-				sQuery = lname.value;
-			} else if (!lname.value && fname.value) {
-				sQuery = fname.value;
+			if (sQuery == undefined) {
+				sQuery = "";
 			}
-			return '?op=AuthorSearch&apikey=' + apiKey + '&format=json&name=' + sQuery + '&authorname=' + sQuery;
+			// Is the query string numeric?
+			if (sQuery.match(/^[0-9]+$/)) {
+				// Assume this is an ID number and search by ID .. And we only need API3 to do it
+				return 'api3?op=GetAuthorMetadata&apikey=' + apiKey + '&format=json&id=' + sQuery;
+			} else {
+
+				var fname = Dom.get('segment_author_first_name');
+				var lname = Dom.get('segment_author_last_name');
+				if (lname.value && fname.value) {
+					sQuery = lname.value + ", " + fname.value;
+				} else if (lname.value && !fname.value) {
+					sQuery = lname.value;
+				} else if (!lname.value && fname.value) {
+					sQuery = fname.value;
+				}
+
+				// Not purely numeric, use the appropriate version of the API to searcgh
+				if (apiVersion == 2) {
+					return 'api2/httpquery.ashx?op=AuthorSearch&apikey=' + apiKey + '&format=json&name=' + sQuery;
+				} else if (apiVersion == 3) {
+					return 'api3?op=AuthorSearch&apikey=' + apiKey + '&format=json&authorname=' + sQuery;
+				}
+			}
 		};
 		oAC.animSpeed = 0.1
 		oAC.minQueryLength = 2;
