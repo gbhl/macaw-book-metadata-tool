@@ -523,12 +523,6 @@ YAHOO.macaw.Book = function() {
 		};
 		this.objDataTable = new YAHOO.widget.DataTable(this.elemDataTable, myColumnDefs, myDataSource);
 
-// IMPORTANT! Drag-Drop on the data table is disabled
-//		this.objDataTable.subscribe("rowAddEvent",function(e){
-//			var id = e.record.getId();
-//			oBook.DTDrags[id] = new YAHOO.macaw.ddDataTable(id);
-//		})
-
 		this.objDataTable.subscribe("rowClickEvent", this._selectFromDataTable, null, oBook);
 	}
 
@@ -552,8 +546,6 @@ YAHOO.macaw.Book = function() {
 			var id = recs[i].getId();
 			this.pages.pages[i].elemListRow = new YAHOO.util.Element(id);
 			this.pages.pages[i].dataTableID = id;
-// IMPORTANT! Drag-Drop on the data table is disabled
-//			this.DTDrags[id] = new YAHOO.macaw.ddDataTable(id);
 		}
 	}
 
@@ -590,11 +582,13 @@ YAHOO.macaw.Book = function() {
 				var idx = oBookMissing.pages.find('thumbnailID', dragged_id);
 				var pg = oBookMissing.pages.remove(idx);
 				oBook.pages.append(pg[0]);
+				pg[0].inserted = true;
 
 			} else if (id == 'thumbs_missing' && from_id == 'thumbs') {
 				var idx = oBook.pages.find('thumbnailID', dragged_id);
 				var pg = oBook.pages.remove(page_id);
 				oBookMissing.pages.append(pg[0]);
+				pg[0].inserted = false;
 			}
 
 			// Purge all other click listeners on what we dragged
@@ -713,61 +707,6 @@ YAHOO.macaw.Book = function() {
 
 	}
 
-
-// IMPORTANT! Drag-Drop on the data table is disabled
-// 	this._reorderThumbnails = function(id) {
-// 		// Where is this most recently moved item inside our data table?
-// 		var tableIdx = this._getTableIndexFromDataTable(id);
-//
-// 		// Get the index into our array of pages based on the
-// 		// ID of the row in the data table
-// 		var pageIdx = this._getIndexFromDataTable(id);
-//
-// 		// Get the Thumbnail corresponding to the list item we just moved
-// 		var thumb = new YAHOO.util.Element(this.pages[pageIdx].thumbnailID);
-// 		var thumbs = new YAHOO.util.Element('thumbs');
-//
-//
-// 		// Remove the Thumbnail from the its parent UL
-// 		thumbs.removeChild(thumb);
-//
-// 		if (tableIdx >= this.pages.length-1) {
-// 			// If we are at the end, ad the thumbnail to the end of the list
-// 			thumbs.appendChild(thumb);
-// 		} else {
-// 			// If we are not at the end, Add the thumbnail back to the
-// 			// list by adding it before its sibling, as it appears in the DataTable
-//
-// 			var recs = this.objDataTable.getRecordSet().getRecords();
-// 			var sibID = recs[tableIdx+1]._sId; // The ID of the sibling Data Table Row
-// 			var sibIdx = this._getIndexFromDataTable(sibID)
-// 			var sibThumbID = this.pages[sibIdx].thumbnailID;
-//
-// 			var sibling = new YAHOO.util.Element(sibThumbID);
-// 			thumbs.insertBefore(thumb,sibling);
-// 		}
-// 	}
-
-// UNUSED UTILITY FUNCTIONS
-
-// 	this._getDataTableIDs = function () {
-// 		var recs = this.objDataTable.getRecordSet().getRecords();
-// 		var x = new Array();
-// 		for (var i in recs) {
-// 			x.push(recs[i].getId());
-// 		}
-// 		return x.join(', ');
-// 	}
-//
-// 	this._getPagesDataTableIDs = function () {
-// 		var x = new Array();
-// 		for (var i in this.pages) {
-// 			x.push(this.pages[i].dataTableID);
-// 		}
-// 		return x.join(', ');
-// 	}
-
-
 };
 
 
@@ -817,11 +756,7 @@ YAHOO.extend(YAHOO.macaw.ddThumbs, YAHOO.util.DDProxy, {
 		// make the proxy look like the source element
 		var dragEl = this.getDragEl();
 		var clickEl = this.getEl();
-// 		if (clickEl.parentElement) {
-// 			this.dragFrom = clickEl.parentElement.id;
-// 		} else if (clickEl.parentNode) {
-			this.dragFrom = clickEl.parentNode.id;
-// 		}
+		this.dragFrom = clickEl.parentNode.id;
 
 		Dom.setStyle(clickEl, "visibility", "hidden");
 
@@ -987,90 +922,5 @@ YAHOO.extend(YAHOO.macaw.ddThumbs, YAHOO.util.DDProxy, {
 		}
 	}
 });
-
-
-//
-// IMPORTANT! Drag-Drop on the data table is disabled
-//
-// ----------------------------
-// Object: DD PAGES LIST
-//
-// We need to handle dragging and dropping and this is the best way we
-// knwow how, which is to add globally accessible code that extends the
-// YAHOO drag and drop methods for both the list and the thumbnails.
-// ----------------------------
-//
-// YAHOO.macaw.ddDataTable = function(id, sGroup, config) {
-// 	YAHOO.macaw.ddDataTable.superclass.constructor.call(this, id, sGroup, config);
-// 	Dom.addClass(this.getDragEl(),"custom-class");
-// 	this.goingUp = false;
-// 	this.lastY = 0;
-// 	this.dropEl = null;
-// };
-//
-// YAHOO.extend(YAHOO.macaw.ddDataTable, YAHOO.util.DDProxy, {
-// 	proxyEl: null,
-// 	srcEl:null,
-// 	srcData:null,
-// 	srcIndex: null,
-// 	tmpIndex:null,
-//
-// 	startDrag: function(x, y) {
-// 		var proxyEl = this.proxyEl = this.getDragEl(), srcEl = this.srcEl = this.getEl();
-//
-// 		this.srcData = oBook.objDataTable.getRecord(this.srcEl).getData();
-// 		this.srcIndex = srcEl.sectionRowIndex;
-// 		// Make the proxy look like the source element
-// 		Dom.setStyle(srcEl, "visibility", "hidden");
-// 		proxyEl.innerHTML = "<table id=\"ddproxy\"><tbody><tr>"+srcEl.innerHTML+"</tr></tbody></table>";
-// 	},
-// 	endDrag: function(x,y) {
-// 		var position, srcEl = this.srcEl;
-//
-// 		Dom.setStyle(this.proxyEl, "visibility", "hidden");
-// 		Dom.setStyle(srcEl, "visibility", "");
-// 	},
-// 	onDrag: function(e) {
-// 		// Keep track of the direction of the drag for use during onDragOver
-// 		var y = Event.getPageY(e);
-//
-// 		if (y < this.lastY) {
-// 			this.goingUp = true;
-// 		} else if (y > this.lastY) {
-// 			this.goingUp = false;
-// 		}
-//
-// 		this.lastY = y;
-// 	},
-// 	onDragDrop: function(e, id) {
-// 		oBook.afterDragDrop('datatable', id);
-// 	},
-// 	onDragOver: function(e, id) {
-// 		// Reorder rows as user drags
-// 		var srcIndex = this.srcIndex,
-// 			destEl = Dom.get(id),
-// 			destIndex = destEl.sectionRowIndex,
-// 			tmpIndex = this.tmpIndex;
-//
-// 		if (destEl.nodeName.toLowerCase() === "tr") {
-// 			// Get the index of the page corresponding to the ID of the
-// 			// table row we're about to delete
-// 			var pagesIdx = null;
-// 			if(tmpIndex !== null) {
-// 				pagesIdx = oBook._getIndexFromDataTable(oBook.objDataTable.getRecord(tmpIndex)._sId);
-// 				oBook.objDataTable.deleteRow(tmpIndex);
-// 			} else {
-// 				pagesIdx = oBook._getIndexFromDataTable(oBook.objDataTable.getRecord(this.srcIndex)._sId);
-// 				oBook.objDataTable.deleteRow(this.srcIndex);
-// 			}
-//
-// 			var r = oBook.objDataTable.addRow(this.srcData, destIndex);
-// 			this.tmpIndex = destIndex;
-// 			oBook.pages[pagesIdx].dataTableID = oBook.objDataTable.getRecord(destIndex)._sId
-//
-// 			DDM.refreshCache();
-// 		}
-// 	}
-// });
 
 

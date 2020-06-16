@@ -23,9 +23,9 @@ class Login extends Controller {
 	 * in all browsers.
 	 *
 	 * @todo Make sure enter works in all browsers. Hah!
-
-	  Tests:
-
+	 * 
+	 *  Tests:
+	 *
 	 */
 	function index() {
 		$data['username'] = '';
