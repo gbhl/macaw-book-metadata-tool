@@ -633,9 +633,9 @@
 	#bhl-segments .list {
 		vertical-align: top;
 	}
-	#bhl-segments .list ul {
+	/* #bhl-segments .list ul {
 		margin: 0;
-	}
+	} */
 	#bhl-segments .list ul a {
 		color: #333;
 		text-decoration: underline;
@@ -643,9 +643,10 @@
 	#bhl-segments .author-list {
 		background-color: #FFFFFF;
 		border: 1px solid rgb(169, 169, 169);
-		height: 68px;
+		height: 57px;
 		overflow-y: scroll;
-		padding: 5px 3px;
+		padding: 3px 3px;
+		margin: -6px 0 0 2px;
 	}
 	#bhl-segments .author-list li {
 		margin: -5px 0 -5px 0px;
@@ -704,11 +705,13 @@
 	.yui-skin-sam #bhl-segments .yui-ac-content li {
 			padding:2px 4px;line-height:1;
 	}
-
+	#authors_list {
+		margin-top: -5px;
+	}
 </style>
 
 <div id="bhl-segments">
-	<table border="0" cellspacing="0" cellpadding="3" width="100%">
+	<table  cellspacing="0" cellpadding="3" width="100%">
 		<tr>
 			<td valign="top">
 				<label for="segmentList">Segment:</label>
@@ -744,13 +747,13 @@
 						<td colspan="8" class="table-wrapper">
 							<table border="0" cellspacing="0" cellpadding="0" width="100%">
 								<tr>
-									<td><label for="segment_title">Segment Title:</label></td>
+									<td><label for="segment_title">Segment&nbsp;Title:</label></td>
 									<td width="34%">
-										<input type="text" id="segment_title" onChange="SegmentComponent.metadataChanged(this);" title="Segment Title" maxlength="2000" disabled>
+										<input type="text" id="segment_title" onChange="SegmentComponent.metadataChanged(this);" title="Segment Title" placeholder="segment title" maxlength="2000" disabled>
 									</td>
-									<td><label for="segment_translated_title">Translated Title:</label></td>
+									<td><label for="segment_translated_title">Translated&nbsp;Title:</label></td>
 									<td width="34%">
-										<input type="text" id="segment_translated_title" onChange="SegmentComponent.metadataChanged(this);" title="Translated Segment Title" maxlength="2000">
+										<input type="text" id="segment_translated_title" onChange="SegmentComponent.metadataChanged(this);" title="Translated Segment Title"  placeholder="translated title" maxlength="2000">
 									</td>
 								</tr>
 							</table>
@@ -759,19 +762,19 @@
 					<tr>
 						<td><label for="segment_volume">Volume:</label></td>
 						<td width="25%">
-							<input type="text" id="segment_volume" onChange="SegmentComponent.metadataChanged(this);" title="Segment Volume" maxlength="100" disabled>
+							<input type="text" id="segment_volume" onChange="SegmentComponent.metadataChanged(this);" title="Segment Volume" maxlength="100" placeholder="##" disabled>
 						</td>
 						<td><label for="segment_issue">Issue:</label></td>
 						<td width="25%">
-							<input type="text" id="segment_issue" onChange="SegmentComponent.metadataChanged(this);" title="Segment Issue" maxlength="100" disabled>
+							<input type="text" id="segment_issue" onChange="SegmentComponent.metadataChanged(this);" title="Segment Issue" maxlength="100" placeholder="##" disabled>
 						</td>
 						<td><label for="segment_series">Series:</label></td>
 						<td width="25%">
-							<input type="text" id="segment_series" onChange="SegmentComponent.metadataChanged(this);" title="Segment Series" maxlength="100" disabled>
+							<input type="text" id="segment_series" onChange="SegmentComponent.metadataChanged(this);" title="Segment Series" maxlength="100" placeholder="##" disabled>
 						</td>
 						<td><label for="segment_date">Date:</label></td>
 						<td width="25%">
-							<input type="text" id="segment_date" onChange="SegmentComponent.metadataChanged(this);" title="Segment Date" maxlength="20" disabled>
+							<input type="text" id="segment_date" onChange="SegmentComponent.metadataChanged(this);" title="Segment Date" maxlength="20" placeholder="YYYY" disabled>
 						</td>
 					</tr>	
 					<tr>
@@ -793,7 +796,7 @@
 								</td>
 								<td><label for="segment_doi">DOI:</label></td>
 								<td width="30%">
-									<input type="text" id="segment_doi" onChange="SegmentComponent.metadataChanged(this);" title="Segment DOI" maxlength="50" disabled>
+									<input type="text" id="segment_doi" onChange="SegmentComponent.metadataChanged(this);" title="Segment DOI" maxlength="50"  placeholder="10.1234/abc.def.123" disabled>
 								</td>
 							</table>							
 						</td>
@@ -801,7 +804,7 @@
 				</table>
 			</td>
 			<td width="40%" valign="top">
-				<table border="0" cellspacing="0" cellpadding="0" width="100%">
+				<table cellspacing="0" cellpadding="0" width="100%" id="authors_list">
 					<tr>
 						<td id="segment_authors" colspan="6">
 							<label for="segment_authors_list">Authors: 
