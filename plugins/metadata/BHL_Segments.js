@@ -386,7 +386,7 @@ this.SegmentComponent = function() {
 		return errors;
 	}
 
-	var saveSegments = function () {
+	var saveSegments = function (e) {
 		if (window.location.toString().match(/\/scan\/missing\/insert/)) {
 			// We don't save segments whew inserting pages.
 			return;
@@ -1000,8 +1000,10 @@ YAHOO.macaw.BHL_Segments = function(parent, data) {
 	this.unrender = function() {
 		// When we have no pages selexted, make sure the author
 		// search dialog doesn't remain open.
-		if (AuthorComponent.authorDialogOpen) {
-			AuthorComponent.closeDialog();
-		};
+		if (AuthorComponent) {
+			if (AuthorComponent.authorDialogOpen) {
+				AuthorComponent.closeDialog();
+			};
+		}
 	}
 }
