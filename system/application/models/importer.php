@@ -11,12 +11,12 @@
  * @package Importer
  * @author Joel Richard
  * @version 1.0 admin.php created: 2010-07-07 last-modified: 2010-08-19
-
-	Change History
-	Date        By   Note
-	------------------------
-	2010-07-07  JMR  Created
-
+ * 
+ * 	Change History
+ *	Date        By   Note
+ *	------------------------
+ *	2010-07-07  JMR  Created
+ *
  **/
 
 class Importer extends Model {

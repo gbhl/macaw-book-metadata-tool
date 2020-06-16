@@ -110,10 +110,16 @@ class Utils extends Controller {
 			die;
 		}
 
+
+		$this->logging->log('book', 'info', 'Beginning item reset from the command line.', $barcode);
 		// Set the status to reviewing
 		$this->book->load($barcode);
 		echo "Setting status back to reviewing...\n";
-		$this->db->query("update item set status_code = 'reviewing', ia_ready_images = 1 where id = ".$this->book->id);
+		if ($this->db->dbdriver == 'mysql' || $this->db->dbdriver == 'mysqli') {
+			$this->db->query("update item set status_code = 'reviewing', ia_ready_images = 1 where id = ".$this->book->id);
+		} elseif ($this->db->dbdriver == 'postgre') {
+			$this->db->query("update item set status_code = 'reviewing', ia_ready_images = 't' where id = ".$this->book->id);
+		}
 
 		// Delete the IA Export status
 		echo "Clearing IA Export status...\n";
@@ -177,37 +183,21 @@ class Utils extends Controller {
 		if (substr(strtolower($from_ia),0,1) == 't' || substr(strtolower($from_ia),0,1) == 'y' ||  $from_ia == '1') {
 			if ($identifier) {
 				// Download the JP2 ZIP file from IA
+				$this->logging->log('book', 'info', 'Downloading images from the Internet Archive.', $barcode);
 				$fname = "{$identifier}_jp2.zip";
 				$zipfile = "{$pth}/{$fname}";
 				$url = "https://archive.org/download/{$identifier}/{$fname}";
-				chdir($pth);
-				`wget $url`;
-				// echo "Downloading $fname from the Internet Archive...\n";
-				// set_time_limit(0);
-				// if (!file_exists($zipfile)) {
-				// 	$fh = fopen($zipfile, "w+");
-				// 	$ch = curl_init();
-				// 	curl_setopt($ch, CURLOPT_URL, $url);
-				// 	curl_setopt($ch, CURLOPT_TIMEOUT, 60);
-				// 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-				// 	curl_setopt($ch, CURLOPT_PROGRESSFUNCTION, '_progress');
-				// 	curl_setopt($ch, CURLOPT_NOPROGRESS, false); // needed to make progress function work
-				// 	curl_setopt($ch, CURLOPT_HEADER, 0);
-				// 	curl_setopt($ch, CURLOPT_FILE, $fh);
-				// 	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-				// 	curl_exec($ch); 
-				// 	curl_close($ch);
-				// 	fclose($fh);
-				// 	echo "\n";
-				// }
-				
+				echo "Downloading $fname from the Internet Archive...\n";
+				`wget -O $pth/$fname $url`;
+
 				// Extract the images to the scans folder
-				echo "Exracting images...\n";
+				$this->logging->log('book', 'info', 'Extracting images from the Internet Archive.', $barcode);
 				$zip = new ZipArchive;
 				print "$zipfile\n";
 				$x = $zip->open($zipfile);
+				$numfiles = $zip->numFiles;
 				if ($x) {
-					for($i = 0; $i < $zip->numFiles; $i++) {
+					for($i = 0; $i < $numfiles; $i++) {
 						$filename = $zip->getNameIndex($i);
 						$fileinfo = pathinfo($filename);
 						if (substr($fileinfo['basename'],-4,4) == '.jp2') {
@@ -218,13 +208,14 @@ class Utils extends Controller {
 				}
 
 				print "Creating thumbs/previews and updating database...\n";
+				$this->logging->log('book', 'info', 'Creating thumb/preview derivative images and updating database.', $barcode);
 				// Update the name and extension in the pages table
 				// Get the existing pages
 				$pages = [];
 				$query = $this->db->query('select * from page where item_id = ? order by sequence_number', array($this->book->id));
 				$pages = $query->result();
 				foreach ($pages as $p) {
-					print "  Sequence Number {$p->sequence_number}\n";
+					print chr(13)."  Sequence Number {$p->sequence_number}/{$numfiles}";
 					$files = glob("{$pth}/scans/*_".sprintf('%04d', $p->sequence_number).".jp2");
 					if (count($files) == 0 ) {
 						print "Could not find a file for sequence number ".$p->sequence_number."\n";
@@ -271,12 +262,14 @@ class Utils extends Controller {
 					$data[] = $this->book->id;
 					$data[] = $p->id;
 					$query = $this->db->query('update page set filebase = ?, bytes = ?, extension = ?, width = ?, height = ? where item_id = ? and id = ?', $data);
-					print_r($query);
+					print "\n";
 				}
+				$this->logging->log('book', 'info', 'Item images restored successfully.', $barcode);
 			}
 		}
 
 		// Give command to start re-uploading the item
+		$this->logging->log('book', 'info', 'Item status was reset from the command line.', $barcode);
 		print "Item has been reset. Please make your changes and use the following command to re-upload to the Internet Archive.\n";
 		print "    sudo -u WWW_USER php index.php cron export Internet_archive ".$barcode."\n";
 	}
@@ -898,6 +891,8 @@ class Utils extends Controller {
 		
 		// Now that the files are split, they need to be processed
 		$existingFiles = get_dir_file_info($scans_dir);
+		$existingFiles = $this->_dedupe_files($existingFiles);
+
 		$pdf_info = pathinfo($filename);
 		
 		$seq = $this->book->max_sequence() + 1;
@@ -916,6 +911,26 @@ class Utils extends Controller {
 			$this->book->set_status('scanning');
 			$this->book->set_status('scanned');
 		}
+	}
+
+	function _dedupe_files($files) {
+		$good_files = [];
+		foreach ($files as $fname => $data) {
+			$pi = pathinfo($fname);
+			$bn = $pi['filename'];
+			if (isset($good_files[$bn])) {
+				if ($data['date'] > $good_files[$bn]['date']) {
+					$good_files[$bn] = $data;
+				}
+			} else {
+				$good_files[$bn] = $data;
+			}
+		} // foreach ($files as $f)
+		$files = [];
+		foreach ($good_files as $f => $data) {
+			$files[$data['name']] = $data;
+		}
+		return $files;
 	}
 
 	function contributor_stats($hidekey = null) {

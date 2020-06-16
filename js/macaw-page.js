@@ -39,6 +39,7 @@ YAHOO.macaw.Page = function(parent, data, mdModules) {
 	this.imgPreview = null;
 	
 	this.deleted = false;
+	this.inserted = false;
 
 	// ----------------------------
 	// Function: render()

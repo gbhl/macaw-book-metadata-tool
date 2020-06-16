@@ -15,12 +15,12 @@
  * @package admincontroller
  * @author Joel Richard
  * @version 1.0 admin.php created: 2010-07-07 last-modified: 2010-08-19
-
-	Change History
-	Date        By   Note
-	------------------------
-	2010-07-07  JMR  Created
-
+ * 
+ * 	Change History
+ * 	Date        By   Note
+ * 	------------------------
+ * 	2010-07-07  JMR  Created
+ * 
  **/
 
 require_once(APPPATH.'libraries/Image_IPTC.php');
@@ -473,9 +473,6 @@ class Book extends Model {
 			            ? number_format($p->bytes/1024, 0).' K'
 			            : number_format($p->bytes/(1024*1024), 1).' M');
 
-//  			foreach ($this->cfg['page_metadata_fields'] as $md) {
-//  				$p->{$md} = ''; // Initialize to blank, it's easier this way.
-//  			}
 			foreach ($metadata as $row) {
 				// TODO: This can't be using names of fields!!
 				// It needs to be smarter and make arrays when necessary
@@ -506,7 +503,7 @@ class Book extends Model {
 	 * Clear all metadata for all pages
 	 *
 	 * When we are setting the metadata for an item's pages, we need to clear out all of
-	 # the existing metadata. So we made a convenience function for it. This clears
+	 * the existing metadata. So we made a convenience function for it. This clears
 	 * all metadata for all pages. Let me repeat. This is a DESTRUCTIVE OPERATION
 	 * that clears hundreds if not thousands of records of data from the "metadata"
 	 * table.
@@ -694,8 +691,6 @@ class Book extends Model {
 			$this->db->where('item_id', $this->id);
 			$this->db->set($data);
 			$this->db->update('page');
-			// 2011/05/23 JMR - Removed this because it makes too much noise in the log file
-			// $this->logging->log('book', 'info', 'Updated bytes for page '.$filename.'.', $this->barcode);
 		}
 	}
 
@@ -819,9 +814,6 @@ class Book extends Model {
 			$select .= ", max(item.date_completed) as date_completed";
 			$select .= ", max(item.date_archived) as date_archived";
 			$select .= ", max(item.total_mbytes) as total_mbytes";
-			// Max on BOOL doesn't work
-			// $select .= ", max(item.missing_pages) as missing_pages";
-			// $select .= ", max(item.needs_qa) as needs_qa";
 
 			$count = 1;
 			$group = array();
@@ -971,18 +963,6 @@ class Book extends Model {
 					$this->last_error = "The identifier is too long.";
 					throw new Exception($this->last_error);
 				}
-// 				if (!array_key_exists('copyright', $info)) {
-// 					$this->last_error = "The copyright value was not provided.";
-// 					throw new Exception($this->last_error);
-// 				}
-// 				if (!array_key_exists('year', $info)) {
-// 					$this->last_error = "The year value was not provided.";
-// 					throw new Exception($this->last_error);
-// 				}
-// 				if (!array_key_exists('sponsor', $info)) {
-// 					$this->last_error = "The sponsor value was not provided.";
-// 					throw new Exception($this->last_error);
-// 				}
 
 				// Default this to something in case we don't have it
 				if (!array_key_exists('needs_qa', $info)) {
@@ -1530,9 +1510,7 @@ class Book extends Model {
 				foreach ($this->cfg['export_optional_fields'] as $mod => $fields) {
 				
 					$all_fields = $this->get_metadata_fieldnames();
-// 					print_r($all_fields);
-// 					die;
-					
+
 					if (in_array($mod, $this->cfg['export_modules'])) {
 						if (!isset($return[$mod])) {
 							$return[$mod] = array();
@@ -1712,7 +1690,7 @@ class Book extends Model {
 							if (isset($this->cfg['gs_exe'])) {
 								$gs = $this->cfg['gs_exe'];
 							}
-							// $exec = "$gs -sDEVICE=jpeg -dJPEGQ=100 -r450x450 -o $outname $fnamenew";
+
 							// Switched to using PNG. The files are smaller. Quality is maintained compared tp jpeg2000
 							$exec = "$gs -sDEVICE=png16m -r450x450 -dSAFER -dBATCH -dNOPAUSE -dTextAlphaBits=4 -dUseCropBox -sOutputFile=".escapeshellarg($outname)." ".escapeshellarg($fnamenew);
 							$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->barcode);
@@ -1722,11 +1700,6 @@ class Book extends Model {
 							
 							$this->set_metadata('from_pdf','yes',true);
 							$this->update();
-							// Output from exec is '.$output
-							//	foreach ($output as $val){
-							//	$this->logging->log('book', 'info', 'Output from exec is '.$val, $this->barcode);
-							//	}
-							// read page 1
 						}
 					}
 					
@@ -1964,7 +1937,6 @@ class Book extends Model {
 		// Create the thumbnail image
 		$preview->resizeImage(180, 300, Imagick::FILTER_POINT, 0);
 		$preview->profileImage('xmp', $this->book->xmp_xml());
-// 		auto_rotate_image($preview);
 		$preview->writeImage($dest.'/thumbs/'.$filebase.'.jpg');
 
 		// Set IPTC Data
@@ -2062,26 +2034,6 @@ class Book extends Model {
 
 		return $results;
 	}
-
-	// Note: $image is an Imagick object, not a filename! See example use below.
-// 	function auto_rotate_image($image) {
-// 		$orientation = $image->getImageOrientation();
-// 
-// 		switch($orientation) {
-// 			case imagick::ORIENTATION_BOTTOMRIGHT:
-// 				$image->rotateimage("#000", 180); // rotate 180 degrees
-// 				break;
-// 			case imagick::ORIENTATION_RIGHTTOP:
-// 				$image->rotateimage("#000", 90); // rotate 90 degrees CW
-// 				break;
-// 			case imagick::ORIENTATION_LEFTBOTTOM:
-// 				$image->rotateimage("#000", -90); // rotate 90 degrees CCW
-// 				break;
-// 		}
-// 
-// 		// Now that it's auto-rotated, make sure the EXIF data is correct in case the EXIF gets saved with the image!
-// 		$image->setImageOrientation(imagick::ORIENTATION_TOPLEFT);
-// 	}
 
 	/**
 	 * Gets a list of exporting books that are older than a week but have

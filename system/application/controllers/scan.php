@@ -417,8 +417,6 @@ class Scan extends Controller {
 
 		echo json_encode(array(
 			'pages' => $pages
-// 		   ,'page_types' => $this->cfg['page_types'],
-// 			'piece_types' => $this->cfg['piece_types'],
 		));
 	}
 
@@ -444,7 +442,7 @@ class Scan extends Controller {
 
 		// Embedded ampersands in the data cause trouble.
 		$data = preg_replace('/\&/i', '&amp;', $this->input->post('data'));
-		//$this->logging->log('book', 'info', 'Submitted save data: '.$data, $this->session->userdata('barcode'));
+
 		// Get the data from the page
 		$data = json_decode($data, true);
 
@@ -463,43 +461,10 @@ class Scan extends Controller {
 			if (isset($page['page_id']) && isset($page['metadata'])) {
 				 // We only delete the metadta for pages that have content
 				  $this->book->delete_page_metadata($page['page_id']);
-			}
-			//
-			// Let's hope the data looks something like this...
-			// $data = array(
-			//		'item_id' => 124,
-			//		'pages'   => array(
-			//			array(
-			//				'page_id'  => 21734,
-			// 				'deleted'  => false,
-			//				'metadata' => array(
-			//					'page_type'     => array('Text', 'Title Page'),
-			//					'piece'         => array('No.),
-			//					'piece_text'    => array('12'),
-			//					'year'          => '1875',
-			//					'future_review' => '1',
-			//					'page_side'     => 'Recto (right)',
-			//				),
-			//			),
-			//			array(
-			//				'page_id'  => 21734,
-			// 				'deleted'  => true,
-			//				'metadata' => array(
-			//					'page_type'     => array('Text', 'Title Page'),
-			//					'piece'         => array('No.),
-			//					'piece_text'    => array('12'),
-			//					'year'          => '1875',
-			//					'future_review' => '1',
-			//					'page_side'     => 'Recto (right)',
-			//				)
-			//			)
-			//		)
-			//	);
-			
+			}			
 			if ($page['deleted']) {
 				$this->book->delete_page($page['page_id']);
 			} else {
-				//$this->logging->log('book', 'info', 'About to save page data for page'.$page['page_id'], $this->session->userdata('barcode'));
 				// Assume we have an array of name/value pairs.
 				foreach (array_keys($page['metadata']) as $key) {
 					$dt = $page['metadata'];
@@ -519,51 +484,15 @@ class Scan extends Controller {
 					}
 				}
 			
-				//echo(var_dump($p));
-				// Cycle through the array of possible metadata fields
-// 				foreach ($this->cfg['page_metadata_fields'] as $m) {
-// 					//echo(var_dump($m));
-// 					if ($m == 'page_type') { // Is this page type
-// 						$c = 1;
-// 						// Cycle through the array of page types
-// 						foreach ($p->metadata->page_types as $t) {
-// 							// Add them to the database
-// 							$this->book->set_page_metadata($p->page_id, 'page_type', $t->type, $c);
-// 							$c++;
-// 						}
-// 
-// 					} else if ($m == 'piece') { // Is this pieces
-// 						$c = 1;
-// 						// Cycle through the array of pieces
-// 						foreach ($p->metadata->pieces as $t) {
-// 							// Add them to the database
-// 							$this->book->set_page_metadata($p->page_id, 'piece', $t->type, $c);
-// 							$this->book->set_page_metadata($p->page_id, 'piece_text', $t->text, $c);
-// 							$c++;
-// 						}
-// 
-// 					} else if ($m == 'piece_text') {
-// 						// We do nothing here because we handle piece and piece_text together.
-// 						// But we need this placeholder to skip over it entirely.
-// 
-// 					} else if ($m == 'page_number_implicit') {
-// 						if ($p->metadata->$m) {
-// 							$this->book->set_page_metadata($p->page_id, $m, $p->metadata->$m);
-// 						}
-// 					} else {
-// 						// Re-add the metadata that was submitted from the user
-// 						if (isset($p->metadata->$m)) {
-// 							$this->book->set_page_metadata($p->page_id, $m, $p->metadata->$m);
-// 						}
-// 					} // if ($m == 'page_type') ...
-// 				} // foreach ($this->cfg['page_metadata_fields'] as $m)
-
 				// Update sequence Numbers
 				$this->book->set_page_sequence($page['page_id'], $sequence_count++);
 				if (!$data['inserted_missing']) {
 					$this->book->set_missing_flag($page['page_id'], false);
 				}
-			}
+				if ($page['inserted']) {
+					$this->logging->log('book', 'info', 'Page inserted before sequence Number '.$sequence_count.'.', $this->session->userdata('barcode'));
+				}
+			} // if ($page['deleted']) else clause
 
 		} // foreach ($data->pages as $p)
 
@@ -1131,24 +1060,5 @@ class Scan extends Controller {
 		return $foundFiles;
 	}
 	
-// 	function do_upload() {
-// // 		$barcode = $_POST["bookid"];
-// // 		$incomingpath = $this->cfg['incoming_directory'].'/'.$barcode.'/';
-// // 		$remotepath= $this->cfg['incoming_directory_remote'].'/'.$barcode;
-// // 		$data['remotepath'] = $remotepath;
-// // 		$data['incomingpath'] = $incomingpath;
-// // 
-// // 		// Make sure the path exists
-// // 		if (!file_exists($data['incomingpath'])) {
-// // 			mkdir($data['incomingpath']);
-// // 			$this->logging->log('book', 'info', 'Created incoming directory: '.$data['incomingpath'], $barcode);
-// // 		}
-// // 
-// // 		foreach ($_FILES as $fieldName => $file) {
-// // 			move_uploaded_file($file['tmp_name'], $incomingpath.strip_tags(basename($file['name'])));
-// // 			$this->logging->log('book', 'info', 'Uploaded '.$incomingpath.strip_tags(basename($file['name'])), $barcode);
-// // 		}
-// // 		$this->load->view('scan/monitor_view', $data);	
-// 	}
 }
 
