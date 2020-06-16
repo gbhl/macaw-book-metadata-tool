@@ -42,6 +42,7 @@ YAHOO.macaw.Book = function() {
 	this.metadataModulesGlobal = new Array();
 	this.contextMenu = null;
 	this.modified = 0;
+	this.preventFinish = false;
 	
 	// ----------------------------
 	// Function: load()
@@ -216,6 +217,8 @@ YAHOO.macaw.Book = function() {
 				eval('var r = '+o.responseText);
 				if (r.redirect) {
 					this.hideSavingIndicator(true);
+					// Allow a metadata module to force errors to be corrected.
+					if (this.preventFinish) { return; }
 					window.location = r.redirect;
 				} else if (r.error) {
 					this.hideSavingIndicator(true);
