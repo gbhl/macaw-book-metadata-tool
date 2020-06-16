@@ -393,15 +393,20 @@ this.SegmentComponent = function() {
 		}
 		var callback = {
 			failure: function (ob) {
-				var y = 10;
+				oBook.preventFinish = true;
 			},
 			scope: this
 		};
 
 		segmentErrors = validateSegments();
 		if (segmentErrors != "") {
-			window.setTimeout(function () { oBook.modified = true; }, 5000) 
-			alert('One or more segments had errors. Please correct them before saving: \n\n' + segmentErrors);
+			window.setTimeout(function () { oBook.modified = true; }, 5000)
+			if (e.currentTarget.id == 'btnFinished') {
+				alert('One or more segments had errors. Please correct them before completing this item.\n\n' + segmentErrors);
+			} else {
+				alert('One or more segments had errors. Please correct them. \n\n' + segmentErrors);
+			}
+			oBook.preventFinish = true;
 		}
 
 		var data = "data=" + encodeURIComponent(JSON.stringify({
