@@ -1252,7 +1252,9 @@ table#admin_scheduled_jobs td {
 	margin: 0;
 	height: 100%;
 }
-.yui-button#btnAlphaReorder {
+#resort {
+	width: 154px;
+	display: inline-block;
 	margin-left: 100px;
 }
 .yui-button#btnSelectAll button,
