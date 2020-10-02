@@ -1280,6 +1280,9 @@ class Internet_archive extends Controller {
 	// This should call Book.get_item_metadata().
 	// ----------------------------
 	function _create_segments_xml($id, $book, $pages) {
+		// This should not be used yet. Return empty element.
+		return '<bhlSegmentData></bhlSegmentData>';
+		
 		$segment_genres = [
 			1 => 'Article',
 			2 => 'Book',
