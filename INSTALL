@@ -95,18 +95,14 @@ for your system.
 	Macaw requires a UTF-8 encoding on the database. Be sure to remember the password you used to create
 	the database. You'll need it during the installation process. 		
 	
-	* PostgreSQL user and database
-		
-		$ createuser -U postgres --createdb --no-createrole --no-superuser --pwprompt macaw
-		$ createdb -U macaw --encoding=UTF8 macaw
-	
-	* MySQL user and database
+	* MySQL user and database (Version 8+)
 	  
 	  Be sure to replace <password> with the password for your newly created macaw user.
 	  
 	  $ mysql -u root -p mysql
+		CREATE USER 'macaw'@'localhost' identified by 'PASSWORD';
     CREATE DATABASE macaw CHARACTER SET utf8 COLLATE utf8_general_ci;
-    GRANT ALL ON macaw.* To 'macaw'@'localhost' IDENTIFIED BY '<password>';
+    GRANT ALL ON macaw.* To 'macaw'@'localhost';
 	
 
 4. Set file and directory permissions
