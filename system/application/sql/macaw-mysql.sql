@@ -13,7 +13,7 @@ CREATE TABLE account (
     full_name varchar(128),
     email varchar(128),
     terms_conditions TIMESTAMP,
-    PRIMARY KEY(`id`),
+    PRIMARY KEY(`id`)
 ) ENGINE=InnoDB CHARACTER SET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE item (
@@ -123,7 +123,7 @@ INSERT INTO organization (id, name, person, email, phone, address, address2, cit
 
 INSERT INTO permission (username, permission) VALUES ('admin','admin'), ('admin','scan');
 
-INSERT INTO settings (name, value) VALUES ('version','2.4');
+INSERT INTO settings (name, value) VALUES ('version','2.7');
 INSERT INTO settings (name, value) values ('installed', '1');
 
 -- Redunant now
