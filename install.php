@@ -32,700 +32,761 @@
 	<script type="text/javascript" src="/js/macaw-import.js"></script>
 
 <?php
-	// include_once('system/application/views/global/head_view.php');
 	require_once('system/application/libraries/Authentication/phpass-0.1/PasswordHash.php');
 
 	error_reporting(E_ALL & ~E_NOTICE); 
 	ini_set('display_errors', '1');
 
-	$success = 1;
+	# Initialize some variables
 	$db_created = 0;
 	$step = 0;
-	$paths = array();
-
-	if (isset($_REQUEST['step'])) {$step = $_REQUEST['step'];}
-
-	// Verify that we are installed in a relatively sane manner
-	// 1. Identify base directory of the site (the location of the install.php script)
-	$base_path = realpath(dirname(__FILE__));
-	define("BASEPATH", $base_path);
-
-	// 3. Make sure we can write to the configuration directory and the files contained therein
-	$config_path = $base_path.'/system/application/config';
-	$write_perm_error = 'Please make sure that the web server has read and write permissions.<br><br>';
-
-	$errormessage = '';
-	$message = '';
+	$paths = [];
+	$admin_info = [];
+	$path_info = [];
+	$errors = [];
+	$messages = [];
+	$paths_verified = true;
 	$done = 0;
-	$ci_config = $config_path.'/config.php';
-	$def_ci_config = $config_path.'/config.default.php';
+	$dbh = null;
 
-	$db_config = $config_path.'/database.php';
-	$def_db_config = $config_path.'/database.default.php';
 
-	$macaw_config = $config_path.'/macaw.php';
-	$macaw_def_config = $config_path.'/macaw.default.php';
-	$organization_name = '';
+	# get the current step, if there is one.
+	if (isset($_REQUEST['step'])) {
+		$step = $_REQUEST['step'];
+	}
+	
+	# Sanity checks
+	$config_path = __DIR__.'/system/application/config';
+	
+	if (!is_writable(__DIR__) && $step < 6) {
+		$errors[] = "Permission denied to write to <b>".__DIR__."</b>. Please make sure that the web server user has read and write permissions.";
+	}
+	if (!is_writable($config_path) && $step < 6) {
+		$errors[] = "Permission denied to write to <b>$config_path</b>. Please make sure that the web server user has read and write permissions.";
+	}
 
-	$continue = false;
-	// determine if we are already installed. We 
-	if (file_exists($db_config) && $db['default']['hostname'] && $db['default']['username'] && $db['default']['password']) {
+	if (!$errors) {
+		create_config('config');
+		create_config('database');
+		create_config('macaw');	
+	}	
+	$db_config = "$config_path/database.php";
+	$macaw_config = "$config_path/macaw.php";
+	$ci_config = "$config_path/config.php";
+
+	if (!$errors) {
+		verify_php();
+	}
+
+	define('BASEPATH', __DIR__);
+
+	# Try to determine if we are already installed.
+	# This has the secondary effect of connecting to the database if 
+	# there are database settings.
+	if (file_exists($macaw_config)) {
+		require_once($macaw_config);
+	}
+	if (file_exists($db_config)) {
+		require_once($db_config);
+	}
+
+	if (!$errors && $step == 0) {
+		if ($db['default']['hostname'] && $db['default']['database'] && $db['default']['username'] && $db['default']['dbdriver']) {
+			$dbh = connect_database(
+				$db['default']['hostname'],
+				$db['default']['database'],
+				$db['default']['username'],
+				$db['default']['password'],
+				$db['default']['port'],
+			);
+			if (!$dbh) {
+				$step = 1;
+			}
+		}
+		if ($dbh) {
+			is_installed($dbh);	
+		}
+	}
+	
+	if (!$errors && $step == 0) {
+		$step = 1;
+	}
+
+	if (!isset($_POST['submit'])) {$_POST['submit'] = '';}
+
+	if ($_POST['submit'] == '<< Back' || $_POST['submit'] == 'Retry >>') {
+		$step -= 1;
+	}
+
+	# Sanity Checks complete, let's see about the database info
+	if ($step == 1) { // Gathering Database connection info
+		if ($_POST['submit'] == 'Next >>') {
+			if (!$_POST['database_username']) { $errors[] = "Database username is required."; }
+			if (!$_POST['database_password']) { $errors[] = "Database password is required."; }
+			if (!$_POST['database_name']) { $errors[] = "Database name is required."; }
+			if (!$_POST['database_host']) { $errors[] = "Database host is required."; }
+
+			// Save whatever data was passed in
+			set_config($db_config, "\$db['default']['hostname']", $_POST['database_host']);
+			set_config($db_config, "\$db['default']['username']", $_POST['database_username']);
+			set_config($db_config, "\$db['default']['password']", $_POST['database_password']);
+			set_config($db_config, "\$db['default']['database']", $_POST['database_name']);
+			set_config($db_config, "\$db['default']['dbdriver']", $_POST['database_type']);
+			set_config($db_config, "\$db['default']['port']",     $_POST['database_port']);
+			sleep(3);
+
+			$db['default']['hostname'] = $_POST['database_host'];
+			$db['default']['username'] = $_POST['database_username'];
+			$db['default']['password'] = $_POST['database_password'];
+			$db['default']['database'] = $_POST['database_name'];
+			$db['default']['port']     = $_POST['database_port'];
+
+			if (!$errors) {
+				$dbh = connect_database(
+					$_POST['database_host'], 
+					$_POST['database_name'], 
+					$_POST['database_username'], 
+					$_POST['database_password'],
+					$_POST['database_port'],
+				);
+				if (!$dbh) {
+					$errors[] = "Please check your database settings.";
+				} else {
+					create_database($dbh);
+
+					// Put these back in memory to be used later. Maybe.
+					$db['default']['hostname'] = $_POST['database_host'];
+					$db['default']['username'] = $_POST['database_username'];
+					$db['default']['password'] = $_POST['database_password'];
+					$db['default']['database'] = $_POST['database_name'];
+					$db['default']['port']     = $_POST['database_port'];
+		
+					$step++;
+					$_POST['submit'] = null;
+				}
+			}
+		} 
+	} // if ($step == 1)
+
+	if ($step == 2) { // Database initial setup complete
+		if (isset($_POST['submit'])) {
+			if ($_POST['submit'] == 'Next >>') {
+				$step += 1;
+				$_POST['submit'] = null;
+			}
+		}
+
+	} // if ($step == 2)
+
+	if ($step == 3) { // Gathering Administrator Login Info
+		$dbh = connect_database(
+			$db['default']['hostname'],
+			$db['default']['database'],
+			$db['default']['username'],
+			$db['default']['password'],
+			$db['default']['port']
+		);
+
+		// Get what we can from the database
+		$stmt = $dbh->query('select * from account where id = 1');
+		$admin_info = $stmt->fetch();
+
+		$stmt = $dbh->query('select * from organization where id = 1');
+		$org_info = $stmt->fetch();
+		$admin_info['organization_name'] = $org_info['name'];
+
+		if (isset($_POST['submit'])) {
+			if ($_POST['submit'] == 'Next >>') {
+
+				// Make sure that we get around the whole concept of null values and "variable not set" errors. Sheesh.
+				if (!isset($_POST['admin_password'])) {$_POST['admin_password'] = '';}
+				if (!isset($_POST['admin_password_c'])) {$_POST['admin_password_c'] = '';}
+
+				// Make sure we get a password when we need one
+				if (!$admin_info['password'] && !$_POST['admin_password']) {
+					$errors[] = "You must enter a password and confirmation password.";
+				} else {
+					if ($_POST['admin_password'] || $_POST['admin_password_c']) {
+						if ($_POST['admin_password'] != $_POST['admin_password_c']) {
+							$errors[] = "The passwords you entered do not match.";
+						}
+					}
+				}
+
+				$admin_info['full_name'] = $_POST['admin_full_name'];
+				$admin_info['username'] = $_POST['admin_username'];
+				$admin_info['password'] = $_POST['admin_password'];
+				$admin_info['email'] = $_POST['admin_email'];
+				$admin_info['organization_name'] = $_POST['organization_name'];
+
+				// Continue only if we didn't have an error
+				if (!$errors) {
+					// Save whatever data was passed in
+					set_config($macaw_config, "\$config['macaw']['admin_email']", $admin_info['email']);
+					set_config($macaw_config, "\$config['macaw']['organization_name']", $admin_info['organization_name']);
+					sleep(3);
+
+					// generate the new password hash
+					$hasher = new PasswordHash(8, false);
+					$pass_hash = $hasher->HashPassword($admin_info['password']);
+
+					// Set up the organization?
+					create_organization(
+						$admin_info['organization_name'],
+						$admin_info['admin_full_name'],
+						$admin_info['admin_email']
+					);
+					
+					// Set the data in the database
+					$stmt = $dbh->prepare(
+						'UPDATE account SET full_name = :fullname, username = :username, password = :passhash, 
+						 email = :email WHERE id = 1'
+					);
+					$stmt->execute(array(
+						':fullname' => $admin_info['full_name'],
+						':username' => $admin_info['username'],
+						':passhash' => $pass_hash,
+						':email' => $admin_info['email']
+					));
+					$messages[] = 'Administrator settings were saved successfully.';
+				}
+
+				if (!$errors) {
+					// Now determine what the next step is and get it displayed
+					$step += 1;
+					$_POST['submit'] = null;
+				}
+			}
+		}
+	} // if ($step == 3)
+
+	if ($step == 4) { // Administrator Login setup complete
+
+		if (isset($_POST['submit'])) {
+			if ($_POST['submit'] == 'Next >>') {
+				if (!$errors) {
+					$step += 1;
+					$_POST['submit'] = null;
+				}
+			}
+		}
+	} // if ($step == 4)
+	
+	if ($step == 5) {
+		// Path to base, data and purge directories
+		require_once($macaw_config);
+		require_once($ci_config);
+
+		// Get what might already be saved, or defaut to something 
+		$path_info['base_path'] = ($config['macaw']['base_directory'] != '/path/to/webroot/htdocs' ? $config['macaw']['base_directory'] : __DIR__);
+		$path_info['base_url'] = ($config['base_url'] != 'http://localhost/' ? $config['base_url'] : getBaseURL().'/');
+		$path_info['incoming_path'] = ($config['macaw']['incoming_directory'] ? $config['macaw']['incoming_directory'] : __DIR__.'/incoming');
+
+		if (isset($_POST['submit'])) {
+			$paths_verified = true;
+			
+			if ($_POST['submit'] == 'Next >>' || $_POST['submit'] == 'Retry >>') {
+				
+				// Save Changes
+				set_config($ci_config,    "\$config['base_url']",                    $_POST['base_url']);
+				set_config($macaw_config, "\$config['macaw']['base_directory']",     $_POST['base_path']);
+				set_config($macaw_config, "\$config['macaw']['incoming_directory']", $_POST['incoming_path']);
+				set_config($macaw_config, "\$config['macaw']['incoming_directory_remote']", $_POST['incoming_path']);
+				sleep(3);
+
+				// Set these in memory because we sort of need them for the next steps.
+				$config['base_url']                    = $_POST['base_url'];
+				$config['macaw']['base_directory']     = $_POST['base_path'];
+				$config['macaw']['incoming_directory'] = $_POST['incoming_path'];
+				$config['macaw']['incoming_directory_remote'] = $_POST['incoming_path'];
+				$config['macaw']['data_directory']     = $_POST['base_path'].'/books';
+				$config['macaw']['logs_directory']     = $_POST['base_path'].'/system/application/logs';
+			}
+			if ($_POST['submit'] == 'Next >>' || $_POST['submit'] == 'Retry >>') {
+				// Verify access to the paths
+				if (!preg_match('/^https?:\/\//', $config['base_url'])) {
+					array_push($paths, array(
+						'name' => 'Base URL',
+						'path' => $config['base_url'],
+						'success' => 0,
+						'message' => 'Error! The Base URL must begin with http:// or https://.'
+					));
+					$errors[] = 'The Base URL must begin with http:// or https://.';
+					$paths_verified = false;
+				} else {
+					array_push($paths, array(
+						'name' => 'Base URL',
+						'path' => $config['base_url'],
+						'success' => 1,
+						'message' => 'OK.'
+					));	
+				}
+
+				if (!file_exists($config['macaw']['base_directory'])) {
+					array_push($paths, array(
+						'name' => 'Base Directory',
+						'path' => $config['macaw']['base_directory'],
+						'success' => 0,
+						'message' => 'Error! The path could not be found.'
+					));
+					$paths_verified = false;
+				} else {
+					array_push($paths, array(
+						'name' => 'Base Directory',
+						'path' => $config['macaw']['base_directory'],
+						'success' => 1,
+						'message' => 'Success!'
+					));
+				}
+				
+				if (!file_exists($config['macaw']['data_directory'])) {
+					if (!@mkdir($config['macaw']['data_directory'], 0755)) {
+						array_push($paths, array(
+							'name' => 'Data Directory',
+							'path' => $config['macaw']['data_directory'],
+							'success' => 0,
+							'message' => 'Error! The path could not be created.'
+						));
+						$paths_verified = false;
+					} else {
+						array_push($paths, array(
+							'name' => 'Data Directory',
+							'path' => $config['macaw']['data_directory'],
+							'success' => 1,
+							'message' => 'Success!'
+						));					
+					}
+				} else {
+					if (!is_writable($config['macaw']['data_directory'])) {
+						array_push($paths, array(
+							'name' => 'Data Directory',
+							'path' => $config['macaw']['data_directory'],
+							'success' => 0,
+							'message' => 'Error! Could not write to this path. Please make sure the web server has read/write permissions.'
+						));
+						$paths_verified = false;
+					} else {
+						array_push($paths, array(
+							'name' => 'Data Directory',
+							'path' => $config['macaw']['data_directory'],
+							'success' => 1,
+							'message' => 'Success!'
+						));
+					}
+				}
+
+				if (!file_exists($config['macaw']['data_directory'].'/export')) {
+					if (!@mkdir($config['macaw']['data_directory'].'/export', 0755)) {
+						array_push($paths, array(
+							'name' => 'Data Export Directory',
+							'path' => $config['macaw']['data_directory'].'/export',
+							'success' => 0,
+							'message' => 'Error! The path could not be created.'
+						));
+						$paths_verified = false;
+					} else {
+						array_push($paths, array(
+							'name' => 'Data Export Directory',
+							'path' => $config['macaw']['data_directory'].'/export',
+							'success' => 1,
+							'message' => 'Success!'
+						));					
+					}
+				} else {
+					if (!is_writable($config['macaw']['data_directory'].'/export')) {
+						array_push($paths, array(
+							'name' => 'Data Export Directory',
+							'path' => $config['macaw']['data_directory'].'/export',
+							'success' => 0,
+							'message' => 'Error! Could not write to this path. Please make sure the web server has read/write permissions.'
+						));
+						$paths_verified = false;
+					} else {
+						array_push($paths, array(
+							'name' => 'Data Export Directory',
+							'path' => $config['macaw']['data_directory'].'/export',
+							'success' => 1,
+							'message' => 'Success!'
+						));
+					}
+				}
+
+				if (!file_exists($config['macaw']['logs_directory'])) {
+					mkdir($config['macaw']['logs_directory'], 0755, true);
+				}
+				if (!file_exists($config['macaw']['logs_directory'].'/books')) {
+					mkdir($config['macaw']['logs_directory'].'/books', 0755, true);
+				}
+				if (!file_exists($config['macaw']['logs_directory'])) {
+					array_push($paths, array(
+						'name' => 'Logs Directory',
+						'path' => $config['macaw']['logs_directory'],
+						'success' => 0,
+						'message' => 'Error! The path could not be found.'
+					));
+					$paths_verified = false;
+				} else {
+					if (!is_writable($config['macaw']['logs_directory'])) {
+						array_push($paths, array(
+							'name' => 'Logs Directory',
+							'path' => $config['macaw']['logs_directory'],
+							'success' => 0,
+							'message' => 'Error! Could not write to this path. Please make sure the web server has read/write permissions.'
+						));
+						$paths_verified = false;
+					} else {
+						array_push($paths, array(
+							'name' => 'Logs Directory',
+							'path' => $config['macaw']['logs_directory'],
+							'success' => 1,
+							'message' => 'Success!'
+						));
+					}
+				}
+
+				if (!file_exists($config['macaw']['incoming_directory'])) {
+					if (!@mkdir($config['macaw']['incoming_directory'], 0755)) {
+						array_push($paths, array(
+							'name' => 'Incoming Directory',
+							'path' => $config['macaw']['incoming_directory'],
+							'success' => 0,
+							'message' => 'Error! The path could not be created.'
+						));
+						$success = false;
+					} else {
+						array_push($paths, array(
+							'name' => 'Incoming Directory',
+							'path' => $config['macaw']['incoming_directory'],
+							'success' => 1,
+							'message' => 'Success!'
+						));					
+					}
+				} else {
+					if (!is_writable($config['macaw']['incoming_directory'])) {
+						array_push($paths, array(
+							'name' => 'Incoming Directory',
+							'path' => $config['macaw']['incoming_directory'],
+							'success' => 0,
+							'message' => 'Error! Could not write to this path. Please make sure the web server has read/write permissions.'
+						));
+						$success = false;
+					} else {
+						array_push($paths, array(
+							'name' => 'Incoming Directory',
+							'path' => $config['macaw']['incoming_directory'],
+							'success' => 1,
+							'message' => 'Success!'
+						));
+					}
+				}
+
+				$done = 1;
+
+				if ($paths_verified) {
+					// Now determine what the next step is and get it displayed
+					$step += 1;
+					$_POST['submit'] = null;
+				}
+			}
+		}
+	}	// if ($step == 5)
+	
+	if ($step == 6) {
+		if (isset($_POST['submit'])) {
+			if ($_POST['submit'] == 'Next >>' || $_POST['submit'] == 'Retry >>') {
+				$step += 1;
+				$_POST['submit'] = null;
+			}
+		}
+	} // if ($step == 6)
+	
+	if ($step == 7) {
+		require_once($macaw_config);
+		require_once($ci_config);
 		require_once($db_config);
 
-		$row = null;
-		if ($db['default']['dbdriver'] == 'postgre') {
-			$conn = "host=".$db['default']['hostname'].
-				($db['default']['port'] ? " port=".$db['default']['port'] : '').
-				" dbname=".$db['default']['database'].
-				" user=".$db['default']['username'].
-				" password=".$db['default']['password'];
-			
-			// Connect and query
-			$conn = pg_connect($conn);
-			$result = pg_query('select * from settings where name = \'installed\'');
-			$row = pg_fetch_assoc($result);		
-		}
-		if ($db['default']['dbdriver'] == 'mysql' || $db['default']['dbdriver'] == 'mysqli') {
-			$conn = mysql_connect(
-				$db['default']['hostname'].($db['default']['port'] ? ':'.$db['default']['port'] : ''), 
-				$db['default']['username'], 
-				$db['default']['password']
+		if (!$dbh) {
+			$dbh = connect_database(
+				$db['default']['hostname'],
+				$db['default']['database'],
+				$db['default']['username'],
+				$db['default']['password'],
+				$db['default']['port']
 			);
-			mysql_select_db($db['default']['database'], $conn);
-			$result = mysql_query('select * from settings where name = \'installed\'');
-			$row = mysql_fetch_assoc($result);		
 		}
+
+		// Get what we can from the database
+		$stmt = $dbh->query('select * from account where id = 1');
+		$admin_info = $stmt->fetch();
+
+		$stmt = $dbh->query('select * from organization where id = 1');
+		$org_info = $stmt->fetch();
+		$admin_info['organization_name'] = $org_info['name'];
+
+		// Get what might already be saved, or defaut to something 
+		$path_info['base_path'] = ($config['macaw']['base_directory'] ? $config['macaw']['base_directory'] : __DIR__);
+		$path_info['base_url'] = ($config['base_url'] ? $config['base_url'] : getBaseURL().'/');
+		$path_info['incoming_path'] = ($config['macaw']['incoming_directory'] ? $config['macaw']['incoming_directory'] : __DIR__.'/incoming');
+		$install_file = $path_info['base_path'].'/install.php';
+
+		rename($install_file, $install_file.'.delete');
+		chmod($macaw_config, 0440);
+		chmod($ci_config, 0440);
+		chmod($db_config, 0440);
+		chmod($config_path, 0555);
+	} // if ($step == 7)
+	
+?>
+
+	<style>
+	  #hd #title h1, #hd #title h2, #hd #title h3 {text-align:center;color:white;}
+		#hd #logo {position:absolute;left:0;top:0;height: 300px;width: auto;}
+		#bd {min-height:100px;}
+		.bd {min-height:300px;}
+		.yui-panel {width:100%; visibility:inherit;}
+		.step {font-size:120%;font-weight:bold;padding:14px 10px 10px 10px;color:#888888;}
+		.active {color:#000000;border:1px solid #0099CC;background-color:#ffffff;}
+		.yui-gd {margin: 0 40px;}
+		.yui-skin-sam .yui-panel .hd {padding-top:5px;font-size:20px;color:#0099CC;background: rgba(250,250,250,0.8);}
+		.yui-skin-sam .yui-panel .bd {background-color:#ffffff;background: rgba(255,255,255,0.8);}
+		.success {font-size:16px;font-weight:bold;color:#009900;margin-bottom:10px}
+		.error {border:1px solid #990000;font-weight:bold;color:#CC0000;background-color:#FFCCCC;padding:15px;}
+		.warning {border:1px solid #F30;color:#333;background-color:#FC9;padding:15px;margin-bottom:10px;}
+		.failure {font-size:16px;font-weight:bold;color:#990000;}
+		.small {font-size:100%;}
+		.errormessage {font-size:120%;margin-bottom:10px;color:#990000;}
+		.message {font-size:120%;margin-bottom:10px;color:#009900;}
+		.grey {color: #999999; font-size: 90%;}
+	</style>
+</head>
+<body class="yui-skin-sam">
+	<div id="doc3" class="yui-t7">
+		<div id="hd" role="banner">
+			<img src="images/rosellas_macaw_login.png" id="logo">
+			<div id="title">
+				<h1>Macaw</h1>
+				<h2>Metadata Collection and Workflow System</h2>
+				<h3>Version <?php echo($version_rev); ?> / <?php echo($version_date); ?></h3>
+			</div>
+		</div>
+		<div id="bd" role="main" style="min-height:auto">
+			<div class="yui-gd">
+				<div class="yui-u first">
+					<div class="yui-module yui-overlay yui-panel" style="width: 100%; visibility: inherit;">
+						<div class="hd">
+							Installation Steps
+						</div>
+						<div class="bd">
+							<div class="step<?php if($step == 1) {echo(" active");} ?>">1. Database Connection</div>
+							<div class="step<?php if($step == 2) {echo(" active");} ?>">2. Database Initialization</div>
+							<div class="step<?php if($step == 3) {echo(" active");} ?>">3. Administrator Setup</div>
+							<div class="step<?php if($step == 4) {echo(" active");} ?>">4. Administrator Review</div>
+							<div class="step<?php if($step == 5) {echo(" active");} ?>">5. File and URL Locations</div>
+							<div class="step<?php if($step == 6) {echo(" active");} ?>">6. File Locations Review</div>
+							<div class="step<?php if($step == 7) {echo(" active");} ?>">7. Finished</div>
+						</div>
+					</div>
+				</div>
+				<div class="yui-u">
+					<div class="yui-module yui-overlay yui-panel"?>
+												
+						<div class="hd">
+							<?php if ($step == 0) { echo "Preliminary Checkup"; }?>
+							<?php if ($step == 1) { echo "Database Connection"; }?>
+							<?php if ($step == 2) { echo "Database Initialization"; }?>
+							<?php if ($step == 3) { echo "Administrator Setup"; }?>
+							<?php if ($step == 4) { echo "Administrator Review"; }?>
+							<?php if ($step == 5) { echo "File and URL Locations"; }?>
+							<?php if ($step == 6) { echo "File Locations Review"; }?>
+							<?php if ($step == 7) { echo "Finished"; }?>
+						</div>
+
+						<div class="bd">
+							<?php
+							if (count($messages) > 0) {
+								echo ('<div class="message">'.implode('<br><br>', $messages).'</div>');
+							}
+							if (count($errors) > 0) {
+								echo ('<div class="errormessage">'.implode('<br><br>', $errors).'</div>');
+							}
+							
+							if ($step == 1) { step_1(); }
+							if ($step == 2) { step_2(); }
+							if ($step == 3) { step_3(); }
+							if ($step == 4) { step_4(); }
+							if ($step == 5) { step_5(); }
+							if ($step == 6) { step_6(); }
+							if ($step == 7) { step_7(); }
+							
+							?>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
+
+
+<?php
+
+	function create_config($base) {
+		global $config_path;
+		global $errors;
+		global $messages;
+
+		$filename = $base.'.php';
+		$default_filename = $base.'.default.php';
+		
+		if (!file_exists("$config_path/$filename")) {
+			if (!copy("$config_path/$default_filename", "$config_path/$filename")) {
+				$errors[] = "Unable to copy <b>$default_filename</b> to <b>$filename</b>.";
+			}
+		}
+	}
+
+	function connect_database($host, $db, $user, $pass, $port = '3306') {
+		global $errors;
+		global $messages;
+				
+		$options = [
+			\PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
+			\PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+			\PDO::ATTR_EMULATE_PREPARES   => false,
+		];
+		$dsn = "mysql:host=$host;dbname=$db;port=$port";
+		try {
+			$pdo = new \PDO($dsn, $user, $pass, $options);
+		} catch (\PDOException $e) {
+			$errors[] = $e->getMessage();
+		}
+		return $pdo;
+	}
+
+	function is_installed($dbh) {
+		global $errors;
+		global $messages;
+
+		$stmt = $dbh->query("SELECT count(*) as thecount FROM information_schema.tables WHERE table_schema = '$db';");
+		$row = $stmt->fetch();
+		if ($row['thecount'] == 0) {
+			return;
+		}
+
+		$stmt = $dbh->query("select * from settings where name = 'installed'");
+		$row = $stmt->fetch();
 		
 		// Do we have a setting
 		if (isset($row)) {
 			// Is it 1?
 			if (isset($row['value']) && $row['value'] == 1) {
 				$url = getBaseURL().'/';
-				$errormessage .= '<div class="error">Macaw has already been installed!</div> <h3>Start using Macaw at this URL: <a href="'.$url.'">'.$url.'</a></h3>' ;	 
-
-			} else {
-				$continue = true;
-			} // if (isset($row['value']) && $row['value'] == 1)
-
-		} else {
-			$continue = true;
-		} // if (isset($row))
-
-	} else {
-		$continue = true;
-	} // if (file_exists($db_config))
-	
-	if ($continue) {
-	
-		if (is_writable($base_path)) {
-			// Build our filenames
-	
-		} else {
-			$errormessage .= 'The installer cannot write to the base directory: <blockquote style="font-weight:bold">'.$base_path.'</blockquote>'.$write_perm_error;
+				$errors[] = "Macaw has already been installed!";
+				$errors[] = "Start using Macaw at <a href=\"$url\">$url</a>!";
+			}
 		}
-	
-		if (is_writable($config_path)) {
-			// Build our filenames
-	
-			// Make sure we have a config.php, we should.
-			if (file_exists($ci_config)) {
-				if (!is_writable($ci_config)) {
-					$errormessage .= 'The installer cannot write to the configuration file: <blockquote style="font-weight:bold">'.$ci_config.'</blockquote>'.$write_perm_error;
-				}
-			} else {
-				# Try to copy the file
-				if (file_exists($def_ci_config)) {
-					if (!copy($def_ci_config, $ci_config)) {
-						$errormessage .= 'The installer was unable to create the <strong>config.php</strong> file from the default: <blockquote style="font-weight:bold">'.$def_ci_config.'</blockquote>'.$write_perm_error;
-					}
-				} else {		
-					$errormessage .= 'The installer cannot find the file: <blockquote style="font-weight:bold">'.$def_ci_config.'</blockquote>';
-				}
-			}
-	
-			// Make sure we have a database.php, we should.
-			if (file_exists($db_config)) {
-				if (!is_writable($db_config)) {
-					$errormessage .= 'The installer cannot write to the configuration file: <blockquote style="font-weight:bold">'.$db_config.'</blockquote>'.$write_perm_error;
-				}
-			} else {
-				# Try to copy the file
-				if (file_exists($def_db_config)) {
-					if (!copy($def_db_config, $db_config)) {
-						$errormessage .= 'The installer was unable to create the <strong>database.php</strong> file from the default: <blockquote style="font-weight:bold">'.$def_db_config.'</blockquote>'.$write_perm_error;
-					}			
-				} else {		
-					$errormessage .= 'The installer cannot find the file: <blockquote style="font-weight:bold">'.$def_db_config.'</blockquote>';
-				}			
-			}
-	
-			// Make sure we have a macaw.php, if not create it from the default.
-			if (file_exists($macaw_config)) {
-				if (!is_writable($macaw_config)) {
-					$errormessage .= 'The installer cannot write to the configuration file: <blockquote style="font-weight:bold">'.$macaw_config.'</blockquote>'.$write_perm_error;
-				}
-			} else {
-				// try to create the macaw configuration file
-				if (file_exists($macaw_def_config)) {
-					if (!copy($macaw_def_config, $macaw_config)) {
-						$errormessage .= 'The installer was unable to create the <strong>macaw.php</strong> file from the default: <blockquote style="font-weight:bold">'.$macaw_def_config.'</blockquote>'.$write_perm_error;
-					}
-				} else {
-					$errormessage .= 'The installer cannot find the file: <blockquote style="font-weight:bold">'.$macaw_def_config.'</blockquote>';
-				}
-			}
-		} else {
-			$errormessage .= 'The installer cannot write to the configuration directory: <blockquote style="font-weight:bold">'.$config_path.'</blockquote>'.$write_perm_error;
-		}
-		
-		
-		// Verify system components
-		// PHP Version
+	}
+
+	function verify_php() {
+		global $errors;
+		global $messages;
+				
 		$matches = array();
-		if (!defined('PHP_VERSION_ID')) {
-			$version = explode('.', PHP_VERSION);
-			define('PHP_VERSION_ID', ($version[0] * 10000 + $version[1] * 100 + $version[2]));
-		}
-		if (PHP_VERSION_ID < 50300) {
-			$errormessage .= 'PHP must be version 5.3 or higher. Current version is "'.PHP_VERSION.'".<br><br>';
+		$version = explode('.', PHP_VERSION);
+		$version_id =  ($version[0] * 10000 + $version[1] * 100 + $version[2]);
+		if ($version_id < 70200) {
+			$errors[] = 'PHP must be version 7.2 or higher. Current version is "'.PHP_VERSION.'".';
 		}
 	
 		// PHP ZIP
 		$extensions = get_loaded_extensions();
 		if (!in_array('zip', $extensions)) {
-			$errormessage .= 'PHP <strong>zip</strong> extension not found. Please install it using PECL.<br><br>';
+			$errors[] = 'PHP <strong>zip</strong> extension not found.';
 		}
 	
 		// PHP Archive_Tar
 		if (!include('Archive/Tar.php')) {
-			$errormessage .= 'PHP <strong>Archive_Tar</strong> extension not found. Please install it using PEAR.<br><br>';
+			$errors[] = 'PHP <strong>Archive_Tar</strong> extension not found..';
 		}
 	
 		// PHP XSL
 		if (!in_array('xsl', $extensions)) {
-			$errormessage .= 'PHP <strong>xsl</strong> extension not found. Please install it with apt, yum or other package manager (preferred), or recompile PHP using --with-xsl.<br><br>';
+			$errors[] = 'PHP <strong>xsl</strong> extension not found.';
 		}
 	
 		// PHP Imagick
 		if (!in_array('imagick', $extensions)) {
-			$errormessage .= 'PHP <strong>imagick</strong> extension not found. Please install it with apt, yum or other package manager (preferred) or with PECL. <br><br>';
-		}
-	
-		// These are a bit harder to determine. Skip them for now and hope for the best.
-		// PostgreSQL
-		// ImageMagick 6.5
-		// Jasper
-		// curl
-		
-	
-		if (!$errormessage && $step == 0) {
-			$step = 1;
-		}
-	
-		if (!isset($_POST['submit'])) {$_POST['submit'] = '';}
-	
-		if ($_POST['submit'] == '<< Back') {
-			$step -= 1;
-		}
-	
-		if ($_POST['submit'] == 'Retry >>') {
-			$step -= 1;
-		}
-	
-		if ($step == 1) { // Database connection info
-	
-			// Get our existing info from the config file
-			require_once($db_config);
-	
-			// Prepopulate the info on the page
-			$db_dbdriver = $db['default']['dbdriver'];
-			$db_hostname = $db['default']['hostname'];
-			$db_username = $db['default']['username'];
-			$db_password = $db['default']['password'];
-			$db_database = $db['default']['database'];
-			$db_port = '';
-			if (isset($db['default']['port'])) { $db_port = $db['default']['port']; }
-	
-			if (isset($_POST['submit'])) {
-				if ($_POST['submit'] == 'Next >>') {
-					// Save whatever data was passed in
-					set_config($db_config, "\$db['default']['hostname']", $_POST['database_host']);
-					set_config($db_config, "\$db['default']['username']", $_POST['database_username']);
-					set_config($db_config, "\$db['default']['password']", $_POST['database_password']);
-					set_config($db_config, "\$db['default']['database']", $_POST['database_name']);
-					set_config($db_config, "\$db['default']['dbdriver']", $_POST['database_type']);
-					set_config($db_config, "\$db['default']['port']",     $_POST['database_port']);
-	
-					// Now test the database connection
-					if ($_POST['database_type'] == 'postgre') {
-						if (!in_array('pgsql', $extensions)) {
-							$errormessage .= 'PHP <strong>pgsql</strong> extension not found. Please install it with apt, yum or other package manager (preferred), or recompile PHP using --with-pgsql.<br><br>';
-						} else {
-							
-							$conn = "host=".$_POST['database_host'].
-									($_POST['database_port'] ? " port=".$_POST['database_port'] : '').
-									" dbname=".$_POST['database_name'].
-									" user=".$_POST['database_username'].
-									" password=".$_POST['database_password'];
-							$conn = pg_connect($conn);
-							
-							$db_created	= 0;
-							if ($conn) {
-								$result = @pg_query('select count(*) from account');
-								if (!$result) {
-									// The account table doesn't exist, so we go ahead and create the database
-									$queries = file_get_contents($base_path.'/system/application/sql/macaw-pgsql.sql');
-									$result = @pg_query($conn, $queries);
-									if (!$result) {
-										$errormessage = pg_last_error();
-										$success = 0;
-									} else {
-										$db_created = 1;
-										$success = 1;
-										$step += 1;
-										$done = 1;
-									}
-								} else {
-									$success = 1;
-									$step += 1;
-									$done = 1;
-								}
-							} else {
-								$errormessage = pg_last_error();
-								if (!$errormessage) {
-									$errormessage = "Unknown error connecting to database. Is it set up and is it running?";
-								}
-								$success = 0;
-							} // if ($conn)
-						} // if (!in_array('pgsql', $extensions))
-					} // if ($_POST['database_type'] == 'postgre')
-					
-					if ($_POST['database_type'] == 'mysqli') {
-						if (!in_array('mysqli', $extensions)) {
-							$errormessage .= 'PHP <strong>mysqli</strong> extension not found. Please install it with apt, yum or other package manager (preferred), or recompile PHP using --with-mysql.<br><br>';
-						} else {
-							$dsn = 'mysqli:';
-							$dsn .= 'host='.$_POST['database_host'].';';
-							if (!isset($_POST['database_port'])) {
-								$dsn .= 'port='.$_POST['database_port'].';';
-							}
-							$dsn .= 'dbname='.$_POST['database_name'].';';
-							$dsn .= 'charset=utf8';
-
-							$db = new PDO($dsn, $_POST['database_username'], $_POST['database_password']);
-
-							
-							$db_created	= 0;
-							if ($db) {
-								$result = $db->query('select count(*) from account');
-								if ($result) {
-									if ($result->fetchColumn() > 0) {
-										$db_created = 1;
-									}
-								}
-								
-								if (!$db_created) {
-									// The account table doesn't exist, so we go ahead and create the database
-									$queries = file_get_contents($base_path.'/system/application/sql/macaw-mysql.sql');									
-									try {
-										$result = $db->exec($queries);
-									} catch (Exception $e) {
-										$errormessage = $e->getMessage();
-										$success = 0;																		
-									}
-									$db_created = 1;
-									$success = 1;
-									$step += 1;
-									$done = 1;
-								} else {
-									$success = 1;
-									$step += 1;
-									$done = 1;
-								}
-							} else {
-								if (!$errormessage) {
-									$errormessage = "Unknown error connecting to database. Is it set up and is it running?";
-								}
-								$success = 0;
-							} // if ($conn)
-						} // if (!in_array('pgsql', $extensions))
-					} // if ($_POST['database_type'] == 'mysqli')
-
-
-				} // if ($_POST['submit'] == 'Next >>')
-			} // if (isset($_POST['submit']))
-		} // if ($step == 1)
-	
-		if ($step == 2 && !$done) { // Database initial setup
-	
-			if (isset($_POST['submit'])) {
-				if ($_POST['submit'] == 'Next >>') {
-					$step += 1;
-					$_POST['submit'] = null;
-				}
-			}
-	
-		}
-	
-		if ($step == 3 && !$done) {
-			// Admin name, password, email
-	
-			// Get the data from the database
-			require_once($db_config);
-			require_once($macaw_config);
-	
-			$conn = null;
-			$row = null;
-			
-			if ($db['default']['dbdriver'] == 'postgre') {
-				$conn = "host=".$db['default']['hostname'].
-					($db['default']['port'] ? " port=".$db['default']['port'] : '').
-					" dbname=".$db['default']['database'].
-					" user=".$db['default']['username'].
-					" password=".$db['default']['password'];
-	
-				$conn = pg_connect($conn);
-				$result = pg_query('select * from account where id = 1');
-				$row = pg_fetch_assoc($result);
-			}
-
-			if ($db['default']['dbdriver'] == 'mysql' || $db['default']['dbdriver'] == 'mysqli') {
-				$conn = mysql_connect(
-					$db['default']['hostname'].($db['default']['port'] ? ':'.$db['default']['port'] : ''), 
-					$db['default']['username'], 
-					$db['default']['password']
-				);
-				mysql_select_db($db['default']['database'], $conn);
-				$result = mysql_query('select * from account where id = 1');
-				$row = mysql_fetch_assoc($result);
-			}
-			$admin_fullname = $row['full_name'];
-			$admin_username = $row['username'];
-			$admin_password = $row['password'];
-			$admin_email = $config['macaw']['admin_email'];
-			$organization_name = $config['macaw']['organization_name'];
-	
-			if (isset($_POST['submit'])) {
-				if ($_POST['submit'] == 'Next >>') {
-					// Save whatever data was passed in
-					set_config($macaw_config, "\$config['macaw']['admin_email']", $_POST['admin_email']);
-					set_config($macaw_config, "\$config['macaw']['organization_name']", $_POST['organization_name']);
-	
-
-					// Set the data in the database
-					if ($db['default']['dbdriver'] == 'postgre') {
-						$result = pg_query_params($conn, 'UPDATE account SET full_name = $1 WHERE id = 1', array($_POST['admin_full_name']));	
-					}
-
-					if ($db['default']['dbdriver'] == 'mysql' || $db['default']['dbdriver'] == 'mysqli') {
-						$result = mysql_query('UPDATE account SET full_name = \''.mysql_real_escape_string($_POST['admin_full_name']).'\' WHERE id = 1', $conn);	
-					}
-
-	
-					// Make sure that we get around the whole concept of null values and "variable not set" errors. Sheesh.
-					if (!isset($_POST['admin_password'])) {$_POST['admin_password'] = '';}
-					if (!isset($_POST['admin_password_c'])) {$_POST['admin_password_c'] = '';}
-	
-					// Make sure we get a password when we need one
-					if (!$admin_password && !$_POST['admin_password']) {
-						$errormessage = "You must enter a password and confirmation password.";
-					}
-					// Continue only if we didn't have an error
-					if (!$errormessage) {
-						if ($_POST['admin_password'] || $_POST['admin_password_c']) {
-							// Make sure the passwords match
-							if ($_POST['admin_password'] != $_POST['admin_password_c']) {
-								$errormessage = "The passwords you entered do not match.";
-							} else {
-								// generate the new password hash
-								$hasher = new PasswordHash(8, false);
-								$pass_hash = $hasher->HashPassword($_POST['admin_password']);
-								// Set the data in the database
-								// Set the data in the database
-								if ($db['default']['dbdriver'] == 'postgre') {
-									$result = pg_query_params($conn, 'UPDATE account SET password = $1 WHERE id = 1', array($pass_hash));
-								}
-				
-								if ($db['default']['dbdriver'] == 'mysql' || $db['default']['dbdriver'] == 'mysqli') {
-									$result = mysql_query('UPDATE account SET password = \''.$pass_hash.'\' WHERE id = 1', $conn);
-								}
-							}
-						}
-					}
-	
-					$done = 1;
-	
-					if (!$errormessage) {
-						// Now determine what the next step is and get it displayed
-						$step += 1;
-						$_POST['submit'] = null;
-					}
-				}
-			}
-		}
-	
-		if ($step == 4 && !$done) {
-	
-			if (isset($_POST['submit'])) {
-				if ($_POST['submit'] == 'Next >>') {
-					$step += 1;
-					$_POST['submit'] = null;
-				}
-			}
-	
-		}
-	
-		if ($step == 5 && !$done) {
-			// Path to base, data and purge directories
-			require_once($macaw_config);
-			require_once($ci_config);
-	
-			$base_url = getBaseURL().'/';
-			$incoming_path = $base_path."/incoming";
-	
-			if (isset($_POST['submit'])) {
-				$success = true;
-				
-				if ($_POST['submit'] == 'Next >>') {
-					
-					// Save Changes
-					set_config($ci_config,    "\$config['base_url']",                    $_POST['base_url']);
-					set_config($macaw_config, "\$config['macaw']['base_directory']",     $_POST['base_path']);
-					set_config($macaw_config, "\$config['macaw']['incoming_directory']", $_POST['incoming_path']);
-					set_config($macaw_config, "\$config['macaw']['incoming_directory_remote']", $_POST['incoming_path']);
-	
-					// Set these in memory because we sort of need them for the next steps.
-					$config['base_url']                    = $_POST['base_url'];
-					$config['macaw']['base_directory']     = $_POST['base_path'];
-					$config['macaw']['incoming_directory'] = $_POST['incoming_path'];
-					$config['macaw']['incoming_directory_remote'] = $_POST['incoming_path'];
-					$config['macaw']['data_directory']     = $_POST['base_path'].'/books';
-					$config['macaw']['logs_directory']     = $_POST['base_path'].'/system/application/logs';
-				}
-				if ($_POST['submit'] == 'Next >>' || $_POST['submit'] == 'Retry >>') {
-					// Verify access to the paths
-					array_push($paths, array(
-						'name' => 'Base URL',
-						'path' => $config['base_url'],
-						'success' => 1,
-						'message' => 'OK.'
-					));
-	
-	
-					if (!file_exists($config['macaw']['base_directory'])) {
-						array_push($paths, array(
-							'name' => 'Base Directory',
-							'path' => $config['macaw']['base_directory'],
-							'success' => 0,
-							'message' => 'Error! The path could not be found.'
-						));
-						$success = false;
-					} else {
-						array_push($paths, array(
-							'name' => 'Base Directory',
-							'path' => $config['macaw']['base_directory'],
-							'success' => 1,
-							'message' => 'Success!'
-						));
-					}
-					
-					if (!file_exists($config['macaw']['data_directory'])) {
-						if (!@mkdir($config['macaw']['data_directory'])) {
-							array_push($paths, array(
-								'name' => 'Data Directory',
-								'path' => $config['macaw']['data_directory'],
-								'success' => 0,
-								'message' => 'Error! The path could not be created.'
-							));
-							$success = false;
-						} else {
-							array_push($paths, array(
-								'name' => 'Data Directory',
-								'path' => $config['macaw']['data_directory'],
-								'success' => 1,
-								'message' => 'Success!'
-							));					
-						}
-					} else {
-						if (!is_writable($config['macaw']['data_directory'])) {
-							array_push($paths, array(
-								'name' => 'Data Directory',
-								'path' => $config['macaw']['data_directory'],
-								'success' => 0,
-								'message' => 'Error! Could not write to this path. Please make sure the web server has read/write permissions.'
-							));
-							$success = false;
-						} else {
-							array_push($paths, array(
-								'name' => 'Data Directory',
-								'path' => $config['macaw']['data_directory'],
-								'success' => 1,
-								'message' => 'Success!'
-							));
-						}
-					}
-	
-					if (!file_exists($config['macaw']['data_directory'].'/export')) {
-						if (!@mkdir($config['macaw']['data_directory'].'/export')) {
-							array_push($paths, array(
-								'name' => 'Data Export Directory',
-								'path' => $config['macaw']['data_directory'].'/export',
-								'success' => 0,
-								'message' => 'Error! The path could not be created.'
-							));
-							$success = false;
-						} else {
-							array_push($paths, array(
-								'name' => 'Data Export Directory',
-								'path' => $config['macaw']['data_directory'].'/export',
-								'success' => 1,
-								'message' => 'Success!'
-							));					
-						}
-					} else {
-						if (!is_writable($config['macaw']['data_directory'].'/export')) {
-							array_push($paths, array(
-								'name' => 'Data Export Directory',
-								'path' => $config['macaw']['data_directory'].'/export',
-								'success' => 0,
-								'message' => 'Error! Could not write to this path. Please make sure the web server has read/write permissions.'
-							));
-							$success = false;
-						} else {
-							array_push($paths, array(
-								'name' => 'Data Export Directory',
-								'path' => $config['macaw']['data_directory'].'/export',
-								'success' => 1,
-								'message' => 'Success!'
-							));
-						}
-					}
-	
-	
-					if (!file_exists($config['macaw']['logs_directory'])) {
-						array_push($paths, array(
-							'name' => 'Logs Directory',
-							'path' => $config['macaw']['logs_directory'],
-							'success' => 0,
-							'message' => 'Error! The path could not be found.'
-						));
-						$success = false;
-					} else {
-						if (!is_writable($config['macaw']['logs_directory'])) {
-							array_push($paths, array(
-								'name' => 'Logs Directory',
-								'path' => $config['macaw']['logs_directory'],
-								'success' => 0,
-								'message' => 'Error! Could not write to this path. Please make sure the web server has read/write permissions.'
-							));
-							$success = false;
-						} else {
-							array_push($paths, array(
-								'name' => 'Logs Directory',
-								'path' => $config['macaw']['logs_directory'],
-								'success' => 1,
-								'message' => 'Success!'
-							));
-						}
-					}
-	
-					if (!file_exists($config['macaw']['incoming_directory'])) {
-						if (!@mkdir($config['macaw']['incoming_directory'])) {
-							array_push($paths, array(
-								'name' => 'Incoming Directory',
-								'path' => $config['macaw']['incoming_directory'],
-								'success' => 0,
-								'message' => 'Error! The path could not be created.'
-							));
-							$success = false;
-						} else {
-							array_push($paths, array(
-								'name' => 'Incoming Directory',
-								'path' => $config['macaw']['incoming_directory'],
-								'success' => 1,
-								'message' => 'Success!'
-							));					
-						}
-					} else {
-						if (!is_writable($config['macaw']['incoming_directory'])) {
-							array_push($paths, array(
-								'name' => 'Incoming Directory',
-								'path' => $config['macaw']['incoming_directory'],
-								'success' => 0,
-								'message' => 'Error! Could not write to this path. Please make sure the web server has read/write permissions.'
-							));
-							$success = false;
-						} else {
-							array_push($paths, array(
-								'name' => 'Incoming Directory',
-								'path' => $config['macaw']['incoming_directory'],
-								'success' => 1,
-								'message' => 'Success!'
-							));
-						}
-					}
-	
-					$done = 1;
-	
-					if (!$errormessage) {
-						// Now determine what the next step is and get it displayed
-						$step += 1;
-						$_POST['submit'] = null;
-					}
-				}
-			}
-		}
-	
-		if ($step == 6 && !$done) {
-	
-			if (isset($_POST['submit'])) {
-				if ($_POST['submit'] == 'Next >>') {
-					$step += 1;
-					$_POST['submit'] = null;
-				}
-			}
-	
-		}
-	
-		if ($step == 7 && !$done) {
-			require_once($macaw_config);
-			require_once($ci_config);
-			require_once($db_config);
-	
-			$row = null;
-			if ($db['default']['dbdriver'] == 'postgre') {
-				$database_driver = 'PostgreSQL';
-				$conn = "host=".$db['default']['hostname'].
-					($db['default']['port'] ? " port=".$db['default']['port'] : '').
-					" dbname=".$db['default']['database'].
-					" user=".$db['default']['username'].
-					" password=".$db['default']['password'];
-	
-				$conn = pg_connect($conn);
-				$result = pg_query('select * from account where id = 1');
-				$row = pg_fetch_assoc($result);
-			}
-
-			if ($db['default']['dbdriver'] == 'mysql' || $db['default']['dbdriver'] == 'mysqli') {
-				$conn = mysql_connect(
-					$db['default']['hostname'].($db['default']['port'] ? ':'.$db['default']['port'] : ''), 
-					$db['default']['username'], 
-					$db['default']['password']
-				);
-				mysql_select_db($db['default']['database'], $conn);
-				$result = mysql_query('select * from account where id = 1');
-				$row = mysql_fetch_assoc($result);
-			}
-			$admin_fullname = $row['full_name'];
-			$admin_username = $row['username'];
-			$admin_password = $row['password'];
-			$install_file = $config['macaw']['base_directory'].'/install.php';
-			rename($install_file, $install_file.'.delete');
-			$admin_email = $config['macaw']['admin_email'];
-
+			$errors[] = 'PHP <strong>imagick</strong> extension not found.';
 		}
 	}
+
+	function create_database($dbh) {
+		global $errors;
+		global $messages;
+
+		$db_created	= false;
+		try {
+			$result = $dbh->query('select count(*) from account');
+			if ($result) {
+				if ($result->fetchColumn() > 0) {
+					$db_created = true;
+				}
+			}	
+		} catch(Exception $e) {
+			$db_created	= false;
+		}
+
+		if ($db_created == true) {
+			$messages[] = 'Your database already exists, so there\'s nothing more that we need to do here.';
+		} else {
+			// The account table doesn't exist, so we go ahead and create the database
+			$fh = fopen(__DIR__.'/system/application/sql/macaw-mysql.sql', 'r');
+			$query = '';
+
+			while ($line = fgets($fh, 1024000)) {
+				if (substr($line, 0, 2) == '--' || trim($line) == '') {
+					continue;
+				}
+				$query .= $line;
+				if (substr(trim($query), -1) == ';' ) {
+					try {
+						$result = $dbh->exec($query);
+					} catch (Exception $e) {
+						$errors[] = 'Error performing query "<strong>'.$query.'</strong>": '.$e->getMessage();
+					}
+					$query = '';
+				}
+			}			
+			if ($errors) {
+				return;
+			} else {
+				$messages[] = 'The database was created successfully.';
+			}
+		}
+	}
+
+	function create_organization($name, $person, $email) {
+
+		global $dbh; 
+		global $messages; 
+		global $errors; 
+
+		try{
+			$stmt = $dbh->prepare('update organization set name = :orgname, person = :fullname, email = :email where id = 1');
+			$stmt->execute(array(
+				':orgname' => $name,
+				':fullname' => $person,
+				':email' => $email
+			));
+			$messages[] = 'Organization info updated.';
 	
+		} catch (Exception $e) {
+			$errors[] = 'Error setting up the organization';
+			$errors[] = $e->getMessage();
+		}
+	}
+
 	function set_config($file, $setting, $value) {
 		// Open the file, read into an array
 		if (file_exists($file.'.new')) {
@@ -786,387 +847,279 @@
 	}
 
 	function eol() {
-		$os = get_os_type();
-		if ($os == 'win') {
+		if (PHP_OS_FAMILY == 'WIN') {
 			return "\r\n";
 		} else {
 			return "\n";
 		}
 	}
 
-	function get_os_type() {
-		$ua = $_SERVER['HTTP_USER_AGENT'];
-		if (strpos($ua, 'Windows')) {
-			return "win";
-		} elseif (strpos($ua, 'OS X')) {
-			return "osx";
-		} else {
-			return "nix";
-		}
+	function step_1() {
+		global $db; 
+		$db_dbdriver = $db['default']['dbdriver'];
+		$db_hostname = $db['default']['hostname'];
+		$db_username = $db['default']['username'];
+		$db_password = $db['default']['password'];
+		$db_database = $db['default']['database'];
+		$db_port = '';
+		if (isset($db['default']['port'])) { $db_port = $db['default']['port']; }
+
+		?>
+		<p>Now tell us about your database server. The database and the database user account need to exist already, we can't create
+		them for you.</p>
+
+		<p>Example:</p>
+<pre>
+create database macaw;
+create user 'macaw'@'localhost' identified by 'PASSWORD';
+grant all on macaw.* to 'macaw'@'localhost';
+
+</pre>
+
+		<form action="install.php" method="post">
+			<input type="hidden" name="step" value="1">
+			<table >
+				<tr>
+					<td>Database Type:</td>
+					<td>
+						Only MySQL is supported.
+						<input type="hidden" name="database_type" value="mysqli">
+					</td>
+				</tr>
+				<tr>
+					<td>Database Name:</td>
+					<td><input type="text" name="database_name" value="<?php echo($db_database); ?>" maxlength="64"></td>
+				</tr>
+				<tr>
+					<td>Database Username:</td>
+					<td><input type="text" name="database_username" value="<?php echo($db_username); ?>" maxlength="64"></td>
+				</tr>
+				<tr>
+					<td>Database Password:</td>
+					<td><input type="password" name="database_password" value="<?php echo($db_password); ?>" maxlength="64"></td>
+				</tr>
+				<tr>
+					<td>Host:</td>
+					<td><input type="text" name="database_host" value="<?php echo($db_hostname); ?>" maxlength="64"> (optional)</td>
+				</tr>
+				<tr>
+					<td>Port:</td>
+					<td><input type="text" name="database_port" value="<?php echo($db_port); ?>" maxlength="64"> (optional)</td>
+				</tr>
+			</table>
+			<div style="float:right">
+				<input type="submit" name="submit" value="Next &gt;&gt;">
+			</div>
+			<div class="clear"><!-- --></div>
+		</form>
+
+		<?php		
 	}
-?>
 
-	<style type="text/css">
-		#bd {min-height:100px}
-		.bd {min-height:300px;}
-		.yui-panel {width:100%; visibility:inherit;}
-		.step {font-size:120%;font-weight:bold;padding:10px;color:#999999;}
-		.active {color:#000000;border:1px solid #0099CC;background-color:#ffffff;}
-		.yui-skin-sam .yui-panel .hd {font-size:15px;color:#0099CC;}
-		.yui-skin-sam .yui-panel .bd {background-color:#ffffff;}
-		.success {font-size:16px;font-weight:bold;color:#009900;margin-bottom:10px}
-		.error {border:1px solid #990000;font-weight:bold;color:#CC0000;background-color:#FFCCCC;padding:15px;}
-		.warning {border:1px solid #F30;color:#333;background-color:#FC9;padding:15px;margin-bottom:10px;}
-		.failure {font-size:16px;font-weight:bold;color:#990000;}
-		.small {font-size:100%;}
-		h3 {color:#666666;}
-		.errormessage {font-size:100%;margin-bottom:10px;}
-		.grey {
-			color: #999999; font-size: 90%;
-		}
-	</style>
-</head>
-<body class="yui-skin-sam">
-	<div id="doc3" class="yui-t7">
-		<div id="hd" role="banner">
-			<img src="images/logo.png" alt="logo.png" width="110" height="110" border="0" align="left" id="logo">
-			<div id="title">
-				<?php if ($version_rev == 'VERSION_GOES_HERE') { ?>
-					<h1>Macaw <div style="color:#C60;float:right;">DEVELOPMENT VERSION</div></h1>
-					<h2>Metadata Collection and Workflow System</h2>
-					<h3>Demo / Development Version</h3>
-				<?php } else { ?>
-					<h1>Macaw</h1>
-					<h2>Metadata Collection and Workflow System</h2>
-					<h3>Version <?php echo($version_rev); ?> / <?php echo($version_date); ?></h3>
+	function step_2() {
+		?>
+		<form action="install.php" method="post">
+			<input type="hidden" name="step" value="2">
+			<div style="float:left">
+				<input type="submit" name="submit" value="&lt;&lt; Back">
+			</div>
+			<?php if(!$errors) { ?>
+				<div style="float:right">
+					<input type="submit" name="submit" value="Next &gt;&gt;">
+				</div>
+			<?php } ?>
+			<div class="clear"><!-- --></div>
+		</form>
+		<?php		
+	}
+
+	function step_3() {
+		global $admin_info;
+		?>
+		<p>Next, let's set up the administrator account.</p>
+		<form action="install.php" method="post">
+			<input type="hidden" name="step" value="3">
+			<table cellspacing="0" cellpadding="2">
+				<tr>
+					<td>Organization Name:</td>
+					<td><input type="text" name="organization_name" value="<?php echo($admin_info['organization_name']); ?>" maxlength="64"></td>
+				</tr>
+				<tr>
+					<td>Full Name:</td>
+					<td><input type="text" name="admin_full_name" value="<?php echo($admin_info['full_name']); ?>" maxlength="64"></td>
+				</tr>
+				<tr>
+					<td>Email Address:</td>
+					<td><input type="text" name="admin_email" value="<?php echo($admin_info['email']); ?>" maxlength="64"></td>
+				</tr>
+				<tr>
+					<td>Username:</td>
+					<td><input type="text" name="admin_username" value="<?php echo($admin_info['username']); ?>" maxlength="20"></td>
+				</tr>
+				<tr>
+					<td>Password:</td>
+					<td><input type="password" name="admin_password" value="" maxlength="64"></td>
+				</tr>
+				<tr>
+					<td>Confirm Password:</td>
+					<td><input type="password" name="admin_password_c" value="" maxlength="64"></td>
+				</tr>
+			</table>
+			<div style="float:left">
+				<input type="submit" name="submit" value="&lt;&lt; Back">
+			</div>
+			<?php if(!$errors) { ?>
+				<div style="float:right">
+					<input type="submit" name="submit" value="Next &gt;&gt;">
+				</div>
+			<?php } ?>
+			<div class="clear"><!-- --></div>
+		</form>
+		<?php		
+	}
+
+	function step_4() {
+		?>
+		<form action="install.php" method="post">
+			<input type="hidden" name="step" value="4">
+			<div style="float:left">
+				<input type="submit" name="submit" value="&lt;&lt; Back">
+			</div>
+			<?php if(!$errors) { ?>
+				<div style="float:right">
+					<input type="submit" name="submit" value="Next &gt;&gt;">
+				</div>
+			<?php } ?>
+			<div class="clear"><!-- --></div>
+		</form>
+		<?php		
+	}
+
+	function step_5() {
+		global $path_info;
+		?>
+		Please verify the following information.<br><br>
+		<form action="install.php" method="post">
+			<input type="hidden" name="step" value="5">
+			<table border="0" cellspacing="0" cellpadding="2">
+				<tr>
+					<td valign="top">Base Path:</td>
+					<td>
+						<input type="text" name="base_path" value="<?php echo($path_info['base_path']); ?>" maxlength="1024" style="width: 450px;">
+						<div class="grey">This was identified automatically and should not be changed.</div>
+					</td>
+				</tr>
+				<tr>
+					<td valign="top">Base URL:</td>
+					<td>
+						<input type="text" name="base_url" value="<?php echo($path_info['base_url']); ?>" maxlength="1024" style="width: 450px">
+						<div class="grey">Must include "http://" or "https://". This was identified automatically but it may need to be updated to a fully-qualified domain name.</div>
+					</td>
+				</tr>
+				<tr>
+					<td valign="top">Incoming Directory:</td>
+					<td>
+						<input type="text" name="incoming_path" value="<?php echo($path_info['incoming_path']); ?>" maxlength="1024" style="width: 450px">
+						<div class="grey">This is where Macaw will look for new pages for books. Must be an absolute path on the server.</div>
+					</td>
+				</tr>
+			</table>
+
+			<div style="float:left">
+				<input type="submit" name="submit" value="&lt;&lt; Back">
+			</div>
+			<?php if(!$errors) { ?>
+				<div style="float:right">
+					<input type="submit" name="submit" value="Next &gt;&gt;">
+				</div>
+			<?php } ?>
+			<div class="clear"><!-- --></div>
+		</form>
+		<?php		
+	}
+
+	function step_6() {
+		global $paths;
+		global $paths_verified;
+		?>
+		<form action="install.php" method="post">
+			<input type="hidden" name="step" value="6">
+			<div style="margin-bottom: 10px">
+				<?php foreach ($paths as $p) { ?>
+					<p>
+						<strong><?php echo($p['name']) ?>:</strong> <?php echo($p['path']) ?><br>
+						<strong>Status: </strong>
+						<span class="<?php echo($p['success'] ? 'success' : 'failure')?> small"><?php echo($p['message']) ?></span>
+					</p>
 				<?php } ?>
+				<br>
+			</div>
+			<div style="float:left">
+				<input type="submit" name="submit" value="&lt;&lt; Back">
+			</div>
+			<?php if($paths_verified) { ?>
+				<div style="float:right">
+					<input type="submit" name="submit" value="Next &gt;&gt;">
+				</div>
+			<?php } else {?>
+				<div style="float:right">
+					<input type="submit" name="submit" value="Retry &gt;&gt;">
+				</div>		
+			<?php } ?>
+			<div class="clear"><!-- --></div>
+		</form>
+		<?php		
+	}
+
+	function step_7() {
+		global $admin_info;
+		global $path_info;
+		global $db; 
+		global $config; 
+		?>
+		<div style="margin-bottom: 10px">
+			<div class="success">Macaw is set up and ready to go!</div>
+
+			<h1><a href="<?php echo($config['base_url']); ?>"><?php echo($config['base_url']); ?></a></h1>
+
+			<p>
+				Below is a summary of your settings. Other settings may be adjusted in the <strong>/system/application/config/macaw.php</strong> file.
+				<blockquote>
+					<h3>Administrator Information</h3>
+					<blockquote>
+						<strong>Full Name:</strong> <?php echo($admin_info['full_name']); ?><br>
+						<strong>Organization:</strong> <?php echo($admin_info['organization_name']); ?><br>
+						<strong>Username:</strong> <?php echo($admin_info['username']); ?><br>
+						<strong>Password:</strong> **********
+					</blockquote>
+
+					<h3>Databsase Information</h3>
+					<blockquote>
+						<strong>Type:</strong> <?php echo($db['default']['dbdriver']); ?><br>
+						<strong>Host:</strong> <?php echo($db['default']['hostname']); ?> <br>
+						<strong>Port:</strong> <?php echo($db['default']['port'] ? $db['default']['port'] : 5432); ?> <br>
+						<strong>Database Name:</strong> <?php echo($db['default']['database']); ?><br>
+						<strong>Username:</strong> <?php echo($db['default']['username']); ?><br>
+						<strong>Password:</strong> **********
+					</blockquote>
+
+					<h3>Paths</h3>
+					<blockquote>
+						<strong>Base URL:</strong> <?php echo($config['base_url']); ?><br>
+						<strong>Base Directory:</strong> <?php echo($config['macaw']['base_directory']); ?><br>
+						<strong>Data Directory:</strong> <?php echo($config['macaw']['data_directory']); ?><br>
+						<strong>Incoming Directory:</strong> <?php echo($config['macaw']['incoming_directory']); ?><br>
+						<strong>Logs Directory:</strong> <?php echo($config['macaw']['logs_directory']); ?><br>
+					</blockquote>
+				</blockquote>
+			</p>
+
+			<div class="warning">
+				<span style="color:#990000;font-weight:bold;">IMPORTANT:</span> The file <strong><?php echo($config['macaw']['base_directory']); ?>/install.php</strong> has been deleted for security reasons.
 			</div>
 		</div>
-		<div id="bd" role="main" style="min-height:auto">
-			<div class="yui-gd">
-				<div class="yui-u first">
-					<div class="yui-module yui-overlay yui-panel" style="width: 100%; visibility: inherit;">
-						<div class="hd">
-							Installation Steps
-						</div>
-						<div class="bd" style="background-color: #f2f2f2;">
-							<div class="step<?php if($step == 1) {echo(" active");} ?>">1. Database Connection</div>
-							<div class="step<?php if($step == 2) {echo(" active");} ?>">2. Database Initialization</div>
-							<div class="step<?php if($step == 3) {echo(" active");} ?>">3. Administrator Setup</div>
-							<div class="step<?php if($step == 4) {echo(" active");} ?>">4. Administrator Review</div>
-							<div class="step<?php if($step == 5) {echo(" active");} ?>">5. File and URL Locations</div>
-							<div class="step<?php if($step == 6) {echo(" active");} ?>">6. File Locations Review</div>
-							<div class="step<?php if($step == 7) {echo(" active");} ?>">7. Finished</div>
-						</div>
-					</div>
-				</div>
-				<div class="yui-u">
-					<div class="yui-module yui-overlay yui-panel" <?php if ($step != 0) {echo('style="display: none;"');} ?>>
-						<div class="hd">Preliminary Checkup</div>
-						<div class="bd">
-							<?php
-							if ($errormessage) {
-								echo ('<div class="errormessage">'.$errormessage.'</div>');
-							} elseif ($message) {
-								echo ('<div class="message">'.$message.'</div>');
-							}
-							?>
-						</div>
-					</div>
-					<div class="yui-module yui-overlay yui-panel" <?php if ($step != 1) {echo('style="display: none;"');} ?>>
-						<div class="hd">Step 1: Database Connection</div>
-						<div class="bd">
-							<?php
-							if ($errormessage) {
-								echo ('<div class="errormessage">'.$errormessage.'</div>');
-							} elseif ($message) {
-								echo ('<div class="message">'.$message.'</div>');
-							}
-							?>
-							Now tell us about your database server. The database and the database user account need to exist already, we can't create
-							them for you.
-							<br><br>
-<!--
-							If you don't have a database server set up, you can choose SQLite and we will create the database for you.
-							(SQLite is not yet implemented, please use PostgreSQL.)
- -->
-							<form action="install.php" method="post">
-								<input type="hidden" name="step" value="1">
-								<table border="0" cellspacing="0" cellpadding="2">
-									<tr>
-										<td>Database Type:</td>
-										<td>
-											<select name="database_type">
-													<option value="postgre" <?php if ($db_dbdriver == 'postgre') { echo('selected'); } ?>>PostgreSQL</option>
-													<option value="mysqli" <?php if ($db_dbdriver == 'mysqli') { echo('selected'); } ?>>MySQL</option>
-											</select>
-										</td>
-									</tr>
-									<tr>
-										<td>Database Name:</td>
-										<td><input type="text" name="database_name" value="<?php echo($db_database); ?>" maxlength="64"></td>
-									</tr>
-									<tr>
-										<td>Database Username:</td>
-										<td><input type="text" name="database_username" value="<?php echo($db_username); ?>" maxlength="64"></td>
-									</tr>
-									<tr>
-										<td>Database Password:</td>
-										<td><input type="password" name="database_password" value="<?php echo($db_password); ?>" maxlength="64"></td>
-									</tr>
-									<tr>
-										<td>Database Host:</td>
-										<td><input type="text" name="database_host" value="<?php echo($db_hostname); ?>" maxlength="64"></td>
-									</tr>
-									<tr>
-										<td>Database Port:</td>
-										<td><input type="text" name="database_port" value="<?php echo($db_port); ?>" maxlength="64"> (optional)</td>
-									</tr>
-								</table>
-								<div style="float:right">
-									<input type="submit" name="submit" value="Next &gt;&gt;">
-								</div>
-								<div class="clear"><!-- --></div>
-							</form>
-						</div>
-					</div>
-					<div class="yui-module yui-overlay yui-panel" <?php if ($step != 2) {echo('style="display: none;"');} ?>>
-						<div class="hd">Step 2: Database Initialization</div>
-						<div class="bd">
-							<form action="install.php" method="post">
-								<input type="hidden" name="step" value="2">
-								<div style="margin-bottom: 10px">
-									<?php if ($success) { ?>
-										<p class="success">Success!</p>
-										<?php if ($db_created) { ?>
-											<p>Your database was created successfully.</p>
-										<?php } else { ?>
-											<p>We were able to connect to your database successfully. Your database already exists, so there's nothing
-											more that we need to do here.</p>
-										<?php } ?>
-									<?php  } else { ?>
-										<p class="failure">We had a problem...</p>
-										<p>We had some trouble connecting to or creating your database. The exact message is:</p>
-										<div class="errormessage">
-											<?php echo($errormessage) ?>
-										</div>
-									<?php } ?>
-									<br>
-								</div>
-								<div style="float:left">
-									<input type="submit" name="submit" value="&lt;&lt; Back">
-								</div>
-								<?php if($success) { ?>
-								<div style="float:right">
-									<input type="submit" name="submit" value="Next &gt;&gt;">
-								</div>
-								<?php } ?>
-								<div class="clear"><!-- --></div>
-							</form>
-						</div>
-					</div>
-					<div class="yui-module yui-overlay yui-panel" <?php if ($step != 3) {echo('style="display: none;"');} ?>>
-						<div class="hd">Step 3: Additional Information and Administrator Setup</div>
-						<div class="bd">
-							<?php if ($errormessage) {
-									echo ('<div class="errormessage">'.$errormessage.'</div>');
-								} ?>
-							<p>Next, let's entering some information about the you and your organization.</p>
-							<form action="install.php" method="post">
-								<input type="hidden" name="step" value="3">
-								<table border="0" cellspacing="0" cellpadding="2">
-									<tr>
-										<td>Contributor Name:</td>
-										<td><input type="text" name="organization_name" value="<?php echo($organization_name); ?>" maxlength="64"></td>
-									</tr>
-									<tr>
-										<td>Full Name:</td>
-										<td><input type="text" name="admin_full_name" value="<?php echo($admin_fullname); ?>" maxlength="64"></td>
-									</tr>
-									<tr>
-										<td>Email Address:</td>
-										<td><input type="text" name="admin_email" value="<?php echo($admin_email); ?>" maxlength="64"></td>
-									</tr>
-									<tr>
-										<td>Username:</td>
-										<td><?php echo($admin_username); ?></td>
-									</tr>
-									<tr>
-										<td>Password:</td>
-										<td><input type="password" name="admin_password" value="" maxlength="64"></td>
-									</tr>
-									<tr>
-										<td>Confirm Password:</td>
-										<td><input type="password" name="admin_password_c" value="" maxlength="64"></td>
-									</tr>
-								</table>
-								<div style="float:left">
-									<input type="submit" name="submit" value="&lt;&lt; Back">
-								</div>
-								<?php if($success) { ?>
-								<div style="float:right">
-									<input type="submit" name="submit" value="Next &gt;&gt;">
-								</div>
-								<?php } ?>
-								<div class="clear"><!-- --></div>
-							</form>
-						</div>
-					</div>
-					<div class="yui-module yui-overlay yui-panel" <?php if ($step != 4) {echo('style="display: none;"');} ?>>
-						<div class="hd">Step 4: Administrator Review</div>
-						<div class="bd">
-							<form action="install.php" method="post">
-								<input type="hidden" name="step" value="4">
-								<div style="margin-bottom: 10px">
-									<?php if ($success) { ?>
-										<p class="success">Success!</p>
-										<p>Administrator settings were saved correctly.</p>
-									<?php  } else { ?>
-										<p class="failure">We had a problem...</p>
-										<p>We had some trouble saving the administrator settings.</p>
-										<div class="errormessage">
-											<?php echo($errormessage) ?>
-										</div>
-									<?php } ?>
-									<br>
-								</div>
-								<div style="float:left">
-									<input type="submit" name="submit" value="&lt;&lt; Back">
-								</div>
-								<?php if($success) { ?>
-								<div style="float:right">
-									<input type="submit" name="submit" value="Next &gt;&gt;">
-								</div>
-								<?php } ?>
-								<div class="clear"><!-- --></div>
-							</form>
-						</div>
-					</div>
-					<div class="yui-module yui-overlay yui-panel" <?php if ($step != 5) {echo('style="display: none;"');} ?>>
-						<div class="hd">Step 5: File and URL Locations</div>
-						<div class="bd">
-							Please verify the following information.<br><br>
-							<form action="install.php" method="post">
-								<input type="hidden" name="step" value="5">
-								<table border="0" cellspacing="0" cellpadding="2">
-									<tr>
-										<td valign="top">Base Path:</td>
-										<td>
-											<input type="text" name="base_path" value="<?php echo($base_path); ?>" maxlength="1024" style="width: 450px;">
-											<div class="grey">This should already be correct and should not be changed.</div>
-										</td>
-									</tr>
-									<tr>
-										<td valign="top">Base URL:</td>
-										<td>
-											<input type="text" name="base_url" value="<?php echo($base_url); ?>" maxlength="1024" style="width: 450px">
-											<div class="grey">Must include "http://". This is accurate but it may need to be updated to a fully-qualified domain name.</div>
-										</td>
-									</tr>
-									<tr>
-										<td valign="top">Incoming Directory:</td>
-										<td>
-											<input type="text" name="incoming_path" value="<?php echo($incoming_path); ?>" maxlength="1024" style="width: 450px">
-											<div class="grey">This is where Macaw will look for new pages for books. Must be an absolute path on the server.</div>
-										</td>
-									</tr>
-								</table>
-								<div style="float:left">
-									<input type="submit" name="submit" value="&lt;&lt; Back">
-								</div>
-								<?php if($success) { ?>
-								<div style="float:right">
-									<input type="submit" name="submit" value="Next &gt;&gt;">
-								</div>
-								<?php } ?>
-								<div class="clear"><!-- --></div>
-							</form>
-						</div>
-					</div>
-					<div class="yui-module yui-overlay yui-panel" <?php if ($step != 6) {echo('style="display: none;"');} ?>>
-						<div class="hd">Step 6: File Locations Review</div>
-						<div class="bd">
-							<form action="install.php" method="post">
-								<input type="hidden" name="step" value="6">
-								<div style="margin-bottom: 10px">
-									<?php foreach ($paths as $p) { ?>
-										<p>
-											<strong><?php echo($p['name']) ?>:</strong> <?php echo($p['path']) ?><br>
-											<strong>Status: </strong>
-											<span class="<?php echo($p['success'] ? 'success' : 'failure')?> small"><?php echo($p['message']) ?></span>
-										</p>
-									<?php } ?>
-									<br>
-								</div>
-								<div style="float:left">
-									<input type="submit" name="submit" value="&lt;&lt; Back">
-								</div>
-								<?php if($success) { ?>
-								<div style="float:right">
-									<input type="submit" name="submit" value="Next &gt;&gt;">
-								</div>
-								<?php } else {?>
-								<div style="float:right">
-									<input type="submit" name="submit" value="Retry &gt;&gt;">
-								</div>
-								
-								<?php } ?>
-								<div class="clear"><!-- --></div>
-							</form>
-						</div>
-					</div>
-					<div class="yui-module yui-overlay yui-panel" <?php if ($step != 7) {echo('style="display: none;"');} ?>>
-						<div class="hd">Setup Complete!</div>
-						<div class="bd">
-							<div style="margin-bottom: 10px">
-								<div class="success">Macaw is set up and ready to go!</div>
-
-								<h1><a href="<?php echo($config['base_url']); ?>"><?php echo($config['base_url']); ?></a></h1>
-
-								<p>
-									Below is a summary of the settings you made. Other settings may be adjusted in the <strong>/system/application/config/macaw.php</strong> file.
-									<blockquote>
-										<h3>Administrator Information</h3>
-										<blockquote>
-											<strong>Full Name:</strong> <?php echo($admin_fullname); ?><br>
-											<strong>Username:</strong> admin<br>
-											<strong>Password:</strong> **********
-										</blockquote>
-
-										<h3>Databsase Information</h3>
-										<blockquote>
-											<strong>Type:</strong> <?php echo($database_driver); ?><br>
-											<strong>Host:</strong> <?php echo($db['default']['hostname']); ?> <br>
-											<strong>Port:</strong> <?php echo($db['default']['port'] ? $db['default']['port'] : 5432); ?> <br>
-											<strong>Database Name:</strong> <?php echo($db['default']['database']); ?><br>
-											<strong>Username:</strong> <?php echo($db['default']['username']); ?><br>
-											<strong>Password:</strong> **********
-										</blockquote>
-
-										<h3>Paths</h3>
-										<blockquote>
-											<strong>Base URL:</strong> <?php echo($config['base_url']); ?><br>
-											<strong>Base Directory:</strong> <?php echo($config['macaw']['base_directory']); ?><br>
-											<strong>Data Directory:</strong> <?php echo($config['macaw']['data_directory']); ?><br>
-											<strong>Incoming Directory:</strong> <?php echo($config['macaw']['incoming_directory']); ?><br>
-											<strong>Logs Directory:</strong> <?php echo($config['macaw']['logs_directory']); ?><br>
-										</blockquote>
-									</blockquote>
-								</p>
-
-								<div class="warning">
-									<span style="color:#990000;font-weight:bold;">IMPORTANT:</span> The file <strong><?php echo($config['macaw']['base_directory']); ?>/install.php</strong> has been deleted for security reasons.<br><br>
-									You may also remove write permissions to the configuration directory: <strong><?php echo($config['macaw']['base_directory']); ?>/system/application/config</strong>
-								</div>
-
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-</body>
-</html>
+		<?php		
+	}
 
 
+?>
