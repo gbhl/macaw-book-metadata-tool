@@ -1280,6 +1280,9 @@ class Internet_archive extends Controller {
 	// This should call Book.get_item_metadata().
 	// ----------------------------
 	function _create_segments_xml($id, $book, $pages) {
+		// This should not be used yet. Return empty element.
+		return '<bhlSegmentData></bhlSegmentData>';
+
 		$cfg = $this->CI->config->item('macaw');
 		if(!in_array('BHL_Segments', $cfg['metadata_modules'])) {
 			return NULL;
