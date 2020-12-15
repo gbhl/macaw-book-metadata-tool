@@ -37,5 +37,6 @@ echo "Copying new code into Macaw installation at $MACAW_PATH..."
 sudo cp -a * $MACAW_PATH/. 
 echo "Changing ownership of Macaw files to $WWW_USER"
 chown -R $WWW_USER $MACAW_PATH
+chmod u+x $MACAW_PATH/cron.php
 echo "Update complete!"
 popd
