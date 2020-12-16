@@ -287,6 +287,25 @@
 			return false;
 		},
 		
+		// ----------------------------
+		// Function: previewNewWindow()
+		//
+		// Event handler
+		//
+		// Arguments
+		//    None
+		//
+		// Return Value / Effect
+		//    Opens a new window with the currently selected image
+		// ----------------------------
+		previewNewWindow: function () {
+			if (Dom.get('preview_img').src != imgSpacer.src) {
+				window.open(Dom.get('preview_img').src);
+			}
+			return false;
+		},
+
+
 		runCronAction: function(action) {	
 			// This is the callback to handle the saving of the data.
 			var runCallback = {
