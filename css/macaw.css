@@ -864,9 +864,19 @@ td.yui-dt-last {
 	color: white;
 	border: 0;
 }
+#preview {
+	position: relative;
+}
 #preview_img {
 	display: block;
 	float: left;
+}
+#preview-new-win {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	z-index: 100;
+	display: none;
 }
 #thumbs, #list, #extra, #thumbs_missing { /* Important that these have the same size */
 	height: 23.1em;
