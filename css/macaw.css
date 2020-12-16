@@ -877,6 +877,12 @@ td.yui-dt-last {
 	right: 10px;
 	z-index: 100;
 	display: none;
+	height:20px;
+	width:20px;
+}
+#preview-new-win img {
+	height:20px;
+	width:20px;
 }
 #thumbs, #list, #extra, #thumbs_missing { /* Important that these have the same size */
 	height: 23.1em;
@@ -1098,6 +1104,12 @@ table#admin_scheduled_jobs td {
 	background: url(../images/icons/bullet_arrow_down.png) no-repeat;
 }
 /* list of pages types and pieces */
+#page-type-defs {
+	color:#426A80;
+	text-decoration:underline;
+	font-size:80%;
+}
+
 .page_type_piece {
 }
 #page_types, #pieces {

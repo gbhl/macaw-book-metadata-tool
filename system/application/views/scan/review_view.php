@@ -87,7 +87,7 @@
 				</div>
 			</div>
 			<div id="preview" class="yui-u" style="width: 31.5%; margin-left: 0; margin-right:.5em;">
-				<a href="#" title="View image in new window" id="preview-new-win" onClick="return General.previewNewWindow();"><img src="/images/icons/image_plus.png"></a>
+				<a href="#" title="Open Image in New Window" id="preview-new-win" onClick="return General.previewNewWindow();"><img src="/images/magnify-zoom.png"></a>
 				<a href="#" onClick="return General.showMagnifier();"><img src="<?php echo $this->config->item('base_url'); ?>images/spacer.gif" border="0" id="preview_img" style="height: 100%; width: 100%;"></a>
 				
 			</div>
