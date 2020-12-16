@@ -123,7 +123,7 @@ INSERT INTO organization (id, name, person, email, phone, address, address2, cit
 
 INSERT INTO permission (username, permission) VALUES ('admin','admin'), ('admin','scan');
 
-INSERT INTO settings (name, value) VALUES ('version','2.7');
+INSERT INTO settings (name, value) VALUES ('version','2.8');
 INSERT INTO settings (name, value) values ('installed', '1');
 
 -- Redunant now
