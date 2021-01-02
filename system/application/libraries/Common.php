@@ -587,150 +587,43 @@ class Common extends Controller {
 			$version = $row[0]->value;
 		}
 
+		// If we don't, we default to version 2.0 and set it in the database
 		if (!$version) {
-			// We have no version, so we assume that we are version 1.7 
-			// So we upgrade to 1.7 and record that as the version.
-			$this->CI->db->insert('settings', array('name' => 'version', 'value' => '1.7'));
-			$queries = null;
-			if ($this->CI->db->dbdriver == 'postgre') {
-				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-pgsql-1.7.sql');
-			} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
-				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-1.7.sql');
-			}
-			try {
+			$version = 2;
+			$this->CI->db->insert('settings', array('name' => 'version', 'value' => '2.0'));
+		}
+
+		// Lets try to apply any and all SQL files we might need to apply
+		$upgrade_needed = true;
+		while ($upgrade_needed) {
+			$next_version = $version + 0.1;
+
+			// build the filename of queries
+			$db_base = 'mysql';
+			if ($this->CI->db->dbdriver == 'postgre') { $db_base = 'pgsql'; }
+			$filename = $this->cfg['base_directory'].sprintf('/system/application/sql/macaw-'.$db_base.'-%1.1f.sql', $next_version);
+
+			// If it exists, let's apply them
+			if (file_exists($filename)) {
+				$queries = file_get_contents($filename);
 				foreach (explode(';', $queries) as $q) {
 					if (preg_match('/[^\s\r\n]+/', $q)) {
 						$result = $this->CI->db->query($q);
 					}
 				}
- 			} catch (Exception $e) {
- 				echo "Exception";
- 			}
- 			
-		} elseif ($version == "1.7") { 
-			$queries = null;
-			if ($this->CI->db->dbdriver == 'postgre') {
-				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-pgsql-2.0.sql');
-			} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
-				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.0.sql');
+				$version = $next_version;
+				$this->CI->session->set_userdata('message', 'Database upgraded to version '.sprintf('%1.1f', $version));
+				$this->CI->logging->log('access', 'info', 'Upgraded Macaw Database to version '.sprintf('%1.1f', $version));
+			} else {
+				$upgrade_needed = false;
 			}
-			foreach (explode(';', $queries) as $q) {
-				if (preg_match('/[^\s\r\n]+/', $q)) {
-					$result = $this->CI->db->query($q);
-				}
-			}
-			$this->CI->db->where('name','version');
-			$this->CI->db->set('value', '2.0');
-			$this->CI->db->update('settings');
-
-		} elseif ($version == "2.0") {
-			$queries = null;
-			if ($this->CI->db->dbdriver == 'postgre') {
-				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-pgsql-2.1.sql');
-			} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
-				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.1.sql');
-			}
-			foreach (explode(';', $queries) as $q) {
-				if (preg_match('/[^\s\r\n]+/', $q)) {
-					$result = $this->CI->db->query($q);
-				}
-			}
-			$this->CI->db->where('name','version');
-			$this->CI->db->set('value', '2.1');
-			$this->CI->db->update('settings');
-		} elseif ($version == "2.1") {
-			$queries = null;
-			if ($this->CI->db->dbdriver == 'postgre') {
-				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-pgsql-2.2.sql');
-			} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
-				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.2.sql');
-			}
-			foreach (explode(';', $queries) as $q) {
-				if (preg_match('/[^\s\r\n]+/', $q)) {
-					$result = $this->CI->db->query($q);
-				}
-			}
-			$this->CI->db->where('name','version');
-			$this->CI->db->set('value', '2.2');
-			$this->CI->db->update('settings');
-
-		} elseif ($version == "2.2") {
-			$queries = null;
-			if ($this->CI->db->dbdriver == 'postgre') {
-				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-pgsql-2.3.sql');
-			} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
-				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.3.sql');
-			}
-			foreach (explode(';', $queries) as $q) {
-				if (preg_match('/[^\s\r\n]+/', $q)) {
-					$result = $this->CI->db->query($q);
-				}
-			}
-			$this->CI->db->where('name','version');
-			$this->CI->db->set('value', '2.3');
-			$this->CI->db->update('settings');
-			
-		} elseif ($version == "2.3") {
-			$queries = null;
-			if ($this->CI->db->dbdriver == 'postgre') {
-				return;
-			} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
-				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.4.sql');
-			}
-			foreach (explode(';', $queries) as $q) {
-				if (preg_match('/[^\s\r\n]+/', $q)) {
-					$result = $this->CI->db->query($q);
-				}
-			}
-			$this->CI->db->where('name','version');
-			$this->CI->db->set('value', '2.4');
-			$this->CI->db->update('settings');
-		} elseif ($version == "2.4") {
-			$queries = null;
-			if ($this->CI->db->dbdriver == 'postgre') {
-				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.5.sql');
-			} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
-				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.5.sql');
-			}
-			foreach (explode(';', $queries) as $q) {
-				if (preg_match('/[^\s\r\n]+/', $q)) {
-					$result = $this->CI->db->query($q);
-				}
-			}
-			$this->CI->db->where('name','version');
-			$this->CI->db->set('value', '2.5');
-			$this->CI->db->update('settings');
-		} elseif ($version == "2.5") {
-			$queries = null;
-			if ($this->CI->db->dbdriver == 'postgre') {
-				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.6.sql');
-			} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
-				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.6.sql');
-			}
-			foreach (explode(';', $queries) as $q) {
-				if (preg_match('/[^\s\r\n]+/', $q)) {
-					$result = $this->CI->db->query($q);
-				}
-			}
-			$this->CI->db->where('name','version');
-			$this->CI->db->set('value', '2.6');
-			$this->CI->db->update('settings');
-		} elseif ($version == "2.6") {
-			$queries = null;
-			if ($this->CI->db->dbdriver == 'postgre') {
-				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.7.sql');
-			} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
-				$queries = file_get_contents($this->cfg['base_directory'].'/system/application/sql/macaw-mysql-2.7.sql');
-			}
-			foreach (explode(';', $queries) as $q) {
-				if (preg_match('/[^\s\r\n]+/', $q)) {
-					$result = $this->CI->db->query($q);
-				}
-			}
-			$this->CI->db->where('name','version');
-			$this->CI->db->set('value', '2.7');
-			$this->CI->db->update('settings');
 		}
+
+		// Set the version in the database
+		$this->CI->db->where('name','version');
+		$this->CI->db->set('value', sprintf('%1.1f', $version));
+		$this->CI->db->update('settings');
+			
 	}
 	
 	/**

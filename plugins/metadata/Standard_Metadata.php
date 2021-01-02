@@ -1,9 +1,9 @@
 <?php
 	// Reminder: The site configuration is available in the $config variable.
 	$page_types =array(
-		'Appendix', 'Blank', 'Bibliography', 'Bookplate', 'Copyright', 'Cover', 'Drawing', 'Errata', 'Fold Out',
-		'Illustration', 'Index', 'Issue Start', 'Issue End', 'List of Illustrations', 'Map', 'Photograph', 'Table', 'Table of Contents', 'Text', 'Title Page',
-		'Specimen', 'Tissue',
+		'Appendix', 'Blank', 'Chart', 'Cover', 'Errata', 'Foldout',
+		'Illustration', 'Index', 'Issue Start', 'List of Illustrations', 'Map', 
+		'Table of Contents', 'Text', 'Title Page', 'Specimen'
 	);
 	$piece_types = array('Issue', 'No.', 'Part', 'Suppl.');
 	$page_sides = array('Left (verso)', 'Right (recto)');
@@ -37,7 +37,10 @@
 						</td>
 					</tr>
 					<tr>
-						<td nowrap><label for="page_type">Page&nbsp;Type:&nbsp;<img src="<?php echo $this->config->item('base_url'); ?>images/icons/add.png" id="btnShowAddPageTypeDlg" class="icon">&nbsp;<img src="<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearPageType" class="icon" onMouseOver="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';"></label></td>
+						<td nowrap>
+						<label for="page_type">Page&nbsp;Type:&nbsp;<img src="<?php echo $this->config->item('base_url'); ?>images/icons/add.png" id="btnShowAddPageTypeDlg" class="icon">&nbsp;<img src="<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearPageType" class="icon" onMouseOver="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';"></label><br>
+						<a id="page-type-defs" href="https://s.si.edu/BHLpagetypes" title="Page Type Definitions" target="_blank">(Page Type Defintions)</a>
+						</td>
 						<td>
 							<div id="page_types"></div>
 							<div class="clear"><!-- --></div>
