@@ -776,16 +776,18 @@ YAHOO.macaw.Pages = function(parent, data, mdModules) {
 		if (arrHighlighted.length == 1) {
 			Dom.get('preview_img').src = arrHighlighted[0].urlPreview;
 			Dom.setStyle('preview_img', 'cursor', "url('"+sBaseUrl+"/inc/magnifier/assets/mag-cursor.gif'),auto");
-
+			Dom.setStyle('preview-new-win', 'display', 'block');
 		} else if (arrHighlighted.length > 1) {
 			Dom.get('preview_img').src = imgMultiSelect.src;
 			Dom.setStyle('preview_img', 'cursor', "default");
 			Scanning.magnifier.kill();
+			Dom.setStyle('preview-new-win', 'display', 'none');
 		} else {
 			// There zero or more than one, clear the metadata.
 			Dom.get('preview_img').src = imgSpacer.src;
 			Dom.setStyle('preview_img', 'cursor', "default");
 			Scanning.magnifier.kill();
+			Dom.setStyle('preview-new-win', 'display', 'none');
 		}
 
 	}

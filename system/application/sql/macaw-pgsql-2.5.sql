@@ -1,0 +1,1 @@
+ALTER TABLE page ALTER filebase TYPE VARCHAR(256);

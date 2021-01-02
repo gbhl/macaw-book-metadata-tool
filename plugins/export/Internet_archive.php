@@ -1282,6 +1282,11 @@ class Internet_archive extends Controller {
 	function _create_segments_xml($id, $book, $pages) {
 		// This should not be used yet. Return empty element.
 		return '<bhlSegmentData></bhlSegmentData>';
+
+		$cfg = $this->CI->config->item('macaw');
+		if(!in_array('BHL_Segments', $cfg['metadata_modules'])) {
+			return NULL;
+		}
 		
 		$segment_genres = [
 			1 => 'Article',
@@ -2148,7 +2153,9 @@ class Internet_archive extends Controller {
 			elseif ($p[$i] == 'Bibliography') { $p[$i] = 'Text'; }
 			elseif ($p[$i] == 'Copyright') { $p[$i] = 'Text'; }
 			elseif ($p[$i] == 'Cover') { $p[$i] = 'Cover'; }
+			elseif ($p[$i] == 'Chart') { $p[$i] = 'Chart'; }
 			elseif ($p[$i] == 'Fold Out') { $p[$i] = 'Foldout'; }
+			elseif ($p[$i] == 'Foldout') { $p[$i] = 'Foldout'; }
 			elseif ($p[$i] == 'Illustration') { $p[$i] = 'Illustration'; }
 			elseif ($p[$i] == 'Index') { $p[$i] = 'Index'; }
 			elseif ($p[$i] == 'Issue Start') { $p[$i] = 'Issue Start'; }
@@ -2161,7 +2168,7 @@ class Internet_archive extends Controller {
 			elseif ($p[$i] == 'Drawing') { $p[$i] = 'Drawing'; }
 			elseif ($p[$i] == 'List of Illustrations') { $p[$i] = 'List of Illustrations'; }
 			elseif ($p[$i] == 'Photograph') { $p[$i] = 'Photograph'; }
-			elseif ($p[$i] == 'Table') { $p[$i] = 'Table'; }
+			elseif ($p[$i] == 'Table') { $p[$i] = 'Chart'; }
       elseif ($p[$i] == 'Specimen') { $p[$i] = 'Specimen'; }
 			elseif ($p[$i] == 'Suppress') { $p[$i] = 'Delete'; }
 			elseif ($p[$i] == 'Tissue') { $p[$i] = 'Delete'; }
@@ -2186,6 +2193,9 @@ class Internet_archive extends Controller {
 	function _get_pagetype($t) {
 		if (in_array('Cover', $t)) {
 			return 'Cover';
+
+		} else if (in_array('Foldout', $t)) {
+			return 'Fold Out';
 
 		} else if (in_array('Fold Out', $t)) {
 			return 'Fold Out';
