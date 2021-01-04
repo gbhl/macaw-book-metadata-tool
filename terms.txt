@@ -10,7 +10,7 @@ The use of Macaw is subject to the following terms of use:
 PRIVACY
 -------
 
-Aside from your username, email addres and organization name, Macaw does not collect personal inforamtion about the users of Macaw. Some information is collected and stored automatically by the system, some of which is required for normal functioning of Macaw. They are:
+Aside from your username, email address, and organization name, Macaw does not collect personal information about the users of Macaw. Some information is collected and stored automatically by the system, some of which is required for normal functioning of Macaw. They are:
 
  - The IP address from which you access Macaw
  - The name of the domain from which you access the Internet
@@ -22,7 +22,7 @@ Aside from your username, email addres and organization name, Macaw does not col
 COPYRIGHT 
 ---------
 
-By using Macaw, you affirm that you have the right to upload and use images in accordance with BHL guidelines and that you are either the copyright owner, have gained permission from the owner to create a digital copy, have performed a due dillegence search to determine that the item is in the public domain, or the item is definitively in the public domain. 
+By using Macaw, you affirm that you have the right to upload and use images in accordance with BHL guidelines and that you are either the copyright owner, have gained permission from the owner to create a digital copy, have performed a due diligence search to determine that the item is in the public domain, or the item is definitively in the public domain. 
 
 
 DURABILITY OF UPLOADED IMAGES

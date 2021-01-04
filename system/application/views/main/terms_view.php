@@ -40,7 +40,7 @@
 		<h1>Terms and Conditions</h1>
 		Please review and agree to the terms of using Macaw before continuing.<br><br>
 		<form id="terms" action="terms_save" method="post">
-			<textarea cols="100" rows="15"><?php echo $terms ?></textarea><br><br>
+			<textarea cols="100" rows="15" disabled="disabled" style="color:black"><?php echo $terms ?></textarea><br><br>
 			<input type="checkbox" name="agree" value="1" id="terms_agree"> <label for="terms_agree">I understand and agree to these terms and conditions</label><br><br>
 			<input type="submit" value="Continue &gt;&gt;">
 		</form>
