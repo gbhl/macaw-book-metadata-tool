@@ -92,15 +92,19 @@ class Utils extends Controller {
 	 * Reopen/reset an item
 	 *
 	 * CLI: Given a barcode on the command line, this will reset the item so that it can be
-	 * re-uploaded to the internet archive.
+	 * re-uploaded to the internet archive. Options include "true" to download JP2s from the
+	 * Internet Archive or a local file to extract images from.
 	 *
-	 * Usage: php index.php utils serialize 3908808264355
+	 * Usage: 
+	 *    php index.php utils reset_item 3908808264355 
+	 *    php index.php utils reset_item 3908808264355 true
+	 *    php index.php utils reset_item 3908808264355 /path/to/SomeFilename_orig_tiff.tar
 	 *
 	 * Parameter: barcode 
 	 *
 	 * @since Version 2.2
 	 */
-	function reset_item($barcode, $from_ia = false) {
+	function reset_item($barcode, $ia_or_filename = '') {
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
 			die;
@@ -110,8 +114,7 @@ class Utils extends Controller {
 			die;
 		}
 
-
-		$this->logging->log('book', 'info', 'Beginning item reset from the command line.', $barcode);
+		$this->logging->log('book', 'info', 'Item reset from the command line.', $barcode);
 		// Set the status to reviewing
 		$this->book->load($barcode);
 		echo "Setting status back to reviewing...\n";
@@ -180,91 +183,194 @@ class Utils extends Controller {
 			flush();
 		}
 
-		if (substr(strtolower($from_ia),0,1) == 't' || substr(strtolower($from_ia),0,1) == 'y' ||  $from_ia == '1') {
-			if ($identifier) {
-				// Download the JP2 ZIP file from IA
-				$this->logging->log('book', 'info', 'Downloading images from the Internet Archive.', $barcode);
-				$fname = "{$identifier}_jp2.zip";
-				$zipfile = "{$pth}/{$fname}";
-				$url = "https://archive.org/download/{$identifier}/{$fname}";
-				echo "Downloading $fname from the Internet Archive...\n";
-				`wget -O $pth/$fname $url`;
+		if (file_exists($ia_or_filename)) {
+			$filename = $ia_or_filename;
+			print "Restoring from local file...\n";
+			if (!$filename) {
+				print "A filename is required.\n\n";
+				print "USAGE: sudo -u WWW_USER php index.php utils reset_item BARCODE FILENAME\n";
+				return;
+			}
+			if (!file_exists($filename)) {
+				print "File not found.\n\n";
+				print "USAGE: sudo -u WWW_USER php index.php utils reset_item BARCODE FILENAME\n";
+				return;
+			}
+			// Extract the images to the scans folder
+			$this->logging->log('book', 'info', 'Extracting images from the file provided.', $barcode);
+			$zip = new ZipArchive;
+			$x = $zip->open($filename);
+			$numfiles = $zip->numFiles;
+			$fileext = '';
+			if ($x) {
+				for($i = 0; $i < $numfiles; $i++) {
+					$filename = $zip->getNameIndex($i);
+					$fileinfo = pathinfo($filename);
+					if (substr($fileinfo['basename'],-4,4) == '.jp2') {
+						$fileext = 'jp2';
+						copy("zip://{$filename}#{$filename}", "{$pth}/scans/{$fileinfo['basename']}");
+					} elseif (substr($fileinfo['basename'],-5,5) == '.tiff') {
+						$fileext = 'tiff';
+						copy("zip://{$filename}#{$filename}", "{$pth}/scans/{$fileinfo['basename']}");
+					} elseif (substr($fileinfo['basename'],-4,4) == '.tif') {
+						$fileext = 'tif';
+						copy("zip://{$filename}#{$filename}", "{$pth}/scans/{$fileinfo['basename']}");
+					}
+				}
+				$zip->close();                  
+			}
 
-				// Extract the images to the scans folder
-				$this->logging->log('book', 'info', 'Extracting images from the Internet Archive.', $barcode);
-				$zip = new ZipArchive;
-				print "$zipfile\n";
-				$x = $zip->open($zipfile);
-				$numfiles = $zip->numFiles;
-				if ($x) {
-					for($i = 0; $i < $numfiles; $i++) {
-						$filename = $zip->getNameIndex($i);
-						$fileinfo = pathinfo($filename);
-						if (substr($fileinfo['basename'],-4,4) == '.jp2') {
-							copy("zip://{$zipfile}#{$filename}", "{$pth}/scans/{$fileinfo['basename']}");
+			print "Creating thumbs/previews and updating database...\n";
+			$this->logging->log('book', 'info', 'Creating thumb/preview derivative images and updating database.', $barcode);
+			// Update the name and extension in the pages table
+			// Get the existing pages
+			$pages = [];
+			$query = $this->db->query('select * from page where item_id = ? order by sequence_number', array($this->book->id));
+			$pages = $query->result();
+			foreach ($pages as $p) {
+				print chr(13)."  Sequence Number {$p->sequence_number}/{$numfiles}";
+				$files = glob("{$pth}/scans/*_".sprintf('%04d', $p->sequence_number).".$fileext");
+
+				if (count($files) == 0 ) {
+					print "Could not find a file for sequence number ".$p->sequence_number."\n";
+					continue;
+				}
+				if (count($files) > 1 ) {
+					print "Found more than one file for sequence number ".$p->sequence_number."\n";
+					continue;
+				}
+				$fileinfo = pathinfo($files[0]);
+
+				// Create the preview JPEG
+				$preview = new Imagick($files[0]);
+				$this->common->get_largest_image($preview);
+
+				// get the dimensions, we're going to want them later
+				$dimensions = $preview->getImageGeometry();
+
+				// Create the preview image
+				$preview->resizeImage(1500, 2000, Imagick::FILTER_POINT, 0);
+				try {
+					$preview->writeImage("{$pth}/preview/".$fileinfo['filename'].".jpg");
+				} catch (Exception $e) {
+					print '  Exception (preview image): '.$e->getMessage()."\n";
+				}
+
+				// Create the thumbnail image
+				$preview->resizeImage(180, 300, Imagick::FILTER_POINT, 0);
+				try {
+					$preview->writeImage("{$pth}/thumbs/".$fileinfo['filename'].".jpg");
+				} catch (Exception $e) {
+					print '  Exception (thumbnail image): '.$e->getMessage()."\n";
+				}
+
+				$preview->clear();
+				$preview->destroy();
+
+				$data = [];
+				$data[] = $fileinfo['filename'];
+				$data[] = filesize($files[0]);
+				$data[] = $fileext;
+				$data[] = $dimensions['width'];
+				$data[] = $dimensions['height'];
+				$data[] = $this->book->id;
+				$data[] = $p->id;
+				$query = $this->db->query('update page set filebase = ?, bytes = ?, extension = ?, width = ?, height = ? where item_id = ? and id = ?', $data);
+				print "\n";
+			}
+			$this->logging->log('book', 'info', 'Item images restored successfully.', $barcode);
+		} else {
+			// We didn't get a file, so this must be a true/false question
+			print "Restoring from the Internet Archive...\n";
+			$from_ia = $ia_or_filename;
+			if (substr(strtolower($from_ia),0,1) == 't' || substr(strtolower($from_ia),0,1) == 'y' ||  $from_ia == '1') {
+				if ($identifier) {
+					// Download the JP2 ZIP file from IA
+					$this->logging->log('book', 'info', 'Downloading images from the Internet Archive.', $barcode);
+					$fname = "{$identifier}_jp2.zip";
+					$zipfile = "{$pth}/{$fname}";
+					$url = "https://archive.org/download/{$identifier}/{$fname}";
+					echo "Downloading $fname from the Internet Archive...\n";
+					`wget -O $pth/$fname $url`;
+
+					// Extract the images to the scans folder
+					$this->logging->log('book', 'info', 'Extracting images from the Internet Archive.', $barcode);
+					$zip = new ZipArchive;
+					print "$zipfile\n";
+					$x = $zip->open($zipfile);
+					$numfiles = $zip->numFiles;
+					if ($x) {
+						for($i = 0; $i < $numfiles; $i++) {
+							$filename = $zip->getNameIndex($i);
+							$fileinfo = pathinfo($filename);
+							if (substr($fileinfo['basename'],-4,4) == '.jp2') {
+								copy("zip://{$zipfile}#{$filename}", "{$pth}/scans/{$fileinfo['basename']}");
+							}
 						}
+						$zip->close();                  
 					}
-					$zip->close();                  
+
+					print "Creating thumbs/previews and updating database...\n";
+					$this->logging->log('book', 'info', 'Creating thumb/preview derivative images and updating database.', $barcode);
+					// Update the name and extension in the pages table
+					// Get the existing pages
+					$pages = [];
+					$query = $this->db->query('select * from page where item_id = ? order by sequence_number', array($this->book->id));
+					$pages = $query->result();
+					foreach ($pages as $p) {
+						print chr(13)."  Sequence Number {$p->sequence_number}/{$numfiles}";
+						$files = glob("{$pth}/scans/*_".sprintf('%04d', $p->sequence_number).".jp2");
+						if (count($files) == 0 ) {
+							print "Could not find a file for sequence number ".$p->sequence_number."\n";
+							continue;
+						}
+						if (count($files) > 1 ) {
+							print "Found more than one file for sequence number ".$p->sequence_number."\n";
+							continue;
+						}
+						$fileinfo = pathinfo($files[0]);
+
+						// Create the preview JPEG
+						$preview = new Imagick($files[0]);
+						$this->common->get_largest_image($preview);
+
+						// get the dimensions, we're going to want them later
+						$dimensions = $preview->getImageGeometry();
+
+						// Create the preview image
+						$preview->resizeImage(1500, 2000, Imagick::FILTER_POINT, 0);
+						try {
+							$preview->writeImage("{$pth}/preview/".$fileinfo['filename'].".jpg");
+						} catch (Exception $e) {
+							print '  Exception (preview image): '.$e->getMessage()."\n";
+						}
+
+						// Create the thumbnail image
+						$preview->resizeImage(180, 300, Imagick::FILTER_POINT, 0);
+						try {
+							$preview->writeImage("{$pth}/thumbs/".$fileinfo['filename'].".jpg");
+						} catch (Exception $e) {
+							print '  Exception (thumbnail image): '.$e->getMessage()."\n";
+						}
+
+						$preview->clear();
+						$preview->destroy();
+
+						$data = [];
+						$data[] = $fileinfo['filename'];
+						$data[] = filesize($files[0]);
+						$data[] = 'jp2';
+						$data[] = $dimensions['width'];
+						$data[] = $dimensions['height'];
+						$data[] = $this->book->id;
+						$data[] = $p->id;
+						$query = $this->db->query('update page set filebase = ?, bytes = ?, extension = ?, width = ?, height = ? where item_id = ? and id = ?', $data);
+						print "\n";
+					}
+					$this->logging->log('book', 'info', 'Item images restored successfully.', $barcode);
+				} else {
+					print "!!! WARNING: No identifier was found. Unable to restore scanned files.\n";
 				}
-
-				print "Creating thumbs/previews and updating database...\n";
-				$this->logging->log('book', 'info', 'Creating thumb/preview derivative images and updating database.', $barcode);
-				// Update the name and extension in the pages table
-				// Get the existing pages
-				$pages = [];
-				$query = $this->db->query('select * from page where item_id = ? order by sequence_number', array($this->book->id));
-				$pages = $query->result();
-				foreach ($pages as $p) {
-					print chr(13)."  Sequence Number {$p->sequence_number}/{$numfiles}";
-					$files = glob("{$pth}/scans/*_".sprintf('%04d', $p->sequence_number).".jp2");
-					if (count($files) == 0 ) {
-						print "Could not find a file for sequence number ".$p->sequence_number."\n";
-						continue;
-					}
-					if (count($files) > 1 ) {
-						print "Found more than one file for sequence number ".$p->sequence_number."\n";
-						continue;
-					}
-					$fileinfo = pathinfo($files[0]);
-
-					// Create the preview JPEG
-					$preview = new Imagick($files[0]);
-					$this->common->get_largest_image($preview);
-
-					// get the dimensions, we're going to want them later
-					$dimensions = $preview->getImageGeometry();
-
-					// Create the preview image
-					$preview->resizeImage(1500, 2000, Imagick::FILTER_POINT, 0);
-					try {
-						$preview->writeImage("{$pth}/preview/".$fileinfo['filename'].".jpg");
-					} catch (Exception $e) {
-						print '  Exception (preview image): '.$e->getMessage()."\n";
-					}
-
-					// Create the thumbnail image
-					$preview->resizeImage(180, 300, Imagick::FILTER_POINT, 0);
-					try {
-						$preview->writeImage("{$pth}/thumbs/".$fileinfo['filename'].".jpg");
-					} catch (Exception $e) {
-						print '  Exception (thumbnail image): '.$e->getMessage()."\n";
-					}
-
-					$preview->clear();
-					$preview->destroy();
-
-					$data = [];
-					$data[] = $fileinfo['filename'];
-					$data[] = filesize($files[0]);
-					$data[] = 'jp2';
-					$data[] = $dimensions['width'];
-					$data[] = $dimensions['height'];
-					$data[] = $this->book->id;
-					$data[] = $p->id;
-					$query = $this->db->query('update page set filebase = ?, bytes = ?, extension = ?, width = ?, height = ? where item_id = ? and id = ?', $data);
-					print "\n";
-				}
-				$this->logging->log('book', 'info', 'Item images restored successfully.', $barcode);
 			}
 		}
 
@@ -416,11 +522,36 @@ class Utils extends Controller {
 			mkdir($this->cfg['data_directory'].'/'.$barcode.'/preview');
 		}
 		system('cd '.$tmp.'/import_export && tar fxz '.$barcode.'.tgz');
-		system('mv -f '.$tmp.'/import_export/'.$barcode.'/marc.xml  '.$this->cfg['data_directory'].'/'.$barcode);
-		system('mv -f '.$tmp.'/import_export/'.$barcode.'/thumbs/*  '.$this->cfg['data_directory'].'/'.$barcode.'/thumbs/');
-		system('mv -f '.$tmp.'/import_export/'.$barcode.'/preview/* '.$this->cfg['data_directory'].'/'.$barcode.'/preview/');
+		if (file_exists($tmp.'/import_export/'.$barcode.'/marc.xml')) {
+			system('mv -f '.$tmp.'/import_export/'.$barcode.'/marc.xml  '.$this->cfg['data_directory'].'/'.$barcode);
+		}
+		if (file_exists($tmp.'/import_export/'.$barcode.'/thumbs')) {
+			system('mv -f '.$tmp.'/import_export/'.$barcode.'/thumbs/*  '.$this->cfg['data_directory'].'/'.$barcode.'/thumbs/');
+		}
+		if (file_exists($tmp.'/import_export/'.$barcode.'/preview')) {
+			system('mv -f '.$tmp.'/import_export/'.$barcode.'/preview/* '.$this->cfg['data_directory'].'/'.$barcode.'/preview/');
+		}
 
 		$item = unserialize(read_file($tmp.'/import_export/'.$barcode.'/item.dat'));
+		if ($this->db->dbdriver == 'mysql' || $this->db->dbdriver == 'mysqli') {
+			if (!$item['needs_qa']) { $item['needs_qa'] = '0'; }
+			if ($item['needs_qa'] == 't') { $item['needs_qa'] = '1'; }
+			if ($item['needs_qa'] == 'f') { $item['needs_qa'] = '0'; }
+
+			if (!$item['ia_ready_images']) { $item['ia_ready_images'] = 'f'; }
+			if ($item['ia_ready_images'] == 't') { $item['ia_ready_images'] = '1'; }
+			if ($item['ia_ready_images'] == 'f') { $item['ia_ready_images'] = '0'; }
+		} elseif ($this->db->dbdriver == 'postgre') {
+			if (!$item['needs_qa']) { $item['needs_qa'] = 'f'; }
+			if ($item['needs_qa'] == '1') { $item['needs_qa'] = 't'; }
+			if ($item['needs_qa'] == '0') { $item['needs_qa'] = 'f'; }
+			
+			if (!$item['ia_ready_images']) { $item['ia_ready_images'] = 'f'; }
+			if ($item['ia_ready_images'] == '1') { $item['ia_ready_images'] = 't'; }
+			if ($item['ia_ready_images'] == '0') { $item['ia_ready_images'] = 'f'; }
+		}
+		print_r($item);
+		
 		$query = $this->db->query('select * from item where barcode = ?', array($item['barcode']));
 		$check_item = $query->result();
 		unset($item['id']);
@@ -438,11 +569,16 @@ class Utils extends Controller {
 		$page = unserialize(read_file($tmp.'/import_export/'.$barcode.'/page.dat'));
 		$page_map = array();
 		for ($i = 0; $i < count($page); $i++) {
+
 			$old_id = $page[$i]['id'];
 			unset($page[$i]['id']);
 			$page[$i]['item_id'] = $new_item_id;
 			$query = $this->db->query('select * from page where item_id = ? and sequence_number = ?', array($page[$i]['item_id'], $page[$i]['sequence_number']));
 			$check_page = $query->result();
+			if ($this->db->dbdriver == 'mysql' || $this->db->dbdriver == 'mysqli') {
+				$page[$i]['created'] = substr($page[$i]['created'], 0, 19);
+			}
+
 			if (count($check_page) > 0) {
 				$page_map["$old_id"] = $check_page[0]->id;
 				$this->db->where('item_id', $page[$i]['item_id']);
