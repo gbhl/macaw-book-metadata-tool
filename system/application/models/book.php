@@ -1802,7 +1802,7 @@ class Book extends Model {
 			// Move the PDF so we don't see it again
 			rename($scans_dir.$filename, $book_dir.$filename);
 			// Build the pattern for the PNGs to create
-			$outname = $scans_dir.preg_replace('/\.(.+)$/', '', $filename).'_%04d.png';
+			$outname = $scans_dir.preg_replace('/^(.+)\.(.*?)$/', '$1', $filename).'_%04d.png';
 			
 			$this->logging->log('book', 'info', 'About to split  '.$filename.' to PNG files', $this->barcode);
 			// Find ghostscript
