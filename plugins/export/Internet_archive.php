@@ -59,7 +59,9 @@ include ('Archive/Tar.php');
 //
 // Alternatively, we can force it to run all of the files using:
 // 		sudo -u www php index.php cron export Internet_archive 123 force
-
+// 
+// Or run the export for one file
+// 		sudo -u www php index.php cron export Internet_archive 123 scans force
 
 class Internet_archive extends Controller {
 
@@ -296,6 +298,11 @@ class Internet_archive extends Controller {
 				if ($archive_file && file_exists($archive_file) && !$id) {
 					unlink($archive_file);
 				}
+				// If we are forcing a reupload of the scans files, let's also force a re-zip/re-tar
+				if ($file == 'scans' && $force) {
+					@unlink($archive_file_orig);
+					@unlink($archive_file);
+				}
 
 				// Tar up the scans into the IDENTIFIER_orig_jp2.tar or IDENTIFIER_jp2.zip file
 				// Get the pages from the database, ordered by sequence-number
@@ -484,7 +491,6 @@ class Internet_archive extends Controller {
 
 				// Export the TAR and/or ZIP files.
 				if ($file == '' || $file == 'scans') {
-					sleep(10);
 					if (($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') && (!file_exists($archive_file_orig) || !$id)) {
 						// Create the TAR file
 						$tar = new Archive_Tar($archive_file_orig); // name of archive
@@ -494,6 +500,20 @@ class Internet_archive extends Controller {
 						$this->CI->logging->log('book', 'debug', 'Created TAR file '.$id.'_orig_jp2.tar', $bc);
 					}
 					if (($this->send_orig_jp2 == 'no' || $this->send_orig_jp2 == 'both') && (!file_exists($archive_file) || !$id)) {
+						// Check for and prevent 0 or 77 byte files from getting to IA
+						foreach ($filenames as $fn) {
+							$longfn = $basepath.'/Internet_archive/'.$id.'/'.$fn;
+							if (filesize($longfn) < 100) {
+								$message = "File for JP2 is too small. Will continue processing later. \n\n".
+									"Identifier:    ".$bc."\n".
+									"IA Identifier: ".$id."\n".
+									"ZIP File: ".basename($archive_file)."\n".
+									"File: ".basename($fn)."\n".
+									"Size: ".filesize($longfn)."\n";
+								$this->CI->common->email_admin($message);
+								return;
+							}
+						}
 						// Create the ZIP object
 						$zip = new ZipArchive(); // name of archive
 						if ($zip->open($archive_file, ZIPARCHIVE::CREATE) !== TRUE) {
