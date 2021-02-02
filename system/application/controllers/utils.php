@@ -281,15 +281,31 @@ class Utils extends Controller {
 				}
 				$zip->close();
 				print "Done!\n";               
+				$restored_images = true;
 			} elseif (substr($filename, -3, 3) == 'tar') {
+				print "Extracting images from a TAR file.\n";
+				// Open the Tar file
+				require_once 'Archive/Tar.php';
 				$tar = new Archive_Tar($filename);
-				$content = $tar->listContent();
-				print_r($content);
-				die;
+				$files = $tar->listContent();
+
+				$numfiles = 0;
+				// Get the file extension and other bits
+				foreach ($files as $f) {
+					$fi = pathinfo($f['filename']);
+					if ($fi['basename'] == $fi['filename']) {
+						continue;
+					}
+					if (!$fileext) { $fileext = $fi['extension']; }
+					$tar->extractList(array($f['filename']), "{$pth}/scans", $fi['dirname']);
+					$numfiles++;
+					print ".";
+				}				
+				print "Done!\n";               
+				$restored_images = true;
 			}
-			$restored_images = true;
 		}
-		
+
 		// If we got images from either IA or a local file,
 		// let's create the the thumbnails and preview images.
 		// NOTE: This makes assumptions about what files we have.
