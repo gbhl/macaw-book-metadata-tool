@@ -104,7 +104,7 @@ class Utils extends Controller {
 	 *
 	 * @since Version 2.2
 	 */
-	function reset_item($barcode, $ia_or_filename = '') {
+	function reset_item($barcode) {
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
 			die;
@@ -115,6 +115,7 @@ class Utils extends Controller {
 		}
 
 		$this->logging->log('book', 'info', 'Item reset from the command line.', $barcode);
+
 		// Set the status to reviewing
 		$this->book->load($barcode);
 		echo "Setting status back to reviewing...\n";
@@ -146,6 +147,7 @@ class Utils extends Controller {
 			}
 		}
 
+		// Restore the directories that Macaw expects
  		echo "Recreating the directory structure ...\n";
  		$pth = $this->cfg['data_directory'].'/'.$barcode;
 		if (!file_exists($pth)) {
@@ -183,43 +185,115 @@ class Utils extends Controller {
 			flush();
 		}
 
-		if (file_exists($ia_or_filename)) {
+		// Processs the remaining command line arguments
+		$args = func_get_args();
+		$x = array_shift($args);
+		$ia_or_filename = '/'.implode('/', $args);
+		$restored_images = false;
+		$fileext = '';
+
+		// Did we get the argument "true" "yes" or "1"?
+		// If so, download the images from the Internet Archive
+		if (strtolower($ia_or_filename) == 't' || strtolower($ia_or_filename) == 'true' || 
+		 	  strtolower($ia_or_filename) == 'y' || strtolower($ia_or_filename) == 'yes' || 
+		 	  strtolower($ia_or_filename) == '1' ) {
+			if ($identifier) {
+				print "Restoring from the Internet Archive...\n";
+				// Download the JP2 ZIP file from IA
+				$this->logging->log('book', 'info', 'Downloading images from the Internet Archive.', $barcode);
+				$fname = "{$identifier}_jp2.zip";
+				$zipfile = "{$pth}/{$fname}";
+				$fileext = 'jp2';
+				$url = "https://archive.org/download/{$identifier}/{$fname}";
+				echo "Downloading $fname from the Internet Archive...\n";
+				`wget -O $pth/$fname $url`;
+
+				// Extract the images to the scans folder
+				$this->logging->log('book', 'info', 'Extracting images from the Internet Archive.', $barcode);
+				$zip = new ZipArchive;
+				print "$zipfile\n";
+				$x = $zip->open($zipfile);
+				$numfiles = $zip->numFiles;
+				if ($x) {
+					for($i = 0; $i < $numfiles; $i++) {
+						$filename = $zip->getNameIndex($i);
+						$fileinfo = pathinfo($filename);
+						if (substr($fileinfo['basename'],-4,4) == '.jp2') {
+							copy("zip://{$zipfile}#{$filename}", "{$pth}/scans/{$fileinfo['basename']}");
+						}
+					}
+					$zip->close();                  
+				}
+				$restored_images = true;
+
+			} else {
+				print "!!! WARNING: No identifier was found. Unable to restore scanned files.\n";
+			}
+		} else {
+			// We didn't get the argument "true" "yes" or "1" so let's see
+			// if it's a filename. 
 			$filename = $ia_or_filename;
-			print "Restoring from local file...\n";
+
+			// Make sure we got a filename of some sort
 			if (!$filename) {
 				print "A filename is required.\n\n";
 				print "USAGE: sudo -u WWW_USER php index.php utils reset_item BARCODE FILENAME\n";
+				print "       sudo -u WWW_USER php index.php utils reset_item BARCODE true\n";
 				return;
-			}
-			if (!file_exists($filename)) {
-				print "File not found.\n\n";
-				print "USAGE: sudo -u WWW_USER php index.php utils reset_item BARCODE FILENAME\n";
-				return;
-			}
-			// Extract the images to the scans folder
-			$this->logging->log('book', 'info', 'Extracting images from the file provided.', $barcode);
-			$zip = new ZipArchive;
-			$x = $zip->open($filename);
-			$numfiles = $zip->numFiles;
-			$fileext = '';
-			if ($x) {
-				for($i = 0; $i < $numfiles; $i++) {
-					$filename = $zip->getNameIndex($i);
-					$fileinfo = pathinfo($filename);
-					if (substr($fileinfo['basename'],-4,4) == '.jp2') {
-						$fileext = 'jp2';
-						copy("zip://{$filename}#{$filename}", "{$pth}/scans/{$fileinfo['basename']}");
-					} elseif (substr($fileinfo['basename'],-5,5) == '.tiff') {
-						$fileext = 'tiff';
-						copy("zip://{$filename}#{$filename}", "{$pth}/scans/{$fileinfo['basename']}");
-					} elseif (substr($fileinfo['basename'],-4,4) == '.tif') {
-						$fileext = 'tif';
-						copy("zip://{$filename}#{$filename}", "{$pth}/scans/{$fileinfo['basename']}");
-					}
-				}
-				$zip->close();                  
 			}
 
+			// Did we get a full path? No, append it to CWD
+			if (!file_exists($filename)) {
+				$filename =  getcwd().$filename;
+			}
+			// try looking into the 
+			if (!file_exists($filename)) {
+				print "File not found: $filename\n\n";
+				print "USAGE: sudo -u WWW_USER php index.php utils reset_item BARCODE FILENAME\n";
+				print "       sudo -u WWW_USER php index.php utils reset_item BARCODE true\n";
+				return;
+			}
+
+			// Extract the images to the scans folder
+			$this->logging->log('book', 'info', 'Extracting images from the file provided.', $barcode);
+			$numfiles = 0;
+			if (substr($filename, -3, 3) == 'zip') {
+				print "Extracting images from a ZIP file.\n";
+				$zip = new ZipArchive;
+				$x = $zip->open($filename);
+				$numfiles = $zip->numFiles;
+
+				$fileext = '';
+				for($i = 0; $i < $numfiles; $i++) {
+					$fn = $zip->getNameIndex($i);
+					$fi = pathinfo($fn);
+					$bn = $fi['basename'];
+					// Track the file extension we encountered. We'll need it later.
+					if (substr($bn,-4,4) == '.jp2' && !$fileext) {
+						$fileext = 'jp2';
+					} elseif (substr($bn,-5,5) == '.tiff' && !$fileext) {
+						$fileext = 'tiff';
+					} elseif (substr($bn,-4,4) == '.tif' && !$fileext) {
+						$fileext = 'tif';
+					}
+					copy("zip://".$filename."#".$fn, "{$pth}/scans/{$barcode}".$bn);
+					print '.';
+				}
+				$zip->close();
+				print "Done!\n";               
+			} elseif (substr($filename, -3, 3) == 'tar') {
+				$tar = new Archive_Tar($filename);
+				$content = $tar->listContent();
+				print_r($content);
+				die;
+			}
+			$restored_images = true;
+		}
+		
+		// If we got images from either IA or a local file,
+		// let's create the the thumbnails and preview images.
+		// NOTE: This makes assumptions about what files we have.
+		if ($restored_images) {
 			print "Creating thumbs/previews and updating database...\n";
 			$this->logging->log('book', 'info', 'Creating thumb/preview derivative images and updating database.', $barcode);
 			// Update the name and extension in the pages table
@@ -227,6 +301,7 @@ class Utils extends Controller {
 			$pages = [];
 			$query = $this->db->query('select * from page where item_id = ? order by sequence_number', array($this->book->id));
 			$pages = $query->result();
+
 			foreach ($pages as $p) {
 				print chr(13)."  Sequence Number {$p->sequence_number}/{$numfiles}";
 				$files = glob("{$pth}/scans/*_".sprintf('%04d', $p->sequence_number).".$fileext");
@@ -279,101 +354,7 @@ class Utils extends Controller {
 				print "\n";
 			}
 			$this->logging->log('book', 'info', 'Item images restored successfully.', $barcode);
-		} else {
-			// We didn't get a file, so this must be a true/false question
-			print "Restoring from the Internet Archive...\n";
-			$from_ia = $ia_or_filename;
-			if (substr(strtolower($from_ia),0,1) == 't' || substr(strtolower($from_ia),0,1) == 'y' ||  $from_ia == '1') {
-				if ($identifier) {
-					// Download the JP2 ZIP file from IA
-					$this->logging->log('book', 'info', 'Downloading images from the Internet Archive.', $barcode);
-					$fname = "{$identifier}_jp2.zip";
-					$zipfile = "{$pth}/{$fname}";
-					$url = "https://archive.org/download/{$identifier}/{$fname}";
-					echo "Downloading $fname from the Internet Archive...\n";
-					`wget -O $pth/$fname $url`;
-
-					// Extract the images to the scans folder
-					$this->logging->log('book', 'info', 'Extracting images from the Internet Archive.', $barcode);
-					$zip = new ZipArchive;
-					print "$zipfile\n";
-					$x = $zip->open($zipfile);
-					$numfiles = $zip->numFiles;
-					if ($x) {
-						for($i = 0; $i < $numfiles; $i++) {
-							$filename = $zip->getNameIndex($i);
-							$fileinfo = pathinfo($filename);
-							if (substr($fileinfo['basename'],-4,4) == '.jp2') {
-								copy("zip://{$zipfile}#{$filename}", "{$pth}/scans/{$fileinfo['basename']}");
-							}
-						}
-						$zip->close();                  
-					}
-
-					print "Creating thumbs/previews and updating database...\n";
-					$this->logging->log('book', 'info', 'Creating thumb/preview derivative images and updating database.', $barcode);
-					// Update the name and extension in the pages table
-					// Get the existing pages
-					$pages = [];
-					$query = $this->db->query('select * from page where item_id = ? order by sequence_number', array($this->book->id));
-					$pages = $query->result();
-					foreach ($pages as $p) {
-						print chr(13)."  Sequence Number {$p->sequence_number}/{$numfiles}";
-						$files = glob("{$pth}/scans/*_".sprintf('%04d', $p->sequence_number).".jp2");
-						if (count($files) == 0 ) {
-							print "Could not find a file for sequence number ".$p->sequence_number."\n";
-							continue;
-						}
-						if (count($files) > 1 ) {
-							print "Found more than one file for sequence number ".$p->sequence_number."\n";
-							continue;
-						}
-						$fileinfo = pathinfo($files[0]);
-
-						// Create the preview JPEG
-						$preview = new Imagick($files[0]);
-						$this->common->get_largest_image($preview);
-
-						// get the dimensions, we're going to want them later
-						$dimensions = $preview->getImageGeometry();
-
-						// Create the preview image
-						$preview->resizeImage(1500, 2000, Imagick::FILTER_POINT, 0);
-						try {
-							$preview->writeImage("{$pth}/preview/".$fileinfo['filename'].".jpg");
-						} catch (Exception $e) {
-							print '  Exception (preview image): '.$e->getMessage()."\n";
-						}
-
-						// Create the thumbnail image
-						$preview->resizeImage(180, 300, Imagick::FILTER_POINT, 0);
-						try {
-							$preview->writeImage("{$pth}/thumbs/".$fileinfo['filename'].".jpg");
-						} catch (Exception $e) {
-							print '  Exception (thumbnail image): '.$e->getMessage()."\n";
-						}
-
-						$preview->clear();
-						$preview->destroy();
-
-						$data = [];
-						$data[] = $fileinfo['filename'];
-						$data[] = filesize($files[0]);
-						$data[] = 'jp2';
-						$data[] = $dimensions['width'];
-						$data[] = $dimensions['height'];
-						$data[] = $this->book->id;
-						$data[] = $p->id;
-						$query = $this->db->query('update page set filebase = ?, bytes = ?, extension = ?, width = ?, height = ? where item_id = ? and id = ?', $data);
-						print "\n";
-					}
-					$this->logging->log('book', 'info', 'Item images restored successfully.', $barcode);
-				} else {
-					print "!!! WARNING: No identifier was found. Unable to restore scanned files.\n";
-				}
-			}
 		}
-
 		// Give command to start re-uploading the item
 		$this->logging->log('book', 'info', 'Item status was reset from the command line.', $barcode);
 		print "Item has been reset. Please make your changes and use the following command to re-upload to the Internet Archive.\n";
@@ -1037,6 +1018,15 @@ class Utils extends Controller {
 				$this->book->import_one_image($fileName, $seq++, $missing);
 			}
 		}
+		// Reorder the pages, just to be safe.
+		// Get the pagesm sorted by filebase
+		$pages = $this->book->get_pages('filebase');
+		$seq = 1;
+		foreach ($pages as $p) {
+			$this->book->set_page_sequence($p->id, $seq++);
+		}
+		$this->book->update();
+
 		// Indicate that we are done processing the PDF			
 		$this->db->query(
 			'delete from metadata
