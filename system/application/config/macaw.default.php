@@ -321,8 +321,8 @@ $config['macaw']['cc_licenses'] = array(
 //
 // The setting "jpeg2000_quality" is used for JP2 files created from other iamges, TIFF, PNG.
 // The setting "jpeg2000_quality" is used for JP2 files created from PDFs uploaded to Macaw.
-// $config['macaw']['jpeg2000_quality'] = '30';
-// $config['macaw']['jpeg2000_quality_pdf'] = '32';
+// $config['macaw']['jpeg2000_quality'] = '35';
+// $config['macaw']['jpeg2000_quality_pdf'] = '35';
 
 // For ImageMagick earlier than version 6.8.8-2, the Jasper Library is used and these values are more 
 // appropriate.
