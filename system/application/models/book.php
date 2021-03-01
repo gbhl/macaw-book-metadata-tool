@@ -950,6 +950,12 @@ class Book extends Model {
 		if (isset($info['identifier'])) {
 			$info['barcode'] = trim($info['identifier']);
 		}
+		# Holding institution and contributor are equivalent
+		# but we like to use contributor, so convert it back.
+		if (isset($info['holding_institution'])) {
+			$info['contributor'] = trim($info['holding_institution']);
+			unset($info['holding_institution']); 
+		}
 		if ($info['barcode']) {
 			// If we have a barcode, let's make sure it doesn't already exist
 			$this->db->where('barcode', $info['barcode']);
