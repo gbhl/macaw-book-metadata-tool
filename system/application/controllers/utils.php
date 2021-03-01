@@ -819,6 +819,21 @@ class Utils extends Controller {
 			}			
 			$csv->encoding($encoding, 'UTF-8');
 			$csv->parse($fname);
+
+			# make sure the titles are lowercase
+			$titles = $csv->titles;
+			$changed = false;
+			for ($i = 0; $i < count($titles); $i++) {
+				if ($titles[$i] != strtolower($titles[$i])) {
+					$changed = true;
+					$titles[$i] = strtolower($titles[$i]);
+				}
+			}
+			if ($changed) {
+				$csv->fields = $titles;
+				$csv->parse($fname);
+			}
+			
 			$info = $csv->data;
 
 			// Insert the data into the database
