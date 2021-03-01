@@ -115,15 +115,13 @@ class Utils extends Controller {
 		}
 
 		$this->logging->log('book', 'info', 'Item reset from the command line.', $barcode);
+		$db_true = (($this->db->dbdriver == 'postgre') ? "'t'" : '1');
+		$db_false = (($this->db->dbdriver == 'postgre') ? "'f'" : '0');
 
 		// Set the status to reviewing
 		$this->book->load($barcode);
 		echo "Setting status back to reviewing...\n";
-		if ($this->db->dbdriver == 'mysql' || $this->db->dbdriver == 'mysqli') {
-			$this->db->query("update item set status_code = 'reviewing', ia_ready_images = 1 where id = ".$this->book->id);
-		} elseif ($this->db->dbdriver == 'postgre') {
-			$this->db->query("update item set status_code = 'reviewing', ia_ready_images = 't' where id = ".$this->book->id);
-		}
+		$this->db->query("update item set status_code = 'reviewing' where id = ".$this->book->id);
 
 		// Delete the IA Export status
 		echo "Clearing IA Export status...\n";
@@ -188,7 +186,7 @@ class Utils extends Controller {
 		// Processs the remaining command line arguments
 		$args = func_get_args();
 		$x = array_shift($args);
-		$ia_or_filename = '/'.implode('/', $args);
+		$ia_or_filename = implode('/', $args);
 		$restored_images = false;
 		$fileext = '';
 
@@ -199,6 +197,7 @@ class Utils extends Controller {
 		 	  strtolower($ia_or_filename) == '1' ) {
 			if ($identifier) {
 				print "Restoring from the Internet Archive...\n";
+
 				// Download the JP2 ZIP file from IA
 				$this->logging->log('book', 'info', 'Downloading images from the Internet Archive.', $barcode);
 				$fname = "{$identifier}_jp2.zip";
@@ -229,10 +228,57 @@ class Utils extends Controller {
 			} else {
 				print "!!! WARNING: No identifier was found. Unable to restore scanned files.\n";
 			}
+		} elseif (strtolower($ia_or_filename) == 'iapdf' || strtolower($ia_or_filename) == 'ia_pdf') {
+			// Download the PDF from the Internet Archive aand use that
+			print "Getting PDF from IA.\n";
+
+			$files = json_decode(file_get_contents("https://archive.org/metadata/$identifier/files"));
+			$pdfs = [];
+			foreach ($files->result as $f) {
+				if (preg_match('/_orig_pdf/', $f->name)) {
+					$pdfs[] = $f->name;
+				}
+			}
+			// If there is more than one, throw an error or ask for which one to use
+			if (count($pdfs) > 1) {
+				print "More than one PDF was found. Please address this manually.\n";
+			} else {
+				// Download the PDF(s) from the internet archive: IDENTIFIER_orig_pdf.zip or IDENTIFIER_orig_pdf_##.zip
+				$url = "https://archive.org/download/$identifier/".$pdfs[0];
+				$dest = $pth.'/'.$pdfs[0];
+				$fileext = 'png';
+				if (!file_exists($dest)) {
+					file_put_contents($dest, file_get_contents($url));
+				}
+
+				// Extract the PDF from the ZIP
+				$zip = new ZipArchive;
+				$x = $zip->open($dest);
+				$zip->extractTo($pth);
+				$zip->close();                  
+				// Making an assumption here about the name of the PDF
+				$dest = $pth.'/'.$identifier.'_orig.pdf';
+
+				// Cycle through the page prefixes in the pages for the item and extract them
+				$pages = $this->book->get_pages(); 
+				$c = 0;
+				foreach ($pages as $p) {
+					print chr(13)."Extracting images...(".($c++)."/".count($pages).")";
+					$outname = $pth.'/scans/'.$p->filebase.'.png';
+					$exec = $this->cfg['gs_exe']." -sDEVICE=png16m -r450x450 -dSAFER -dBATCH -dNOPAUSE ".
+											"-dFirstPage=".$p->sequence_number." -dLastPage=".$p->sequence_number." -dTextAlphaBits=4 ".
+											"-dUseCropBox -sOutputFile=".escapeshellarg($outname)." ".
+											escapeshellarg($dest);
+					exec($exec);
+				}
+				print chr(13)."Extracting images...Done!        \n";
+				$restored_images = true;
+			}
+
 		} else {
 			// We didn't get the argument "true" "yes" or "1" so let's see
 			// if it's a filename. 
-			$filename = $ia_or_filename;
+			$filename = '/'.$ia_or_filename;
 
 			// Make sure we got a filename of some sort
 			if (!$filename) {
@@ -268,14 +314,7 @@ class Utils extends Controller {
 					$fn = $zip->getNameIndex($i);
 					$fi = pathinfo($fn);
 					$bn = $fi['basename'];
-					// Track the file extension we encountered. We'll need it later.
-					if (substr($bn,-4,4) == '.jp2' && !$fileext) {
-						$fileext = 'jp2';
-					} elseif (substr($bn,-5,5) == '.tiff' && !$fileext) {
-						$fileext = 'tiff';
-					} elseif (substr($bn,-4,4) == '.tif' && !$fileext) {
-						$fileext = 'tif';
-					}
+					if (!$fileext) { $fileext = $fi['extension']; }
 					copy("zip://".$filename."#".$fn, "{$pth}/scans/{$barcode}".$bn);
 					print '.';
 				}
@@ -283,7 +322,6 @@ class Utils extends Controller {
 				print "Done!\n";               
 				$restored_images = true;
 			} elseif (substr($filename, -3, 3) == 'tar') {
-				print "Extracting images from a TAR file.\n";
 				// Open the Tar file
 				require_once 'Archive/Tar.php';
 				$tar = new Archive_Tar($filename);
@@ -299,27 +337,34 @@ class Utils extends Controller {
 					if (!$fileext) { $fileext = $fi['extension']; }
 					$tar->extractList(array($f['filename']), "{$pth}/scans", $fi['dirname']);
 					$numfiles++;
-					print ".";
+					print chr(13)."Extracting images from a TAR file (".$numfiles."/".coun($files).")";
 				}				
-				print "Done!\n";               
+				print chr(13)."Extracting images from a TAR file...Done!       \n";
 				$restored_images = true;
 			}
+		}
+
+		if ($fileext == 'jp2') {
+			// We dont (re)compress JP2s
+			$this->db->query("update item set ia_ready_images = $db_true where id = ".$this->book->id);
+		} else {
+			// We dont compress everything else to JP2.
+			$this->db->query("update item set ia_ready_images = $db_false where id = ".$this->book->id);
 		}
 
 		// If we got images from either IA or a local file,
 		// let's create the the thumbnails and preview images.
 		// NOTE: This makes assumptions about what files we have.
 		if ($restored_images) {
-			print "Creating thumbs/previews and updating database...\n";
 			$this->logging->log('book', 'info', 'Creating thumb/preview derivative images and updating database.', $barcode);
 			// Update the name and extension in the pages table
 			// Get the existing pages
 			$pages = [];
 			$query = $this->db->query('select * from page where item_id = ? order by sequence_number', array($this->book->id));
 			$pages = $query->result();
-
+			$c = 0;
 			foreach ($pages as $p) {
-				print chr(13)."  Sequence Number {$p->sequence_number}/{$numfiles}";
+				print chr(13)."Creating thumbs/previews and updating database...(".($c++)."/".count($pages).")";
 				$files = glob("{$pth}/scans/*_".sprintf('%04d', $p->sequence_number).".$fileext");
 
 				if (count($files) == 0 ) {
@@ -367,14 +412,54 @@ class Utils extends Controller {
 				$data[] = $this->book->id;
 				$data[] = $p->id;
 				$query = $this->db->query('update page set filebase = ?, bytes = ?, extension = ?, width = ?, height = ? where item_id = ? and id = ?', $data);
-				print "\n";
 			}
+			print chr(13)."Creating thumbs/previews and updating database...Done!      \n";
 			$this->logging->log('book', 'info', 'Item images restored successfully.', $barcode);
 		}
 		// Give command to start re-uploading the item
 		$this->logging->log('book', 'info', 'Item status was reset from the command line.', $barcode);
 		print "Item has been reset. Please make your changes and use the following command to re-upload to the Internet Archive.\n";
-		print "    sudo -u WWW_USER php index.php cron export Internet_archive ".$barcode."\n";
+		print "    sudo -u WWW_USER php index.php cron export Internet_archive ".$barcode."\n\n";
+
+		print "Use the following to send only the images to IA.\n";
+		print "    sudo -u WWW_USER php index.php cron export Internet_archive ".$barcode." scans force\n\n";
+
+		print "Use the following to mark the item as complete.\n";
+		print "    sudo -u WWW_USER php index.php utils reset_item_complete ".$barcode."\n";
+	}
+
+	/**
+	 * Re-close an item
+	 *
+	 * CLI: Given a barcode on the command line, this will set the item as complete. Meant
+	 * to be used together with reset_item when automating the re-upload of poorly-compressed
+	 * images.
+	 *
+	 * Usage: 
+	 *    php index.php utils reset_item_complete 3908808264355 
+	 *
+	 * Parameter: barcode 
+	 *
+	 * @since Version 2.8
+	 */
+	function reset_item_complete($barcode) {
+		if (!$barcode) {
+			echo "Please supply a barcode\n";
+			die;
+		}
+		if (!$this->book->exists($barcode)) {
+			echo "Item not found with barcode $barcode.\n";
+			die;
+		}
+
+		$this->logging->log('book', 'info', 'Item reset from the command line back to complete.', $barcode);
+		// Set the status to reviewing
+		$this->book->load($barcode);
+		echo "Setting status to complete...\n";
+
+		$this->db->query("update item set status_code = 'complete' where id = ".$this->book->id);
+		print "Item has been set to complete. To send new images, use the following\n";
+		print "    sudo -u WWW_USER php index.php cron export Internet_archive ".$barcode." scans force\n\n";
 	}
 
 	/**
