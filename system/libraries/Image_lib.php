@@ -83,7 +83,7 @@ class CI_Image_lib {
 	 * @param	string
 	 * @return	void
 	 */
-	function CI_Image_lib($props = array())
+	function __construct($props = array())
 	{
 		if (count($props) > 0)
 		{

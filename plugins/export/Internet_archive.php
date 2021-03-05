@@ -71,7 +71,7 @@ class Internet_archive extends Controller {
 
 	private $send_orig_jp2 = "no"; // "yes", "no", or "both" This creates faster uploads when false (larger files/slower uploads when true)
 	private $timing = false; // This makes more noise about how long things are taking.
-	private $download_extensions = array('_djvu.xml', '_hocr.html.gz'); // What must be online after derivation? These indicate IA is finished deriving.
+	private $download_extensions = array('_djvu.xml', '_chocr.html.gz'); // What must be online after derivation? These indicate IA is finished deriving.
 	private $required_extensions = array('_jp2.zip', '_marc.xml', '_scandata.xml'); // What must be online after upload? These are things that we uploaded.
 
 	var $CI;
@@ -85,7 +85,7 @@ class Internet_archive extends Controller {
 	// class above. Othwerwise, ugly things will happen. You don't need to edit
 	// anything here, either.
 	// ----------------------------
-	function Internet_archive() {
+	function __construct() {
 		$this->CI = get_instance();
 		$this->cfg = $this->CI->config->item('macaw');
 
