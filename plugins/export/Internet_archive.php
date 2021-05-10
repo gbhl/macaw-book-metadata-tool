@@ -2510,7 +2510,6 @@ class Internet_archive extends Controller {
 		// Handle copyright - Permission Granted to Scan
 		} elseif ($this->CI->book->get_metadata('copyright') == '1'  || strtoupper($this->CI->book->get_metadata('copyright')) == 'T' ) {
 			$metadata['x-archive-meta-possible-copyright-status'] = "In copyright. Digitized with the permission of the rights holder.";
-			// $metadata['x-archive-meta-licenseurl'] = 'http://creativecommons.org/licenses/by-nc-sa/4.0/';
 			$metadata['x-archive-meta-rights'] = 'http://biodiversitylibrary.org/permissions';
 
 		// Handle copyright - Due Dillegene Performed to determine public domain status
@@ -2518,9 +2517,6 @@ class Internet_archive extends Controller {
 			$metadata['x-archive-meta-possible-copyright-status'] = "No known copyright restrictions as determined by scanning institution.";
 			$metadata['x-archive-meta-due-diligence'] = 'http://biodiversitylibrary.org/permissions';
 			$metadata['x-archive-meta-duediligence'] = 'http://biodiversitylibrary.org/permissions';
-			// if (isset($metadata['x-archive-meta-licenseurl'])) {
-			// 	unset($metadata['x-archive-meta-licenseurl']);
-			// }
 
 		// Handle copyright - Default, we hope we never hit this
 		} else {
