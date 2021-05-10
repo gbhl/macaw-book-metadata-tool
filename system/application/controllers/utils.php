@@ -135,9 +135,9 @@ class Utils extends Controller {
 		if ($row = $query->row()) {
 			if ($row->identifier) {
 				$identifier = $row->identifier;
-				if (file_exists($this->cfg['data_directory'].'/import_export/'.$row->identifier)) {
+				if (file_exists($this->cfg['data_directory'].'/import_export/Internet_archive/'.$row->identifier)) {
 					echo "Clearing IA Export files...\n";
-					$cmd = 'rm -fr '.$this->cfg['data_directory'].'/import_export/'.$row->identifier;
+					$cmd = 'rm -fr '.$this->cfg['data_directory'].'/import_export/Internet_archive/'.$row->identifier;
 					`$cmd`;
 				} else {
 					echo "No IA Export files to clear...\n";
