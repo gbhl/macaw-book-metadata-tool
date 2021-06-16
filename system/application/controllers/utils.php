@@ -183,6 +183,18 @@ class Utils extends Controller {
 			flush();
 		}
 
+		function _usage() {
+				print "USAGE: sudo -u WWW_USER php index.php utils reset_item IDENTIFIER FILENAME\n";
+				print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER PATH\n";
+				print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER internet_archive_pdf\n";
+				print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER internet_archive\n";
+				print "\n";
+				print "IDENTIFIER is a Macaw Identifier, not Intenet Archive.\n";
+				print "FILENAME can be a ZIP file or TAR archive of sequentially numbered files.\n";
+				print "PATH must provide a directory with files that are sequentially numbered.\n";
+
+		}
+
 		// Processs the remaining command line arguments
 		$args = func_get_args();
 		$x = array_shift($args);
@@ -192,9 +204,11 @@ class Utils extends Controller {
 
 		// Did we get the argument "true" "yes" or "1"?
 		// If so, download the images from the Internet Archive
-		if (strtolower($ia_or_filename) == 't' || strtolower($ia_or_filename) == 'true' || 
-		 	  strtolower($ia_or_filename) == 'y' || strtolower($ia_or_filename) == 'yes' || 
-		 	  strtolower($ia_or_filename) == '1' ) {
+		if (strtolower($ia_or_filename) == 'help' || strtolower($ia_or_filename) == '--help') {
+				$this->_usage();
+				return;
+		}
+		if (strtolower($ia_or_filename) == 'internet_archive') {
 			if ($identifier) {
 				print "Restoring from the Internet Archive...\n";
 
@@ -227,8 +241,9 @@ class Utils extends Controller {
 
 			} else {
 				print "!!! WARNING: No identifier was found. Unable to restore scanned files.\n";
+				return;
 			}
-		} elseif (strtolower($ia_or_filename) == 'iapdf' || strtolower($ia_or_filename) == 'ia_pdf') {
+		} elseif (strtolower($ia_or_filename) == 'internet_archive_pdf') {
 			// Download the PDF from the Internet Archive aand use that
 			print "Getting PDF from IA.\n";
 
@@ -283,8 +298,7 @@ class Utils extends Controller {
 			// Make sure we got a filename of some sort
 			if (!$filename) {
 				print "A filename is required.\n\n";
-				print "USAGE: sudo -u WWW_USER php index.php utils reset_item BARCODE FILENAME\n";
-				print "       sudo -u WWW_USER php index.php utils reset_item BARCODE true\n";
+				$this->usage();
 				return;
 			}
 
@@ -294,53 +308,70 @@ class Utils extends Controller {
 			}
 			// try looking into the 
 			if (!file_exists($filename)) {
-				print "File not found: $filename\n\n";
-				print "USAGE: sudo -u WWW_USER php index.php utils reset_item BARCODE FILENAME\n";
-				print "       sudo -u WWW_USER php index.php utils reset_item BARCODE true\n";
+				print "Path not found: $filename\n\n";
+				$this->_usage();
 				return;
 			}
 
 			// Extract the images to the scans folder
-			$this->logging->log('book', 'info', 'Extracting images from the file provided.', $barcode);
+			$this->logging->log('book', 'info', 'Extracting images from the file or path provided.', $barcode);
 			$numfiles = 0;
-			if (substr($filename, -3, 3) == 'zip') {
-				print "Extracting images from a ZIP file.\n";
-				$zip = new ZipArchive;
-				$x = $zip->open($filename);
-				$numfiles = $zip->numFiles;
 
-				$fileext = '';
-				for($i = 0; $i < $numfiles; $i++) {
-					$fn = $zip->getNameIndex($i);
-					$fi = pathinfo($fn);
+			// Did we get a folder or a file
+			if (is_dir($filename)) { 
+				// It's a folder
+				print "Extracting images from a PATH.\n";
+				$files = array_diff(scandir($filename), array('..', '.'));
+				$numfiles = count($files);
+				foreach ($files as $f) {
+					$fi = pathinfo($filename.'/'.$f);
 					$bn = $fi['basename'];
 					if (!$fileext) { $fileext = $fi['extension']; }
-					copy("zip://".$filename."#".$fn, "{$pth}/scans/{$barcode}".$bn);
-					print '.';
+					copy($filename."/".$f, "{$pth}/scans/{$bn}");
 				}
-				$zip->close();
-				print "Done!\n";               
 				$restored_images = true;
-			} elseif (substr($filename, -3, 3) == 'tar') {
-				// Open the Tar file
-				require_once 'Archive/Tar.php';
-				$tar = new Archive_Tar($filename);
-				$files = $tar->listContent();
 
-				$numfiles = 0;
-				// Get the file extension and other bits
-				foreach ($files as $f) {
-					$fi = pathinfo($f['filename']);
-					if ($fi['basename'] == $fi['filename']) {
-						continue;
+			} else { 
+				// It's a file. Is it a ZIP or TAR?
+				if (substr($filename, -3, 3) == 'zip') {
+					// It's a zip file
+					print "Extracting images from a ZIP file.\n";
+					$zip = new ZipArchive;
+					$x = $zip->open($filename);
+					$numfiles = $zip->numFiles;
+
+					for($i = 0; $i < $numfiles; $i++) {
+						$fn = $zip->getNameIndex($i);
+						$fi = pathinfo($fn);
+						$bn = $fi['basename'];
+						if (!$fileext) { $fileext = $fi['extension']; }
+						copy("zip://".$filename."#".$fn, "{$pth}/scans/{$barcode}/".$bn);
+						print '.';
 					}
-					if (!$fileext) { $fileext = $fi['extension']; }
-					$tar->extractList(array($f['filename']), "{$pth}/scans", $fi['dirname']);
-					$numfiles++;
-					print chr(13)."Extracting images from a TAR file (".$numfiles."/".coun($files).")";
-				}				
-				print chr(13)."Extracting images from a TAR file...Done!       \n";
-				$restored_images = true;
+					$zip->close();
+					print "Done!\n";               
+					$restored_images = true;
+				} elseif (substr($filename, -3, 3) == 'tar') {
+					// It's a the Tar file
+					require_once 'Archive/Tar.php';
+					$tar = new Archive_Tar($filename);
+					$files = $tar->listContent();
+
+					$numfiles = 0;
+					// Get the file extension and other bits
+					foreach ($files as $f) {
+						$fi = pathinfo($f['filename']);
+						if ($fi['basename'] == $fi['filename']) {
+							continue;
+						}
+						if (!$fileext) { $fileext = $fi['extension']; }
+						$tar->extractList(array($f['filename']), "{$pth}/scans", $fi['dirname']);
+						$numfiles++;
+						print chr(13)."Extracting images from a TAR file (".$numfiles."/".coun($files).")";
+					}				
+					print chr(13)."Extracting images from a TAR file...Done!       \n";
+					$restored_images = true;
+				}
 			}
 		}
 
