@@ -36,4 +36,12 @@ system/application/logs/books
 
 ########################################
 # VS CODE
+
 .vscode
+
+########################################
+# MISC LOCAL THINGS
+tesseract.php
+tesseract-process.php
+js/jquery.filedrop.js
+css/tesseract.css
