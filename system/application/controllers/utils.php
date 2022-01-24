@@ -1378,17 +1378,16 @@ class Utils extends Controller {
 
 	}
 	function _get_ssh_file($filename) {
-		$ssh_host = '';
-		$ssh_port = 22;
+		$ssh_user_and_host = '';
 		$ssh_path = '';
-		
+
 		$matches = [];
 		if (preg_match('|^sftp://?(.*?)/(.*?)$|',$filename, $matches)) {
-			$ssh_host = $matches[1];
+			$ssh_user_and_host = $matches[1];
 			$ssh_path = '/'.$matches[2];
 		}
 		$temp = $this->cfg['data_directory'].'/import_export/'.basename($filename);
-		$cmd = "scp -q {$ssh_host}:/{$ssh_path} {$temp}";
+		$cmd = "scp -q {$ssh_user_and_host}:/{$ssh_path} {$temp}";
 		`$cmd`;
 		if (file_exists($temp)) {
 			return $temp;
