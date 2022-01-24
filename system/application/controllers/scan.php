@@ -938,6 +938,7 @@ class Scan extends Controller {
 		// Make sure the path exists
 		if (!file_exists($scans_dir)) {
 			mkdir($scans_dir,'0777',true);
+			chmod($scans_dir,'0777');
 			$this->logging->log('book', 'info', 'Created directory: '.$scans_dir, $barcode);
 		}
 		
