@@ -109,6 +109,20 @@ class Utils extends Controller {
 			echo "Please supply a barcode\n";
 			die;
 		}
+
+		if (strtolower($barcode) == 'help' || strtolower($barcode) == '--help'|| strtolower($barcode) == '-h') {
+				print "USAGE: sudo -u WWW_USER php index.php utils reset_item IDENTIFIER FILENAME\n";
+				print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER PATH\n";
+				print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER SFTP://SERVER/PATH/TO/FILE\n";
+				print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER internet_archive_pdf\n";
+				print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER internet_archive\n";
+				print "\n";
+				print "IDENTIFIER is a Macaw Identifier, not Intenet Archive.\n";
+				print "FILENAME can be a ZIP file or TAR archive of sequentially numbered files.\n";
+				print "PATH must provide a directory with files that are sequentially numbered.\n";
+				return;
+		}
+
 		if (!$this->book->exists($barcode)) {
 			echo "Item not found with barcode $barcode.\n";
 			die;
@@ -173,28 +187,6 @@ class Utils extends Controller {
 			echo "books/$barcode/scans already exists...\n";
 		}
 
-		function _progress($ch, $dl_max, $dl, $ul_max, $ul) {
-			if ($dl_max > 0) {
-				echo chr(13)."  Progress: ".round($dl / $dl_max * 100,0)."%";	
-			} else {
-				echo chr(13)."  Progress: 0%";	
-			}
-			
-			flush();
-		}
-
-		function _usage() {
-				print "USAGE: sudo -u WWW_USER php index.php utils reset_item IDENTIFIER FILENAME\n";
-				print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER PATH\n";
-				print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER internet_archive_pdf\n";
-				print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER internet_archive\n";
-				print "\n";
-				print "IDENTIFIER is a Macaw Identifier, not Intenet Archive.\n";
-				print "FILENAME can be a ZIP file or TAR archive of sequentially numbered files.\n";
-				print "PATH must provide a directory with files that are sequentially numbered.\n";
-
-		}
-
 		// Processs the remaining command line arguments
 		$args = func_get_args();
 		$x = array_shift($args);
@@ -202,12 +194,7 @@ class Utils extends Controller {
 		$restored_images = false;
 		$fileext = '';
 
-		// Did we get the argument "true" "yes" or "1"?
 		// If so, download the images from the Internet Archive
-		if (strtolower($ia_or_filename) == 'help' || strtolower($ia_or_filename) == '--help') {
-				$this->_usage();
-				return;
-		}
 		if (strtolower($ia_or_filename) == 'internet_archive') {
 			if ($identifier) {
 				print "Restoring from the Internet Archive...\n";
@@ -291,22 +278,34 @@ class Utils extends Controller {
 			}
 
 		} else {
-			// We didn't get the argument "true" "yes" or "1" so let's see
-			// if it's a filename. 
-			$filename = '/'.$ia_or_filename;
-
+			
 			// Make sure we got a filename of some sort
-			if (!$filename) {
+			if (!$ia_or_filename) {
 				print "A filename is required.\n\n";
 				$this->usage();
 				return;
 			}
-
-			// Did we get a full path? No, append it to CWD
-			if (!file_exists($filename)) {
-				$filename =  getcwd().$filename;
+			
+			// Does the path start with sftp://?
+			if (strpos($ia_or_filename,'sftp:/') >= 0) {
+				$this->logging->log('book', 'info', 'Downloading images from the SFTP.', $barcode);
+				// It does, see if we can grab the file and then treat it as a regular file.
+				print "Downloading via SCP/SFTP...\n";
+				$ret = $this->_get_ssh_file($ia_or_filename);
+				if ($ret === false) {
+					print "Unable to connect via ssh. Check server and username.\n";
+					return;
+				}
+				if ($ret === null) {
+					print "unable to copy file from SFTP\n";
+					return;
+				}
+				$filename = $ret;
+			} else {
+				$filename = $ia_or_filename;
 			}
-			// try looking into the 
+
+			// try looking for the file 
 			if (!file_exists($filename)) {
 				print "Path not found: $filename\n\n";
 				$this->_usage();
@@ -333,6 +332,7 @@ class Utils extends Controller {
 
 			} else { 
 				// It's a file. Is it a ZIP or TAR?
+
 				if (substr($filename, -3, 3) == 'zip') {
 					// It's a zip file
 					print "Extracting images from a ZIP file.\n";
@@ -1377,4 +1377,23 @@ class Utils extends Controller {
 
 
 	}
+	function _get_ssh_file($filename) {
+		$ssh_host = '';
+		$ssh_port = 22;
+		$ssh_path = '';
+		
+		$matches = [];
+		if (preg_match('|^sftp://?(.*?)/(.*?)$|',$filename, $matches)) {
+			$ssh_host = $matches[1];
+			$ssh_path = '/'.$matches[2];
+		}
+		$temp = $this->cfg['data_directory'].'/import_export/'.basename($filename);
+		$cmd = "scp -q {$ssh_host}:/{$ssh_path} {$temp}";
+		`$cmd`;
+		if (file_exists($temp)) {
+			return $temp;
+		}
+		return false;
+	}
 }
+
