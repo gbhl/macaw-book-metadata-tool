@@ -23,8 +23,7 @@ be available in apt, aptitude or yum.
 	- PHP Pear module Archive_Tar
 	- PHP XSL extension
 	- PHP PgSQL extension
-	- ImageMagick 6.3+
-	- Jasper library (needed for JPEG2000 files)
+	- ImageMagick 6.3+ 
 	- CURL (needed for uploading files to the Internet Archive)
 	- Apache php5 module 
 	- Apache mod_rewrite module
@@ -44,7 +43,7 @@ Downlodad tarball:
 	
 	This URI always points to the most recent version of Macaw that is available
 
-	https://github.com/cajunjoel/macaw-book-metadata-tool/archive/master.zip
+	https://github.com/gbhl/macaw-book-metadata-tool/archive/master.zip
 
 Checkout from Subversion:
 
@@ -52,7 +51,7 @@ Checkout from Subversion:
 	you may get check out a clone the repository. Be sure to replace "PATH" with
 	the appropriate directory name.
 
-	git clone https://github.com/cajunjoel/macaw-book-metadata-tool.git PATH
+	git clone https://github.com/gbhl/macaw-book-metadata-tool.git PATH
 
 
 =====================
@@ -63,7 +62,7 @@ For a new installation of Macaw:
 1. Copy the files into the appropriate location on your web server. Be sure to use paths appropriate
 for your system.
 
-	$ curl -O -L https://github.com/cajunjoel/macaw-book-metadata-tool/archive/master.zip
+	$ curl -O -L https://github.com/gbhl/macaw-book-metadata-tool/archive/master.zip
 	$ unzip master.zip
 	$ cp -ri macaw-book-metadata-tool-master/* macaw-book-metadata-tool-master/.htaccess /var/www/htdocs/macaw
    
@@ -73,18 +72,38 @@ for your system.
 Macaw contains a .htaccess file for the configuration settings that it needs. However you 
 may still need to make sure that the .htaccess file is used. To do this in Apache, be sure 
 that "AllowOverride All" is set for the directory or virtual host for Macaw. Below is an example
-VirtualHost entry for Apache that is suitable for Macaw. Be sure to update the paths as needed 
-for your system.
+VirtualHost entry for Apache 2.4 that is suitable for Macaw. Be sure to update the paths and names
+as needed for your system.
 
 	<VirtualHost *:80>
-		ServerName macaw.local
-	
-		DocumentRoot /var/www/htdocs/
-		<Directory />
-			Options FollowSymLinks -Indexes
-			AllowOverride All
-		</Directory>
-	
+		ServerName macaw.website.com
+		Redirect permanent / https://macaw.website.com/
+	</VirtualHost>
+
+	<VirtualHost *:443>
+		ServerAdmin webmaster@localhost
+		ServerName macaw.website.com
+
+		DocumentRoot /var/www/htdocs/macaw
+			<Directory /var/www/htdocs/macaw>
+					Options FollowSymLinks MultiViews
+					AllowOverride All
+			Require all Granted
+			</Directory>
+
+		SSLCertificateFile /etc/ssl/certs/ssl-cert-snakeoil.pem
+		SSLCertificateKeyFile /etc/ssl/private/ssl-cert-snakeoil.key
+
+		SSLEngine on
+		SSLProtocol all -TLSv1.1 -TLSv1 -SSLv2 -SSLv3
+		SSLCipherSuite EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH
+		SSLHonorCipherOrder on
+		SSLCompression          off
+		SSLOptions +StrictRequire
+
+		LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\"" vhost_combined
+		LogFormat "%v %h %l %u %t \"%r\" %>s %b" vhost_common
+
 		ErrorLog /var/log/apache2/macaw-error.log
 		CustomLog /var/log/apache2/macaw-access.log combined
 	</VirtualHost>
@@ -101,8 +120,8 @@ for your system.
 	  
 	  $ mysql -u root -p mysql
 		CREATE USER 'macaw'@'localhost' identified by 'PASSWORD';
-    CREATE DATABASE macaw CHARACTER SET utf8 COLLATE utf8_general_ci;
-    GRANT ALL ON macaw.* To 'macaw'@'localhost';
+    	CREATE DATABASE macaw CHARACTER SET utf8 COLLATE utf8_general_ci;
+    	GRANT ALL ON macaw.* To 'macaw'@'localhost';
 	
 
 4. Set file and directory permissions
@@ -110,7 +129,7 @@ for your system.
 The webserver needs access to the various files and directories it manages. Be sure to use the appropriate
 path to Macaw and user and group that your web server uses. This may be "www", "apache" or "nobody".
 
-	$ chown -R www:www /var/www/htdocs
+	$ chown -R www:www /var/www/htdocs/macaw
 
 
 5. Start Macaw by going to the install.php page
@@ -129,12 +148,12 @@ installation. As usual, be sure to use the correct path to your Macaw installati
 Download the most recent .zip file:
 
 	$ cd /tmp
-	$ curl -O -L https://github.com/cajunjoel/macaw-book-metadata-tool/archive/master.zip
+	$ curl -O -L https://github.com/gbhl/macaw-book-metadata-tool/archive/master.zip
 	$ unzip master.zip
 	$ cd macaw-book-metadata-tool-master
 
 	# Use the correct directory here!
-	$ sudo cp -r .htaccess * /var/www/htdocs/.
+	$ sudo cp -r .htaccess * /var/www/htdocs/macaw/.
 
 As a reminder, Macaw does not deliver the "incoming" or "books" directories nor does it deliver
 the config.php, macaw.php, or database.php files, therefore the recursive copy is non-destructive.

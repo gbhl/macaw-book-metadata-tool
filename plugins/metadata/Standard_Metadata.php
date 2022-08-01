@@ -49,7 +49,7 @@
 					<tr>
 						<td><label for="year">Year:</label></td>
 						<td>
-							<input type="text" name="year" id="year" value="" onChange="YAHOO.macaw.Standard_Metadata.metadataChange(this);" onFocus="focusOn(this);" onBlur="focusOff();">&nbsp;<img src="<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearYear" class="icon" onMouseOver="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';">
+							<input type="text" maxlength="4" name="year" id="year" value="" onChange="YAHOO.macaw.Standard_Metadata.metadataChange(this);" onFocus="focusOn(this);" onBlur="focusOff();">&nbsp;<img src="<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearYear" class="icon" onMouseOver="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';">
 						</td>
 					</tr>
 					<tr>

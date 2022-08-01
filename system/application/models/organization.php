@@ -137,7 +137,7 @@ class Organization extends Model {
 			'state'		=> $this->state,
 			'postal'	=> $this->postal,
 			'country'	=> $this->country,
-			'modified'	=> 'now()'
+			'modified'	=> date('Y-m-d H:i:s')
 		);
 
 		// Save to the database.
@@ -146,7 +146,7 @@ class Organization extends Model {
 
 		// Handle Internet Archive API Keys
 		if ($this->db->table_exists('custom_internet_archive_keys')) {
-			$this->db->where('org_id', $id);			
+			$this->db->where('org_id', $this->id);			
 			$keys = $this->db->get('custom_internet_archive_keys');
 			// Do keys exist? Yes, update them
 			if ($keys->num_rows() > 0) {
@@ -195,7 +195,7 @@ class Organization extends Model {
 			'state'		=> $this->state,
 			'postal'	=> $this->postal,
 			'country'	=> $this->country,
-			'created'   => 'now()',
+			'created'   => date('Y-m-d H:i:s'),
 		);
 
 		// Save to the database.
@@ -222,16 +222,16 @@ class Organization extends Model {
 	 * @since Version 1.7
 	 */
 	function delete() {
-		if (_orgid_in_use($this->id)) {
+		if ($this->_orgid_in_use($this->id)) {
 			throw new Exception("Unable to delete a contributor that is associated to one or more accounts.");		
 		} else {
-			$this->where('id', $this->id);
-			$this->delete('organization');
+			$this->db->where('id', $this->id);
+			$this->db->delete('organization');
 
 			// Handle Internet Archive API Keys
 			if ($this->db->table_exists('custom_internet_archive_keys')) {
-				$this->where('org_id', $this->id);
-				$this->delete('custom_internet_archive_keys');
+				$this->db->where('org_id', $this->id);
+				$this->db->delete('custom_internet_archive_keys');
 			}
 		}
 	}
