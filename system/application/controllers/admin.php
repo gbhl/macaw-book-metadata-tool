@@ -809,14 +809,11 @@ class Admin extends Controller {
 		}
 
 		// Try to identify the PHP executable on this system
-		$php_exe = PHP_BINDIR.'/php5';		
-		if (!file_exists($php_exe)) {
-			$php_exe = PHP_BINDIR.'/php';
-		}
+		$php_exe = $this->common->findPHP();
 		
-		if (!file_exists($php_exe)) {
-			echo json_encode(array('error' => 'Could not find php executable (php or php5) in '.PHP_BINDIR.'.'));
-			$this->logging->log('error', 'debug', 'Could not find php executable (php or php5) in '.PHP_BINDIR.'.');
+		if (!$php_exe || !file_exists($php_exe)) {
+			echo json_encode(array('error' => 'Could not find php executable using findPHP().'));
+			$this->logging->log('error', 'debug', 'Could not find php executable using findPHP().');
 			return;
 		}
 

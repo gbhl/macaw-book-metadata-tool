@@ -123,17 +123,14 @@ class Scan extends Controller {
 			// $this->book->set_status('scanning');
 
 			// Try to identify the PHP executable on this system
-			$php_exe = PHP_BINDIR.'/php5';		
-			if (!file_exists($php_exe)) {
-				$php_exe = PHP_BINDIR.'/php';
-			}
-			
-			if (!file_exists($php_exe)) {
-				echo json_encode(array('error' => 'Could not find php executable (php or php5) in '.PHP_BINDIR.'.'));
-				$this->logging->log('error', 'debug', 'Could not find php executable (php or php5) in '.PHP_BINDIR.'.');
+			$php_exe = $this->common->findPHP();
+
+			if (!$php_exe || !file_exists($php_exe)) {
+				echo json_encode(array('error' => 'Could not find php executable using findPHP().'));
+				$this->logging->log('error', 'debug', 'Could not find php executable using findPHP().');
 				return;
 			}
-
+	
 			$fname = $this->logging->log('cron', 'info', 'Cron job "import_pages" initiated during import pages.');
 	
 			$this->common->ajax_headers();
@@ -976,11 +973,13 @@ class Scan extends Controller {
 					
 					$output = '';
 
-					$php_exe = PHP_BINDIR.'/php5';		
-					if (!file_exists($php_exe)) {
-						$php_exe = PHP_BINDIR.'/php';
+					$php_exe = $this->common->findPHP();
+					if (!$php_exe || !file_exists($php_exe)) {
+						echo json_encode(array('error' => 'Could not find php executable using findPHP().'));
+						$this->logging->log('error', 'debug', 'Could not find php executable using findPHP().');
+						return;
 					}
-
+			
 					$exec = 'MACAW_OVERRIDE=1 "'.$php_exe.'" "'.$this->cfg['base_directory'].'/index.php" utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file['name'][0]).'> /dev/null 2> /dev/null < /dev/null &';
 					$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->book->barcode);
 					exec($exec, $output);

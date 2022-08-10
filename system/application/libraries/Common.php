@@ -996,6 +996,49 @@ class Common extends Controller {
 		return $str;
 	}
 
+	function findPHP() {
+		if (defined('PHP_BINARY') && is_executable(PHP_BINARY)) {
+			$res = PHP_BINARY;
+		} else {
+			$which       = (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') ? 'where' : 'which';
+			$outputArr   = [];
+			$whichReturn = false;
+			$res         = exec($which . " php 2>&1", $outputArr, $whichReturn);
+			if ($whichReturn !== 0) {
+				$res        = false;
+				$lookIn     = array(
+					defined('PHP_BINDIR') ? PHP_BINDIR : '',
+					'c:\xampp',
+					'd:\xampp',
+					getenv('ProgramFiles'),
+					getenv('ProgramFiles(x86)'),
+					getenv('ProgramW6432')
+				);
+				$suffixes   = array(
+					'php',
+					'/php/php',
+					'/php/bin/php',
+				);
+				$extensions = array(
+					"",
+					".exe"
+				);
+				foreach ($lookIn as $folder) {
+					foreach ($suffixes as $suffix) {
+						foreach ($extensions as $extension) {
+							$php = $folder . $suffix . $extension;
+							if (is_executable($php)) {
+								$res = realpath($php);
+								break 3;
+							}
+						}
+					}
+				}
+			}
+		}
+		return $res;
+	}
+	
 }
 
 

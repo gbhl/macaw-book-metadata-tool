@@ -967,7 +967,13 @@ class Main extends Controller {
 			$username = $this->session->userdata('username');
 			// Spawn the import process (php index.php utils csv_import FILENAME.CSV)
 			chdir($this->cfg['base_directory']);
-			$cmd = PHP_BINDIR.'/php index.php utils csvimport '.$fname.' '.$fname2.' '.$username.' > /dev/null 2>&1 &'; 
+			$php_exe = $this->common->findPHP();
+			if (!$php_exe || !file_exists($php_exe)) {
+				echo json_encode(array('error' => 'Could not find php executable using findPHP().'));
+				$this->logging->log('error', 'debug', 'Could not find php executable using findPHP().');
+				return;
+			}
+			$cmd = $php_exe.' index.php utils csvimport '.$fname.' '.$fname2.' '.$username.' > /dev/null 2>&1 &'; 
 			$this->logging->log('access', 'info', 'Importing CSV file(s): '.$fname.' and '.$fname2);
 			$this->logging->log('access', 'info', 'Command: '.$cmd);
 			system($cmd);
