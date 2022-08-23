@@ -855,18 +855,8 @@ class Book extends Model {
 			$query = $this->db->get();
 			
 			$res = $query->result();
-			if ($get_size) {
-        for ($i = 0; $i < count($res); $i++) {
-          if (!$res[$i]->total_mbytes) {
-            $res[$i]->bytes = intval($this->_dir_size($this->cfg['data_directory'].'/'.$res[$i]->barcode))*1024;
-          } else {
-            $res[$i]->bytes = intval($res[$i]->total_mbytes)*1024;
-          }
-        }
-			} else {
-				for ($i = 0; $i < count($res); $i++) {
-					$res[$i]->bytes = 0;
-				}
+			for ($i = 0; $i < count($res); $i++) {
+				$res[$i]->bytes = intval($res[$i]->total_mbytes)*1024;
 			}
 			return $res;
 		} else {
