@@ -180,11 +180,13 @@ they may take some time to run (in some cases, hours) and they will not produce 
 # Once per day at 2:00am, update the Dashboard statistics. This will take only a moment to run.
 0 2 * * *       /opt/local/apache2/htdocs/cron.php --run=/cron/statistics --quiet  > /dev/null
 
+# Once per day at 3:00am recalculate the sizes of the item folders
+0 3 * * *     /var/www/html/cron.php --run=/cron/calculate_sizes > /dev/null
+
 # OPTIONAL Check every hour of every weekday for new items. This will take roughly five seconds for 
 # each new item discovered. Don't interrupt once started.
 0 * * * 1-5     /opt/local/apache2/htdocs/cron.php --run=/cron/new_items --quiet  > /dev/null
 
-# Once per weekday at 2:17am, export/verify/harvest/archive/etc. This could take hours to
+# Every 3 hours, export/verify/harvest/archive/etc. This could take hours to
 # run depending on how much data there is to export.
-17 2 * * 1-5    /opt/local/apache2/htdocs/cron.php --run=/cron/export --quiet  > /dev/null
-
+0 */3 * * 1-5    /opt/local/apache2/htdocs/cron.php --run=/cron/export --quiet  > /dev/null
