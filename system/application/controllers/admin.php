@@ -186,11 +186,11 @@ class Admin extends Controller {
 
 		// Sort our records into the subarrays
 		foreach ($books as $b) {
-      if ($this->user->has_permission('admin')) {
-        array_push($data['all_items'], $b);
-      } elseif ($this->user->org_id == $b->org_id) {
-        array_push($data['all_items'], $b);
-      }				
+			if ($this->user->has_permission('admin')) {
+				array_push($data['all_items'], $b);
+			} elseif ($this->user->org_id == $b->org_id) {
+				array_push($data['all_items'], $b);
+			}				
 
 			if (in_array($b->status_code, array('new', 'scanning', 'scanned', 'reviewing'))) {
 				if ($this->user->has_permission('admin')) {
