@@ -67,7 +67,6 @@ class Login extends Controller {
 		} else {
 			$this->session->set_userdata('errormessage', 'You entered an incorrect username or password. Please try again.');
 			$this->logging->log('access', 'info', 'User '.$user.' failed to logged in.');
-			$this->authentication->deauth();
 			$this->index();
 		}
 	}
