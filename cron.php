@@ -64,6 +64,7 @@
                 // Simulate an HTTP request
                 $_SERVER['PATH_INFO'] = $value;
                 $_SERVER['REQUEST_URI'] = $value;
+								$_SERVER['REQUEST_METHOD'] = 'GET';
                 $required['--run'] = TRUE;
                 break;
 
