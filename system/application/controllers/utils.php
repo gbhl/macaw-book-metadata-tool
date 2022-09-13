@@ -20,6 +20,18 @@ class Utils extends Controller {
 		$this->cfg = $this->config->item('macaw');
 	}
 
+	/**
+	 * Reset page image dimensions in the database
+	 *
+	 * CLI: For all books, reset the image sizes in the database 
+	 * based on the images that are on disk, if they exist. This 
+	 * is probably not used or needed anymore. Best not to use it.
+	 * 
+	 * Usage: 
+	 *   sudo -u apache php index.php utils image_sizes 
+	 *
+	 * @since Version 1.1
+	 */
 	function image_sizes() {
 
 		// Get the books
@@ -92,16 +104,16 @@ class Utils extends Controller {
 	 * Reopen/reset an item
 	 *
 	 * CLI: Given a barcode on the command line, this will reset the item so that it can be
-	 * re-uploaded to the internet archive. Options include "true" to download JP2s from the
+	 * re-uploaded to the internet archive. Options include those listed below to download JP2s from the
 	 * Internet Archive or a local file to extract images from.
 	 *
 	 * Usage: 
-	 *    php index.php utils reset_item 3908808264355 
-	 *    php index.php utils reset_item 3908808264355 true
-	 *    php index.php utils reset_item 3908808264355 /path/to/SomeFilename_orig_tiff.tar
-	 *
-	 * Parameter: barcode 
-	 *
+	 *    sudo -u apache php index.php utils reset_item 3908808264355 
+	 *    sudo -u apache php index.php utils reset_item 3908808264355 /path/to/SomeFilename_orig_tiff.tar
+	 *    sudo -u apache php index.php utils reset_item 3908808264355 sftp://server/path/to/file.tar
+	 *    sudo -u apache php index.php utils reset_item 3908808264355 internet_archive_pdf
+	 *    sudo -u apache php index.php utils reset_item 3908808264355 internet_archive
+	 * 
 	 * @since Version 2.2
 	 */
 	function reset_item($barcode) {
@@ -109,18 +121,20 @@ class Utils extends Controller {
 			echo "Please supply a barcode\n";
 			die;
 		}
-
+		function reset_usage() {
+			print "USAGE: sudo -u WWW_USER php index.php utils reset_item IDENTIFIER\n";
+			print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER PATH\n";
+			print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER SFTP://SERVER/PATH/TO/FILE\n";
+			print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER internet_archive_pdf\n";
+			print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER internet_archive\n";
+			print "\n";
+			print "IDENTIFIER is a Macaw Identifier, not Intenet Archive.\n";
+			print "FILENAME can be a ZIP file or TAR archive of sequentially numbered files.\n";
+			print "PATH must provide a directory with files that are sequentially numbered.\n";
+		}
 		if (strtolower($barcode) == 'help' || strtolower($barcode) == '--help'|| strtolower($barcode) == '-h') {
-				print "USAGE: sudo -u WWW_USER php index.php utils reset_item IDENTIFIER FILENAME\n";
-				print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER PATH\n";
-				print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER SFTP://SERVER/PATH/TO/FILE\n";
-				print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER internet_archive_pdf\n";
-				print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER internet_archive\n";
-				print "\n";
-				print "IDENTIFIER is a Macaw Identifier, not Intenet Archive.\n";
-				print "FILENAME can be a ZIP file or TAR archive of sequentially numbered files.\n";
-				print "PATH must provide a directory with files that are sequentially numbered.\n";
-				return;
+			reset_usage();
+			return;
 		}
 
 		if (!$this->book->exists($barcode)) {
@@ -141,10 +155,26 @@ class Utils extends Controller {
 		echo "Clearing IA Export status...\n";
 		$this->db->query("delete from item_export_status where item_id = ".$this->book->id." and export_module = 'Internet_archive'");
 
+		// Do we need to copy metadata?
+		$this->db->select('count(*) as thecount');
+		$this->db->where('item_id', $this->book->id);
+		$query = $this->db->get('metadata');
+		$row = $query->row();
+		if ($row->thecount == 0) {
+			echo "Restoring metadata...\n";
+			$this->db->query("insert into metadata (item_id, page_id, fieldname, counter, value, value_large) select item_id, page_id, fieldname, counter, value, value_large from metadata_archive where item_id = ".$this->book->id);
+		} else {
+			echo "Item has metadata, not restoring...\n";
+		}
+
 		// Delete the IA derived images on disk
 		$this->db->select('identifier');
 		$this->db->where('item_id', $this->book->id);
 		$query = $this->db->get('custom_internet_archive');
+		if (!$query->num_rows) {
+			print "Could not get an IA Identifier!\n";
+			return;
+		}
 		$identifier = '';
 		if ($row = $query->row()) {
 			if ($row->identifier) {
@@ -281,13 +311,12 @@ class Utils extends Controller {
 			
 			// Make sure we got a filename of some sort
 			if (!$ia_or_filename) {
-				print "A filename is required.\n\n";
-				$this->usage();
+				print "The item has been reset. No images have been restored.\n\n";
 				return;
 			}
 			
 			// Does the path start with sftp://?
-			if (strpos($ia_or_filename,'sftp:/') >= 0) {
+			if ((int)strpos($ia_or_filename,'sftp:/') > 0) {
 				$this->logging->log('book', 'info', 'Downloading images from the SFTP.', $barcode);
 				// It does, see if we can grab the file and then treat it as a regular file.
 				print "Downloading via SCP/SFTP...\n";
@@ -302,13 +331,13 @@ class Utils extends Controller {
 				}
 				$filename = $ret;
 			} else {
-				$filename = $ia_or_filename;
+				$filename = '/'.$ia_or_filename;
 			}
 
 			// try looking for the file 
 			if (!file_exists($filename)) {
 				print "Path not found: $filename\n\n";
-				$this->_usage();
+				reset_usage();
 				return;
 			}
 
@@ -367,7 +396,7 @@ class Utils extends Controller {
 						if (!$fileext) { $fileext = $fi['extension']; }
 						$tar->extractList(array($f['filename']), "{$pth}/scans", $fi['dirname']);
 						$numfiles++;
-						print chr(13)."Extracting images from a TAR file (".$numfiles."/".coun($files).")";
+						print chr(13)."Extracting images from a TAR file (".$numfiles."/".count($files).")";
 					}				
 					print chr(13)."Extracting images from a TAR file...Done!       \n";
 					$restored_images = true;
@@ -467,9 +496,7 @@ class Utils extends Controller {
 	 * images.
 	 *
 	 * Usage: 
-	 *    php index.php utils reset_item_complete 3908808264355 
-	 *
-	 * Parameter: barcode 
+	 *   sudo -u apache php index.php utils reset_item_complete 3908808264355 
 	 *
 	 * @since Version 2.8
 	 */
@@ -488,11 +515,78 @@ class Utils extends Controller {
 		$this->book->load($barcode);
 		echo "Setting status to complete...\n";
 
-		$this->db->query("update item set status_code = 'complete' where id = ".$this->book->id);
+		$this->db->query("update item set status_code = 'completed' where id = ".$this->book->id);
 		print "Item has been set to complete. To send new images, use the following\n";
 		print "    sudo -u WWW_USER php index.php cron export Internet_archive ".$barcode." scans force\n\n";
 	}
 
+	/**
+	 * Cleanup after having reset an item
+	 *
+	 * CLI: Given a barcode on the command line, this will clean up the files on disk for the
+	 * item. Checks that the item is complete for all Export Modules before continuing.
+	 *
+	 * Usage: 
+	 *    sudo -u apache php index.php utils reset_item_clean 3908808264355 
+	 *
+	 * @since Version 2.8
+	 */
+	function reset_item_cleanup($barcode) {
+
+		if (!$barcode) {
+			echo "Please supply a barcode\n";
+			die;
+		}
+		if (!$this->book->exists($barcode)) {
+			echo "Item not found with barcode $barcode.\n";
+			die;
+		}
+		$this->book->load($barcode);
+
+		if ($this->book->status != 'completed') {
+			print "Can't continue. Book status_code is '".$this->book->status."'\n";
+			return;
+		}
+
+		// Get the list of export modules, verify all are completed in the database
+		$continue = true;
+		foreach ($this->cfg['export_modules'] as $m) {
+			$query = $this->db->query(
+				'select * from item_export_status where item_id = ? and export_module = ?', 
+			  array($this->book->id, $m)
+			);
+			$status = $query->result();
+			if (count($status) == 0) { 
+				print "Item is not completed for export module: $m\n";
+				$continue = false; 
+			} else {
+				if ($status[0]->status_code != 'completed') {
+					print "Item is not completed for export module: $m\n";
+					$continue = false; 
+				}
+			}
+		}
+		if (!$continue) {
+			return;
+		}
+		print "Clearing files...\n";
+		$path = $this->cfg['data_directory'].'/'.$this->book->barcode;
+		print "Deleting $path...\n";
+		$this->_delete_all($path);
+
+		// Get the IA identifier
+		$query = $this->db->query('select * from custom_internet_archive where item_id = ?', array($this->book->id));
+		$ia_id = $query->result();
+		if (count($ia_id) > 0) {
+			$ia_id = $ia_id[0]->identifier;
+			$path = $this->cfg['data_directory'].'/import_export/Internet_archive/'.$ia_id;
+			print "Deleting $path...\n";
+			$this->_delete_all($path);
+		}
+
+		$this->logging->log('book', 'info', 'Item cleaned up using reset_item_cleanup.', $barcode);
+		print "Cleaning files complete.\n";
+	}
 	/**
 	 * Export data for an item to a TAR file
 	 *
@@ -500,9 +594,8 @@ class Utils extends Controller {
 	 * for an item into a tar. This filecan then be imported into another installation of Macaw.
 	 * Technically, the data can be extracted from the file, too.
 	 *
-	 * Usage: php index.php utils serialize 3908808264355
-	 *
-	 * Parameter: barcode 
+	 * Usage: 
+	 *   sudo -u apache php index.php utils serialize 3908808264355
 	 *
 	 * @since Version 1.6
 	 */
@@ -583,14 +676,13 @@ class Utils extends Controller {
 	}
 
 	/**
-	 * Export data for an item to a TAR file
+	 * Import data for an item from a TAR file
 	 *
 	 * CLI: Given a filename of a TGZ file, this extracts the barcode from the name
 	 * of the file and imports the data and images for the item from that file. 
 	 *
-	 * Usage: php index.php utils unserialize /path/to/file/3908808264355.tgz
-	 *
-	 * Parameter: barcode 
+	 * Usage: 
+	 *   sudo -u apache php index.php utils unserialize /path/to/file/3908808264355.tgz
 	 *
 	 * @since Version 1.6
 	 */
@@ -598,7 +690,7 @@ class Utils extends Controller {
 		$args = func_get_args();
 	
 		$fname = $args[count($args)-1];
-		$filename = '/'.implode($args,'/');
+		$filename = '/'.implode('/', $args);
 		if (!file_exists($filename)) {
 			echo "File not found! ($filename)\n";
 			die;			
@@ -663,7 +755,6 @@ class Utils extends Controller {
 			if ($item['ia_ready_images'] == '1') { $item['ia_ready_images'] = 't'; }
 			if ($item['ia_ready_images'] == '0') { $item['ia_ready_images'] = 'f'; }
 		}
-		print_r($item);
 		
 		$query = $this->db->query('select * from item where barcode = ?', array($item['barcode']));
 		$check_item = $query->result();
@@ -681,6 +772,7 @@ class Utils extends Controller {
 		
 		$page = unserialize(read_file($tmp.'/import_export/'.$barcode.'/page.dat'));
 		$page_map = array();
+		$this->db->trans_start();
 		for ($i = 0; $i < count($page); $i++) {
 
 			$old_id = $page[$i]['id'];
@@ -704,6 +796,7 @@ class Utils extends Controller {
 				$page_map["$old_id"] = $this->db->insert_id();
 			}
 		}
+		$this->db->trans_complete();
 
 		$metadata = unserialize(read_file($tmp.'/import_export/'.$barcode.'/metadata.dat'));
 
@@ -763,15 +856,11 @@ class Utils extends Controller {
 	 * 
 	 * May also send a tab-separated file with the file extension .txt
 	 *
-	 * Usage: php index.php utils csvimport import-62p7ac.csv
+	 * Usage: 
+	 *   sudo -u apache php index.php utils csvimport import-62p7ac.csv
 	 *
-	 * 
 	 * @since Version 1.6
 	 */
-	function import_csv($filename, $filename2 = null, $username = 'admin') {
-	  return $this->csvimport($filename, $filename2, $username);
-	}
-
 	function csvimport($filename, $filename2 = null, $username = 'admin') {
 		// Import the file
 		$errors = array();
@@ -975,18 +1064,13 @@ class Utils extends Controller {
 
 	}
 
-	function _array_combine($keys, $values) {
-			$result = array();
-			foreach ($keys as $i => $k) {
-				if (isset($values[$i])) {
-					$result[$k][] = $values[$i];
-				}
-			}
-			array_walk($result, create_function('&$v', '$v = (count($v) == 1)? array_pop($v): $v;'));
-			return $result;
-	}
-
-	
+	/**
+	 * Log CSV Import activity
+	 *
+	 * UTILITY/INTERNAL: Log things that happen during a CSV import to be displayed later.
+	 * 
+	 * @since Version 2.1.14
+	 */
 	function _save_import_status($file = '', $value = 1, $message = '', $finished = 0) {
 		if ($file != '') {
 			write_file($file.'.log', 
@@ -1006,9 +1090,8 @@ class Utils extends Controller {
 	 * files and directories for an item in macaw. Confirmation must be given by the user
 	 * after being warned about how much will be deleted.
 	 *
-	 * Usage: php index.php utils delete_item 3908808264355
-	 *
-	 * Parameter: barcode 
+	 * Usage: 
+	 *   sudo -u apache php index.php utils delete_item 3908808264355
 	 *
 	 * @since Version 1.6
 	 */
@@ -1070,7 +1153,7 @@ class Utils extends Controller {
 	/**
 	 * Recursively get a single array of all files
 	 *
-	 * CLI: Given a path, recurse through the files and directories 
+	 * UTILITY/INTERNAL: Given a path, recurse through the files and directories 
 	 * and return a single list of full paths that are contained in and
 	 * below it. 
 	 *
@@ -1093,7 +1176,10 @@ class Utils extends Controller {
 		return $this->_array_flat($files); 
 	} 
 
-	/* Flatten an array of arrays into one array */	
+	/**
+	 * Flatten an array of arrays into one array
+	 * UTILITY/INTERNAL
+	 */ 
 	function _array_flat($array) { 
 		$tmp = array();
 		foreach($array as $a) { 
@@ -1106,7 +1192,18 @@ class Utils extends Controller {
 		return $tmp; 
 	} 
 	
-	
+	/**
+	 * Import a PDF as an entire item
+	 *
+	 * CLI: Given an identifier and a PDF, use ghostscript to split
+	 * the PDF pages into images and import those images into the item
+	 * identified on the command line
+	 *
+	 * Usage: 
+	 *   sudo -u apache php index.php utils import_pdf 3908808264355 /path/to/file.pdf
+	 *
+	 * @since Version 2.1.20
+	 */	
 	function import_pdf($barcode = null, $filename = null) {
 		if (!$barcode) {
 			print "Barcode is requred!\n";
@@ -1186,6 +1283,11 @@ class Utils extends Controller {
 		}
 	}
 
+	/**
+	 * Remove duplicates from a list of files
+	 * 
+	 * INTERNAL/UTILITY: Used in import_pdf when splitting a PDF into PNGs. 
+	 */	
 	function _dedupe_files($files) {
 		$good_files = [];
 		foreach ($files as $fname => $data) {
@@ -1206,6 +1308,18 @@ class Utils extends Controller {
 		return $files;
 	}
 
+	/**
+	 * Get Item Counts for all contributors
+	 *
+	 * CLI: Get a fixed-width chart of the counts of items, pages, etc from
+	 * all contributor organizations in Macaw. Suitable for piping ot an email
+	 * program. May optionally hide the API key for the contributor.
+	 *
+	 * Usage: 
+	 *   sudo -u apache php index.php utils contributor_stats HIDE_KEY
+	 *
+	 * @since Version 2.7.0
+	 */	
 	function contributor_stats($hidekey = null) {
 		setlocale(LC_CTYPE, 'en_US');
 		$format = "%-50s  %5s  %6s %11s  %-16s  %-40s\n";
@@ -1222,7 +1336,7 @@ class Utils extends Controller {
 			'ORDER BY o.name'
 		)->result();
 
-		for ($i=1; $i < count($orgs); $i++) {
+		for ($i=0; $i < count($orgs); $i++) {
 			// Get a count of completed items for each contributor
 			$item_count = $this->db->query(
 				'SELECT count(*) as c FROM item i WHERE i.org_id = '.$orgs[$i]->id.
@@ -1264,7 +1378,20 @@ class Utils extends Controller {
 			printf($format, iconv('UTF-8', 'ASCII//TRANSLIT', $orgs[$i]->name), $orgs[$i]->item_count, $orgs[$i]->page_count, $orgs[$i]->last_date, ($hidekey ? '********' : $orgs[$i]->access_key), $orgs[$i]->key_user);
 		}
 	}
-	function check_all_marc($hidekey = null) {
+
+	/**
+	 * Validate MARC data for incomplete items
+	 * 
+	 * CLI: For all items that are not complete, determine the validity
+	 * of the MARC XML daa we have in the database. Print a tab-separated
+	 * ouput with the results.
+	 *
+	 * Usage: 
+	 *   sudo -u apache php index.php utils check_all_marc
+	 *
+	 * @since Version 2.7.0
+	 */	
+	function check_all_marc() {
 		$books = $this->book->get_all_books();
 		
 		// Loop through the books
@@ -1296,87 +1423,12 @@ class Utils extends Controller {
 			}
 		}
 	}
-	function export_csv($barcode = null) {
-		if (!$barcode) {
-			print "Barcode is requred!\n";
-			die;
-		}
-		if (!$this->book->exists($barcode)) {
-			echo "Item not found with barcode $barcode.\n";
-			die;
-		}
 
-		$q = $this->db->query(
-			'select m.fieldname, m.value, m.value_large
-			from metadata m inner join item i on m.item_id = i.id 
-			where i.barcode = \''.$barcode.'\' and page_id is null '
-		);
-		$cols = [];
-		$vals = [];
-		$cols[] = 'identifier';
-		$vals[] = $barcode;
-		foreach ($q->result() as $r) {
-			if ($r->fieldname != 'from_pdf' && $r->fieldname != 'ia_identifier' && $r->fieldname != 'pdf_source') {
-				$cols[] = $r->fieldname;
-				$vals[] = ($r->value_large ? $r->value_large : $r->value);	
-			}
-		}	
-		$fn = '/tmp/'.preg_replace('/[^a-zA-Z0-9]+/', '-', $barcode).'-item.csv'; 
-		$fh = fopen($fn, 'w');
-		fputcsv($fh, $cols);
-		fputcsv($fh, $vals);
-		fclose($fh);
-		print "$fn saved.\n";
-
-		$q = $this->db->query(
-			'select max(i.barcode) as identifier, p.filebase as filename, 
-			max(m1.value) as page_prefix,
-			max(m2.value) as page_number,
-			max(m3.value) as page_number_implicit,
-			group_concat(m4.value) as page_type,
-			max(m5.value) as year,
-			max(m6.value) as volume,
-			max(m7.value) as piece,
-			max(m8.value) as piece_text,
-			max(m9.value) as page_side,
-			max(m10.value) as notes
-			from page p 
-			inner join item i on p.item_id = i.id
-			left outer join (select * from metadata where item_id = 15500 and fieldname = \'page_prefix\') m1 on m1.page_id = p.id 
-			left outer join (select * from metadata where item_id = 15500 and fieldname = \'page_number\') m2 on m2.page_id = p.id 
-			left outer join (select * from metadata where item_id = 15500 and fieldname = \'page_number_implicit\') m3 on m3.page_id = p.id 
-			left outer join (select * from metadata where item_id = 15500 and fieldname = \'page_type\') m4 on m4.page_id = p.id 
-			left outer join (select * from metadata where item_id = 15500 and fieldname = \'year\') m5 on m5.page_id = p.id 
-			left outer join (select * from metadata where item_id = 15500 and fieldname = \'volume\') m6 on m6.page_id = p.id 
-			left outer join (select * from metadata where item_id = 15500 and fieldname = \'piece\') m7 on m7.page_id = p.id 
-			left outer join (select * from metadata where item_id = 15500 and fieldname = \'piece_text\') m8 on m8.page_id = p.id 
-			left outer join (select * from metadata where item_id = 15500 and fieldname = \'page_side\') m9 on m9.page_id = p.id 
-			left outer join (select * from metadata where item_id = 15500 and fieldname = \'notes\') m10 on m10.page_id = p.id 
-			where i.barcode = \''.$barcode.'\'
-			group by p.filebase;'
-		);
-
-		$cols = [
-			'identifier','filename','page_prefix',
-			'page_number','page_number_implicit',
-			'page_type','year','volume','piece',
-			'piece_text','page_side','notes'
-		];
-		$fn = '/tmp/'.preg_replace('/[^a-zA-Z0-9]+/', '-', $barcode).'-pages.csv'; 
-		$fh = fopen($fn, 'w');
-		fputcsv($fh, $cols);
-		foreach ($q->result() as $r) {
-			$vals = [];
-			foreach ($cols as $c) {
-				$vals[] = $r->$c;
-			}
-			fputcsv($fh, $vals);
-		}
-		fclose($fh);
-		print "$fn saved.\n";
-
-
-	}
+	/**
+	 * Download a file over SSH/SCP
+	 * 
+	 * INTERNAL/UTILITY: Used during reset_item to get the _orig_tiff.tar file over the network. 
+	 */	
 	function _get_ssh_file($filename) {
 		$ssh_user_and_host = '';
 		$ssh_path = '';
@@ -1394,5 +1446,47 @@ class Utils extends Controller {
 		}
 		return false;
 	}
+
+	/**
+	 * Delete all files and directories for a given path
+	 * 
+	 * INTERNAL/UTILITY: Used during reset_item_cleanup. 
+	 */	
+	function _delete_all($p) {
+		if (is_file($p)) {
+			return unlink($p);
+		} elseif (is_dir($p)) {
+			$scan = glob(rtrim($p, '/').'/*');
+			foreach($scan as $index => $path) {
+			$this->_delete_all($path);
+			}
+			return @rmdir($p);
+		}
+	}
+
+	/**
+	 * Reset a user's password
+	 * 
+	 * Usage:
+	 *   sudo -u apache php index.php utils set_password richardjm joelpassword214!
+	 */	
+	function set_password ($username, $password) {
+		if (!$username) {
+			print "User is requried\nUSAGE: php index.php utils set_password USERNAME PASSWORD\n";
+			return;
+		}
+		if (!$password) {
+			print "Password is requried\nUSAGE: php index.php utils set_password USERNAME PASSWORD\n";
+			return;
+		}
+		$target_user = new User;
+		$target_user->load($username);
+		if ($target_user->username) {
+			$target_user->password = $password;
+			$target_user->update();
+			print "Password updated for $target_user->username\n";
+		}
+	}
+
 }
 
