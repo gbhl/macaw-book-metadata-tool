@@ -33,44 +33,108 @@
 						} else {
 							Dom.get('summary').innerHTML = r.widgets.summary.html;
 
-							
 							// Pages Per day
-							var dataPerDay = new google.visualization.DataTable();
-							dataPerDay.addColumn('string','Date');
-							dataPerDay.addColumn('number','Pages');
+							var perday_ctx = document.getElementById('perday').getContext('2d');
+							perday_data = {
+								labels: [],
+								datasets: [{
+									label: 'Pages',
+									data: [],
+									backgroundColor: ['rgba(0, 51, 204)'],
+									borderColor: ['rgba(0, 51, 204)'],
+								}]
+							};
 							for (i in r.widgets.perday.data) {
-								dataPerDay.addRow([r.widgets.perday.data[i].day,  int(r.widgets.perday.data[i].pages)]);
+								perday_data.labels.push(r.widgets.perday.data[i].day);
+								perday_data.datasets[0].data.push(r.widgets.perday.data[i].pages);
 							}
-							var chartPerDay = new google.visualization.LineChart(document.getElementById('perday'));
-							var options = {legend: { position: 'bottom' }, pointSize: 5, vAxis : {minValue: 0}, fontSize: 13};
-							chartPerDay.draw(dataPerDay, options);
+							var perdayChart = new Chart(perday_ctx, {type: 'line', data: perday_data, options: {}});
 
 							// Disk Usage
-							var dataDisk = new google.visualization.DataTable();
-							dataDisk.addColumn('string','Date');
-							dataDisk.addColumn('number','Percent (%)');
+							var disk_ctx = document.getElementById('disk').getContext('2d');
+							disk_data = {
+								labels: [],
+								datasets: [{
+									label: 'Percent (%)',
+									data: [],
+									backgroundColor: ['rgba(0, 51, 204)'],
+									borderColor: ['rgba(0, 51, 204)'],
+								}]
+							};
+							var min = 100;
+							var max = 0;
+
 							for (i in r.widgets.disk.data) {
-								dataDisk.addRow([r.widgets.disk.data[i].day,  int(r.widgets.disk.data[i].value)]);
+								disk_data.labels.push(r.widgets.disk.data[i].day);
+								disk_data.datasets[0].data.push(r.widgets.disk.data[i].value);
+								if (r.widgets.disk.data[i].value < min) min = r.widgets.disk.data[i].value;
+								if (r.widgets.disk.data[i].value > max) max = r.widgets.disk.data[i].value;
 							}
-							var chartDisk = new google.visualization.LineChart(document.getElementById('disk'));
-							options = {legend: { position: 'bottom' }, pointSize: 5, vAxis : {minValue: 0, maxValue: 100}, fontSize: 13};
-							chartDisk.draw(dataDisk, options);
+							var opts = {
+								scales: {
+									y: {
+										suggestedMin: Math.max(Math.round(min/10)*10-10, 0),
+										suggestedMax: Math.min(Math.round(max/10)*10+10, 100)
+									}
+								}
+							};
+							var diskChart = new Chart(disk_ctx, {type: 'line', data: disk_data, options: opts});
+
+							// Total Pages
+							var pages_ctx = document.getElementById('pages').getContext('2d');
+							pages_data = {
+								labels: [],
+								datasets: [{
+									label: 'Pages',
+									data: [],
+									backgroundColor: ['rgba(0, 51, 204)'],
+									borderColor: ['rgba(0, 51, 204)'],
+								}]
+							};
+							var min = 999999999;
+							var max = 0;
+							for (i in r.widgets.pages.data) {
+								pages_data.labels.push(r.widgets.pages.data[i].day);
+								pages_data.datasets[0].data.push(r.widgets.pages.data[i].pages);
+								if (r.widgets.pages.data[i].pages < min) min = r.widgets.pages.data[i].pages;
+								if (r.widgets.pages.data[i].pages > max) max = r.widgets.pages.data[i].pages;
+							}
+							var opts = {
+								scales: {
+									y: {
+										suggestedMin: Math.round(min/1000)*1000-1000,
+										suggestedMax: Math.round(max/1000)*1000+1000
+									}
+								}
+							};
+							var pagesChart = new Chart(pages_ctx, {type: 'line', data: pages_data, options: opts});
+
+							// Disk Usage
+							// var dataDisk = new google.visualization.DataTable();
+							// dataDisk.addColumn('string','Date');
+							// dataDisk.addColumn('number','Percent (%)');
+							// for (i in r.widgets.disk.data) {
+							// 	dataDisk.addRow([r.widgets.disk.data[i].day,  int(r.widgets.disk.data[i].value)]);
+							// }
+							// var chartDisk = new google.visualization.LineChart(document.getElementById('disk'));
+							// options = {legend: { position: 'bottom' }, pointSize: 5, vAxis : {minValue: 0, maxValue: 100}, fontSize: 13};
+							// chartDisk.draw(dataDisk, options);
 
 							// Pages Per day
-							var dataPages = new google.visualization.DataTable();
-							dataPages.addColumn('string','Date');
-							dataPages.addColumn('number','Pages');
-							for (i in r.widgets.pages.data) {
-								dataPages.addRow([r.widgets.pages.data[i].day,  int(r.widgets.pages.data[i].pages)]);
-							}
-							var chartPages = new google.visualization.LineChart(document.getElementById('pages'));
-							options = {legend: { position: 'bottom' }, pointSize: 5,  vAxis: { minValue: 0 }, fontSize: 13};
-							if (r.widgets.pages.data.length > 0) {
-							  if (int(r.widgets.pages.data[0].pages) > 30000) {
-							    options.vAxis.minValue = (r.widgets.pages.data[0].pages) - 10000;
-							  }
-							}
-							chartPages.draw(dataPages, options);
+							// var dataPages = new google.visualization.DataTable();
+							// dataPages.addColumn('string','Date');
+							// dataPages.addColumn('number','Pages');
+							// for (i in r.widgets.pages.data) {
+							// 	dataPages.addRow([r.widgets.pages.data[i].day,  int(r.widgets.pages.data[i].pages)]);
+							// }
+							// var chartPages = new google.visualization.LineChart(document.getElementById('pages'));
+							// options = {legend: { position: 'bottom' }, pointSize: 5,  vAxis: { minValue: 0 }, fontSize: 13};
+							// if (r.widgets.pages.data.length > 0) {
+							//   if (int(r.widgets.pages.data[0].pages) > 30000) {
+							//     options.vAxis.minValue = (r.widgets.pages.data[0].pages) - 10000;
+							//   }
+							// }
+							// chartPages.draw(dataPages, options);
 
 						}
 					}
