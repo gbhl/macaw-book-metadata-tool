@@ -2981,7 +2981,7 @@ class Internet_archive extends Controller {
 				array_push($ids, $row->id);
 			}
 			if (count($ids)) {
-				$sql = 'select * from item where id in ('.implode($ids, ',').') order by date_review_end;';
+				$sql = 'select * from item where id in ('.implode(',', $ids).') order by date_review_end;';
 
 				$books = $this->CI->db->query($sql);
 				return $books->result();
