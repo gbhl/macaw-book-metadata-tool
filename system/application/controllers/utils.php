@@ -349,7 +349,7 @@ class Utils extends Controller {
 			if (is_dir($filename)) { 
 				// It's a folder
 				print "Extracting images from a PATH.\n";
-				$files = array_diff(scandir($filename), array('..', '.'));
+				$files = array_diff(scandir($filename), array('..', '.', 'Thumbs.db'));
 				$numfiles = count($files);
 				foreach ($files as $f) {
 					$fi = pathinfo($filename.'/'.$f);
@@ -428,8 +428,11 @@ class Utils extends Controller {
 				$files = glob("{$pth}/scans/*_".sprintf('%04d', $p->sequence_number).".$fileext");
 
 				if (count($files) == 0 ) {
-					print "Could not find a file for sequence number ".$p->sequence_number."\n";
-					continue;
+					$files = glob("{$pth}/scans/*_".sprintf('%03d', $p->sequence_number).".$fileext");
+					if (count($files) == 0 ) {
+						print "Could not find a file for sequence number ".$p->sequence_number."\n";
+						continue;
+					}
 				}
 				if (count($files) > 1 ) {
 					print "Found more than one file for sequence number ".$p->sequence_number."\n";
