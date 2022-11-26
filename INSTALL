@@ -17,15 +17,14 @@ than a few requirements. Hopefully none of these will be difficult to install on
 be available in apt, aptitude or yum.
 
 	- Apache 2.2
-	- PHP 5.3.x 
-	- PostgreSQL 8.2+
+	- PHP 7.3 or greater 
+	- MySQL 
 	- PHP PECL module zip 
 	- PHP Pear module Archive_Tar
 	- PHP XSL extension
-	- PHP PgSQL extension
 	- ImageMagick 6.3+ 
 	- CURL (needed for uploading files to the Internet Archive)
-	- Apache php5 module 
+	- Apache php7 module 
 	- Apache mod_rewrite module
 	- Apache mod_headers module 
 	
