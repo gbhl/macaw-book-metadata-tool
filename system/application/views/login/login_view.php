@@ -34,7 +34,7 @@
 		<?php $this->load->view('global/error_messages_view') ?>	
 		
 		<div id="logincontent">
-			
+			<p>If you can see this, ensure that <em>mod_rewrite</em> is enabled and <em>AllowOverride All</em> is set.</p>
 		</div>
 		
 		<div id="logincontenttemplate" style="display:none;visibility:hidden">
