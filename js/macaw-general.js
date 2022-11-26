@@ -54,6 +54,7 @@
 
 				YAHOO.macaw.login.setHeader("Login to Macaw");
 				YAHOO.macaw.login.setBody(Dom.get('logincontenttemplate').innerHTML);
+				Dom.get('logincontent').innerHTML = '';
 				YAHOO.macaw.login.render(Dom.get('logincontent'));
 			}
 
