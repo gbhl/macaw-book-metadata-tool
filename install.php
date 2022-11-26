@@ -233,8 +233,8 @@
 					// Set up the organization?
 					create_organization(
 						$admin_info['organization_name'],
-						$admin_info['admin_full_name'],
-						$admin_info['admin_email']
+						$admin_info['full_name'],
+						$admin_info['email']
 					);
 					
 					// Set the data in the database
@@ -694,7 +694,7 @@
 				
 		$matches = array();
 		$version = explode('.', PHP_VERSION);
-		$version_id =  ($version[0] * 10000 + $version[1] * 100 + $version[2]);
+		$version_id =  ($version[0] * 10000 + $version[1] * 100);
 		if ($version_id < 70200) {
 			$errors[] = 'PHP must be version 7.2 or higher. Current version is "'.PHP_VERSION.'".';
 		}
@@ -917,6 +917,7 @@ grant all on macaw.* to 'macaw'@'localhost';
 	}
 
 	function step_2() {
+		global $errors; 
 		?>
 		<form action="install.php" method="post">
 			<input type="hidden" name="step" value="2">
@@ -935,6 +936,8 @@ grant all on macaw.* to 'macaw'@'localhost';
 
 	function step_3() {
 		global $admin_info;
+		global $errors; 
+
 		?>
 		<p>Next, let's set up the administrator account.</p>
 		<form action="install.php" method="post">
@@ -979,6 +982,7 @@ grant all on macaw.* to 'macaw'@'localhost';
 	}
 
 	function step_4() {
+		global $errors; 
 		?>
 		<form action="install.php" method="post">
 			<input type="hidden" name="step" value="4">
@@ -997,6 +1001,7 @@ grant all on macaw.* to 'macaw'@'localhost';
 
 	function step_5() {
 		global $path_info;
+		global $errors; 
 		?>
 		Please verify the following information.<br><br>
 		<form action="install.php" method="post">
