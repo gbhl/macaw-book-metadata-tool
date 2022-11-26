@@ -45,7 +45,7 @@ Downlodad tarball:
 
 	https://github.com/gbhl/macaw-book-metadata-tool/archive/master.zip
 
-Checkout from Subversion:
+Checkout from GitHub:
 
 	If you want an even more up-to-date version of Macaw before it gets checked into GitHub, 
 	you may get check out a clone the repository. Be sure to replace "PATH" with
@@ -85,11 +85,11 @@ as needed for your system.
 		ServerName macaw.website.com
 
 		DocumentRoot /var/www/htdocs/macaw
-			<Directory /var/www/htdocs/macaw>
-					Options FollowSymLinks MultiViews
-					AllowOverride All
+		<Directory /var/www/htdocs/macaw>
+			Options FollowSymLinks MultiViews
+			AllowOverride All
 			Require all Granted
-			</Directory>
+		</Directory>
 
 		SSLCertificateFile /etc/ssl/certs/ssl-cert-snakeoil.pem
 		SSLCertificateKeyFile /etc/ssl/private/ssl-cert-snakeoil.key
@@ -119,9 +119,9 @@ as needed for your system.
 	  Be sure to replace <password> with the password for your newly created macaw user.
 	  
 	  $ mysql -u root -p mysql
-		CREATE USER 'macaw'@'localhost' identified by 'PASSWORD';
-    	CREATE DATABASE macaw CHARACTER SET utf8 COLLATE utf8_general_ci;
-    	GRANT ALL ON macaw.* To 'macaw'@'localhost';
+	  CREATE USER 'macaw'@'localhost' identified by 'PASSWORD';
+	  CREATE DATABASE macaw CHARACTER SET utf8 COLLATE utf8_general_ci;
+	  GRANT ALL ON macaw.* To 'macaw'@'localhost';
 	
 
 4. Set file and directory permissions
