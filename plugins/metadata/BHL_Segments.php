@@ -18,43 +18,15 @@
 
 	$segment_identifiers = array(
 		array("6", "Abbreviation"),
-		array("31", "BioLib.cz"),
 		array("16", "BioStor"),
-		array("7", "BPH"),
-		array("20", "Catalogue of Life"),
-		array("10", "CODEN"),
-		array("9", "DDC"),
 		array("5", "DLC"),
-		array("18", "EOL"),
-		array("30", "EUNIS"),
-		array("28", "GBIF Taxonomic Backbone"),
-		array("19", "GNI"),
-		array("13", "GPO"),
-		array("24", "Index Fungorum"),
-		array("34", "Index to Organism Names"),
-		array("26", "Interim Reg. of Marine/Nonmarine Genera"),
-		array("3", "ISBN"),
-		array("2", "ISSN"),
-		array("22", "ITIS"),
-		array("36", "JSTOR"),
-		array("14", "MARC001"),
-		array("12", "NAL"),
-		array("17", "NameBank"),
-		array("23", "NCBI"),
-		array("11", "NLM"),
-		array("35", "OAI"),
 		array("1", "OCLC"),
 		array("37", "Soulsby"),
-		array("33", "The International Plant Names Index"),
-		array("8", "TL2"),
 		array("32", "Tropicos"),
-		array("25", "Union 4"),
 		array("15", "VIAF"),
-		array("21", "Wikispecies"),
-		array("4", "WonderFetch"),
-		array("27", "WoRMS"),
-		array("29", "ZooBank"));
-		
+);
+// Todo add ARK ORCID WIKIDATA		
+
 	$segment_languages = array(
 	
 		array("abk", "Abkhaz"),
@@ -780,7 +752,7 @@
 					<tr>
 						<td colspan="8" class="table-wrapper">
 							<table border="0" cellspacing="0" cellpadding="0" width="100%">
-								<td><label for="segment_genre">Genre:</label></td>
+								<td><label for="segment_genre">Type:</label></td>
 								<td width="25%">
 									<select id="segment_genre" onChange="SegmentComponent.metadataChanged(this);"  disabled>
 										<option value=""></option>
