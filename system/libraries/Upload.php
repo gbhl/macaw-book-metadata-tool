@@ -30,7 +30,7 @@ class CI_Upload {
 	var $max_width		= 0;
 	var $max_height		= 0;
 	var $max_filename	= 0;
-	var $allowed_types	= "";
+	var $allowed_types	= array();
 	var $file_temp		= "";
 	var $file_name		= "";
 	var $orig_name		= "";
@@ -56,7 +56,7 @@ class CI_Upload {
 	 *
 	 * @access	public
 	 */
-	function CI_Upload($props = array())
+	function __construct($props = array())
 	{
 		if (count($props) > 0)
 		{

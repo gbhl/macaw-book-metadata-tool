@@ -68,7 +68,7 @@ class CI_Xmlrpc {
 	//  VALUES THAT MULTIPLE CLASSES NEED
 	//-------------------------------------
 
-	function CI_Xmlrpc ($config = array())
+	function __construct ($config = array())
 	{
 		$this->xmlrpcName 		= $this->xmlrpcName;
 		$this->xmlrpc_backslash = chr(92).chr(92);
@@ -361,7 +361,7 @@ class XML_RPC_Client extends CI_Xmlrpc
 
 	function XML_RPC_Client($path, $server, $port=80)
 	{
-		parent::CI_Xmlrpc();
+		parent::__construct();
 		
 		$this->port = $port;
 		$this->server = $server;
@@ -616,7 +616,7 @@ class XML_RPC_Message extends CI_Xmlrpc
 
 	function XML_RPC_Message($method, $pars=0)
 	{
-		parent::CI_Xmlrpc();
+		parent::__construct();
 		
 		$this->method_name = $method;
 		if (is_array($pars) && count($pars) > 0)
@@ -1211,7 +1211,7 @@ class XML_RPC_Values extends CI_Xmlrpc
 
 	function XML_RPC_Values($val=-1, $type='')
 	{	
-		parent::CI_Xmlrpc();
+		parent::__construct();
 		
 		if ($val != -1 OR $type != '')
 		{

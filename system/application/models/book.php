@@ -60,7 +60,7 @@ class Book extends Model {
 
 	function __construct() {
 		// Call the Model constructor
-		parent::Model();
+		parent::__construct();
 		$this->load->helper('file');
 		$this->cfg = $this->config->item('macaw');
 		$this->CI = get_instance();

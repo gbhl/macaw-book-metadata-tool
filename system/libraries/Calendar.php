@@ -45,7 +45,7 @@ class CI_Calendar {
 	 *
 	 * @access	public
 	 */
-	function CI_Calendar($config = array())
+	function __construct($config = array())
 	{		
 		$this->CI =& get_instance();
 		

@@ -34,7 +34,7 @@ class CI_Output {
 	var $enable_profiler 	= FALSE;
 
 
-	function CI_Output()
+	function __construct()
 	{
 		log_message('debug', "Output Class Initialized");
 	}

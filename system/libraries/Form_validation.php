@@ -41,7 +41,7 @@ class CI_Form_validation {
 	 * Constructor
 	 *
 	 */	
-	function CI_Form_validation($rules = array())
+	function __construct($rules = array())
 	{	
 		$this->CI =& get_instance();
 		
