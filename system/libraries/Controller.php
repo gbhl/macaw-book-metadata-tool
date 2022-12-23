@@ -37,9 +37,9 @@ class Controller extends CI_Base {
 	 *
 	 * Calls the initialize() function
 	 */
-	function Controller()
+	function __construct()
 	{	
-		parent::CI_Base();
+		parent::__construct();
 		$this->_ci_initialize();
 		log_message('debug', "Controller Class Initialized");
 	}

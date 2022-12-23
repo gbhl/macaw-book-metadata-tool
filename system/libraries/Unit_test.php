@@ -34,7 +34,7 @@ class CI_Unit_test {
 	var $_template 		= NULL;
 	var $_template_rows	= NULL;
 
-	function CI_Unit_test()
+	function __construct()
 	{
 		log_message('debug', "Unit Testing Class Initialized");
 	}	

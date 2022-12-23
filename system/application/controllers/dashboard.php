@@ -12,7 +12,7 @@
 class Dashboard extends Controller {
 
 	function __construct() {
-		parent::Controller();
+		parent::__construct();
 	}
 
 	/**

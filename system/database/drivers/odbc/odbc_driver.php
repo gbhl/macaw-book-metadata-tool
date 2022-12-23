@@ -46,7 +46,7 @@ class CI_DB_odbc_driver extends CI_DB {
 
 	function CI_DB_odbc_driver($params)
 	{
-		parent::CI_DB($params);
+		parent::__construct($params);
 		
 		$this->_random_keyword = ' RND('.time().')'; // database specific random keyword
 	}

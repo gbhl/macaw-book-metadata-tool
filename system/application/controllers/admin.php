@@ -15,7 +15,7 @@ class Admin extends Controller {
 
 	/* LOCAL ADMIN COMPLETED */
 	function __construct() {
-		parent::Controller();
+		parent::__construct();
 		$this->cfg = $this->config->item('macaw');
 	}
 

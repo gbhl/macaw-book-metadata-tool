@@ -40,7 +40,7 @@ class CI_Trackback {
 	 *
 	 * @access	public
 	 */
-	function CI_Trackback()
+	function __construct()
 	{
 		log_message('debug', "Trackback Class Initialized");
 	}

@@ -43,7 +43,7 @@
 	function CI_Base()
 	{
 		// This allows syntax like $this->load->foo() to work
-		parent::CI_Loader();
+		parent::__construct();
 		$this->load =& $this;
 		
 		// This allows resources used within controller constructors to work
