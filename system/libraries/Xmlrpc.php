@@ -359,7 +359,7 @@ class XML_RPC_Client extends CI_Xmlrpc
 	var $timeout		= 5;
 	var $no_multicall	= false;
 
-	function XML_RPC_Client($path, $server, $port=80)
+	function __construct($path, $server, $port=80)
 	{
 		parent::__construct();
 		
@@ -434,7 +434,7 @@ class XML_RPC_Response
 	var $errstr = '';
 	var $headers = array();
 
-	function XML_RPC_Response($val, $code = 0, $fstr = '')
+	function __construct($val, $code = 0, $fstr = '')
 	{	
 		if ($code != 0)
 		{
@@ -614,7 +614,7 @@ class XML_RPC_Message extends CI_Xmlrpc
 	var $params			= array();
 	var $xh 			= array();
 
-	function XML_RPC_Message($method, $pars=0)
+	function __construct($method, $pars=0)
 	{
 		parent::__construct();
 		
@@ -1209,7 +1209,7 @@ class XML_RPC_Values extends CI_Xmlrpc
 	var $me 	= array();
 	var $mytype	= 0;
 
-	function XML_RPC_Values($val=-1, $type='')
+	function __construct($val=-1, $type='')
 	{	
 		parent::__construct();
 		
@@ -1400,17 +1400,7 @@ class XML_RPC_Values extends CI_Xmlrpc
 
 	function iso8601_encode($time, $utc=0)
 	{	
-		if ($utc == 1)
-		{
-			$t = strftime("%Y%m%dT%H:%M:%S", $time);
-		}
-		else
-		{
-			if (function_exists('gmstrftime'))
-				$t = gmstrftime("%Y%m%dT%H:%M:%S", $time);
-			else
-				$t = strftime("%Y%m%dT%H:%M:%S", $time - date('Z'));
-		}
+		$t = date('c', $time);
 		return $t;
 	}
 	
