@@ -34,7 +34,7 @@ class CI_Base {
 
 	private static $instance;
 
-	public function CI_Base()
+	public function __construct()
 	{
 		self::$instance =& $this;
 	}

@@ -44,7 +44,7 @@ class CI_DB_odbc_driver extends CI_DB {
 	var $_random_keyword;
 
 
-	function CI_DB_odbc_driver($params)
+	function __construct($params)
 	{
 		parent::__construct($params);
 		
