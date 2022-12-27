@@ -43,7 +43,7 @@ class CI_Validation {
 	 * Constructor
 	 *
 	 */	
-	function CI_Validation()
+	function __construct()
 	{	
 		$this->CI =& get_instance();
 		

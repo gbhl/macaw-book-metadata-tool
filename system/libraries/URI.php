@@ -42,7 +42,7 @@ class CI_URI {
 	 *
 	 * @access	public
 	 */
-	function CI_URI()
+	function __construct()
 	{
 		$this->config =& load_class('Config');
 		log_message('debug', "URI Class Initialized");

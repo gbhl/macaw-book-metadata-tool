@@ -49,9 +49,11 @@ class CI_Loader {
 	 *
 	 * @access	public
 	 */
-	function CI_Loader()
+	function __construct()
 	{	
-		$this->_ci_is_php5 = (floor(phpversion()) >= 5) ? TRUE : FALSE;
+		# 2022/12/23 JMR - PHP v8 Changes
+		# $this->_ci_is_php5 = (floor(phpversion()) >= 5) ? TRUE : FALSE;
+		$this->_ci_is_php5 = TRUE;
 		$this->_ci_view_path = APPPATH.'views/';
 		$this->_ci_ob_level  = ob_get_level();
 				
@@ -745,7 +747,7 @@ class CI_Loader {
 			unset($x[count($x)-1]);
 			
 			// Glue the path back together, sans filename
-			$subdir = implode($x, '/').'/';
+			$subdir = implode('/', $x).'/';
 		}
 
 		// We'll test for both lowercase and capitalized versions of the file name

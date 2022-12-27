@@ -31,7 +31,7 @@ class Cron extends Controller {
 	var $cfg;
 
 	function __construct() {
-		parent::Controller();
+		parent::__construct();
 		$this->cfg = $this->config->item('macaw');
 	}
 

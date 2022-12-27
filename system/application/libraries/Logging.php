@@ -126,22 +126,22 @@ class Logging extends Controller {
 					if ($log == 'error') {
 						$fname = $path.'/macaw_error.log';
 						if ($this->cfg['error_log']) {
-							$fname = $path.'/'.strftime($this->cfg['error_log']);
+							$fname = $path.'/'.$this->CI->common->macaw_strftime($this->cfg['error_log']);
 						}
 					} elseif ($log == 'activity') {
 						$fname = $path.'/macaw_activity.log';
 						if ($this->cfg['activity_log']) {
-							$fname = $path.'/'.strftime($this->cfg['activity_log']);
+							$fname = $path.'/'.$this->CI->common->macaw_strftime($this->cfg['activity_log']);
 						}
 					} elseif ($log == 'cron') {
 						$fname = $path.'/macaw_cron.log';
 						if ($this->cfg['cron_log']) {
-							$fname = $path.'/'.strftime($this->cfg['cron_log']);
+							$fname = $path.'/'.$this->CI->common->macaw_strftime($this->cfg['cron_log']);
 						}
 					} else { // everything else goes to the access log
 						$fname = $path.'/macaw_access.log';
 						if ($this->cfg['access_log']) {
-							$fname = $path.'/'.strftime($this->cfg['access_log']);
+							$fname = $path.'/'.$this->CI->common->macaw_strftime($this->cfg['access_log']);
 						}
 					}
 				}
