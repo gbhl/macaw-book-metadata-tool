@@ -238,7 +238,7 @@ function show_404($page = '')
 * @access	public
 * @return	void
 */
-function log_message($level = 'error', $message, $php_error = FALSE)
+function log_message($level = 'error', $message = null, $php_error = FALSE)
 {
 	static $LOG;
 	
