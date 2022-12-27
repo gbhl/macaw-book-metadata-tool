@@ -39,7 +39,7 @@ class User extends Model {
     function __construct()
     {
         // Call the Model constructor
-        parent::Model();
+        parent::__construct();
     }
 
 	/**

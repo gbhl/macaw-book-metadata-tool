@@ -18,7 +18,7 @@ class Scan extends Controller {
 	 * Function: Constructor
 	 */
 	function __construct() {
-		parent::Controller();
+		parent::__construct();
 		$this->cfg = $this->config->item('macaw');
 	}
 

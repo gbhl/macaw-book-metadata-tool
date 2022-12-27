@@ -130,15 +130,16 @@ $LANG	=& load_class('Language');
  *  Note: The Loader class needs to be included first
  *
  */
-if (floor(phpversion()) < 5)
-{
-	load_class('Loader', FALSE);
-	require(BASEPATH.'codeigniter/Base4'.EXT);
-}
-else
-{
+# 2022/12/23 JMR - PHP v8 Changes
+// if (floor(phpversion()) < 5)
+// {
+// 	load_class('Loader', FALSE);
+// 	require(BASEPATH.'codeigniter/Base4'.EXT);
+// }
+// else
+// {
 	require(BASEPATH.'codeigniter/Base5'.EXT);
-}
+// }
 
 // Load the base controller class
 load_class('Controller', FALSE);

@@ -43,7 +43,7 @@ class CI_Router {
 	 *
 	 * Runs the route mapping function.
 	 */
-	function CI_Router()
+	function __construct()
 	{
 		$this->config =& load_class('Config');
 		$this->uri =& load_class('URI');

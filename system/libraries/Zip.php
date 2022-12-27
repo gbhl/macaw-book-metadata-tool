@@ -38,7 +38,7 @@ class CI_Zip  {
 	var $file_num 	= 0;
 	var $offset		= 0;
 
-	function CI_Zip()
+	function __construct()
 	{
 		log_message('debug', "Zip Compression Class Initialized");
 	}

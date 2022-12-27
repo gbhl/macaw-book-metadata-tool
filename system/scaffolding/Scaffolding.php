@@ -32,7 +32,7 @@ class Scaffolding {
 	var $base_url = '';
 	var $lang = array();
 
-	function Scaffolding($db_table)
+	function __construct($db_table)
 	{
 		$this->CI =& get_instance();
 		

@@ -4,7 +4,7 @@ class bhl_segments extends Controller {
     var $CI;
 
     function __construct() {
-        parent::Controller();
+        parent::__construct();
     }
 
 	// Function: save_segments()

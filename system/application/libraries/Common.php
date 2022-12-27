@@ -209,7 +209,7 @@ class Common extends Controller {
 		// Can we write to the error log?
 		$fname = 'macaw_error.log';
 		if ($this->cfg['error_log']) {
-			$fname = strftime($this->cfg['error_log']);
+			$fname = $this->macaw_strftime($this->cfg['error_log']);
 		}
 		if (file_exists($path.'/'.$fname)) {
 			if (!is_writable($path.'/'.$fname)) { 
@@ -220,7 +220,7 @@ class Common extends Controller {
 		// Can we write to the activity log?
 		$fname = 'macaw_activity.log';
 		if ($this->cfg['activity_log']) {
-			$fname = strftime($this->cfg['activity_log']);
+			$fname = $this->macaw_strftime($this->cfg['activity_log']);
 		}
 		if (file_exists($path.'/'.$fname)) {
 			if (!is_writable($path.'/'.$fname)) { 
@@ -231,7 +231,7 @@ class Common extends Controller {
 		// Can we write to the cron log?
 		$fname = 'macaw_cron.log';
 		if ($this->cfg['cron_log']) {
-			$fname = strftime($this->cfg['cron_log']);
+			$fname = $this->macaw_strftime($this->cfg['cron_log']);
 		}
 		if (file_exists($path.'/'.$fname)) {
 			if (!is_writable($path.'/'.$fname)) { 
@@ -242,7 +242,7 @@ class Common extends Controller {
 		// Can we write to the access log?
 		$fname = 'macaw_access.log';
 		if ($this->cfg['access_log']) {
-			$fname = strftime($this->cfg['access_log']);
+			$fname = $this->macaw_strftime($this->cfg['access_log']);
 		}
 		if (file_exists($path.'/'.$fname)) {
 			if (!is_writable($path.'/'.$fname)) { 
@@ -994,6 +994,19 @@ class Common extends Controller {
 			return $dec;
 		} 
 		return $str;
+	}
+
+	function macaw_strftime($pattern) {
+		// %Y - Four-digit year
+		// %m - Month number (01-12)
+		// %d - Day of the month (01-31)
+		// %H - 2-digit hour in 24-hour format (00-23)
+
+		$pattern = preg_replace('/\%Y/', date('Y'), $pattern);
+		$pattern = preg_replace('/\%m/', date('m'), $pattern);
+		$pattern = preg_replace('/\%d/', date('d'), $pattern);
+		$pattern = preg_replace('/\%H/', date('H'), $pattern);
+		return $pattern;
 	}
 
 }

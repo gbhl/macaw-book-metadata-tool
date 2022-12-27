@@ -61,7 +61,7 @@ class CI_Input {
 	*
 	* @access	public
 	*/
-	function CI_Input()
+	function __construct()
 	{
 		log_message('debug', "Input Class Initialized");
 
@@ -179,7 +179,8 @@ class CI_Input {
 		}
 
 		// We strip slashes if magic quotes is on to keep things consistent
-		if (get_magic_quotes_gpc())
+		// JMR 12/22/2022 get_magic_quotes_gpc() is deprecated, return false instead
+		if (false)
 		{
 			$str = stripslashes($str);
 		}

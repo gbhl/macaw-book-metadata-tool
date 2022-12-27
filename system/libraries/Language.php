@@ -34,7 +34,7 @@ class CI_Language {
 	 *
 	 * @access	public
 	 */
-	function CI_Language()
+	function __construct()
 	{
 		log_message('debug', "Language Class Initialized");
 	}

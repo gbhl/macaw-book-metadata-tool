@@ -93,7 +93,7 @@
     
     $config = array();
     require_once('system/application/config/macaw.php');
-    if(!defined('CRON_LOG')) define('CRON_LOG', 'system/application/logs/'.strftime($config['macaw']['cron_log']));
+    if(!defined('CRON_LOG')) define('CRON_LOG', 'system/application/logs/'.macaw_strftime($config['macaw']['cron_log']));
     
     if(!defined('CRON_TIME_LIMIT')) define('CRON_TIME_LIMIT', 0);
     if(!defined('CRON_FLUSH_BUFFERS')) define('CRON_FLUSH_BUFFERS', TRUE);
@@ -146,6 +146,20 @@
 			return true;
 		}
 		return false;
+	}
+
+    // Yes, this is repeated. I don't care right now. :)
+    function macaw_strftime($pattern) {
+		// %Y - Four-digit year
+		// %m - Month number (01-12)
+		// %d - Day of the month (01-31)
+		// %H - 2-digit hour in 24-hour format (00-23)
+
+		$pattern = preg_replace('/\%Y/', date('Y'), $pattern);
+		$pattern = preg_replace('/\%m/', date('m'), $pattern);
+		$pattern = preg_replace('/\%d/', date('d'), $pattern);
+		$pattern = preg_replace('/\%H/', date('H'), $pattern);
+		return $pattern;
 	}
 
 ?> 

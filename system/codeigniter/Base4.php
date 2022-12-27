@@ -40,10 +40,10 @@
  */
  class CI_Base extends CI_Loader {
 
-	function CI_Base()
+	function __construct()
 	{
 		// This allows syntax like $this->load->foo() to work
-		parent::CI_Loader();
+		parent::__construct();
 		$this->load =& $this;
 		
 		// This allows resources used within controller constructors to work

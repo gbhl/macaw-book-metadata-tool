@@ -48,7 +48,7 @@ class CI_Typography {
 	 * Nothing to do here...
 	 *
 	 */
-	function CI_Typography()
+	function __construct()
 	{
 	}
 
