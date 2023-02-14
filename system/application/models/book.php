@@ -946,6 +946,13 @@ class Book extends Model {
 			$info['contributor'] = trim($info['holding_institution']);
 			unset($info['holding_institution']); 
 		}
+		# "added_by" and and "scanning_institution" are equivalent
+		# but we like to use scanning_institution, so convert it back.
+		if (isset($info['added_by'])) {
+			$info['scanning_institution'] = trim($info['added_by']);
+			unset($info['added_by']); 
+		}
+
 		if ($info['barcode']) {
 			// If we have a barcode, let's make sure it doesn't already exist
 			$this->db->where('barcode', $info['barcode']);
