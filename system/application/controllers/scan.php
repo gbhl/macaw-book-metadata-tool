@@ -561,7 +561,25 @@ class Scan extends Controller {
 				echo json_encode(array('error' => $msg));
 				return;
 			}
-		
+
+			// Make sure each page as a page side
+			foreach ($all_pages as $p) {
+				if (!isset($p->page_side) || !$p->page_side) {
+					$pages[] = $p->sequence_number;
+				}
+			}
+			if (count($pages) > 0) {
+				$prefix = "The ";
+				if (count($pages) > 10) {
+					$prefix = "Some of the ";
+					$pages = array_slice($pages, 0, 10);
+				}
+				$msg = 'One or more pages are missing a <strong>Page Side</strong>. Please correct this before continuing.<br><br>'.$prefix.' page(s) that are missing Page Side are: '.implode(', ', $pages);
+				header("Content-Type: application/json; charset=utf-8");
+				echo json_encode(array('error' => $msg));
+				return;
+			}
+
 			// Make sure each file for the page exists.
 			$missing_seq = array();
 			foreach ($all_pages as $p) {
