@@ -122,6 +122,13 @@ class Book extends Model {
 				$this->page_progression    = $row->page_progression;
 				$this->total_mbytes        = $row->total_mbytes;
 				$this->metadata_array      = $this->_populate_metadata();
+
+				// Creates the directories to store our files,
+				$path = $this->cfg['data_directory'].'/'.$barcode;
+				if (!file_exists($path)) { mkdir($path, 0775); }
+				if (!file_exists($path.'/scans')) { mkdir($path.'/scans', 0775); }
+				if (!file_exists($path.'/thumbs')) { mkdir($path.'/thumbs', 0775); }
+				if (!file_exists($path.'/preview')) { mkdir($path.'/preview', 0775); }
 			}
 
 		} else {
