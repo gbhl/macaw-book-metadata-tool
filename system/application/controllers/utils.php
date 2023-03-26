@@ -20,7 +20,7 @@ class Utils extends Controller {
 		$this->cfg = $this->config->item('macaw');
 	}
 
-	/**
+		/**
 	 * Reset page image dimensions in the database
 	 *
 	 * CLI: For all books, reset the image sizes in the database 
@@ -861,7 +861,7 @@ class Utils extends Controller {
 	 *
 	 * Usage: 
 	 *   sudo -u apache php index.php utils csvimport import-62p7ac.csv
-	 *
+	 * 
 	 * @since Version 1.6
 	 */
 	function csvimport($filename, $filename2 = null, $username = 'admin') {
@@ -1066,7 +1066,7 @@ class Utils extends Controller {
 		);
 
 	}
-
+	
 	/**
 	 * Log CSV Import activity
 	 *
@@ -1252,13 +1252,13 @@ class Utils extends Controller {
 		}
 
 		$this->book->split_pdf($filename);
-		
+
 		// Now that the files are split, they need to be processed
 		$existingFiles = get_dir_file_info($scans_dir);
 		$existingFiles = $this->_dedupe_files($existingFiles);
 
 		$pdf_info = pathinfo($filename);
-		
+			
 		$seq = $this->book->max_sequence() + 1;
 		foreach ($existingFiles as $fileName => $info) {
 			if (strpos($fileName, $pdf_info['filename']) !== false) {
@@ -1296,11 +1296,13 @@ class Utils extends Controller {
 		foreach ($files as $fname => $data) {
 			$pi = pathinfo($fname);
 			$bn = $pi['filename'];
+			$name = $pi['basename'];
 			if (isset($good_files[$bn])) {
 				if ($data['date'] > $good_files[$bn]['date']) {
 					$good_files[$bn] = $data;
 				}
 			} else {
+				$data['name'] = $name;
 				$good_files[$bn] = $data;
 			}
 		} // foreach ($files as $f)
@@ -1381,8 +1383,8 @@ class Utils extends Controller {
 			printf($format, iconv('UTF-8', 'ASCII//TRANSLIT', $orgs[$i]->name), $orgs[$i]->item_count, $orgs[$i]->page_count, $orgs[$i]->last_date, ($hidekey ? '********' : $orgs[$i]->access_key), $orgs[$i]->key_user);
 		}
 	}
-
-	/**
+	
+		/**
 	 * Validate MARC data for incomplete items
 	 * 
 	 * CLI: For all items that are not complete, determine the validity
@@ -1426,7 +1428,7 @@ class Utils extends Controller {
 			}
 		}
 	}
-
+	
 	/**
 	 * Download a file over SSH/SCP
 	 * 
