@@ -168,12 +168,24 @@ class Cron extends Controller {
 	function already_running($action) {
 		// Get running processes.
 		$commands = array();
-		exec("ps -fe | grep -v sudo | grep php", $commands);
+		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+			exec("tasklist | FIND \"php\"",$commands);
+		} else {
+			exec("ps -fe | grep -v sudo | grep php", $commands);
+		}
 
 		// If processes are found
 		$pid = getmypid().'';
 		$found = 0;
-		$search = "index.php cron ".$action;
+		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+			// This is rather limited in that it will allow 
+			// only one php.exe to be running at a time. Activities
+			// external to Macaw may impact macaw's ability to do 
+			// things like cron jobs.
+			$search = "php.exe";
+		} else {
+			$search = "index.php cron ".$action;
+		}		
 		if (count($commands) > 0) {
 			foreach ($commands as $command) {
 				if (strpos($command, $search) > 0 && strpos($command, $pid) == 0) {
@@ -255,12 +267,10 @@ class Cron extends Controller {
           if ($f != '.' && $f != '..' && $f != 'import_export' && $f != 'archive') {
             if (!is_file($f) && !preg_match('/_delete/', $f)) {
               // Count the size
-			  print "Calculating size for $f...";
               $this->book->load($f);
               $this->book->total_mbytes = $this->book->_dir_size($this->cfg['data_directory'].'/'.$f);
               // Save the size to the book
               $this->book->update();
-			  print "Done\n";
             }
           }
         } catch (Exception $e) {

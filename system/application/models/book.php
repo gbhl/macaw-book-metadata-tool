@@ -862,8 +862,18 @@ class Book extends Model {
 			$query = $this->db->get();
 			
 			$res = $query->result();
-			for ($i = 0; $i < count($res); $i++) {
-				$res[$i]->bytes = intval($res[$i]->total_mbytes)*1024;
+			if ($get_size) {
+        for ($i = 0; $i < count($res); $i++) {
+          if (!$res[$i]->total_mbytes) {
+            $res[$i]->bytes = intval($this->_dir_size($this->cfg['data_directory'].'/'.$res[$i]->barcode))*1024;
+          } else {
+            $res[$i]->bytes = intval($res[$i]->total_mbytes)*1024;
+          }
+        }
+			} else {
+				for ($i = 0; $i < count($res); $i++) {
+					$res[$i]->bytes = 0;
+				}
 			}
 			return $res;
 		} else {
@@ -874,14 +884,30 @@ class Book extends Model {
 	}
 
 	function _dir_size($f) {
-		// Returns size of directory in kb
-		$io = popen ( '/usr/bin/du -sk \''. $f."'", 'r' );
-		$size = fgets ( $io, 4096);
-		$size = substr ( $size, 0, strpos ( $size, "\t" ) );
-		pclose ( $io );
-		return $size;	
+		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+			$size = 0;
+			$size = $this->_rec_dir_size($f);
+			//Convert to MB
+			$size=round($size/1024, 1);
+			return $size;
+		} else {
+			// Returns size of directory in kb
+			$io = popen ( '/usr/bin/du -sk \''. $f."'", 'r' );
+			$size = fgets ( $io, 4096);
+			$size = substr ( $size, 0, strpos ( $size, "\t" ) );
+			pclose ( $io );
+			return $size;	
+		}
 	}
 
+	function _rec_dir_size($f){
+		$size = 0;
+		foreach (glob(rtrim($f, '/').'/*', GLOB_NOSORT) as $each) 
+		{
+				$size += is_file($each) ? filesize($each) : $this->_rec_dir_size($each);
+		}
+		return $size;
+	}
 
 	/**
 	 * Find books in the system
@@ -1808,12 +1834,18 @@ class Book extends Model {
 		$scans_dir = $this->cfg['data_directory'].'/'.$this->barcode.'/scans/';
 		$book_dir = $this->cfg['data_directory'].'/'.$this->barcode.'/';
 
-		if (preg_match("/\.(pdf|PDF)$/i", $filename)) {			
+		if (preg_match("/\.(pdf|PDF)$/i", $filename)) {		
 			// Move the PDF so we don't see it again
 			rename($scans_dir.$filename, $book_dir.$filename);
 			// Build the pattern for the PNGs to create
-			$outname = $scans_dir.preg_replace('/^(.+)\.(.*?)$/', '$1', $filename).'_%04d.png';
-			
+			if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+				// SCS Note - escapeshellarg in windows just removes %. need a multistage approach./
+				$outname = $scans_dir.preg_replace('/^(.+)\.(.*?)$/', '$1', $filename).'_^^04d.png';
+				$outname = escapeshellarg($outname);
+				$outname = str_replace('_^^04d.png','_%04d.png',$outname);
+			} else {
+				$outname = escapeshellarg($scans_dir.preg_replace('/^(.+)\.(.*?)$/', '$1', $filename).'_%04d.png');
+			}
 			$this->logging->log('book', 'info', 'About to split  '.$filename.' to PNG files', $this->barcode);
 			// Find ghostscript
 			$gs = 'gs';
@@ -1822,7 +1854,7 @@ class Book extends Model {
 			}
 			$output = '';
 			// Build the ghostscript command
-			$exec = "$gs -sDEVICE=png16m -r450x450 -dSAFER -dBATCH -dNOPAUSE -dTextAlphaBits=4 -dUseCropBox -sOutputFile=".escapeshellarg($outname)." ".escapeshellarg($book_dir.$filename);
+			$exec = "$gs -sDEVICE=png16m -r450x450 -dSAFER -dBATCH -dNOPAUSE -dTextAlphaBits=4 -dUseCropBox -sOutputFile=".$outname." ".escapeshellarg($book_dir.$filename);
 			$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->barcode);
 			// Do the splitting, this takes a while and is largely uninformative
 			exec($exec, $output);
@@ -2127,7 +2159,12 @@ class Book extends Model {
 	 */
 	function set_author($marc){
 		$xml = simplexml_load_string($marc);
-		if (!$xml) {
+		if ($xml === false) {
+			$this->logging->log('book', 'error', 'Could not find marc file when trying to add author', $this->barcode);
+			$errors = libxml_get_errors();
+			foreach ($errors as $error) {
+				$this->logging->log('book', 'error', 'Marc could not be parsed - '.$error->message, $this->barcode);
+			}
 			return false;
 		}
 		$namespaces = $xml->getNamespaces();
@@ -2154,6 +2191,7 @@ class Book extends Model {
 			// An author was found.
 			if ($author){
 				$author = trim(preg_replace('/[,.;:\/ ]+$/', '', (string)$author[0]));
+				$this->logging->log('book', 'log', 'Found Author '.$author, $this->barcode);
 				$this->db->insert('metadata', array(
 					'item_id'   => $this->id,
 					'fieldname' => 'author',
