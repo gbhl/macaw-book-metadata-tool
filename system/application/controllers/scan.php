@@ -561,7 +561,7 @@ class Scan extends Controller {
 				echo json_encode(array('error' => $msg));
 				return;
 			}
-
+		
 			// Make sure each page as a page side
 			foreach ($all_pages as $p) {
 				if (!isset($p->page_side) || !$p->page_side) {
@@ -579,7 +579,7 @@ class Scan extends Controller {
 				echo json_encode(array('error' => $msg));
 				return;
 			}
-
+						
 			// Make sure each file for the page exists.
 			$missing_seq = array();
 			foreach ($all_pages as $p) {
@@ -649,7 +649,7 @@ class Scan extends Controller {
 	 * @since Version 1.4
 	 */
 	function _notify_qa($org_id = -1) {
-
+		
 		// Get a list of all QA users and their email addresses
 		$qa_users = array();
 		$this->db->where('username in (select username from permission where lower(permission) = \'qa\' and org_id = '.$org_id.');');
@@ -1000,10 +1000,27 @@ class Scan extends Controller {
 						$php_exe = PHP_BINDIR.'/php';
 					}
 
-					$exec = 'MACAW_OVERRIDE=1 "'.$php_exe.'" "'.$this->cfg['base_directory'].'/index.php" utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file['name'][0]).'> /dev/null 2> /dev/null < /dev/null &';
-					$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->book->barcode);
-					exec($exec, $output);
-					
+					if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+						$php_exe ='php';
+						//$exec = 'MACAW_OVERRIDE=1 "'.$php_exe.'" "'.$this->cfg['base_directory'].'/index.php" utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file['name'][0]).'> /dev/null 2> /dev/null < /dev/null &';
+						//$exec = $php_exe.' '.$this->cfg['base_directory'].'/index.php utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file['name'][0]).'> NUL 2> NUL < NUL &';
+						$exec = 'START '.$php_exe.' '.$this->cfg['base_directory'].'/index.php utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file['name'][0]).'> NUL 2> NUL < NUL';
+						$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->book->barcode);
+						//exec($exec, $output);
+						pclose(popen($exec,"r"));
+						$logoutput='';
+						if (is_array($output)){
+							$logoutput = implode(",",$output);
+						}else{
+							$logoutput = $output;
+						}
+						$this->logging->log('book', 'info', 'EXEC Output: '.$logoutput, $this->book->barcode);		
+					} else {
+						$exec = 'MACAW_OVERRIDE=1 "'.$php_exe.'" "'.$this->cfg['base_directory'].'/index.php" utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file['name'][0]).'> /dev/null 2> /dev/null < /dev/null &';
+						$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->book->barcode);
+						exec($exec, $output);
+
+					}
 					$this->book->set_metadata('processing_pdf','yes');
 					$this->book->update();
 					

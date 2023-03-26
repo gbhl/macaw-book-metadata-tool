@@ -138,8 +138,8 @@ class Common extends Controller {
 				show_error('Could not find the incoming directory: '.$this->cfg['incoming_directory']);
 			} else {
 				// Make sure that we can write to the incoming directory
-				if ($this->cfg['incoming_directory'] && !is_writable($this->cfg['incoming_directory'])) {
-					show_error('Cannot write to the incoming directory: '.$this->cfg['incoming_directory']);
+				if ($this->cfg['incoming_directory'] && !$this->path_is_writable($this->cfg['incoming_directory'])) {
+					show_error('Config issue => Cannot write to the incoming directory: '.$this->cfg['incoming_directory']);
 				}
 			}
 		}
@@ -200,9 +200,9 @@ class Common extends Controller {
 	 * @throws Causes web-page error to be displayed.
 	 */
 	function validate_log_config($barcode = '') {
-		// Make sure the log directories and files can be written to
+	  // Make sure the log directories and files can be written to
 		$path = $this->cfg['logs_directory'];
-		if (!is_writable($path)) {
+		if (!$this->path_is_writable($path.'/')) {
 			return $path;
 		}
 
@@ -212,7 +212,7 @@ class Common extends Controller {
 			$fname = $this->macaw_strftime($this->cfg['error_log']);
 		}
 		if (file_exists($path.'/'.$fname)) {
-			if (!is_writable($path.'/'.$fname)) { 
+			if (!$this->path_is_writable($path.'/'.$fname)) { 
 				return $fname;
 			}
 		}
@@ -223,7 +223,7 @@ class Common extends Controller {
 			$fname = $this->macaw_strftime($this->cfg['activity_log']);
 		}
 		if (file_exists($path.'/'.$fname)) {
-			if (!is_writable($path.'/'.$fname)) { 
+			if (!$this->path_is_writable($path.'/'.$fname)) { 
 				return $fname;
 			}
 		}
@@ -234,7 +234,7 @@ class Common extends Controller {
 			$fname = $this->macaw_strftime($this->cfg['cron_log']);
 		}
 		if (file_exists($path.'/'.$fname)) {
-			if (!is_writable($path.'/'.$fname)) { 
+			if (!$this->path_is_writable($path.'/'.$fname)) { 
 				return $fname;
 			}
 		}
@@ -245,20 +245,20 @@ class Common extends Controller {
 			$fname = $this->macaw_strftime($this->cfg['access_log']);
 		}
 		if (file_exists($path.'/'.$fname)) {
-			if (!is_writable($path.'/'.$fname)) { 
+			if (!$this->path_is_writable($path.'/'.$fname)) { 
 				return $fname;
 			}
 		}
 
 
 		// Can we write to the book logs directory?
-		if (!is_writable($path.'/books/')) {
+		if (!$this->path_is_writable($path.'/books/')) {
 			return $path.'/books/';
 		}
 		// If we have a barcode, can we write to the log file for that item?
 		if ($barcode != '') {
 			if (file_exists($path.'/books/'.$barcode.'.log')) {
-				if (!is_writable($path.'/books/'.$barcode.'.log')) {
+				if (!$this->path_is_writable($path.'/books/'.$barcode.'.log')) {
 					return $path.'/books/'.$barcode.'.log';
 				}
 			}
@@ -592,7 +592,7 @@ class Common extends Controller {
 			$version = 2;
 			$this->CI->db->insert('settings', array('name' => 'version', 'value' => '2.0'));
 		}
-
+		
 		// Lets try to apply any and all SQL files we might need to apply
 		$upgrade_needed = true;
 		while ($upgrade_needed) {
@@ -616,14 +616,14 @@ class Common extends Controller {
 				$this->CI->logging->log('access', 'info', 'Upgraded Macaw Database to version '.sprintf('%1.1f', $version));
 			} else {
 				$upgrade_needed = false;
+				}
 			}
-		}
 
 		// Set the version in the database
 		$this->CI->db->where('name','version');
 		$this->CI->db->set('value', sprintf('%1.1f', $version));
 		$this->CI->db->update('settings');
-			
+
 	}
 	
 	/**
@@ -791,7 +791,7 @@ class Common extends Controller {
 					)"
 				);
 			}
-		
+
 			// Has this statistic already been generated
 			$q = $this->CI->db->query("SELECT * FROM logging WHERE date = date(now() - interval '1 day') AND statistic = 'total-pages';");
 			$found = false;
@@ -808,7 +808,7 @@ class Common extends Controller {
 					)"
 				);
 			}
-			
+
 			// Has this statistic already been generated
 			$q = $this->CI->db->query("SELECT * FROM logging WHERE date = date(now() - interval '1 day') AND statistic = 'disk-usage';");
 			$found = false;
@@ -817,18 +817,35 @@ class Common extends Controller {
 			}
 			if (!$found) {
 				// 3. Get the number of bytes used in the /books/ directory
-				$output = array();
-				$matches = array();
-				exec('df -k '.$this->CI->cfg['data_directory'], $output);
-				$pct = preg_match('/\b([0-9]+)\%/', $output[1], $matches);
-				
-				$this->CI->db->query(
-					"insert into logging (date, statistic, value) values (
-						date_trunc('d', now() - interval '1 day') ,
-						'disk-usage',
-						".$matches[1]."
-					)"
-				);
+				if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+					$df_e = disk_free_space("E:");
+					$ds = disk_total_space("E:");
+					$dup = 0;
+					if ($ds != 0){
+						$dup = (($ds - $df_e)/$ds)*100;
+					}
+					echo('percentage'.$dup);
+					$this->CI->db->query(
+						"insert into logging (date, statistic, value) values (
+							date_trunc('d', now() - interval '1 day') ,
+							'disk-usage',
+							".$dup."
+						)"
+					);
+				} else {
+					$output = array();
+					$matches = array();
+					exec('df -k '.$this->CI->cfg['data_directory'], $output);
+					$pct = preg_match('/\b([0-9]+)\%/', $output[1], $matches);
+					
+					$this->CI->db->query(
+						"insert into logging (date, statistic, value) values (
+							date_trunc('d', now() - interval '1 day') ,
+							'disk-usage',
+							".$matches[1]."
+						)"
+					);
+				}
 				
 // Changed this to use percent, rather than actual bytes.				
 // 				$bytes = preg_match('/^.*? +\d+ (\d+)/', $output[1], $matches);
@@ -911,14 +928,18 @@ class Common extends Controller {
 			}
 
 		}
-		$matches = array();
+		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+			/* SCS Comment out Disk usage reporting for the moment */
+		} else {
+			$matches = array();
 
-		exec('df -k '.$this->CI->cfg['data_directory'], $output);
+			exec('df -k '.$this->CI->cfg['data_directory'], $output);
 
-		$pct = preg_match('/\b([0-9]+)\%/', $output[1], $matches);
+			$pct = preg_match('/\b([0-9]+)\%/', $output[1], $matches);
 
-		if ((int)$matches[1] > 80) {
-			$this->email_admin('DISK USAGE IS AT '.$matches[1].' PERCENT!', 'Disk Space Notification');
+			if ((int)$matches[1] > 80) {
+				$this->email_admin('DISK USAGE IS AT '.$matches[1].' PERCENT!', 'Disk Space Notification');
+			}
 		}
 	}
 	
@@ -994,6 +1015,39 @@ class Common extends Controller {
 			return $dec;
 		} 
 		return $str;
+	}
+	
+	/**
+	 * Determine if we can write to a path
+	 *
+	 * Original From https://core.wp-a2z.org/oik_api/win_is_writable/
+	 * Modified to work with both Linux and Windows
+	 */
+	function path_is_writable( $path ) {
+		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+		
+			if ( '/' === $path[ strlen( $path ) - 1 ] ) {
+		    // If it looks like a directory, check a random file within the directory.
+		    return $this->path_is_writable( $path . uniqid( mt_rand() ) . '.tmp' );
+		  } elseif ( is_dir( $path ) ) {
+		    // If it's a directory (and not a file), check a random file within the directory.
+		    return $this->path_is_writable( $path . '/' . uniqid( mt_rand() ) . '.tmp' );
+		  }
+		  // Check tmp file for read/write capabilities.
+		  $should_delete_tmp_file = ! file_exists( $path );
+		  $f = @fopen( $path, 'a' );
+		  if ( false === $f ) {
+		    return false;
+		  }
+		  fclose( $f );
+			/* commented out - just in case of accidents*/
+		  if ( $should_delete_tmp_file ) {
+		    unlink( $path );
+		  }
+		  return true;
+		} else {
+			return is_writable($path);
+		}
 	}
 
 	function macaw_strftime($pattern) {
