@@ -463,12 +463,12 @@ class Internet_archive extends Controller {
 									$fs = filesize($jp2path.'/'.$new_filebase.'.jp2');
 								}
 					
-								if ($this->timing) { echo "TIMING (write): ".round((microtime(true) - $start_time), 5)."\n"; }
+								if ($this->timing) { echo "TIMING (write): ".round((microtime(true) - $start_time), 5)."\n"; }							
 							} else {
 								// Write the jp2 out to the local directory
 								echo " copied $new_filebase".".jp2";
 								copy($scanspath.'/'.$p->scan_filename, $jp2path.'/'.$new_filebase.'.jp2');
-								if ($this->timing) { echo "TIMING (copy): ".round((microtime(true) - $start_time), 5)."\n"; }
+								if ($this->timing) { echo "TIMING (copy): ".round((microtime(true) - $start_time), 5)."\n"; }							
 							}
 						}
 						if ($this->timing) { echo "TIMING (set compression): ".round((microtime(true) - $start_time), 5)."\n"; }
@@ -596,21 +596,21 @@ class Internet_archive extends Controller {
 							}
 						}
 						if ($ret) {
-							echo "ERROR!!! Return code = $ret";
-							// If we had any sort of error from exec, we log what happened and set the status to error
-							$out = '';
-							foreach ($output as $o) {
-								$out .= $o."\n";
-							}
-							$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for uploading metadata. Output was:'."\n".$out, $bc);
+              echo "ERROR!!! Return code = $ret";
+              // If we had any sort of error from exec, we log what happened and set the status to error
+              $out = '';
+              foreach ($output as $o) {
+                $out .= $o."\n";
+              }
+              $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for uploading metadata. Output was:'."\n".$out, $bc);
 
-							$message = "Error processing export.\n\n".
-								"Identifier: {$bc}\n\n".
-								"File: (metadata)\n\n".
-								"Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
-							$this->CI->common->email_error($message);
+              $message = "Error processing export.\n\n".
+                "Identifier: {$bc}\n\n".
+                "File: (metadata)\n\n".
+                "Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
+              $this->CI->common->email_error($message);
 
-							return;
+              return;
 						} // if ($ret)
 					} else {
 						echo "IN TEST MODE. NOT UPLOADING.\n\n";
@@ -640,25 +640,25 @@ class Internet_archive extends Controller {
 							}
 						}
 						if ($ret) {
-							echo "ERROR!!! Return code = $ret";
-							// If we had any sort of error from exec, we log what happened and set the status to error
-							$out = '';
-							foreach ($output as $o) {
-								$out .= $o."\n";
-							}
-							$message = "Error processing export.\n\n".
-								"Identifier: {$bc}\n\n".
-								"File: {$id}_scandata.xml\n\n".
-								"Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
-							$this->CI->common->email_error($message);
-							if ($ret == 56 || $ret == 52) {
-								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for scandata.xml. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
-								return;
-							} else {
-								$this->CI->book->set_status('error');
-								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for scandata.xml. Output was:'."\n".$out, $bc);
-								return;
-							}
+              echo "ERROR!!! Return code = $ret";
+              // If we had any sort of error from exec, we log what happened and set the status to error
+              $out = '';
+              foreach ($output as $o) {
+                $out .= $o."\n";
+              }
+              $message = "Error processing export.\n\n".
+                "Identifier: {$bc}\n\n".
+                "File: {$id}_scandata.xml\n\n".
+                "Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
+              $this->CI->common->email_error($message);
+						  if ($ret == 56 || $ret == 52) {
+                $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for scandata.xml. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
+                return;
+						  } else {
+                $this->CI->book->set_status('error');
+                $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for scandata.xml. Output was:'."\n".$out, $bc);
+                return;
+						  }
 						} // if ($ret)
 					} else {
 						echo "IN TEST MODE. NOT UPLOADING.\n\n";
@@ -710,25 +710,25 @@ class Internet_archive extends Controller {
 									}
 								}
 								if ($ret) {
-									echo "ERROR!!! Return code = $ret";
-									// If we had any sort of error from exec, we log what happened and set the status to error
-									$out = '';
-									foreach ($output as $o) {
-										$out .= $o."\n";
-									}
-									$message = "Error processing export.\n\n".
-										"Identifier: {$bc}\n\n".
-										"File: {$pdf}\n\n".
-										"Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
-									$this->CI->common->email_error($message);
-									if ($ret == 56 || $ret == 52) {
-										$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for '.$pdf.'. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
-										return;
-									} else {
-										$this->CI->book->set_status('error');
-										$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for '.$pdf.'. Output was:'."\n".$out, $bc);
-										return;
-									}
+                  echo "ERROR!!! Return code = $ret";
+                  // If we had any sort of error from exec, we log what happened and set the status to error
+                  $out = '';
+                  foreach ($output as $o) {
+                    $out .= $o."\n";
+                  }
+                  $message = "Error processing export.\n\n".
+                    "Identifier: {$bc}\n\n".
+                    "File: {$pdf}\n\n".
+                    "Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
+                  $this->CI->common->email_error($message);
+                  if ($ret == 56 || $ret == 52) {
+                    $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for '.$pdf.'. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
+                    return;
+                  } else {
+                    $this->CI->book->set_status('error');
+                    $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for '.$pdf.'. Output was:'."\n".$out, $bc);
+                    return;
+                  }
 								}
 							} else {
 								echo "IN TEST MODE. NOT UPLOADING.\n\n";
@@ -755,7 +755,8 @@ class Internet_archive extends Controller {
 						"Identifier:    ".$bc."\n\n".
 						"IA Identifier: ".$id."\n\n".
 						"Error Message: Bucket at Internet Archive not created after 15 minutes. Will try again later.\n".
-						"Command: \n\n".$cmd."\n\n";
+						"Command: \n\n".$cmd."\n\n".
+						"Output: \n\n".$output_text."\n\n";
 					$this->CI->common->email_error($message);
 					continue;
 				}
@@ -1192,7 +1193,7 @@ class Internet_archive extends Controller {
 
 				// Load the book
 				$this->CI->book->load($b->barcode);
-				$path = $this->cfg['base_directory'].'/books/'.$b->barcode.'/';
+				$path = $this->cfg['data_directory'].'/'.$b->barcode.'/';
 
 				// Keep track of whether or not we had trouble downloading one or more of the files
 				$error = false;
@@ -1301,7 +1302,7 @@ class Internet_archive extends Controller {
 	function _create_segments_xml($id, $book, $pages) {
 		// This should not be used yet. Return empty element.
 		return '<bhlSegmentData></bhlSegmentData>';
-
+	
 		$cfg = $this->CI->config->item('macaw');
 		if(!in_array('BHL_Segments', $cfg['metadata_modules'])) {
 			return NULL;
@@ -2215,7 +2216,7 @@ class Internet_archive extends Controller {
 
 		} else if (in_array('Foldout', $t)) {
 			return 'Fold Out';
-
+			
 		} else if (in_array('Fold Out', $t)) {
 			return 'Fold Out';
 
@@ -2509,6 +2510,9 @@ class Internet_archive extends Controller {
 		// Handle copyright - Permission Granted to Scan
 		} elseif ($this->CI->book->get_metadata('copyright') == '1'  || strtoupper($this->CI->book->get_metadata('copyright')) == 'T' ) {
 			$metadata['x-archive-meta-possible-copyright-status'] = "In copyright. Digitized with the permission of the rights holder.";
+			// TODO Verify this. It's new for in copyright items
+			// Looks to be a license url for the metadata, yes?
+			$metadata['x-archive-meta-licenseurl'] = 'http://creativecommons.org/licenses/by-nc-sa/4.0/';
 			$metadata['x-archive-meta-rights'] = 'http://biodiversitylibrary.org/permissions';
 
 		// Handle copyright - Due Dillegene Performed to determine public domain status
@@ -2516,6 +2520,11 @@ class Internet_archive extends Controller {
 			$metadata['x-archive-meta-possible-copyright-status'] = "No known copyright restrictions as determined by scanning institution.";
 			$metadata['x-archive-meta-due-diligence'] = 'http://biodiversitylibrary.org/permissions';
 			$metadata['x-archive-meta-duediligence'] = 'http://biodiversitylibrary.org/permissions';
+			// TODO Verify this. It's new for in copyright items
+			// Looks to be a license url for the metadata, yes?
+			if (isset($metadata['x-archive-meta-licenseurl'])) {
+				unset($metadata['x-archive-meta-licenseurl']);
+			}
 
 		// Handle copyright - Default, we hope we never hit this
 		} else {
@@ -2879,6 +2888,10 @@ class Internet_archive extends Controller {
 		curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($this->curl, CURLOPT_HTTPGET, true);
 		curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, true);
+		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+			// TODO Why is this here? Why does windows seem to want it?
+			curl_setopt($this->curl, CURLOPT_SSL_VERIFYPEER, 0);
+		} 
 		$output = curl_exec($this->curl);
 		$output = simplexml_load_string($output);
 		$attr = 'type';
