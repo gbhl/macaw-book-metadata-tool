@@ -967,10 +967,17 @@ class Main extends Controller {
 			$username = $this->session->userdata('username');
 			// Spawn the import process (php index.php utils csv_import FILENAME.CSV)
 			chdir($this->cfg['base_directory']);
-			$cmd = PHP_BINDIR.'/php index.php utils csvimport '.$fname.' '.$fname2.' '.$username.' > /dev/null 2>&1 &'; 
-			$this->logging->log('access', 'info', 'Importing CSV file(s): '.$fname.' and '.$fname2);
-			$this->logging->log('access', 'info', 'Command: '.$cmd);
-			system($cmd);
+			if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+				$cmd = 'php index.php utils csvimport '.$fname.' '.$fname2.' '.$username.' > /dev/null 2>&1 '; 
+				$this->logging->log('access', 'info', 'Importing CSV file(s): '.$fname.' and '.$fname2);
+				$this->logging->log('access', 'info', 'Command: '.$cmd);
+				pclose(popen($cmd,"r"));
+			} else {
+				$cmd = PHP_BINDIR.'/php index.php utils csvimport '.$fname.' '.$fname2.' '.$username.' > /dev/null 2>&1 &'; 
+				$this->logging->log('access', 'info', 'Importing CSV file(s): '.$fname.' and '.$fname2);
+				$this->logging->log('access', 'info', 'Command: '.$cmd);
+				system($cmd);
+			}			
 
 			// Give the filename back to the page.
 			echo json_encode(array(
