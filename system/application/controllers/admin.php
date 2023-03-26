@@ -186,11 +186,11 @@ class Admin extends Controller {
 
 		// Sort our records into the subarrays
 		foreach ($books as $b) {
-			if ($this->user->has_permission('admin')) {
-				array_push($data['all_items'], $b);
-			} elseif ($this->user->org_id == $b->org_id) {
-				array_push($data['all_items'], $b);
-			}				
+      if ($this->user->has_permission('admin')) {
+        array_push($data['all_items'], $b);
+      } elseif ($this->user->org_id == $b->org_id) {
+        array_push($data['all_items'], $b);
+      }				
 
 			if (in_array($b->status_code, array('new', 'scanning', 'scanned', 'reviewing'))) {
 				if ($this->user->has_permission('admin')) {
@@ -801,7 +801,7 @@ class Admin extends Controller {
 	/* LOCAL ADMIN COMPLETED */
 	function cron($action) {
 		$this->common->ajax_headers();
-		
+
 		if (!$this->user->has_permission('admin')) {
 			echo json_encode(array('error' => 'Permission denied.'));
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
@@ -809,21 +809,28 @@ class Admin extends Controller {
 		}
 
 		// Try to identify the PHP executable on this system
-		$php_exe = PHP_BINDIR.'/php5';		
-		if (!file_exists($php_exe)) {
-			$php_exe = PHP_BINDIR.'/php';
-		}
-		
-		if (!file_exists($php_exe)) {
-			echo json_encode(array('error' => 'Could not find php executable (php or php5) in '.PHP_BINDIR.'.'));
-			$this->logging->log('error', 'debug', 'Could not find php executable (php or php5) in '.PHP_BINDIR.'.');
-			return;
-		}
+		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+			$fname = $this->logging->log('cron', 'info', 'Cron job \''.$action.'\' manually initiated.');
+			// SCS Changed the spawn process for windows compatability
+			// Assumes php.exe is in the path somewhere.
+			$exec = 'php "'.$this->cfg['base_directory'].'/index.php" cron '.$action;
+		} else {
+			$php_exe = PHP_BINDIR.'/php5';		
+			if (!file_exists($php_exe)) {
+				$php_exe = PHP_BINDIR.'/php';
+			}
+			
+			if (!file_exists($php_exe)) {
+				echo json_encode(array('error' => 'Could not find php executable (php or php5) in '.PHP_BINDIR.'.'));
+				$this->logging->log('error', 'debug', 'Could not find php executable (php or php5) in '.PHP_BINDIR.'.');
+				return;
+			}
 
-		$fname = $this->logging->log('cron', 'info', 'Cron job \''.$action.'\' manually initiated.');
+			$fname = $this->logging->log('cron', 'info', 'Cron job \''.$action.'\' manually initiated.');
 
-		// Now we can spawn the cron process.
-		$exec = 'cd "'.$this->cfg['base_directory'].'" && MACAW_OVERRIDE=1 "'.$php_exe.'" "'.$this->cfg['base_directory'].'/index.php" cron '.$action.' >> "'.$fname.'" 2>&1';
+			// Now we can spawn the cron process.
+			$exec = 'cd "'.$this->cfg['base_directory'].'" && MACAW_OVERRIDE=1 "'.$php_exe.'" "'.$this->cfg['base_directory'].'/index.php" cron '.$action.' >> "'.$fname.'" 2>&1';
+		}
 		$this->logging->log('cron', 'info', "EXEC: $exec");
 		system($exec);
 
@@ -1137,7 +1144,7 @@ class Admin extends Controller {
 		       'INNER JOIN organization o ON o.id = i.org_id '.
 		       'GROUP BY EXTRACT(YEAR_MONTH FROM date_completed), org_id '.
 		       'ORDER BY EXTRACT(YEAR_MONTH FROM date_completed) DESC, o.name';
-
+				
 		if ($this->user->has_permission('local_admin')) {
 			$this->user->load($this->session->userdata('username'));
 			$org_id = $this->user->org_id;
