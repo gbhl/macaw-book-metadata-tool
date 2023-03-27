@@ -362,20 +362,6 @@ class Internet_archive extends Controller {
 						// Make sure the color profiles are correct, more or less.
 						if ($this->timing) { echo "TIMING (add profile start): ".round((microtime(true) - $start_time), 5)."\n"; }
 
-						// If this is a color image, we need to handle some color profile and conversions.
-						$preview->stripImage();
-
-						if ($preview->getImageType() != Imagick::IMGTYPE_GRAYSCALE) {
-							// If not, then it's grayscale and we do nothing
-							$icc_rgb1 = file_get_contents($this->cfg['base_directory'].'/inc/icc/AdobeRGB1998.icc');
-							$preview->setImageProfile('icc', $icc_rgb1);
-							if ($this->timing) { echo "TIMING (add profile Adobe): ".round((microtime(true) - $start_time), 5)."\n"; }
-
-							$icc_rgb2 = file_get_contents($this->cfg['base_directory'].'/inc/icc/sRGB_IEC61966-2-1_black_scaled.icc');
-							$preview->profileImage('icc', $icc_rgb2);
-							if ($this->timing) { echo "TIMING (add profile sRGB): ".round((microtime(true) - $start_time), 5)."\n"; }
-						}
-
 						// Disable the alpha channel on the image. Internet Archive doesn't like it much at all.
 						$preview->setImageMatte(false);
 
@@ -1004,8 +990,6 @@ class Internet_archive extends Controller {
 					if (!$error) {
 						$error = '('.$ext.' file not found)';
 					}
-// 					$this->CI->logging->log('book', 'info', 'Item failed to upload to internet archive. ('.$ext.' file not found)', $b->barcode);
-// 					$this->CI->logging->log('access', 'info', 'Item with barcode '.$b->barcode.' failed to upload to internet archive. ('.$ext.' file not found)');
 					$verified = 0;
 					continue;
 				}
@@ -1092,8 +1076,6 @@ class Internet_archive extends Controller {
 					if (!$error) {
 						$error = '('.$ext.' file not found)';
 					}
-// 					$this->CI->logging->log('book', 'info', 'Item NOT verified at internet archive. ('.$ext.' file not found)', $b->barcode);
-// 					$this->CI->logging->log('access', 'info', 'Item with barcode '.$b->barcode.' NOT verified at internet archive. ('.$ext.' file not found)');
 					$verified = 0;
 					continue;
 				}
@@ -1248,7 +1230,7 @@ class Internet_archive extends Controller {
 							if ($this->cfg['purge_ia_deriatives']) {
 								echo 'The purging IA export directory '.$id."\n";
 								$cmd = 'rm -fr '.$this->cfg['data_directory'].'/import_export/Internet_archive/'.$id;
-//								system($cmd);
+								//								system($cmd);
 							}
 						}
 
@@ -2626,23 +2608,6 @@ class Internet_archive extends Controller {
 			$metadata['x-archive-meta-call-number'] = $val;
 			$metadata['x-archive-meta-identifier-bib'] = $val;
 		}
-
-// 		$ret = ($mods->xpath($root.$ns."note"));
-// 		$c = 0;
-// 		if ($ret && is_array($ret)) {
-// 			foreach ($ret as $r) {
-// 				$str = '';
-// 				if ($r['type']) {
-// 					$str = $r['type'].': '.$r;
-// 				} else {
-// 					$str = $r.'';
-// 				}
-// 				if ($str) {
-// 					$metadata['x-archive-meta'.sprintf("%02d", $c).'-description'] = str_replace('"', '\\"', $str);
-// 					$c++;
-// 				}
-// 			}
-// 		}
 		
 		$tm = time();
 		if (isset($this->CI->book->date_review_end) && $this->CI->book->date_review_end != '0000-00-00 00:00:00') {
@@ -2735,11 +2700,7 @@ class Internet_archive extends Controller {
 	function _create_marc_xml() {
 		// Just get the MARC XML from the book and format the XML file properly
 		$marc = $this->CI->book->get_metadata('marc_xml');
-// 		if (!preg_match("/<\?xml.*?\/>/", $marc)) {
-// 			return '<?xml version="1.0" encoding="UTF-8" ?'.'>'."\n".$marc;
-// 		} else {
-			return $marc;
-// 		}
+		return $marc;
 	}
 
 	// ----------------------------
@@ -2806,19 +2767,6 @@ class Internet_archive extends Controller {
 					}
 				}
 				$number = substr(preg_replace('/[^a-zA-Z0-9]/', '', $number), 0, 4);
-	
-	//			// We didn't get a volume, so let's check for a year
-	// 			if ($number == '') {
-	// 				foreach ($pages as $p) {
-	// 					if ($p->year) {
-	// 						// Add a couple of zeros and we'll take the last two digits, just to be safe
-	// 						if (preg_match('/.+(\d{2,})$/', '00'.$p->year, $m)) { // get the last two digits of the number
-	// 							$number = sprintf("%02d",$m[1]);
-	// 						}
-	// 						break;
-	// 					}
-	// 				}
-	// 			}
 	
 				// Make this lowercase becuse SIL (and maybe others) uses it as a URL and URLs are case-insensitive (or should be)
 				$identifier = strtolower($title.$number.$author);
