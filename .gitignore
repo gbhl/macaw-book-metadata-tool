@@ -27,7 +27,6 @@ plugins/metadata/*
 ########################################
 # DATA DIRECTORIES
 # These are also created when we install 
-
 books
 logs
 incoming
@@ -36,12 +35,5 @@ system/application/logs/books
 
 ########################################
 # VS CODE
-
 .vscode
 
-########################################
-# MISC LOCAL THINGS
-tesseract.php
-tesseract-process.php
-js/jquery.filedrop.js
-css/tesseract.css
