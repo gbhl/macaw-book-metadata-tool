@@ -362,20 +362,6 @@ class Internet_archive extends Controller {
 						// Make sure the color profiles are correct, more or less.
 						if ($this->timing) { echo "TIMING (add profile start): ".round((microtime(true) - $start_time), 5)."\n"; }
 
-						// If this is a color image, we need to handle some color profile and conversions.
-						$preview->stripImage();
-
-						if ($preview->getImageType() != Imagick::IMGTYPE_GRAYSCALE) {
-							// If not, then it's grayscale and we do nothing
-							$icc_rgb1 = file_get_contents($this->cfg['base_directory'].'/inc/icc/AdobeRGB1998.icc');
-							$preview->setImageProfile('icc', $icc_rgb1);
-							if ($this->timing) { echo "TIMING (add profile Adobe): ".round((microtime(true) - $start_time), 5)."\n"; }
-
-							$icc_rgb2 = file_get_contents($this->cfg['base_directory'].'/inc/icc/sRGB_IEC61966-2-1_black_scaled.icc');
-							$preview->profileImage('icc', $icc_rgb2);
-							if ($this->timing) { echo "TIMING (add profile sRGB): ".round((microtime(true) - $start_time), 5)."\n"; }
-						}
-
 						// Disable the alpha channel on the image. Internet Archive doesn't like it much at all.
 						$preview->setImageMatte(false);
 
@@ -463,12 +449,12 @@ class Internet_archive extends Controller {
 									$fs = filesize($jp2path.'/'.$new_filebase.'.jp2');
 								}
 					
-								if ($this->timing) { echo "TIMING (write): ".round((microtime(true) - $start_time), 5)."\n"; }
+								if ($this->timing) { echo "TIMING (write): ".round((microtime(true) - $start_time), 5)."\n"; }							
 							} else {
 								// Write the jp2 out to the local directory
 								echo " copied $new_filebase".".jp2";
 								copy($scanspath.'/'.$p->scan_filename, $jp2path.'/'.$new_filebase.'.jp2');
-								if ($this->timing) { echo "TIMING (copy): ".round((microtime(true) - $start_time), 5)."\n"; }
+								if ($this->timing) { echo "TIMING (copy): ".round((microtime(true) - $start_time), 5)."\n"; }							
 							}
 						}
 						if ($this->timing) { echo "TIMING (set compression): ".round((microtime(true) - $start_time), 5)."\n"; }
@@ -596,21 +582,21 @@ class Internet_archive extends Controller {
 							}
 						}
 						if ($ret) {
-							echo "ERROR!!! Return code = $ret";
-							// If we had any sort of error from exec, we log what happened and set the status to error
-							$out = '';
-							foreach ($output as $o) {
-								$out .= $o."\n";
-							}
-							$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for uploading metadata. Output was:'."\n".$out, $bc);
+              echo "ERROR!!! Return code = $ret";
+              // If we had any sort of error from exec, we log what happened and set the status to error
+              $out = '';
+              foreach ($output as $o) {
+                $out .= $o."\n";
+              }
+              $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for uploading metadata. Output was:'."\n".$out, $bc);
 
-							$message = "Error processing export.\n\n".
-								"Identifier: {$bc}\n\n".
-								"File: (metadata)\n\n".
-								"Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
-							$this->CI->common->email_error($message);
+              $message = "Error processing export.\n\n".
+                "Identifier: {$bc}\n\n".
+                "File: (metadata)\n\n".
+                "Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
+              $this->CI->common->email_error($message);
 
-							return;
+              return;
 						} // if ($ret)
 					} else {
 						echo "IN TEST MODE. NOT UPLOADING.\n\n";
@@ -640,25 +626,25 @@ class Internet_archive extends Controller {
 							}
 						}
 						if ($ret) {
-							echo "ERROR!!! Return code = $ret";
-							// If we had any sort of error from exec, we log what happened and set the status to error
-							$out = '';
-							foreach ($output as $o) {
-								$out .= $o."\n";
-							}
-							$message = "Error processing export.\n\n".
-								"Identifier: {$bc}\n\n".
-								"File: {$id}_scandata.xml\n\n".
-								"Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
-							$this->CI->common->email_error($message);
-							if ($ret == 56 || $ret == 52) {
-								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for scandata.xml. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
-								return;
-							} else {
-								$this->CI->book->set_status('error');
-								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for scandata.xml. Output was:'."\n".$out, $bc);
-								return;
-							}
+              echo "ERROR!!! Return code = $ret";
+              // If we had any sort of error from exec, we log what happened and set the status to error
+              $out = '';
+              foreach ($output as $o) {
+                $out .= $o."\n";
+              }
+              $message = "Error processing export.\n\n".
+                "Identifier: {$bc}\n\n".
+                "File: {$id}_scandata.xml\n\n".
+                "Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
+              $this->CI->common->email_error($message);
+						  if ($ret == 56 || $ret == 52) {
+                $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for scandata.xml. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
+                return;
+						  } else {
+                $this->CI->book->set_status('error');
+                $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for scandata.xml. Output was:'."\n".$out, $bc);
+                return;
+						  }
 						} // if ($ret)
 					} else {
 						echo "IN TEST MODE. NOT UPLOADING.\n\n";
@@ -710,25 +696,25 @@ class Internet_archive extends Controller {
 									}
 								}
 								if ($ret) {
-									echo "ERROR!!! Return code = $ret";
-									// If we had any sort of error from exec, we log what happened and set the status to error
-									$out = '';
-									foreach ($output as $o) {
-										$out .= $o."\n";
-									}
-									$message = "Error processing export.\n\n".
-										"Identifier: {$bc}\n\n".
-										"File: {$pdf}\n\n".
-										"Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
-									$this->CI->common->email_error($message);
-									if ($ret == 56 || $ret == 52) {
-										$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for '.$pdf.'. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
-										return;
-									} else {
-										$this->CI->book->set_status('error');
-										$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for '.$pdf.'. Output was:'."\n".$out, $bc);
-										return;
-									}
+                  echo "ERROR!!! Return code = $ret";
+                  // If we had any sort of error from exec, we log what happened and set the status to error
+                  $out = '';
+                  foreach ($output as $o) {
+                    $out .= $o."\n";
+                  }
+                  $message = "Error processing export.\n\n".
+                    "Identifier: {$bc}\n\n".
+                    "File: {$pdf}\n\n".
+                    "Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
+                  $this->CI->common->email_error($message);
+                  if ($ret == 56 || $ret == 52) {
+                    $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for '.$pdf.'. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
+                    return;
+                  } else {
+                    $this->CI->book->set_status('error');
+                    $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for '.$pdf.'. Output was:'."\n".$out, $bc);
+                    return;
+                  }
 								}
 							} else {
 								echo "IN TEST MODE. NOT UPLOADING.\n\n";
@@ -755,7 +741,8 @@ class Internet_archive extends Controller {
 						"Identifier:    ".$bc."\n\n".
 						"IA Identifier: ".$id."\n\n".
 						"Error Message: Bucket at Internet Archive not created after 15 minutes. Will try again later.\n".
-						"Command: \n\n".$cmd."\n\n";
+						"Command: \n\n".$cmd."\n\n".
+						"Output: \n\n".$output_text."\n\n";
 					$this->CI->common->email_error($message);
 					continue;
 				}
@@ -1003,8 +990,6 @@ class Internet_archive extends Controller {
 					if (!$error) {
 						$error = '('.$ext.' file not found)';
 					}
-// 					$this->CI->logging->log('book', 'info', 'Item failed to upload to internet archive. ('.$ext.' file not found)', $b->barcode);
-// 					$this->CI->logging->log('access', 'info', 'Item with barcode '.$b->barcode.' failed to upload to internet archive. ('.$ext.' file not found)');
 					$verified = 0;
 					continue;
 				}
@@ -1091,8 +1076,6 @@ class Internet_archive extends Controller {
 					if (!$error) {
 						$error = '('.$ext.' file not found)';
 					}
-// 					$this->CI->logging->log('book', 'info', 'Item NOT verified at internet archive. ('.$ext.' file not found)', $b->barcode);
-// 					$this->CI->logging->log('access', 'info', 'Item with barcode '.$b->barcode.' NOT verified at internet archive. ('.$ext.' file not found)');
 					$verified = 0;
 					continue;
 				}
@@ -1192,7 +1175,7 @@ class Internet_archive extends Controller {
 
 				// Load the book
 				$this->CI->book->load($b->barcode);
-				$path = $this->cfg['base_directory'].'/books/'.$b->barcode.'/';
+				$path = $this->cfg['data_directory'].'/'.$b->barcode.'/';
 
 				// Keep track of whether or not we had trouble downloading one or more of the files
 				$error = false;
@@ -1247,7 +1230,7 @@ class Internet_archive extends Controller {
 							if ($this->cfg['purge_ia_deriatives']) {
 								echo 'The purging IA export directory '.$id."\n";
 								$cmd = 'rm -fr '.$this->cfg['data_directory'].'/import_export/Internet_archive/'.$id;
-//								system($cmd);
+								//								system($cmd);
 							}
 						}
 
@@ -1301,7 +1284,7 @@ class Internet_archive extends Controller {
 	function _create_segments_xml($id, $book, $pages) {
 		// This should not be used yet. Return empty element.
 		return '<bhlSegmentData></bhlSegmentData>';
-
+	
 		$cfg = $this->CI->config->item('macaw');
 		if(!in_array('BHL_Segments', $cfg['metadata_modules'])) {
 			return NULL;
@@ -2215,7 +2198,7 @@ class Internet_archive extends Controller {
 
 		} else if (in_array('Foldout', $t)) {
 			return 'Fold Out';
-
+			
 		} else if (in_array('Fold Out', $t)) {
 			return 'Fold Out';
 
@@ -2512,6 +2495,9 @@ class Internet_archive extends Controller {
 		// Handle copyright - Permission Granted to Scan
 		} elseif ($this->CI->book->get_metadata('copyright') == '1'  || strtoupper($this->CI->book->get_metadata('copyright')) == 'T' ) {
 			$metadata['x-archive-meta-possible-copyright-status'] = "In copyright. Digitized with the permission of the rights holder.";
+			// TODO Verify this. It's new for in copyright items
+			// Looks to be a license url for the metadata, yes?
+			$metadata['x-archive-meta-licenseurl'] = 'http://creativecommons.org/licenses/by-nc-sa/4.0/';
 			$metadata['x-archive-meta-rights'] = 'http://biodiversitylibrary.org/permissions';
 
 		// Handle copyright - Due Dillegene Performed to determine public domain status
@@ -2519,6 +2505,11 @@ class Internet_archive extends Controller {
 			$metadata['x-archive-meta-possible-copyright-status'] = "No known copyright restrictions as determined by scanning institution.";
 			$metadata['x-archive-meta-due-diligence'] = 'http://biodiversitylibrary.org/permissions';
 			$metadata['x-archive-meta-duediligence'] = 'http://biodiversitylibrary.org/permissions';
+			// TODO Verify this. It's new for in copyright items
+			// Looks to be a license url for the metadata, yes?
+			if (isset($metadata['x-archive-meta-licenseurl'])) {
+				unset($metadata['x-archive-meta-licenseurl']);
+			}
 
 		// Handle copyright - Default, we hope we never hit this
 		} else {
@@ -2620,23 +2611,6 @@ class Internet_archive extends Controller {
 			$metadata['x-archive-meta-call-number'] = $val;
 			$metadata['x-archive-meta-identifier-bib'] = $val;
 		}
-
-// 		$ret = ($mods->xpath($root.$ns."note"));
-// 		$c = 0;
-// 		if ($ret && is_array($ret)) {
-// 			foreach ($ret as $r) {
-// 				$str = '';
-// 				if ($r['type']) {
-// 					$str = $r['type'].': '.$r;
-// 				} else {
-// 					$str = $r.'';
-// 				}
-// 				if ($str) {
-// 					$metadata['x-archive-meta'.sprintf("%02d", $c).'-description'] = str_replace('"', '\\"', $str);
-// 					$c++;
-// 				}
-// 			}
-// 		}
 		
 		$tm = time();
 		if (isset($this->CI->book->date_review_end) && $this->CI->book->date_review_end != '0000-00-00 00:00:00') {
@@ -2729,11 +2703,7 @@ class Internet_archive extends Controller {
 	function _create_marc_xml() {
 		// Just get the MARC XML from the book and format the XML file properly
 		$marc = $this->CI->book->get_metadata('marc_xml');
-// 		if (!preg_match("/<\?xml.*?\/>/", $marc)) {
-// 			return '<?xml version="1.0" encoding="UTF-8" ?'.'>'."\n".$marc;
-// 		} else {
-			return $marc;
-// 		}
+		return $marc;
 	}
 
 	// ----------------------------
@@ -2800,19 +2770,6 @@ class Internet_archive extends Controller {
 					}
 				}
 				$number = substr(preg_replace('/[^a-zA-Z0-9]/', '', $number), 0, 4);
-	
-	//			// We didn't get a volume, so let's check for a year
-	// 			if ($number == '') {
-	// 				foreach ($pages as $p) {
-	// 					if ($p->year) {
-	// 						// Add a couple of zeros and we'll take the last two digits, just to be safe
-	// 						if (preg_match('/.+(\d{2,})$/', '00'.$p->year, $m)) { // get the last two digits of the number
-	// 							$number = sprintf("%02d",$m[1]);
-	// 						}
-	// 						break;
-	// 					}
-	// 				}
-	// 			}
 	
 				// Make this lowercase becuse SIL (and maybe others) uses it as a URL and URLs are case-insensitive (or should be)
 				$identifier = strtolower($title.$number.$author);
@@ -2882,6 +2839,10 @@ class Internet_archive extends Controller {
 		curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($this->curl, CURLOPT_HTTPGET, true);
 		curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, true);
+		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+			// TODO Why is this here? Why does windows seem to want it?
+			curl_setopt($this->curl, CURLOPT_SSL_VERIFYPEER, 0);
+		} 
 		$output = curl_exec($this->curl);
 		$output = simplexml_load_string($output);
 		$attr = 'type';
