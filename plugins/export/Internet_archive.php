@@ -2315,6 +2315,9 @@ class Internet_archive extends Controller {
 				} elseif (preg_match('/(\d+)/', $height, $matches)) {
 					// Fallback, take the first number we can find.
 					$height = $matches[1];
+				} elseif (preg_match('/folio/', $height, $matches)) {
+					$height = 48;
+					$unit = 'cm';
 				}
 				if ($height == 0) {
 					return 300;
