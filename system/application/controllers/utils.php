@@ -1325,8 +1325,8 @@ class Utils extends Controller {
 	 */	
 	function contributor_stats($hidekey = null) {
 		setlocale(LC_CTYPE, 'en_US');
-		$format = "%-50s  %5s  %6s %11s  %-16s  %-40s\n";
-		printf($format, 'CONTRIBUTOR', 'ITEMS', 'PAGES', 'LAST', 'ACCESS_KEY', 'IA EMAIL');
+		$format = "%-50s %5s %6s %11s %-40s\n";
+		printf($format, 'CONTRIBUTOR', 'ITEMS', 'PAGES', 'LAST', 'IA EMAIL');
 
 		// Get a list of contributors
 		$orgs = $this->db->query(
@@ -1368,17 +1368,26 @@ class Utils extends Controller {
 
 				// Get the email address from IA's Metadata API for the most recent completed item
 				$url = 'https://archive.org/metadata/'.$ia[0]->identifier.'/metadata/uploader';
-				$uploader = file_get_contents($url);
-				$uploader = json_decode($uploader);
-				$orgs[$i]->key_user = $uploader->result;
-				$orgs[$i]->last_date = substr($last_item[0]->date_completed,0,10);
+				$uploader = @file_get_contents($url);
+				if ($uploader) {
+					$uploader = json_decode($uploader);
+					if (isset($uploader->result)) {
+						$orgs[$i]->key_user = $uploader->result;
+					} else {
+						$orgs[$i]->key_user = "(Error?: ".$ia[0]->identifier.")";
+					}
+					$orgs[$i]->last_date = substr($last_item[0]->date_completed,0,10);
+				} else {
+					$orgs[$i]->last_date = '';
+					$orgs[$i]->key_user = 'ERROR?';
+				}
 			} else {
 				$orgs[$i]->last_date = '';
 				$orgs[$i]->key_user = 'UNKNOWN';
 			}
 
 			// Spit it out in a pretty format
-			printf($format, iconv('UTF-8', 'ASCII//TRANSLIT', $orgs[$i]->name), $orgs[$i]->item_count, $orgs[$i]->page_count, $orgs[$i]->last_date, ($hidekey ? '********' : $orgs[$i]->access_key), $orgs[$i]->key_user);
+			printf($format, iconv('UTF-8', 'ASCII//TRANSLIT', $orgs[$i]->name), $orgs[$i]->item_count, $orgs[$i]->page_count, $orgs[$i]->last_date, $orgs[$i]->key_user);
 		}
 	}
 
