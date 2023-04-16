@@ -1251,6 +1251,12 @@ class Utils extends Controller {
 			$missing = true;
 		}
 
+		// Clean the filename. RedHat doesn't like accents. Ubuntu doesn't care.
+		$fn_clean = iconv('utf-8', 'ASCII//TRANSLIT//IGNORE', $filename);							
+		$scans_dir = $this->cfg['data_directory'].'/'.$barcode.'/scans/';
+		rename($scans_dir.$filename, $scans_dir.$fn_clean);
+		$filename = $fn_clean;
+		
 		$this->book->split_pdf($filename);
 
 		// Now that the files are split, they need to be processed
