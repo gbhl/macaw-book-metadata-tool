@@ -163,17 +163,17 @@ td.yui-dt-last {
 }
 #message {
 	border-color: #c7d7b8;
-	color: #446c1e;
+	color: #21350e;
 	background: #E8EEE0;
 }
 #warning {
 	border-color: #fac287;
-	color: rgb(233, 137, 28);
+	color: rgb(68, 36, 0);
 	background: #FFF0C9;
 }
 #errormessage {
 	border-color: #f3b5b1;
-	color:#cb1616;
+	color:#410000;
 	background: #f8e3e1;
 }
 #errormessage ul {
