@@ -987,6 +987,15 @@ class Book extends Model {
 		}
 
 		if ($info['barcode']) {
+
+			// Really. We need to make sure these exists. Always.
+			// How did this ever work, really?
+			$path = $this->cfg['data_directory'].'/'.$info['barcode'];
+			if (!file_exists($path)) { mkdir($path, 0775); }
+			if (!file_exists($path.'/scans')) { mkdir($path.'/scans', 0775); }
+			if (!file_exists($path.'/thumbs')) { mkdir($path.'/thumbs', 0775); }
+			if (!file_exists($path.'/preview')) { mkdir($path.'/preview', 0775); }
+
 			// If we have a barcode, let's make sure it doesn't already exist
 			$this->db->where('barcode', $info['barcode']);
 			$query = $this->db->get('item');
