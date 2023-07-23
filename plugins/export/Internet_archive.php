@@ -741,8 +741,7 @@ class Internet_archive extends Controller {
 						"Identifier:    ".$bc."\n\n".
 						"IA Identifier: ".$id."\n\n".
 						"Error Message: Bucket at Internet Archive not created after 15 minutes. Will try again later.\n".
-						"Command: \n\n".$cmd."\n\n".
-						"Output: \n\n".$output_text."\n\n";
+						"Command: \n\n".$cmd."\n\n";
 					$this->CI->common->email_error($message);
 					continue;
 				}
