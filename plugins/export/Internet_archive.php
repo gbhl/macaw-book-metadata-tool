@@ -2483,11 +2483,11 @@ class Internet_archive extends Controller {
 		// BHL Copyright guidelines: https://bhl.wikispaces.com/copyright
 		// Handle copyright - Not in Copyright
 		if ($this->CI->book->get_metadata('copyright') == '0' || strtoupper($this->CI->book->get_metadata('copyright')) == 'F' ) {
+			if (isset($metadata['x-archive-meta-licenseurl'])) {
+				unset($metadata['x-archive-meta-licenseurl']);
+			}
 			if ($bhl == 1) {
 				$metadata['x-archive-meta-possible-copyright-status'] = "Public domain. The BHL considers that this work is no longer under copyright protection.";
-				if (isset($metadata['x-archive-meta-licenseurl'])) {
-					unset($metadata['x-archive-meta-licenseurl']);
-				}
 			} else {
 				$metadata['x-archive-meta-possible-copyright-status'] = "Public domain. The Library considers that this work is no longer under copyright protection";
 			}
