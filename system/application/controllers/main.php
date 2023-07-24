@@ -535,6 +535,12 @@ class Main extends Controller {
 				if ($_POST['copyright'][0] == '1' && !$rights_holder) {
 					$this->session->set_userdata('warning', "<strong>Rights Holder</strong> is required when the item is <strong>In Copyright</strong>.");
 				}
+				if ($_POST['copyright'][0] == '1' && !$_POST['cc_license'][0]) {
+					$this->session->set_userdata('warning', "<strong>Creative Commons</strong> is required when the item is <strong>In Copyright</strong>.");
+				}
+				if ($_POST['copyright'][0] == '0' && $_POST['cc_license'][0]) {
+					$this->session->set_userdata('warning', "<strong>Creative Commons</strong> should be NONE when item is not in copyright.");
+				}
 			}
 		}
 		
