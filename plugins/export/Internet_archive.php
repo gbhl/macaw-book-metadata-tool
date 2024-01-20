@@ -74,6 +74,7 @@ class Internet_archive extends Controller {
 	private $download_extensions = array('_djvu.xml', '_chocr.html.gz'); // What must be online after derivation? These indicate IA is finished deriving.
 	private $required_extensions = array('_jp2.zip', '_marc.xml', '_scandata.xml'); // What must be online after upload? These are things that we uploaded.
 
+	var $curl;
 	var $CI;
 	var $cfg;
 	var $cookie_jar;
@@ -2516,76 +2517,118 @@ class Internet_archive extends Controller {
 		}
 
 		// Now we use xpath to get stuff out of the mods. Fun!
-		$ret = ($mods->xpath($root.$ns."titleInfo[not(@type)]/".$ns."title"));
-		if ($ret && count($ret) > 0) {
-			$metadata['x-archive-meta-title'] = str_replace('"', "'", $ret[0].'');
-		}
+		if ($mods) {
+			$ret = ($mods->xpath($root.$ns."titleInfo[not(@type)]/".$ns."title"));
+			if ($ret && count($ret) > 0) {
+				$metadata['x-archive-meta-title'] = str_replace('"', "'", $ret[0].'');
+			}
 
-		$ret = ($mods->xpath($root.$ns."name/".$ns."role/".$ns."roleTerm[.='creator']/../../".$ns."namePart"));
-		if ($ret && count($ret) > 0) {
-			$metadata['x-archive-meta-creator'] = str_replace('"', "'", $ret[0]).'';
-		}
-		if (!isset($metadata['x-archive-meta-creator'])) {
-			$ret = ($mods->xpath($root.$ns."name/".$ns."namePart"));
+			$ret = ($mods->xpath($root.$ns."name/".$ns."role/".$ns."roleTerm[.='creator']/../../".$ns."namePart"));
 			if ($ret && count($ret) > 0) {
 				$metadata['x-archive-meta-creator'] = str_replace('"', "'", $ret[0]).'';
-			}		
-		}
+			}
+			if (!isset($metadata['x-archive-meta-creator'])) {
+				$ret = ($mods->xpath($root.$ns."name/".$ns."namePart"));
+				if ($ret && count($ret) > 0) {
+					$metadata['x-archive-meta-creator'] = str_replace('"', "'", $ret[0]).'';
+				}		
+			}
 		
-		$ret = ($mods->xpath($root.$ns."subject[@authority='lcsh']/".$ns."topic"));
-		$c = 0;
-		// If we didn't get anything in topic, let's check genre, not sure if this is correct
-		// JMR 6/4/14 - Fixed the logic for this. 'twas backwards.
-		if (!$ret || count($ret) == 0) {
-			$ret = ($mods->xpath($root.$ns."subject[@authority='lcsh']/".$ns."genre"));
-		}
-		if (is_array($ret)) {
-			foreach ($ret as $r) {
-				$metadata['x-archive-meta'.sprintf("%02d", $c).'-subject'] = str_replace('"', "'", $r).'';
-				$c++;
+			$ret = ($mods->xpath($root.$ns."subject[@authority='lcsh']/".$ns."topic"));
+			$c = 0;
+			// If we didn't get anything in topic, let's check genre, not sure if this is correct
+			// JMR 6/4/14 - Fixed the logic for this. 'twas backwards.
+			if (!$ret || count($ret) == 0) {
+				$ret = ($mods->xpath($root.$ns."subject[@authority='lcsh']/".$ns."genre"));
 			}
-		}
-
-		// Genre
-		$ret = ($mods->xpath($root.$ns."genre"));
-		if ($ret && count($ret) > 0) {
-			$metadata['x-archive-meta-genre'] = str_replace('"', "'", $ret[0].'');
-		}
-
-		// Abstract
-		$ret = ($mods->xpath($root.$ns."abstract"));
-		if ($ret && count($ret) > 0) {
-			$metadata['x-archive-meta-abstract'] = str_replace('"', "'", $ret[0].'');
-			$metadata['x-archive-meta-abstract'] = preg_replace('/[\r\n]/','<br/>',$metadata['x-archive-meta-abstract']);
-		}
-
-		//modified JC 4/2/12
-		if ($this->CI->book->get_metadata('year')) {
-			$metadata['x-archive-meta-date'] = $this->CI->book->get_metadata('year').'';
-			$metadata['x-archive-meta-year'] = $this->CI->book->get_metadata('year').'';
-		// LEGACY? Remove this? 
-		} elseif ($this->CI->book->get_metadata('pub_date')) {
-			$metadata['x-archive-meta-date'] = $this->CI->book->get_metadata('pub_date').'';
-			$metadata['x-archive-meta-year'] = $this->CI->book->get_metadata('pub_date').'';
-		} else {
-			$ret = ($mods->xpath($root.$ns."originInfo/".$ns."dateIssued[@encoding='marc'][@point='start']"));
-			if (count($ret) == 0) {
-				$ret = ($mods->xpath($root.$ns."originInfo/".$ns."dateIssued"));
+			if (is_array($ret)) {
+				foreach ($ret as $r) {
+					$metadata['x-archive-meta'.sprintf("%02d", $c).'-subject'] = str_replace('"', "'", $r).'';
+					$c++;
+				}
 			}
+
+			// Genre
+			$ret = ($mods->xpath($root.$ns."genre"));
 			if ($ret && count($ret) > 0) {
-				$metadata['x-archive-meta-year'] = $ret[0].'';
-				$metadata['x-archive-meta-date'] = $ret[0].'';
+				$metadata['x-archive-meta-genre'] = str_replace('"', "'", $ret[0].'');
 			}
-		}
 
-		$ret = ($mods->xpath($root.$ns."originInfo/".$ns."publisher"));
-		if ($ret && count($ret) > 0) {
-			$metadata['x-archive-meta-publisher'] = str_replace('"', "'", $ret[0]).'';
-		}
+			// Abstract
+			$ret = ($mods->xpath($root.$ns."abstract"));
+			if ($ret && count($ret) > 0) {
+				$metadata['x-archive-meta-abstract'] = str_replace('"', "'", $ret[0].'');
+				$metadata['x-archive-meta-abstract'] = preg_replace('/[\r\n]/','<br/>',$metadata['x-archive-meta-abstract']);
+			}
 
-		$ret = ($mods->xpath($root.$ns."language/".$ns."languageTerm"));
-		if ($ret && count($ret) > 0) {
-			$metadata['x-archive-meta-language'] = $ret[0].'';
+			//modified JC 4/2/12
+			if ($this->CI->book->get_metadata('year')) {
+				$metadata['x-archive-meta-date'] = $this->CI->book->get_metadata('year').'';
+				$metadata['x-archive-meta-year'] = $this->CI->book->get_metadata('year').'';
+			// LEGACY? Remove this? 
+			} elseif ($this->CI->book->get_metadata('pub_date')) {
+				$metadata['x-archive-meta-date'] = $this->CI->book->get_metadata('pub_date').'';
+				$metadata['x-archive-meta-year'] = $this->CI->book->get_metadata('pub_date').'';
+			} else {
+				$ret = ($mods->xpath($root.$ns."originInfo/".$ns."dateIssued[@encoding='marc'][@point='start']"));
+				if (count($ret) == 0) {
+					$ret = ($mods->xpath($root.$ns."originInfo/".$ns."dateIssued"));
+				}
+				if ($ret && count($ret) > 0) {
+					$metadata['x-archive-meta-year'] = $ret[0].'';
+					$metadata['x-archive-meta-date'] = $ret[0].'';
+				}
+			}
+
+			$ret = ($mods->xpath($root.$ns."originInfo/".$ns."publisher"));
+			if ($ret && count($ret) > 0) {
+				$metadata['x-archive-meta-publisher'] = str_replace('"', "'", $ret[0]).'';
+			}
+
+			$ret = ($mods->xpath($root.$ns."language/".$ns."languageTerm"));
+			if ($ret && count($ret) > 0) {
+				$metadata['x-archive-meta-language'] = $ret[0].'';
+			}
+		} else {
+			$metadata['x-archive-meta-title'] = str_replace('"', "'", $this->CI->book->get_metadata('title'));
+				
+			$creators = $this->CI->book->get_metadata('creator');
+			if (is_array($creators)) {
+				$c = 1;
+				foreach ($creators as $creator) {
+					$metadata['x-archive-meta'.sprintf("%02d", $c++).'-creator'] = str_replace('"', "'", $creator);
+				}				
+			} else {
+				$metadata['x-archive-meta-creator'] = str_replace('"', "'", $this->CI->book->get_metadata('creator'));
+			}
+			
+			$subjects = $this->CI->book->get_metadata('subject');
+			if (is_array($subjects)) {
+				$c = 1;
+				foreach ($subjects as $subject) {
+					$metadata['x-archive-meta'.sprintf("%02d", $c++).'-subject'] = str_replace('"', "'", $subject);
+				}				
+			} else {
+				$metadata['x-archive-meta-subject'] = str_replace('"', "'", $this->CI->book->get_metadata('subject'));
+			}
+
+			$metadata['x-archive-meta-genre'] =                     str_replace('"', "'", $this->CI->book->get_metadata('genre'));
+			$metadata['x-archive-meta-abstract'] =                  str_replace('"', "'", $this->CI->book->get_metadata('abstract'));
+			$metadata['x-archive-meta-year'] =                      str_replace('"', "'", $this->CI->book->get_metadata('year'));
+			$metadata['x-archive-meta-date'] =                      str_replace('"', "'", $this->CI->book->get_metadata('date'));
+			$metadata['x-archive-meta-publisher'] =                 str_replace('"', "'", $this->CI->book->get_metadata('publisher'));
+			$metadata['x-archive-meta-source'] =                    str_replace('"', "'", $this->CI->book->get_metadata('source'));
+			$metadata['x-archive-meta-language'] =                  str_replace('"', "'", $this->CI->book->get_metadata('language'));
+			$metadata['x-archive-meta-rights-holder'] =             str_replace('"', "'", $this->CI->book->get_metadata('rights_holder'));
+			$metadata['x-archive-meta-scanning-institution'] =      str_replace('"', "'", $this->CI->book->get_metadata('scanning_institution'));
+			$metadata['x-archive-meta-copy-specific-information'] = str_replace('"', "'", $this->CI->book->get_metadata('copy_specific_information'));
+			if ($this->CI->book->get_metadata('identifier_doi')) {
+				$metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('identifier_doi'));
+			} elseif ($this->CI->book->get_metadata('identifier-doi')) {
+				$metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('identifier-doi'));
+			} elseif ($this->CI->book->get_metadata('doi')) {
+				$metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('doi'));
+			} 
 		}
 
 		if ($this->CI->book->get_metadata('volume')) {
@@ -2671,19 +2714,21 @@ class Internet_archive extends Controller {
 			if ($this->CI->book->get_metadata('copy_specific_information')) {
 				$metadata['x-archive-meta-copy-specific-information'] = str_replace('"', "'", $this->CI->book->get_metadata('copy_specific_information'));
 			}
-
-      // DOI 
-      if ($this->CI->book->get_metadata('identifier_doi')) {
-              $metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('identifier_doi'));
-      } elseif ($this->CI->book->get_metadata('identifier-doi')) {
-              $metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('identifier-doi'));
-      } elseif ($this->CI->book->get_metadata('doi')) {
-              $metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('doi'));
+			// DOI 
+			if ($this->CI->book->get_metadata('identifier_doi')) {
+				$metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('identifier_doi'));
+			} elseif ($this->CI->book->get_metadata('identifier-doi')) {
+				$metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('identifier-doi'));
+			} elseif ($this->CI->book->get_metadata('doi')) {
+				$metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('doi'));
       }
 
 			return $metadata;
 		} else {
-			return null;
+			// If this is a virtual item, we need to continue without MARC XML
+			if (!$this->CI->book->get_metadata('bhl_virtual_titleid')) {
+				return null;
+			}		
 		}
 
 		return $metadata;
