@@ -267,7 +267,7 @@
 						<?php	foreach ($cc_licenses as $c) {?>
 							<option value="<?php echo($c['value']) ?>" <?php echo ($c['value'] == $cc_license ? 'selected' : ''); ?>><?php echo($c['title']) ?></option>
 						<?php } ?>
-						</select> (Applies only if Copyright is set to "In Copyright, Permission Granted")
+						</select> (Only for "In Copyright, Permission Granted")
 
 					</td>
 				</tr>
