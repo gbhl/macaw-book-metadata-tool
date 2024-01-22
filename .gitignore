@@ -5,7 +5,9 @@
 system/application/config/config.php
 system/application/config/database.php
 system/application/config/macaw.php
-
+# system/application/config/virtual_items
+system/application/config/virtual_items/*
+!system/application/config/virtual_items/sample-config.php
 
 ########################################
 # PLUGINS
@@ -23,6 +25,7 @@ plugins/metadata/*
 !plugins/metadata/Generic.php
 !plugins/metadata/Standard_Metadata.js
 !plugins/metadata/Standard_Metadata.php
+!plugins/import/Virtual_items.php
 
 ########################################
 # DATA DIRECTORIES
