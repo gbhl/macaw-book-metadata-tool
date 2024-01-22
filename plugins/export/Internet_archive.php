@@ -362,6 +362,20 @@ class Internet_archive extends Controller {
 						// Make sure the color profiles are correct, more or less.
 						if ($this->timing) { echo "TIMING (add profile start): ".round((microtime(true) - $start_time), 5)."\n"; }
 
+						// If this is a color image, we need to handle some color profile and conversions.
+						$preview->stripImage();
+
+						if ($preview->getImageType() != Imagick::IMGTYPE_GRAYSCALE) {
+							// If not, then it's grayscale and we do nothing
+							$icc_rgb1 = file_get_contents($this->cfg['base_directory'].'/inc/icc/AdobeRGB1998.icc');
+							$preview->setImageProfile('icc', $icc_rgb1);
+							if ($this->timing) { echo "TIMING (add profile Adobe): ".round((microtime(true) - $start_time), 5)."\n"; }
+
+							$icc_rgb2 = file_get_contents($this->cfg['base_directory'].'/inc/icc/sRGB_IEC61966-2-1_black_scaled.icc');
+							$preview->profileImage('icc', $icc_rgb2);
+							if ($this->timing) { echo "TIMING (add profile sRGB): ".round((microtime(true) - $start_time), 5)."\n"; }
+						}
+
 						// Disable the alpha channel on the image. Internet Archive doesn't like it much at all.
 						$preview->setImageMatte(false);
 
@@ -990,6 +1004,8 @@ class Internet_archive extends Controller {
 					if (!$error) {
 						$error = '('.$ext.' file not found)';
 					}
+					// $this->CI->logging->log('book', 'info', 'Item failed to upload to internet archive. ('.$ext.' file not found)', $b->barcode);
+					// $this->CI->logging->log('access', 'info', 'Item with barcode '.$b->barcode.' failed to upload to internet archive. ('.$ext.' file not found)');
 					$verified = 0;
 					continue;
 				}
@@ -1076,6 +1092,8 @@ class Internet_archive extends Controller {
 					if (!$error) {
 						$error = '('.$ext.' file not found)';
 					}
+					// $this->CI->logging->log('book', 'info', 'Item NOT verified at internet archive. ('.$ext.' file not found)', $b->barcode);
+					// $this->CI->logging->log('access', 'info', 'Item with barcode '.$b->barcode.' NOT verified at internet archive. ('.$ext.' file not found)');
 					$verified = 0;
 					continue;
 				}
@@ -1175,7 +1193,7 @@ class Internet_archive extends Controller {
 
 				// Load the book
 				$this->CI->book->load($b->barcode);
-				$path = $this->cfg['data_directory'].'/'.$b->barcode.'/';
+				$path = $this->cfg['base_directory'].'/books/'.$b->barcode.'/';
 
 				// Keep track of whether or not we had trouble downloading one or more of the files
 				$error = false;
@@ -2295,12 +2313,12 @@ class Internet_archive extends Controller {
 					// 25-43x38 cm.
 					$height = $matches[2];
 					$unit = $matches[4];
-				} elseif (preg_match('/(\d+)/', $height, $matches)) {
-					// Fallback, take the first number we can find.
-					$height = $matches[1];
 				} elseif (preg_match('/folio/', $height, $matches)) {
 					$height = 48;
 					$unit = 'cm';
+				} elseif (preg_match('/(\d+)/', $height, $matches)) {
+					// Fallback, take the first number we can find.
+					$height = $matches[1];
 				}
 				if ($height == 0) {
 					return 300;
@@ -2490,6 +2508,10 @@ class Internet_archive extends Controller {
 				$metadata['x-archive-meta-possible-copyright-status'] = "Public domain. The BHL considers that this work is no longer under copyright protection.";
 			} else {
 				$metadata['x-archive-meta-possible-copyright-status'] = "Public domain. The Library considers that this work is no longer under copyright protection";
+				if (isset($metadata['x-archive-meta-licenseurl'])) {
+					unset($metadata['x-archive-meta-licenseurl']);
+				}
+
 			}
 
 		// Handle copyright - Permission Granted to Scan
@@ -2497,7 +2519,7 @@ class Internet_archive extends Controller {
 			$metadata['x-archive-meta-possible-copyright-status'] = "In copyright. Digitized with the permission of the rights holder.";
 			// TODO Verify this. It's new for in copyright items
 			// Looks to be a license url for the metadata, yes?
-			$metadata['x-archive-meta-licenseurl'] = 'http://creativecommons.org/licenses/by-nc-sa/4.0/';
+			// $metadata['x-archive-meta-licenseurl'] = 'http://creativecommons.org/licenses/by-nc-sa/4.0/';
 			$metadata['x-archive-meta-rights'] = 'http://biodiversitylibrary.org/permissions';
 
 		// Handle copyright - Due Dillegene Performed to determine public domain status
@@ -2507,9 +2529,9 @@ class Internet_archive extends Controller {
 			$metadata['x-archive-meta-duediligence'] = 'http://biodiversitylibrary.org/permissions';
 			// TODO Verify this. It's new for in copyright items
 			// Looks to be a license url for the metadata, yes?
-			if (isset($metadata['x-archive-meta-licenseurl'])) {
-				unset($metadata['x-archive-meta-licenseurl']);
-			}
+			// if (isset($metadata['x-archive-meta-licenseurl'])) {
+			//   unset($metadata['x-archive-meta-licenseurl']);
+			// }
 
 		// Handle copyright - Default, we hope we never hit this
 		} else {
@@ -2517,9 +2539,118 @@ class Internet_archive extends Controller {
 		}
 
 		// Now we use xpath to get stuff out of the mods. Fun!
-		$ret = ($mods->xpath($root.$ns."titleInfo[not(@type)]/".$ns."title"));
-		if ($ret && count($ret) > 0) {
-			$metadata['x-archive-meta-title'] = str_replace('"', "'", $ret[0].'');
+		if ($mods) {
+			$ret = ($mods->xpath($root.$ns."titleInfo[not(@type)]/".$ns."title"));
+			if ($ret && count($ret) > 0) {
+				$metadata['x-archive-meta-title'] = str_replace('"', "'", $ret[0].'');
+			}
+	
+			$ret = ($mods->xpath($root.$ns."name/".$ns."role/".$ns."roleTerm[.='creator']/../../".$ns."namePart"));
+			if ($ret && count($ret) > 0) {
+				$metadata['x-archive-meta-creator'] = str_replace('"', "'", $ret[0]).'';
+			}
+			if (!isset($metadata['x-archive-meta-creator'])) {
+				$ret = ($mods->xpath($root.$ns."name/".$ns."namePart"));
+				if ($ret && count($ret) > 0) {
+					$metadata['x-archive-meta-creator'] = str_replace('"', "'", $ret[0]).'';
+				}		
+			}
+			
+			$ret = ($mods->xpath($root.$ns."subject[@authority='lcsh']/".$ns."topic"));
+			$c = 0;
+			// If we didn't get anything in topic, let's check genre, not sure if this is correct
+			// JMR 6/4/14 - Fixed the logic for this. 'twas backwards.
+			if (!$ret || count($ret) == 0) {
+				$ret = ($mods->xpath($root.$ns."subject[@authority='lcsh']/".$ns."genre"));
+			}
+			if (is_array($ret)) {
+				foreach ($ret as $r) {
+					$metadata['x-archive-meta'.sprintf("%02d", $c).'-subject'] = str_replace('"', "'", $r).'';
+					$c++;
+				}
+			}
+	
+			// Genre
+			$ret = ($mods->xpath($root.$ns."genre"));
+			if ($ret && count($ret) > 0) {
+				$metadata['x-archive-meta-genre'] = str_replace('"', "'", $ret[0].'');
+			}
+	
+			// Abstract
+			$ret = ($mods->xpath($root.$ns."abstract"));
+			if ($ret && count($ret) > 0) {
+				$metadata['x-archive-meta-abstract'] = str_replace('"', "'", $ret[0].'');
+				$metadata['x-archive-meta-abstract'] = preg_replace('/[\r\n]/','<br/>',$metadata['x-archive-meta-abstract']);
+			}
+	
+			//modified JC 4/2/12
+			if ($this->CI->book->get_metadata('year')) {
+				$metadata['x-archive-meta-date'] = $this->CI->book->get_metadata('year').'';
+				$metadata['x-archive-meta-year'] = $this->CI->book->get_metadata('year').'';
+			// LEGACY? Remove this? 
+			} elseif ($this->CI->book->get_metadata('pub_date')) {
+				$metadata['x-archive-meta-date'] = $this->CI->book->get_metadata('pub_date').'';
+				$metadata['x-archive-meta-year'] = $this->CI->book->get_metadata('pub_date').'';
+			} else {
+				$ret = ($mods->xpath($root.$ns."originInfo/".$ns."dateIssued[@encoding='marc'][@point='start']"));
+				if (count($ret) == 0) {
+					$ret = ($mods->xpath($root.$ns."originInfo/".$ns."dateIssued"));
+				}
+				if ($ret && count($ret) > 0) {
+					$metadata['x-archive-meta-year'] = $ret[0].'';
+					$metadata['x-archive-meta-date'] = $ret[0].'';
+				}
+			}
+	
+			$ret = ($mods->xpath($root.$ns."originInfo/".$ns."publisher"));
+			if ($ret && count($ret) > 0) {
+				$metadata['x-archive-meta-publisher'] = str_replace('"', "'", $ret[0]).'';
+			}
+	
+			$ret = ($mods->xpath($root.$ns."language/".$ns."languageTerm"));
+			if ($ret && count($ret) > 0) {
+				$metadata['x-archive-meta-language'] = $ret[0].'';
+			}
+		} else {
+			$metadata['x-archive-meta-title'] =                     str_replace('"', "'", $this->CI->book->get_metadata('title'));
+				
+			$creators = $this->CI->book->get_metadata('creator');
+			if (is_array($creators)) {
+				$c = 1;
+				foreach ($creators as $creator) {
+					$metadata['x-archive-meta'.sprintf("%02d", $c++).'-creator'] = str_replace('"', "'", $creator);
+				}				
+			} else {
+				$metadata['x-archive-meta-creator'] = str_replace('"', "'", $this->CI->book->get_metadata('creator'));
+			}
+			
+			$subjects = $this->CI->book->get_metadata('subject');
+			if (is_array($subjects)) {
+				$c = 1;
+				foreach ($subjects as $subject) {
+					$metadata['x-archive-meta'.sprintf("%02d", $c++).'-subject'] = str_replace('"', "'", $subject);
+				}				
+			} else {
+				$metadata['x-archive-meta-subject'] = str_replace('"', "'", $this->CI->book->get_metadata('subject'));
+			}
+
+			$metadata['x-archive-meta-genre'] =                     str_replace('"', "'", $this->CI->book->get_metadata('genre'));
+			$metadata['x-archive-meta-abstract'] =                  str_replace('"', "'", $this->CI->book->get_metadata('abstract'));
+			$metadata['x-archive-meta-year'] =                      str_replace('"', "'", $this->CI->book->get_metadata('year'));
+			$metadata['x-archive-meta-date'] =                      str_replace('"', "'", $this->CI->book->get_metadata('date'));
+			$metadata['x-archive-meta-publisher'] =                 str_replace('"', "'", $this->CI->book->get_metadata('publisher'));
+			$metadata['x-archive-meta-source'] =                    str_replace('"', "'", $this->CI->book->get_metadata('source'));
+			$metadata['x-archive-meta-language'] =                  str_replace('"', "'", $this->CI->book->get_metadata('language'));
+			$metadata['x-archive-meta-rights-holder'] =             str_replace('"', "'", $this->CI->book->get_metadata('rights_holder'));
+			$metadata['x-archive-meta-scanning-institution'] =      str_replace('"', "'", $this->CI->book->get_metadata('scanning_institution'));
+			$metadata['x-archive-meta-copy-specific-information'] = str_replace('"', "'", $this->CI->book->get_metadata('copy_specific_information'));
+      		if ($this->CI->book->get_metadata('identifier_doi')) {
+				$metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('identifier_doi'));
+			} elseif ($this->CI->book->get_metadata('identifier-doi')) {
+				$metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('identifier-doi'));
+			} elseif ($this->CI->book->get_metadata('doi')) {
+				$metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('doi'));
+			}
 		}
 
 		$ret = ($mods->xpath($root.$ns."name/".$ns."role/".$ns."roleTerm[.='creator']/../../".$ns."namePart"));
@@ -2611,6 +2742,23 @@ class Internet_archive extends Controller {
 			$metadata['x-archive-meta-call-number'] = $val;
 			$metadata['x-archive-meta-identifier-bib'] = $val;
 		}
+
+// 		$ret = ($mods->xpath($root.$ns."note"));
+// 		$c = 0;
+// 		if ($ret && is_array($ret)) {
+// 			foreach ($ret as $r) {
+// 				$str = '';
+// 				if ($r['type']) {
+// 					$str = $r['type'].': '.$r;
+// 				} else {
+// 					$str = $r.'';
+// 				}
+// 				if ($str) {
+// 					$metadata['x-archive-meta'.sprintf("%02d", $c).'-description'] = str_replace('"', '\\"', $str);
+// 					$c++;
+// 				}
+// 			}
+// 		}
 		
 		$tm = time();
 		if (isset($this->CI->book->date_review_end) && $this->CI->book->date_review_end != '0000-00-00 00:00:00') {
@@ -2673,14 +2821,14 @@ class Internet_archive extends Controller {
 				$metadata['x-archive-meta-copy-specific-information'] = str_replace('"', "'", $this->CI->book->get_metadata('copy_specific_information'));
 			}
 
-      // DOI 
-      if ($this->CI->book->get_metadata('identifier_doi')) {
-              $metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('identifier_doi'));
-      } elseif ($this->CI->book->get_metadata('identifier-doi')) {
-              $metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('identifier-doi'));
-      } elseif ($this->CI->book->get_metadata('doi')) {
-              $metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('doi'));
-      }
+			// DOI 
+			if ($this->CI->book->get_metadata('identifier_doi')) {
+				$metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('identifier_doi'));
+			} elseif ($this->CI->book->get_metadata('identifier-doi')) {
+				$metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('identifier-doi'));
+			} elseif ($this->CI->book->get_metadata('doi')) {
+				$metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('doi'));
+			}
 
 			return $metadata;
 		} else {
@@ -2703,7 +2851,11 @@ class Internet_archive extends Controller {
 	function _create_marc_xml() {
 		// Just get the MARC XML from the book and format the XML file properly
 		$marc = $this->CI->book->get_metadata('marc_xml');
+		// if (!preg_match("/<\?xml.*?\/>/", $marc)) {
+		// 	return '<?xml version="1.0" encoding="UTF-8" ?'.'>'."\n".$marc;
+		// } else {
 		return $marc;
+		// }
 	}
 
 	// ----------------------------
@@ -2741,6 +2893,7 @@ class Internet_archive extends Controller {
 		// A counter to help make things unique
 		$count = 0;
 		$count2 = 0;
+		$count3 = 0;
 
 		// Get the title and author from MODS, sometimes it's not available on the book's metadata
 		// Process the title
@@ -2749,7 +2902,6 @@ class Internet_archive extends Controller {
 		$title = preg_replace('/\b(the|a|an|and|or|of|for|to|in|it|is|are|at|of|by)\b/i', '', $title);
 		$title = preg_replace('/[^a-zA-Z0-9]/', '', $title);
 		$title = substr($title, 0, 15);
-
 		// Process the author
 		$author = '';
 		if (isset($metadata['x-archive-meta-creator'])) {
@@ -2757,6 +2909,7 @@ class Internet_archive extends Controller {
 			$author = substr(preg_replace('/[^a-zA-Z0-9]/', '', $author), 0, 4);
 		}
 		
+		while ($count3 <= 26) {
 		while ($count2 <= 26) {
 			while ($count <= 26) {			
 				// If we got to this point, we don't have an identifier. Make a new one.
@@ -2771,9 +2924,25 @@ class Internet_archive extends Controller {
 				}
 				$number = substr(preg_replace('/[^a-zA-Z0-9]/', '', $number), 0, 4);
 	
+	//			// We didn't get a volume, so let's check for a year
+	// 			if ($number == '') {
+	// 				foreach ($pages as $p) {
+	// 					if ($p->year) {
+	// 						// Add a couple of zeros and we'll take the last two digits, just to be safe
+	// 						if (preg_match('/.+(\d{2,})$/', '00'.$p->year, $m)) { // get the last two digits of the number
+	// 							$number = sprintf("%02d",$m[1]);
+	// 						}
+	// 						break;
+	// 					}
+	// 				}
+	// 			}
+	
 				// Make this lowercase becuse SIL (and maybe others) uses it as a URL and URLs are case-insensitive (or should be)
 				$identifier = strtolower($title.$number.$author);
 	
+				if ($count3 > 0) {
+					$identifier .= chr($count3+96);
+				}
 				if ($count2 > 0) {
 					$identifier .= chr($count2+96);
 				}
@@ -2812,6 +2981,10 @@ class Internet_archive extends Controller {
 			}
 			$count2++;
 			$count = 0;
+		}
+		$count3++;
+		$count = 0;
+		$count2 = 0;
 		}
 		return '';
 	}
