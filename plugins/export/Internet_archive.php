@@ -2740,7 +2740,7 @@ class Internet_archive extends Controller {
 			return $metadata;
 		} else {
 			// If this is a virtual item, we need to continue without MARC XML
-			if (!$this->CI->book->get_metadata('bhl_virtual_identifier')) {
+			if (!$this->CI->book->get_metadata('bhl_virtual_volume')) {
 				return null;
 			}		
 		}
