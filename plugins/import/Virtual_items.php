@@ -56,7 +56,11 @@ class Virtual_items extends Controller {
 	 *
 	 * @return array of arrays containing the information for new items.
 	 */
-	function get_new_items() {
+	function get_new_items($args) {
+		$id = null;
+		$command = null; 
+		if (isset($args[0])) { $id = $args[0]; };
+		if (isset($args[1])) { $command = $args[1]; };		
 		$this->check_custom_table();
 		$this->CI->logging->log('access', 'info', "Virutal Items: Looking for new items");
 
@@ -69,16 +73,18 @@ class Virtual_items extends Controller {
 
 			if ($fileinfo->isDir()) {
 				if (file_exists($fileinfo->getPathName().'/config.php')) {
+					$this->CI->logging->log('access', 'info', "Virutal Items: Found Config ".$fileinfo->getPathName().'/config.php');
 					$vi = [];
 					require($fileinfo->getPathName().'/config.php');
 					$dirs = preg_split("/[\\/]/", $fileinfo->getPathName());
-					$this->process_source($dirs[count($dirs)-1], $vi, $fileinfo->getPathName());
+					$this->process_source($dirs[count($dirs)-1], $vi, $fileinfo->getPathName(), $id, $command);
 				}
 			}
 		}
 		// Note: Macaw's import module system requires an array of new items
 		// We explicitly return an empty array here because we already 
 		// add the new books elsewhere in this module.
+		$this->CI->logging->log('access', 'info', "(next log entry is meaningless, Virtual items imports it's own items)");
 		return [];
 	}
 
@@ -90,7 +96,7 @@ class Virtual_items extends Controller {
    * Makes sure that the config file for a virtual item is valid
 	 * ----------------------------
 	 */
-	function process_source($name, $config, $path) {
+	function process_source($name, $config, $path, $single_id = null, $command = null) {
 		// Validate the configuration		
 		if (!$this->check_config($config, $path)) {
 			$this->CI->logging->log('access', 'error', "Virutal Items: Source: $name: Config file is not valid");
@@ -104,7 +110,7 @@ class Virtual_items extends Controller {
 		// $xml = simplexml_load_file($marc_file);
 		if ($config['feed_type'] == 'oai') {
 			$this->vi_config = $config;
-			$this->process_oai($name, $path);
+			$this->process_oai($name, $path, $single_id, $command);
 		}
 	}
 
@@ -119,7 +125,7 @@ class Virtual_items extends Controller {
 	 * to be metadata in Dublic Core (oai_dc) format. 
 	 * ----------------------------
 	 */
-	function process_oai($name, $path) {
+	function process_oai($name, $path, $single_id = null, $command = null) {
 		$counter = 0;
 		$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Processing OAI Feed");
 		// Set up some working folders for efficiency
@@ -147,14 +153,21 @@ class Virtual_items extends Controller {
 			$id = (string)$r->xpath('//header/identifier')[0];
 			$title = (string)$r->xpath('//dc:title')[0];
 
-			if ($this->record_exists($id)) {
+			$barcode = preg_replace("/[\/.]/", '_', $id); // No slashes!;
+			// if ($single_id && $single_id != $barcode) {
+			// 	print "$barcode is not $single_id. Skipping.";
+			// 	die;
+
+			// 	continue;
+			// }
+			if ($this->record_exists($barcode)) {
 				// Have we seen the item?
 				// Yes, report and skip.
-				$this->CI->logging->log('info', "Virutal Items: Source: $name: OAI Record $id already processed");
+				$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: OAI Record $id already processed");
 			} else {
 				// pull the details and build the metadata
 				$info = [];
-				$info['barcode'] = preg_replace("/[\/.]/", '_', $id); // No slashes!
+				$info['barcode'] = $barcode; 
 				$this->CI->logging->log('book', 'info', "Creating Virtual Item Segment item.", $info['barcode']);
 				$info['title'] = $title;
 				$info['copyright'] = $title;
@@ -162,21 +175,15 @@ class Virtual_items extends Controller {
 				$info['publisher'] = (string)$r->xpath('//dc:publisher')[0];
 				$info['copyright'] = $this->vi_config['copyright'];
 				$info['genre'] = 'article';
-				// *********************************
-				// TODO: Figure this out
-				// *********************************
-				$info['collection'] = 'NULL'; 
+				$info['collections'] = $this->vi_config['collections']; 
 				$info['sponsor'] = $info['holding_institution'];
 				// $info['scanning_institution'] = $info['holding_institution'];
 				$info['cc_license'] = $this->vi_config['creative_commons'];
-				// *********************************
-				// TODO: Figure this out
-				// *********************************
-				$info['org_id'] = 1; 
+				$info['org_id'] = $this->vi_config['upload_org_id'];; 
 				$info['subject'] = [];
 				foreach ($r->xpath('//dc:subject') as $s) {
 					$info['subject'][] = (string)$s;
-				}								
+				}
 				$info['creator'] = [];
 				foreach ($r->xpath('//dc:creator') as $a) {
 					$info['creator'][] = preg_replace('/,([^ ])/', ', \1', (string)$a);
@@ -193,7 +200,6 @@ class Virtual_items extends Controller {
 						$info['doi'] = $this->normalize_doi((string)$i);
 					}					
 				}
-				// $info['marc_xml'] = file_get_contents($path.'/'.$this->vi_config['marc_filename']);
 				// Create Virtual Item ID
 				$vi_data = [];
 				$vi_data = $this->vi_config['vi_identifier_data']($r, $this->vi_config);
@@ -222,7 +228,9 @@ class Virtual_items extends Controller {
 				} else {
 					// Put the PDF in the incoming folder
 					$incoming_path = $this->CI->cfg['incoming_directory'].'/'.$info['barcode'];
-					mkdir($incoming_path);
+					if (!file_exists($incoming_path)) {
+						mkdir($incoming_path);
+					}
 					rename($pdf_path, $incoming_path.'/'.$info['barcode'].'.pdf');
 					
 					// Create the book
@@ -626,51 +634,12 @@ class Virtual_items extends Controller {
 					  ") ENGINE=InnoDB CHARACTER SET=utf8 COLLATE=utf8_unicode_ci;"
 				);
 			}	
-			die;
 		} catch (Exception $e) {
 			print "Error: ".$e->getMessage()."\n";
 			die;
 		}
 	}
 	
-
-	/* ----------------------------
-	 * Function: _pensoft_get_pdf()
-	 *
-	 * Parameters: $id
-	 *
-   * Simple function to munge the URLs and get  
-	 * the PDF for an article at Pensoft. 
-	 * Downloads the PDF and returns the path on disk.
-	 * ----------------------------
-	 */	
-	function _pensoft_get_pdf($info) {
-		$source = '';
-		foreach ($info->xpath('//dc:identifier') as $i) {
-			if (preg_match('/\/article\//i', (string)$i)) {
-				$source = (string)$i; 
-			}
-		}
-		// Our source of https://dez.pensoft.net/article/96986/
-		// becomes https://dez.pensoft.net/article/96986/download/pdf/
-		// to get the PDF
-		if ($source) {
-			$path = $this->vi_config['working_path'].'/'.preg_replace("/[^A-Za-z0-9]+/", '_', $source).'.pdf';
-			if (!file_exists($path)) {
-				$ch = curl_init($source.'download/pdf');
-				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);		
-				curl_setopt($ch, CURLOPT_BINARYTRANSFER,1);
-				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1); 
-				$data = curl_exec($ch);		
-				curl_close($ch);
-				
-				$result = file_put_contents($path, $data);
-			}	
-			return $path;
-		}
-
-		return null;
-	}
 
 	function iso639_2to3($lang) {
 		$codes = [
