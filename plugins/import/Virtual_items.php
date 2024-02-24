@@ -93,7 +93,7 @@ class Virtual_items extends Controller {
 	 *
 	 * Parameters:
 	 *
-   * Makes sure that the config file for a virtual item is valid
+     * Makes sure that the config file for a virtual item is valid
 	 * ----------------------------
 	 */
 	function process_source($name, $config, $path, $single_id = null, $command = null) {
@@ -103,42 +103,49 @@ class Virtual_items extends Controller {
 			print "Config File for ".$name." is not valid\n";
 			return false;
 		}
-		// print "Name is $name\n";
-		// print "Path is $path\n";
-		// print_r($config);				
-		// $marc_file = $path.'/'.$config['marc_filename'];
-		// $xml = simplexml_load_file($marc_file);
-		if ($config['feed_type'] == 'oai') {
+		if ($config['feed-type'] == 'oai_dc') {
 			$this->vi_config = $config;
-			$this->process_oai($name, $path, $single_id, $command);
+			print "Processing OAI-DC\n";
+			$this->process_oai_dc($name, $path, $single_id, $command);
+		}
+		if ($config['feed-type'] == 'oai_mods') {
+			$this->vi_config = $config;
+			print "Processing OAI-MODS\n";
+			$this->process_oai_mods($name, $path, $single_id, $command);
+		}
+		if ($config['feed-type'] == 'spreadsheet') {
+			$this->vi_config = $config;
+			print "Processing Spreadsheet\n";
+			$this->process_spreadsheet($name, $path, $single_id, $command);
 		}
 	}
 
 	/* ----------------------------
-	 * Function: process_oai()
+	 * Function: process_oai_dc()
 	 *
 	 * Parameters: $name, $path
 	 *
-   * Main function to handle reading an OAI-PMH feed
+     * Main function to handle reading an OAI-PMH feed in Dublin Core format
 	 * to ingest it into macaw. This has clear knowledge
 	 * of the format of an OAI-PMH feed and expect there
 	 * to be metadata in Dublic Core (oai_dc) format. 
 	 * ----------------------------
 	 */
-	function process_oai($name, $path, $single_id = null, $command = null) {
+	/* 
+	function process_oai_dc($name, $path, $single_id = null, $command = null) {
 		$counter = 0;
 		$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Processing OAI Feed");
 		// Set up some working folders for efficiency
-		$this->vi_config['working_path'] = $path.'/working';
-		$this->vi_config['cache_path'] = $path.'/cache';
-		@mkdir($this->vi_config['working_path'], 0755, true);
-		@mkdir($this->vi_config['cache_path'], 0755, true);
+		$this->vi_config['working-path'] = $path.'/working';
+		$this->vi_config['cache-path'] = $path.'/cache';
+		@mkdir($this->vi_config['working-path'], 0755, true);
+		@mkdir($this->vi_config['cache-path'], 0755, true);
 		
 		// Get the OAI Feed
 		$records = [];
 		if (is_array($this->vi_config['feed'])) {
 			foreach((array)$this->vi_config['feed'] as $url) {
-				$records = $this->read_oai($url);
+				$records = array_merge($records, $this->read_oai($url));
 			}
 		} else {
 			$records = $this->read_oai($this->vi_config['feed']);
@@ -170,16 +177,20 @@ class Virtual_items extends Controller {
 				$info['barcode'] = $barcode; 
 				$this->CI->logging->log('book', 'info', "Creating Virtual Item Segment item.", $info['barcode']);
 				$info['title'] = $title;
-				$info['copyright'] = $title;
-				$info['holding_institution'] = (string)$r->xpath('//dc:publisher')[0];
+				$info['holding_institution'] = $this->vi_config['contributor'];
 				$info['publisher'] = (string)$r->xpath('//dc:publisher')[0];
-				$info['copyright'] = $this->vi_config['copyright'];
+				$info['sponsor'] = $info['holding_institution'];
+				$info['org_id'] = $this->vi_config['upload-org-id'];; 
 				$info['genre'] = 'article';
 				$info['collections'] = $this->vi_config['collections']; 
-				$info['sponsor'] = $info['holding_institution'];
-				// $info['scanning_institution'] = $info['holding_institution'];
-				$info['cc_license'] = $this->vi_config['creative_commons'];
-				$info['org_id'] = $this->vi_config['upload_org_id'];; 
+				// Copyright info all comes from the config file
+				// There is no mechanism to pull it from the OAI feed (yet?)
+				$info['copyright'] = $this->vi_config['copyright'];
+				$info['cc_license'] = $this->vi_config['creative-commons'];
+				$info['rights_holder'] = $this->vi_config['rights-holder'];
+				$info['possible_copyright_status'] = $this->vi_config['possible-copyright-status'];
+				$info['rights'] = $this->vi_config['rights'];
+				
 				$info['subject'] = [];
 				foreach ($r->xpath('//dc:subject') as $s) {
 					$info['subject'][] = (string)$s;
@@ -189,9 +200,7 @@ class Virtual_items extends Controller {
 					$info['creator'][] = preg_replace('/,([^ ])/', ', \1', (string)$a);
 				}
 				$info['language'] = $this->iso639_2to3((string)$r->xpath('//dc:language')[0]);
-				$info['source'] = (string)$r->xpath('//dc:source')[0];
 				$info['abstract'] = (string)$r->xpath('//dc:description')[0];
-				$info['rights_holder'] = 'Copyright held by individual article author(s).';
 				// Figure out the DOI
 				foreach ($r->xpath('//dc:identifier') as $i) {
 					if (preg_match('/^10.\d{4,9}\/[-._;()\/:A-Z0-9]+$/i', (string)$i)) {
@@ -202,17 +211,19 @@ class Virtual_items extends Controller {
 				}
 				// Create Virtual Item ID
 				$vi_data = [];
-				$vi_data = $this->vi_config['vi_identifier_data']($r, $this->vi_config);
-				$info['bhl_virtual_titleid'] = $this->vi_config['title_id'];
+				$vi_data = $this->vi_config['vi-identifier-data']($this->vi_config, $info, $r);
+				$info['bhl_virtual_titleid'] = $this->vi_config['title-id'];
 				$info['bhl_virtual_volume'] = $vi_data['virtual-volume'];
-				$info['segment_volume'] = $vi_data['volume'];
-				$info['segment_series'] = $vi_data['series'];
-				$info['segment_issue'] = $vi_data['issue'];
+				$info['volume'] = $vi_data['volume'];
+				$info['series'] = $vi_data['series'];
+				$info['issue'] = $vi_data['issue'];
 				$info['segment_date'] = $vi_data['year'];
 				$info['page_start'] = $vi_data['page-start'];
 				$info['page_end'] = $vi_data['page-end'];
 				$info['year'] = $vi_data['year'];
 				$info['date'] = $vi_data['date'];
+				$info['source'] = $vi_data['source'];
+				$info['page_range'] = $vi_data['page-range'];
 
 				// TODO Remove this for production
 				// -------------------------------
@@ -220,7 +231,7 @@ class Virtual_items extends Controller {
 				// -------------------------------
 
 				// Get the PDF
-				$pdf_path = $this->vi_config['get_pdf']($r, $this->vi_config);
+				$pdf_path = $this->vi_config['get-pdf']($this->vi_config, $r);
 
 				if (!$pdf_path) {
 					$this->CI->logging->log('book', 'error', "Could not get PDF for item. Aborting.", $info['barcode']);
@@ -248,198 +259,242 @@ class Virtual_items extends Controller {
 						)
 					);
 					$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Added item with barcode ".$info['barcode']);
-					// TODO Remove this when testng is complete
-					$counter++;
-					if ($counter >= 10) { break; }
 				}
-
-				// Questions for Mike
-				// 1. I need to somehow suppply Virtual Item Volume info: v.66:no.2 (2019)
-				// 2. I need to distingush this from the Segment Volumne "66" and number "2"
-
-				// process the item and pages into macaw
-				// add the item to the custom table
-
-				// Things to keep in mind:
-				// * Step 0: Add to the dbo.Item table a field for VirtualItemIdentifier (Mike to do)
-				// * Step 1: add the MARC XML to BHL to get a Title ID
-				// * Step 2: Save TitleID to Macaw (add to the VI Config file)
-				// * Step 3: Send Volume/Issue/No whatever it is. (needs further discussion)
-				// * Step 4: Create new field for bhl-virtual-identifier with a value that links multiple articles together.
-				// Note, we may need a separate file for segment metadata if the generic MARC XML 
-				//       overwrites the Segment metadata, either by Macaw or by internet archive.
-				// Make sure to mark NOINDEX when uploading to IA for testing. Don’t add to the biodiversity collection.
-				// To-Do: Need to discuss identifiers for authors coming in from Pensoft (and others?)
-
-				// Not all OAI Feeds will be the same. Each will need to be evaluated.
-				// Possible that we need a different feed for each publisher.
-
 			}
+			// TODO Remove this when testng is complete
+			$counter++;
+			if ($counter >= 10) { break; }
 		}
 		return $new_items;
 	}
-
-		/* ----------------------------
-	 * Function: process_folder()
+	*/
+	
+	/* ----------------------------
+	 * Function: process_oai_mods()
 	 *
 	 * Parameters: $name, $path
 	 *
-   * Main function to handle reading an OAI-PMH feed
+     * Main function to handle reading an OAI-PMH feed in MODS format
 	 * to ingest it into macaw. This has clear knowledge
 	 * of the format of an OAI-PMH feed and expect there
 	 * to be metadata in Dublic Core (oai_dc) format. 
 	 * ----------------------------
 	 */
-	function process_folder($name, $path) {
-		$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name:  Processing Local Folder");
+
+	function process_oai_mods($name, $path, $single_id = null, $command = null) {
+		$counter = 0;
+		$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Processing OAI Feed");
 		// Set up some working folders for efficiency
-		// $this->vi_config['working_path'] = $path.'/working';
-		// $this->vi_config['cache_path'] = $path.'/cache';
-		// @mkdir($this->vi_config['working_path'], 0755, true);
-		// @mkdir($this->vi_config['cache_path'], 0755, true);
+		$this->vi_config['working-path'] = $path.'/working';
+		$this->vi_config['cache-path'] = $path.'/cache';
+		@mkdir($this->vi_config['working-path'], 0755, true);
+		@mkdir($this->vi_config['cache-path'], 0755, true);
 		
-		// // Get the OAI Feed
-		// $records = [];
-		// if (is_array($this->vi_config['feed'])) {
-		// 	foreach((array)$this->vi_config['feed'] as $url) {
-		// 		$records = $this->read_oai($url);
-		// 	}
-		// } else {
-		// 	$records = $this->read_oai($this->vi_config['feed']);
-		// }
-		// // Reminder: read_oai returns an array of XML fragments
+		// Get the OAI Feed
+		$records = [];
+		if (is_array($this->vi_config['feed'])) {
+			foreach((array)$this->vi_config['feed'] as $url) {
+				$records = array_merge($records, $this->read_oai($url));
+			}
+		} else {
+			$records = $this->read_oai($this->vi_config['feed']);
+		}
+		// Reminder: read_oai returns an array of XML fragments
 
-		// $this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Got ".count($records)." records: $name");
-		// $new_items = [];
-		// foreach ($records as $r) {
-		// 	$r = new SimpleXMLElement($r);
-		// 	$r->registerXPathNamespace('dc', 'http://purl.org/dc/elements/1.1/');
-		// 	$id = (string)$r->xpath('//header/identifier')[0];
-		// 	$title = (string)$r->xpath('//dc:title')[0];
+		$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Got ".count($records)." records: $name");
+		print  "Virutal Items: Source: $name: Got ".count($records)." records: $name\n";
+		$new_items = [];
+		foreach ($records as $r) {
+			$r = new SimpleXMLElement($r);
+			$r->registerXPathNamespace('mods', 'http://www.loc.gov/mods/v3');
+			
+			$id = $this->safe_xpath($r, '//header/identifier', 0);
 
-		// 	if ($this->record_exists($id)) {
-		// 		// Have we seen the item?
-		// 		// Yes, report and skip.
-		// 		$this->CI->logging->log('info', "Virutal Items: Source: $name: OAI Record $id already processed");
-		// 	} else {
-		// 		// pull the details and build the metadata
-		// 		$info = [];
-		// 		$info['barcode'] = preg_replace("/[\/.]/", '_', $id); // No slashes!
-		// 		$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Creating item for barcode ".$info['barcode']);
-		// 		$this->CI->logging->log('book', 'info', "Creating Virtual Item Segment item.", $info['barcode']);
-		// 		$info['title'] = $title;
-		// 		$info['copyright'] = $title;
-		// 		$info['holding_institution'] = (string)$r->xpath('//dc:publisher')[0];
-		// 		$info['publisher'] = (string)$r->xpath('//dc:publisher')[0];
-		// 		$info['copyright'] = $this->vi_config['copyright'];
-		// 		$info['genre'] = 'article';
-		// 		// *********************************
-		// 		// TODO: Figure this out
-		// 		// *********************************
-		// 		$info['collection'] = 'NULL'; 
-		// 		$info['sponsor'] = $info['holding_institution'];
-		// 		// $info['scanning_institution'] = $info['holding_institution'];
-		// 		$info['cc_license'] = $this->vi_config['creative_commons'];
-		// 		// *********************************
-		// 		// TODO: Figure this out
-		// 		// *********************************
-		// 		$info['org_id'] = 1; 
-		// 		$info['subject'] = [];
-		// 		foreach ($r->xpath('//dc:subject') as $s) {
-		// 			$info['subject'][] = (string)$s;
-		// 		}								
-		// 		$info['creator'] = [];
-		// 		foreach ($r->xpath('//dc:creator') as $a) {
-		// 			$info['creator'][] = preg_replace('/,([^ ])/', ', \1', (string)$a);
-		// 		}
-		// 		$info['language'] = $this->iso639_2to3((string)$r->xpath('//dc:language')[0]);
-		// 		$info['source'] = (string)$r->xpath('//dc:source')[0];
-		// 		$info['abstract'] = (string)$r->xpath('//dc:description')[0];
-		// 		$info['rights_holder'] = 'Copyright held by individual article author(s).';
-		// 		// Figure out the DOI
-		// 		foreach ($r->xpath('//dc:identifier') as $i) {
-		// 			if (preg_match('/^10.\d{4,9}\/[-._;()\/:A-Z0-9]+$/i', (string)$i)) {
-		// 				$info['doi'] = (string)$i;
-		// 			} elseif (preg_match('/doi/i', (string)$i)) {
-		// 				$info['doi'] = $this->normalize_doi((string)$i);
-		// 			}					
-		// 		}
-		// 		// $info['marc_xml'] = file_get_contents($path.'/'.$this->vi_config['marc_filename']);
-		// 		// Create Virtual Item ID
-		// 		$vi_data = [];
-		// 		$vi_data = $this->vi_config['vi_identifier_data']($r, $this->vi_config);
-		// 		$info['bhl_virtual_titleid'] = $vi_data['virtual-id'];
-		// 		$info['bhl_virtual_volume'] = $vi_data['virtual-volume'];
-		// 		$info['segment_volume'] = $vi_data['volume'];
-		// 		$info['segment_series'] = $vi_data['series'];
-		// 		$info['segment_issue'] = $vi_data['issue'];
-		// 		$info['segment_date'] = $vi_data['year'];
-		// 		$info['page_start'] = $vi_data['page-start'];
-		// 		$info['page_end'] = $vi_data['page-end'];
-		// 		$info['year'] = $vi_data['year'];
-		// 		$info['date'] = $vi_data['date'];
+			$barcode = preg_replace("/[\/.]/", '_', $id); // No slashes!;
+			if ($this->record_exists($barcode)) {
+				print "Virutal Items: Source: $name: OAI Record $id already processed\n";
+				// Have we seen the item?
+				// Yes, report and skip.
+				$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: OAI Record $id already processed");
+			} else {
+				// pull the details and build the metadata
+				$info = [];
+				$info['barcode'] = $barcode; 
+				$this->CI->logging->log('book', 'info', "Creating Virtual Item Segment item.", $info['barcode']);
 
-		// 		// TODO Remove this for production
-		// 		// -------------------------------
-		// 		$info['noindex'] = '1';
-		// 		// -------------------------------
+				$info['journal_title'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:titleInfo/mods:title", 0);
+				$info['title'] = $this->safe_xpath($r, "//mods:mods/mods:titleInfo/mods:title", 0);
+				$info['volume'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:detail[@type='volume']/mods:number", 0);
+				$info['issue'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:detail[@type='issue']/mods:number", 0);
+				$info['number'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:detail[@type='number']/mods:number", 0);
+				$info['series'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:detail[@type='series']/mods:number", 0);
+				$info['page_start'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:extent[@unit='pages']/mods:start", 0);
+				$info['page_end'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:extent[@unit='pages']/mods:end", 0);
+				$matches = [];
+				$info['page_range'] = null;
+				if (preg_match('/(\d+)\-(\d+)/', $info['page_start'], $matches)) {
+					$info['pages'] = $info['page_start'];
+					$info['page_range'] = $info['page_start'];
+					$info['page_start'] = $matches[1];
+					$info['page_end'] = $matches[2];
+				}
 
-		// 		// Get the PDF
-		// 		$pdf_path = $this->vi_config['get_pdf']($r, $this->vi_config);
+				// $foo = $r->xpath("//mods:relatedItem[@type='host']/mods:part/mods:date");
+				// $info['date'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:date", 0);
+				// print_r($foo[0]->asXML());
+				// print_r($info['date']);
+				// die;
 
-		// 		if (!$pdf_path) {
-		// 			$this->CI->logging->log('book', 'error', "Could not get PDF for item. Aborting.", $info['barcode']);
-		// 			$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Could not get PDF for item with barcode ".$info['barcode'].". Aborting.");
-		// 		} else {
-		// 			// Put the PDF in the incoming folder
-		// 			$incoming_path = $this->CI->cfg['incoming_directory'].'/'.$info['barcode'];
-		// 			mkdir($incoming_path);
-		// 			rename($pdf_path, $incoming_path.'/'.$info['barcode'].'.pdf');
+
+				$info['date'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:date", 0);
+
+				$journal_year = '';
+				if (preg_match('/^\d\d\d\d$/', $info['date'])) {
+					$info['year'] = $info['date'];
+					$info['date'] = $this->safe_xpath($r, "//mods:extension/mods:dateAvailable", 0);
+				}
+				
+				$info['holding_institution'] = $this->vi_config['contributor'];
+				$info['publisher'] = $this->safe_xpath($r, "//mods:originInfo/mods:publisher", 0);
+				$info['sponsor'] = $info['holding_institution'];
+				$info['org_id'] = $this->vi_config['upload-org-id'];; 
+				$info['genre'] = 'article';
+				$info['collections'] = $this->vi_config['collections']; 
+				// Copyright info all comes from the config file
+				// There is no mechanism to pull it from the OAI feed (yet?)
+				$info['copyright'] = $this->vi_config['copyright'];
+				$info['cc_license'] = $this->vi_config['creative-commons'];
+				$info['rights_holder'] = $this->vi_config['rights-holder'];
+				// $info['possible_copyright_status'] = $this->vi_config['possible-copyright-status'];
+				$info['rights'] = $this->vi_config['rights'];
+				
+				$info['subject'] = $this->safe_xpath($r, "//mods:subject/mods:topic");
+				for ($i=0; $i < count($info['subject']); $i++) { $info['subject'][$i] = (string)$info['subject'][$i]; }
+
+				$info['creator'] = $this->safe_xpath($r, "//mods:mods/mods:name/mods:role/mods:roleTerm[text()=\"author\"]/../../mods:namePart");
+				for ($i=0; $i < count($info['creator']); $i++) { $info['creator'][$i] = (string)$info['creator'][$i]; }
+				
+				$creator_ids = [];
+				foreach ($info['creator'] as $c) {
+					$res = [];
+					$res['name'] = $c;
+					$orcid = $this->safe_xpath($r, "//mods:mods/mods:name/mods:role/mods:roleTerm[text()=\"author\"]/../../mods:namePart[text()=\"$c\"]/../mods:nameIdentifier[@type=\"orcid\"]");
+					if (is_array($orcid) && count($orcid)) {
+						$res['orcid'] = (string)$orcid[0];
+					}
+					$viaf = $this->safe_xpath($r, "//mods:mods/mods:name/mods:role/mods:roleTerm[text()=\"author\"]/../../mods:namePart[text()=\"$c\"]/../mods:nameIdentifier[@type=\"viaf\"]");
+					if (is_array($viaf) && count($viaf)) {
+						$res['viaf'] = (string)$viaf[0];
+					}
+					$zbaut = $this->safe_xpath($r, "//mods:mods/mods:name/mods:role/mods:roleTerm[text()=\"author\"]/../../mods:namePart[text()=\"$c\"]/../mods:nameIdentifier[@type=\"zbaut\"]");
+					if (is_array($zbaut) && count($zbaut)) {
+						$res['zbaut'] = (string)$zbaut[0];
+					}
+					$scopus = $this->safe_xpath($r, "//mods:mods/mods:name/mods:role/mods:roleTerm[text()=\"author\"]/../../mods:namePart[text()=\"$c\"]/../mods:nameIdentifier[@type=\"scopus\"]");
+					if (is_array($scopus) && count($scopus)) {
+						$res['scopus'] = (string)$scopus[0];
+					}
+					$rid = $this->safe_xpath($r, "//mods:mods/mods:name/mods:role/mods:roleTerm[text()=\"author\"]/../../mods:namePart[text()=\"$c\"]/../mods:nameIdentifier[@type=\"rid\"]");
+					if (is_array($rid) && count($rid)) {
+						$res['rid'] = (string)$rid[0];
+					}
+					$creator_ids[] = $res;
+				}
+				$info['creator_ids'] = json_encode($creator_ids);
+				$info['abstract'] = $this->safe_xpath($r, "//mods:abstract", 0);
+			
+				for ($i = 0; $i < count($info['creator']); $i++) {
+					$info['creator'][$i] = html_entity_decode(preg_replace('/,([^ ])/', ', \1', $info['creator'][$i]));
+				}
+
+				// Language
+				$info['language'] = null;
+				$tmp = $this->safe_xpath($r, "//mods:language/mods:languageTerm");
+				if ($tmp) {
+					$attrs = $tmp[0]->attributes();
+					if ((string)$attrs['authority'] == 'rfc3066') {
+						$lang = (string)$tmp[0];
+						// Language identifier. e.g. en_US, es_ES, 
+						$lang = preg_replace('/[-_].+$/', '', $lang);
+						$info['language'] =  $this->iso639_2to3($lang);
+					} else {
+						$info['language'] = (string)$tmp[0];
+					}
+				}
+				
+				// Figure out the DOI
+				$info['doi'] = $this->safe_xpath($r, "//mods:mods/mods:identifier[@type='doi']", 0);
+				if ($info['doi']) {
+					if (!preg_match('/^10.\d{4,9}\/[-._;()\/:A-Z0-9]+$/i', $info['doi'])) {
+						if (preg_match('/doi/i', $tmp[0])) {
+							$info['doi'] = $this->normalize_doi($info['doi']);
+						}
+					}					
+				}
+
+				// Create Virtual Item ID and overwrite with custom info from the config
+				$vi_data = [];
+				$vi_data = $this->vi_config['vi-identifier-data']($this->vi_config, $info, $r);
+				$info['bhl_virtual_titleid'] = $this->vi_config['title-id'];
+				$info['bhl_virtual_volume'] = $vi_data['virtual-volume'];
+				$info['volume'] = $vi_data['volume'];
+				$info['series'] = $vi_data['series'];
+				$info['issue'] = $vi_data['issue'];
+				$info['page_start'] = $vi_data['page-start'];
+				$info['page_end'] = $vi_data['page-end'];
+				$info['page_range'] = $vi_data['page-range'];
+				$info['year'] = $vi_data['year'];
+				$info['date'] = $vi_data['date'];
+				$info['source'] = $vi_data['source'];
+
+				// TODO Remove this for production
+				// -------------------------------
+				$info['noindex'] = '1';
+				// -------------------------------
+				
+				// Get the PDF
+				$pdf_path = $this->vi_config['get-pdf']($this->vi_config, $r);
+
+				if (!$pdf_path) {
+					$this->CI->logging->log('book', 'error', "Could not get PDF for item. Aborting.", $info['barcode']);
+					$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Could not get PDF for item with barcode ".$info['barcode'].". Aborting.");
+				} else {
+					// Put the PDF in the incoming folder
+					$incoming_path = $this->CI->cfg['incoming_directory'].'/'.$info['barcode'];
+					if (!file_exists($incoming_path)) {
+						mkdir($incoming_path);
+					}
+					rename($pdf_path, $incoming_path.'/'.$info['barcode'].'.pdf');
 					
-		// 			// Create the book
-		// 			$this->CI->logging->log('book', 'info', "Adding item to the system.", $info['barcode']);
- 		// 			$this->add_book($name, $info, $pdf_path);
+					// Create the book
+					$this->CI->logging->log('book', 'info', "Adding item to the system.", $info['barcode']);
+ 					$this->add_book($name, $info, $pdf_path);
 
-		// 			$this->CI->logging->log('book', 'info', "Recording item to custom table.", $info['barcode']);
-		// 			$this->CI->db->insert(
-		// 				'custom_virtual_items',
-		// 				array(
-		// 					'source' => $name,
-		// 					'title' => substr($title,0,128),
-		// 					'barcode' => $info['barcode'],
-		// 					'created' => date("Y-m-d H:i:s")
-		// 				)
-		// 			);
-		// 		}
+					$this->CI->logging->log('book', 'info', "Recording item to custom table.", $info['barcode']);
+					$this->CI->db->insert(
+						'custom_virtual_items',
+						array(
+							'source' => $name,
+							'title' => substr($info['title'],0,128),
+							'barcode' => $info['barcode'],
+							'created' => date("Y-m-d H:i:s")
+						)
+					);
+					$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Added item with barcode ".$info['barcode']);
+				}
+			}
+			// TODO Remove this when testng is complete
+			$counter++;
+			if ($counter >= 20) { break; }
 
-		// 		// Questions for Mike
-		// 		// 1. I need to somehow suppply Virtual Item Volume info: v.66:no.2 (2019)
-		// 		// 2. I need to distingush this from the Segment Volumne "66" and number "2"
+		}
+		return $new_items;
+	}
 
-		// 		// process the item and pages into macaw
-		// 		// add the item to the custom table
-
-		// 		// Things to keep in mind:
-		// 		// * Step 0: Add to the dbo.Item table a field for VirtualItemIdentifier (Mike to do)
-		// 		// * Step 1: add the MARC XML to BHL to get a Title ID
-		// 		// * Step 2: Save TitleID to Macaw (add to the VI Config file)
-		// 		// * Step 3: Send Volume/Issue/No whatever it is. (needs further discussion)
-		// 		// * Step 4: Create new field for bhl-virtual-identifier with a value that links multiple articles together.
-		// 		// Note, we may need a separate file for segment metadata if the generic MARC XML 
-		// 		//       overwrites the Segment metadata, either by Macaw or by internet archive.
-		// 		// Make sure to mark NOINDEX when uploading to IA for testing. Don’t add to the biodiversity collection.
-		// 		// To-Do: Need to discuss identifiers for authors coming in from Pensoft (and others?)
-
-		// 		// Not all OAI Feeds will be the same. Each will need to be evaluated.
-		// 		// Possible that we need a different feed for each publisher.
-
-		// 	}
-		// }
-		// return $new_items;
+	function process_spreadsheet($name, $path, $single_id = null, $command = null) {
 	}
 
 	function add_book($name, $info, $pdf_path) {
-		// Add the book
 		try {
 			$ret = $this->CI->book->add($info);
 		} catch (Exception $e) {
@@ -472,18 +527,26 @@ class Virtual_items extends Controller {
 			foreach ($pages as $p) {
 				$this->CI->book->set_page_metadata($p->id, 'page_type', ($first ? 'Cover' : 'Text'));
 				$this->CI->book->set_page_metadata($p->id, 'page_number', $page_num);
-				$this->CI->book->set_page_metadata($p->id, 'page_number_implicit', 1);
+				$this->CI->book->set_page_metadata($p->id, 'page_number_implicit', 0);
 				$this->CI->book->set_page_metadata($p->id, 'page_side', (($even++ % 2) ? 'left (verso)' : 'Right (recto)'));				
 
-				$this->CI->book->set_page_metadata($p->id, 'year', $info['segment_date']);
-				$this->CI->book->set_page_metadata($p->id, 'volume', $info['segment_volume']);
-				if ($info['segment_series']) {
-					$this->CI->book->set_page_metadata($p->id, 'piece', 'No.');	
-					$this->CI->book->set_page_metadata($p->id, 'piece_text', $info['segment_series']);
+				$this->CI->book->set_page_metadata($p->id, 'year', $info['year']);
+				if (isset($info['volume'])) {
+					if ($info['volume']) {
+						$this->CI->book->set_page_metadata($p->id, 'volume', $info['volume']);
+					}
 				}
-				if ($info['segment_issue']) {
-					$this->CI->book->set_page_metadata($p->id, 'piece', 'Issue');	
-					$this->CI->book->set_page_metadata($p->id, 'piece_text', $info['segment_issue']);
+				if (isset($info['series'])) {
+					if ($info['series']) {
+						$this->CI->book->set_page_metadata($p->id, 'piece', 'No.');	
+						$this->CI->book->set_page_metadata($p->id, 'piece_text', $info['series']);
+					}
+				}
+				if (isset($info['issue'])) {
+					if ($info['issue']) {
+						$this->CI->book->set_page_metadata($p->id, 'piece', 'Issue');	
+						$this->CI->book->set_page_metadata($p->id, 'piece_text', $info['issue']);
+					}
 				}
 				$page_num++;
 				$first = false;
@@ -509,7 +572,7 @@ class Virtual_items extends Controller {
 	 *
 	 * Parameters: $id
 	 *
-   * Given some sort of identifier, check the custom table
+     * Given some sort of identifier, check the custom table
 	 * to see if it already exists. The identifier will be sanitized
 	 * before querying, so any value applies.
 	 * ----------------------------
@@ -529,23 +592,23 @@ class Virtual_items extends Controller {
 	 *
 	 * Parameters: $url
 	 *
-   * Given a URL, read it from the web only if it doesn't
+     * Given a URL, read it from the web only if it doesn't
 	 * exist on disk.
 	 * ----------------------------
 	 */
 	function cache_get_xml($url) {
 		$md5 = md5($url);
-		$cache_file = $this->vi_config['cache_path'].'/'.$md5;
+		$cache_file = $this->vi_config['cache-path'].'/'.$md5;
 
 		// Cache the URL if it doesn't exist
 		if (!file_exists($cache_file)) {
 			file_put_contents(
-				$this->vi_config['cache_path'].'/'.$md5, 
+				$this->vi_config['cache-path'].'/'.$md5, 
 				file_get_contents($url)
 			);
 		}
 		
-		$xml = simplexml_load_file($this->vi_config['cache_path'].'/'.$md5);
+		$xml = simplexml_load_file($this->vi_config['cache-path'].'/'.$md5);
 		$xml->registerXPathNamespace('oai-dc', 'http://www.openarchives.org/OAI/2.0/oai_dc/');
 		$xml->registerXPathNamespace('dc', 'http://purl.org/dc/elements/1.1/');
 		return $xml;
@@ -556,7 +619,7 @@ class Virtual_items extends Controller {
 	 *
 	 * Parameters: $url
 	 *
-   * Given a URL, assume it's an OAI-PMH feed and extract the
+     * Given a URL, assume it's an OAI-PMH feed and extract the
 	 * records from the feed and add them individually to an array.
 	 * 
 	 * Each record will be sort sort of xmlNode.
@@ -579,16 +642,12 @@ class Virtual_items extends Controller {
 	 *
 	 * Parameters:
 	 *
-   * Makes sure that the config file for a virtual item is valid
+     * Makes sure that the config file for a virtual item is valid
 	 * ----------------------------
 	 */
 	function check_config($config, $path) {
-		if (!stream_resolve_include_path('fpdf.php')) {
-			print "FPDF library not found.\n";
-			return false;
-		}
 		// Do we have a Title ID
-		if (!$config['title_id']) {
+		if (!$config['title-id']) {
 			print "No TitleID\n";
 			return false;
 		}
@@ -598,18 +657,41 @@ class Virtual_items extends Controller {
 			return false;
 		}
 		// Do we have a feed type
-		if (!isset($config['feed_type'])) {
+		if (!isset($config['feed-type'])) {
 			print "Feed type not specified.\n";
 			return false;
 		}
-		if (is_callable('$config[\'vi_identifier_data\']')) {
+		if ($config['feed-type'] != "oai_dc" && $config['feed-type'] != "oai_mods" && $config['feed-type'] != "spreadsheet") {
+			print "Feed type not recognized. Must be one of: oai_dc, oai_mods, spreadsheet\n";
+			return false;
+		}
+		if (is_callable('$config[\'vi-identifier-data\']')) {
 			print "'vi_identifier_data' is not a function.\n";
 			return false;
 		}
-		if (is_callable('$config[\'get_pdf\']')) {
+		if (is_callable('$config[\'get-pdf\']')) {
 			print "'get_pdf' is not a function.\n";
 			return false;
 		}
+
+
+		$bhl_institutions = $this->CI->bhl->get_institutions();
+		$found = false;
+		foreach ($bhl_institutions as $b) {
+			if ($b->InstitutionName == $config['rights-holder']) {
+				$found = true;
+			}
+		}
+		if (!$found) {
+			print "Rights holder is not found at BHL. (\"".$config['rights-holder']."\")\n";
+			return false;
+		}
+
+
+
+
+		// Nake sure the contributor is valid in BHL
+		// Make sure something else is valid
 		return true;
 	}
 
@@ -618,7 +700,7 @@ class Virtual_items extends Controller {
 	 *
 	 * Parameters:
 	 *
-   * Makes sure that the CUSTOM_VIRTUAL_ITEMS table exists in the database.
+     * Makes sure that the CUSTOM_VIRTUAL_ITEMS table exists in the database.
 	 * ----------------------------
 	 */
 	function check_custom_table() {
@@ -835,5 +917,23 @@ class Virtual_items extends Controller {
 		$doi = preg_replace('/https?:\/\/doi.org\//', '', $doi);
 		$doi = preg_replace('/https?:\/\/dx.doi.org\//', '', $doi);
 		return $doi;
+	}
+
+	function safe_xpath($record, $path, $index = null) {
+		$found = $record->xpath($path);
+		$ret = [];
+		if (is_array($found)) {
+			foreach ($found as $f) {
+				$ret[] = $f;
+			}
+		}
+		if ($index !== null) {
+			if (isset($ret[$index])) {
+				return (string)$ret[$index];
+			} else {
+				return null;
+			}
+		}
+		return $ret;
 	}
 }
