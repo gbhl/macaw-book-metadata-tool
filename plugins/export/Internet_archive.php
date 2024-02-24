@@ -435,10 +435,10 @@ class Internet_archive extends Controller {
 									}
 								}
 								// Allow an ultimate override from the item itself.
-                $tempq = $this->CI->book->get_metadata('jpeg2000_quality');
-                if ($tempq) {
-                  $quality = (int)$tempq;
-                }
+								$tempq = $this->CI->book->get_metadata('jpeg2000_quality');
+								if ($tempq) {
+								$quality = (int)$tempq;
+								}
 								$preview->setCompressionQuality($quality);
 								$preview->setImageCompressionQuality($quality);
 								echo " creating $new_filebase".".jp2 (Q=$quality)";
@@ -463,12 +463,12 @@ class Internet_archive extends Controller {
 									$fs = filesize($jp2path.'/'.$new_filebase.'.jp2');
 								}
 					
-								if ($this->timing) { echo "TIMING (write): ".round((microtime(true) - $start_time), 5)."\n"; }							
+								if ($this->timing) { echo "TIMING (write): ".round((microtime(true) - $start_time), 5)."\n"; }
 							} else {
 								// Write the jp2 out to the local directory
 								echo " copied $new_filebase".".jp2";
 								copy($scanspath.'/'.$p->scan_filename, $jp2path.'/'.$new_filebase.'.jp2');
-								if ($this->timing) { echo "TIMING (copy): ".round((microtime(true) - $start_time), 5)."\n"; }							
+								if ($this->timing) { echo "TIMING (copy): ".round((microtime(true) - $start_time), 5)."\n"; }
 							}
 						}
 						if ($this->timing) { echo "TIMING (set compression): ".round((microtime(true) - $start_time), 5)."\n"; }
@@ -566,7 +566,13 @@ class Internet_archive extends Controller {
 					write_file($fullpath.'/'.$id.'_scandata.xml', $this->_create_scandata_xml($id, $this->CI->book, $pages));
 					$this->CI->logging->log('book', 'debug', 'Created '.$id.'_scandata.xml', $bc);
 				}
-				
+
+				if ($file == '' || $file == 'creators') {
+					// create the IDENTIFIER_creators.xml file
+					write_file($fullpath.'/'.$id.'_creators.xml', $this->_create_creators_xml($id, $this->CI->book));
+					$this->CI->logging->log('book', 'debug', 'Created '.$id.'_creators.xml', $bc);
+				}
+
 				// upload the files to internet archive
 				if ($file == 'meta') {
 					$old_metadata = $this->_get_ia_meta_xml($b, $id);
@@ -602,21 +608,21 @@ class Internet_archive extends Controller {
 							}
 						}
 						if ($ret) {
-              echo "ERROR!!! Return code = $ret";
-              // If we had any sort of error from exec, we log what happened and set the status to error
-              $out = '';
-              foreach ($output as $o) {
-                $out .= $o."\n";
-              }
-              $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for uploading metadata. Output was:'."\n".$out, $bc);
+							echo "ERROR!!! Return code = $ret";
+							// If we had any sort of error from exec, we log what happened and set the status to error
+							$out = '';
+							foreach ($output as $o) {
+								$out .= $o."\n";
+							}
+							$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for uploading metadata. Output was:'."\n".$out, $bc);
 
-              $message = "Error processing export.\n\n".
-                "Identifier: {$bc}\n\n".
-                "File: (metadata)\n\n".
-                "Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
-              $this->CI->common->email_error($message);
+							$message = "Error processing export.\n\n".
+								"Identifier: {$bc}\n\n".
+								"File: (metadata)\n\n".
+								"Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
+							$this->CI->common->email_error($message);
 
-              return;
+							return;
 						} // if ($ret)
 					} else {
 						echo "IN TEST MODE. NOT UPLOADING.\n\n";
@@ -646,25 +652,25 @@ class Internet_archive extends Controller {
 							}
 						}
 						if ($ret) {
-              echo "ERROR!!! Return code = $ret";
-              // If we had any sort of error from exec, we log what happened and set the status to error
-              $out = '';
-              foreach ($output as $o) {
-                $out .= $o."\n";
-              }
-              $message = "Error processing export.\n\n".
-                "Identifier: {$bc}\n\n".
-                "File: {$id}_scandata.xml\n\n".
-                "Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
-              $this->CI->common->email_error($message);
-						  if ($ret == 56 || $ret == 52) {
-                $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for scandata.xml. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
-                return;
-						  } else {
-                $this->CI->book->set_status('error');
-                $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for scandata.xml. Output was:'."\n".$out, $bc);
-                return;
-						  }
+							echo "ERROR!!! Return code = $ret";
+							// If we had any sort of error from exec, we log what happened and set the status to error
+							$out = '';
+							foreach ($output as $o) {
+								$out .= $o."\n";
+							}
+							$message = "Error processing export.\n\n".
+								"Identifier: {$bc}\n\n".
+								"File: {$id}_scandata.xml\n\n".
+								"Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
+							$this->CI->common->email_error($message);
+							if ($ret == 56 || $ret == 52) {
+								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for scandata.xml. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
+								return;
+							} else {
+								$this->CI->book->set_status('error');
+								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for scandata.xml. Output was:'."\n".$out, $bc);
+								return;
+							}
 						} // if ($ret)
 					} else {
 						echo "IN TEST MODE. NOT UPLOADING.\n\n";
@@ -716,25 +722,25 @@ class Internet_archive extends Controller {
 									}
 								}
 								if ($ret) {
-                  echo "ERROR!!! Return code = $ret";
-                  // If we had any sort of error from exec, we log what happened and set the status to error
-                  $out = '';
-                  foreach ($output as $o) {
-                    $out .= $o."\n";
-                  }
-                  $message = "Error processing export.\n\n".
-                    "Identifier: {$bc}\n\n".
-                    "File: {$pdf}\n\n".
-                    "Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
-                  $this->CI->common->email_error($message);
-                  if ($ret == 56 || $ret == 52) {
-                    $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for '.$pdf.'. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
-                    return;
-                  } else {
-                    $this->CI->book->set_status('error');
-                    $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for '.$pdf.'. Output was:'."\n".$out, $bc);
-                    return;
-                  }
+									echo "ERROR!!! Return code = $ret";
+									// If we had any sort of error from exec, we log what happened and set the status to error
+									$out = '';
+									foreach ($output as $o) {
+										$out .= $o."\n";
+									}
+									$message = "Error processing export.\n\n".
+										"Identifier: {$bc}\n\n".
+										"File: {$pdf}\n\n".
+										"Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
+									$this->CI->common->email_error($message);
+									if ($ret == 56 || $ret == 52) {
+										$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for '.$pdf.'. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
+										return;
+									} else {
+										$this->CI->book->set_status('error');
+										$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for '.$pdf.'. Output was:'."\n".$out, $bc);
+										return;
+									}
 								}
 							} else {
 								echo "IN TEST MODE. NOT UPLOADING.\n\n";
@@ -786,30 +792,73 @@ class Internet_archive extends Controller {
 							}
 						}
 						if ($ret) {
-              echo "ERROR!!! Return code = $ret";
-              // If we had any sort of error from exec, we log what happened and set the status to error
-              $out = '';
-              foreach ($output as $o) {
-                $out .= $o."\n";
-              }
-              $message = "Error processing export.\n\n".
-                "Identifier: {$bc}\n\n".
-                "File: {$id}_marc.xml\n\n".
-                "Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
-              $this->CI->common->email_error($message);
-              if ($ret == 56 || $ret == 52) {
-                $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for marc.xml. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
-                return;
-              } else {
-                $this->CI->book->set_status('error');
-                $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for marc.xml. Output was:'."\n".$out, $bc);
-                return;
-              }
+							echo "ERROR!!! Return code = $ret";
+							// If we had any sort of error from exec, we log what happened and set the status to error
+							$out = '';
+							foreach ($output as $o) {
+								$out .= $o."\n";
+							}
+							$message = "Error processing export.\n\n".
+								"Identifier: {$bc}\n\n".
+								"File: {$id}_marc.xml\n\n".
+								"Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
+							$this->CI->common->email_error($message);
+							if ($ret == 56 || $ret == 52) {
+								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for marc.xml. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
+								return;
+							} else {
+								$this->CI->book->set_status('error');
+								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for marc.xml. Output was:'."\n".$out, $bc);
+								return;
+							}
 						}
 					} else {
 						echo "IN TEST MODE. NOT UPLOADING.\n\n";
 					} // if (!$this->cfg['testing'])
 				} //if ($file == '' || $file == 'marc')
+
+				if ($file == '' || $file == 'creators')  {
+					$cmd = $this->cfg['curl_exe'];
+					$cmd .= ' --location';
+					$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
+					$cmd .= ' --header "x-archive-queue-derive:0"';
+					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_creators.xml" "http://s3.us.archive.org/'.$id.'/'.$id.'_creators.xml" 2>&1';
+					echo "\n\n".$cmd."\n\n";
+
+					if (!$this->cfg['testing']) {
+						// execute the CURL command and echo back any responses
+						$output = array();
+						exec($cmd, $output, $ret);
+						if (count($output)) {
+							foreach ($output as $o) {
+								echo $o."\n";
+							}
+						}
+						if ($ret) {
+							echo "ERROR!!! Return code = $ret";
+							// If we had any sort of error from exec, we log what happened and set the status to error
+							$out = '';
+							foreach ($output as $o) {
+								$out .= $o."\n";
+							}
+							$message = "Error processing export.\n\n".
+								"Identifier: {$bc}\n\n".
+								"File: {$id}_creators.xml\n\n".
+								"Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
+							$this->CI->common->email_error($message);
+							if ($ret == 56 || $ret == 52) {
+								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for creators.xml. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
+								return;
+							} else {
+								$this->CI->book->set_status('error');
+								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for creators.xml. Output was:'."\n".$out, $bc);
+								return;
+							}
+						}
+					} else {
+						echo "IN TEST MODE. NOT UPLOADING.\n\n";
+					} // if (!$this->cfg['testing'])
+				} //if ($file == '' || $file == 'creators')
 
 				if ($file == '' || $file == 'scans') {
 					// Upload the "processed" jp2 files first.
@@ -836,25 +885,25 @@ class Internet_archive extends Controller {
 								}
 							}
 							if ($ret) {
-                echo "ERROR!!! Return code = $ret";
-                // If we had any sort of error from exec, we log what happened and set the status to error
-                $out = '';
-                foreach ($output as $o) {
-                  $out .= $o."\n";
-                }
-                $message = "Error processing export.\n\n".
-                  "Identifier: {$bc}\n\n".
-                  "File: {$id} - tar or ZIP\n\n".
-                  "Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
-                $this->CI->common->email_error($message);
-                if ($ret == 56 || $ret == 52) {
-                  $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
-                  return;
-                } else {
-                  $this->CI->book->set_status('error');
-                  $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file. Output was:'."\n".$out, $bc);
-                  return;
-                }
+								echo "ERROR!!! Return code = $ret";
+								// If we had any sort of error from exec, we log what happened and set the status to error
+								$out = '';
+								foreach ($output as $o) {
+								$out .= $o."\n";
+								}
+								$message = "Error processing export.\n\n".
+								"Identifier: {$bc}\n\n".
+								"File: {$id} - tar or ZIP\n\n".
+								"Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
+								$this->CI->common->email_error($message);
+								if ($ret == 56 || $ret == 52) {
+								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
+								return;
+								} else {
+								$this->CI->book->set_status('error');
+								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file. Output was:'."\n".$out, $bc);
+								return;
+								}
 							}
 						} else {
 							echo "IN TEST MODE. NOT UPLOADING.\n\n";
@@ -882,31 +931,32 @@ class Internet_archive extends Controller {
 								}
 							}
 							if ($ret) {
-                echo "ERROR!!! Return code = $ret";
-                // If we had any sort of error from exec, we log what happened and set the status to error
-                $out = '';
-                foreach ($output as $o) {
-                  $out .= $o."\n";
-                }
-                $message = "Error processing export.\n\n".
-                  "Identifier: {$bc}\n\n".
-                  "File: {$id} - tar or ZIP (2)\n\n".
-                  "Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
-                $this->CI->common->email_error($message);
-                if ($ret == 56 || $ret == 52) {
-                  $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file (2). CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
-                  return;
-                } else {
-                  $this->CI->book->set_status('error');
-                  $this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file (2). Output was:'."\n".$out, $bc);
-                  return;
-                }
+								echo "ERROR!!! Return code = $ret";
+								// If we had any sort of error from exec, we log what happened and set the status to error
+								$out = '';
+								foreach ($output as $o) {
+								$out .= $o."\n";
+								}
+								$message = "Error processing export.\n\n".
+								"Identifier: {$bc}\n\n".
+								"File: {$id} - tar or ZIP (2)\n\n".
+								"Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
+								$this->CI->common->email_error($message);
+								if ($ret == 56 || $ret == 52) {
+								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file (2). CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
+								return;
+								} else {
+								$this->CI->book->set_status('error');
+								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file (2). Output was:'."\n".$out, $bc);
+								return;
+								}
 							}
 						} else {
 							echo "IN TEST MODE. NOT UPLOADING.\n\n";
 						} // if (!$this->cfg['testing'])
 					} // if ($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both')
 				} // if ($file == '' || $file == 'scans')
+
 				
 				// If we got this far, we were completely successful. Yay!
 
@@ -1254,7 +1304,7 @@ class Internet_archive extends Controller {
 							if ($this->cfg['purge_ia_deriatives']) {
 								echo 'The purging IA export directory '.$id."\n";
 								$cmd = 'rm -fr '.$this->cfg['data_directory'].'/import_export/Internet_archive/'.$id;
-								//								system($cmd);
+								// system($cmd);
 							}
 						}
 
@@ -1308,7 +1358,7 @@ class Internet_archive extends Controller {
 	function _create_segments_xml($id, $book, $pages) {
 		// This should not be used yet. Return empty element.
 		return '<bhlSegmentData></bhlSegmentData>';
-	
+
 		$cfg = $this->CI->config->item('macaw');
 		if(!in_array('BHL_Segments', $cfg['metadata_modules'])) {
 			return NULL;
@@ -2159,6 +2209,33 @@ class Internet_archive extends Controller {
 	}
 
 	// ----------------------------
+	// Function: _create_creators_xml()
+	//
+	// Parameters:
+	//    $id: The ID of the item as determined earlier
+	//    $book: A book object
+	//
+	// Returns the XML for the creators.xml file. Does not create the file.
+	// This is specific to Internet Archive but is left here as a reminder.
+	// ----------------------------
+	function _create_creators_xml($id, $book) {
+		$creators = json_decode($book->get_metadata('creator_ids'), JSON_OBJECT_AS_ARRAY);
+		$output = "<creators>\n";
+		$id_types = ['orcid','viaf','zbaut','scopus','rid'];
+		foreach ($creators as $c) {
+			$output .= "  <creator>\n";
+			$output .= "    <name>".$c['name']."</name>\n";
+			foreach ($id_types as $id) {
+				if (isset($c[$id])) {
+					$output .= "    <identifier type=\"$id\">".$c[$id]."</identifier>\n";
+				}
+			}
+			$output .= "  </creator>\n";
+		}
+		$output .= "</creators>\n";
+		return $output;
+	}
+	// ----------------------------
 	// Function: _get_bhl_pagetypes()
 	//
 	// Parameters:
@@ -2222,7 +2299,7 @@ class Internet_archive extends Controller {
 
 		} else if (in_array('Foldout', $t)) {
 			return 'Fold Out';
-			
+
 		} else if (in_array('Fold Out', $t)) {
 			return 'Fold Out';
 
@@ -2421,10 +2498,9 @@ class Internet_archive extends Controller {
 			$namespaces = $mods->getNamespaces();
 			$ret = ($mods->xpath($ns."mods"));
 			if ($ret && count($ret)) {
-					$root = $ns."mods/";
+				$root = $ns."mods/";
 			}
 		}
-	
 		$metadata = array();
 		// This is easy, hardcoded
 		$metadata['x-archive-meta-mediatype'] = 'texts';
@@ -2512,11 +2588,11 @@ class Internet_archive extends Controller {
 		// BHL Copyright guidelines: https://bhl.wikispaces.com/copyright
 		// Handle copyright - Not in Copyright
 		if ($this->CI->book->get_metadata('copyright') == '0' || strtoupper($this->CI->book->get_metadata('copyright')) == 'F' ) {
-			if (isset($metadata['x-archive-meta-licenseurl'])) {
-				unset($metadata['x-archive-meta-licenseurl']);
-			}
 			if ($bhl == 1) {
 				$metadata['x-archive-meta-possible-copyright-status'] = "Public domain. The BHL considers that this work is no longer under copyright protection.";
+				if (isset($metadata['x-archive-meta-licenseurl'])) {
+					unset($metadata['x-archive-meta-licenseurl']);
+				}
 			} else {
 				$metadata['x-archive-meta-possible-copyright-status'] = "Public domain. The Library considers that this work is no longer under copyright protection";
 				if (isset($metadata['x-archive-meta-licenseurl'])) {
@@ -2554,8 +2630,9 @@ class Internet_archive extends Controller {
 			$ret = ($mods->xpath($root.$ns."titleInfo[not(@type)]/".$ns."title"));
 			if ($ret && count($ret) > 0) {
 				$metadata['x-archive-meta-title'] = str_replace('"', "'", $ret[0].'');
+				print "Setting x-archive-meta-title to ". $metadata['x-archive-meta-title']."\n";
 			}
-	
+
 			$ret = ($mods->xpath($root.$ns."name/".$ns."role/".$ns."roleTerm[.='creator']/../../".$ns."namePart"));
 			if ($ret && count($ret) > 0) {
 				$metadata['x-archive-meta-creator'] = str_replace('"', "'", $ret[0]).'';
@@ -2580,20 +2657,20 @@ class Internet_archive extends Controller {
 					$c++;
 				}
 			}
-	
+
 			// Genre
 			$ret = ($mods->xpath($root.$ns."genre"));
 			if ($ret && count($ret) > 0) {
 				$metadata['x-archive-meta-genre'] = str_replace('"', "'", $ret[0].'');
 			}
-	
+
 			// Abstract
 			$ret = ($mods->xpath($root.$ns."abstract"));
 			if ($ret && count($ret) > 0) {
 				$metadata['x-archive-meta-abstract'] = str_replace('"', "'", $ret[0].'');
 				$metadata['x-archive-meta-abstract'] = preg_replace('/[\r\n]/','<br/>',$metadata['x-archive-meta-abstract']);
 			}
-	
+
 			//modified JC 4/2/12
 			if ($this->CI->book->get_metadata('year')) {
 				$metadata['x-archive-meta-date'] = $this->CI->book->get_metadata('year').'';
@@ -2612,19 +2689,22 @@ class Internet_archive extends Controller {
 					$metadata['x-archive-meta-date'] = $ret[0].'';
 				}
 			}
-	
+
 			$ret = ($mods->xpath($root.$ns."originInfo/".$ns."publisher"));
 			if ($ret && count($ret) > 0) {
 				$metadata['x-archive-meta-publisher'] = str_replace('"', "'", $ret[0]).'';
 			}
-	
+
 			$ret = ($mods->xpath($root.$ns."language/".$ns."languageTerm"));
 			if ($ret && count($ret) > 0) {
 				$metadata['x-archive-meta-language'] = $ret[0].'';
 			}
 		} else {
-			$metadata['x-archive-meta-title'] =                     str_replace('"', "'", $this->CI->book->get_metadata('title'));
-				
+			// This is used by Virtual Items because they have no MARC data. 
+			$metadata['x-archive-meta-title'] = str_replace('"', "'", $this->CI->book->get_metadata('title'));
+			// Remove unprintables, just in case.
+			$metadata['x-archive-meta-title'] = preg_replace('/[\x00-\x1F\x7F]/u', '', $metadata['x-archive-meta-title']);
+
 			$creators = $this->CI->book->get_metadata('creator');
 			if (is_array($creators)) {
 				$c = 1;
@@ -2653,9 +2733,14 @@ class Internet_archive extends Controller {
 			$metadata['x-archive-meta-source'] =                    str_replace('"', "'", $this->CI->book->get_metadata('source'));
 			$metadata['x-archive-meta-language'] =                  str_replace('"', "'", $this->CI->book->get_metadata('language'));
 			$metadata['x-archive-meta-rights-holder'] =             str_replace('"', "'", $this->CI->book->get_metadata('rights_holder'));
-			$metadata['x-archive-meta-scanning-institution'] =      str_replace('"', "'", $this->CI->book->get_metadata('scanning_institution'));
-			$metadata['x-archive-meta-copy-specific-information'] = str_replace('"', "'", $this->CI->book->get_metadata('copy_specific_information'));
-      		if ($this->CI->book->get_metadata('identifier_doi')) {
+			if ($this->CI->book->get_metadata('scanning_institution')) {
+				$metadata['x-archive-meta-scanning-institution'] = str_replace('"', "'", $this->CI->book->get_metadata('scanning_institution'));
+			}
+			if ($this->CI->book->get_metadata('copy_specific_information')) {
+				$metadata['x-archive-meta-copy-specific-information'] = str_replace('"', "'", $this->CI->book->get_metadata('copy_specific_information'));
+			}
+			$metadata['x-archive-meta-page--range'] =str_replace('"', "'", $this->CI->book->get_metadata('page_range'));
+			if ($this->CI->book->get_metadata('identifier_doi')) {
 				$metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('identifier_doi'));
 			} elseif ($this->CI->book->get_metadata('identifier-doi')) {
 				$metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('identifier-doi'));
@@ -2663,125 +2748,29 @@ class Internet_archive extends Controller {
 				$metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('doi'));
 			}
 		}
-
-		$ret = ($mods->xpath($root.$ns."name/".$ns."role/".$ns."roleTerm[.='creator']/../../".$ns."namePart"));
-		if ($ret && count($ret) > 0) {
-			$metadata['x-archive-meta-creator'] = str_replace('"', "'", $ret[0]).'';
-		}
-		if (!isset($metadata['x-archive-meta-creator'])) {
-			$ret = ($mods->xpath($root.$ns."name/".$ns."namePart"));
-			if ($ret && count($ret) > 0) {
-				$metadata['x-archive-meta-creator'] = str_replace('"', "'", $ret[0]).'';
-			}
-			if (!isset($metadata['x-archive-meta-creator'])) {
-				$ret = ($mods->xpath($root.$ns."name/".$ns."namePart"));
-				if ($ret && count($ret) > 0) {
-					$metadata['x-archive-meta-creator'] = str_replace('"', "'", $ret[0]).'';
-				}		
-			}
-			
-			$ret = ($mods->xpath($root.$ns."subject[@authority='lcsh']/".$ns."topic"));
-			$c = 0;
-			// If we didn't get anything in topic, let's check genre, not sure if this is correct
-			// JMR 6/4/14 - Fixed the logic for this. 'twas backwards.
-			if (!$ret || count($ret) == 0) {
-				$ret = ($mods->xpath($root.$ns."subject[@authority='lcsh']/".$ns."genre"));
-			}
-			if (is_array($ret)) {
-				foreach ($ret as $r) {
-					$metadata['x-archive-meta'.sprintf("%02d", $c).'-subject'] = str_replace('"', "'", $r).'';
-					$c++;
-				}
-			}
-	
-			// Genre
-			$ret = ($mods->xpath($root.$ns."genre"));
-			if ($ret && count($ret) > 0) {
-				$metadata['x-archive-meta-genre'] = str_replace('"', "'", $ret[0].'');
-			}
-	
-			// Abstract
-			$ret = ($mods->xpath($root.$ns."abstract"));
-			if ($ret && count($ret) > 0) {
-				$metadata['x-archive-meta-abstract'] = str_replace('"', "'", $ret[0].'');
-				$metadata['x-archive-meta-abstract'] = preg_replace('/[\r\n]/','<br/>',$metadata['x-archive-meta-abstract']);
-			}
-	
-			//modified JC 4/2/12
-			if ($this->CI->book->get_metadata('year')) {
-				$metadata['x-archive-meta-date'] = $this->CI->book->get_metadata('year').'';
-				$metadata['x-archive-meta-year'] = $this->CI->book->get_metadata('year').'';
-			// LEGACY? Remove this? 
-			} elseif ($this->CI->book->get_metadata('pub_date')) {
-				$metadata['x-archive-meta-date'] = $this->CI->book->get_metadata('pub_date').'';
-				$metadata['x-archive-meta-year'] = $this->CI->book->get_metadata('pub_date').'';
-			} else {
-				$ret = ($mods->xpath($root.$ns."originInfo/".$ns."dateIssued[@encoding='marc'][@point='start']"));
-				if (count($ret) == 0) {
-					$ret = ($mods->xpath($root.$ns."originInfo/".$ns."dateIssued"));
-				}
-				if ($ret && count($ret) > 0) {
-					$metadata['x-archive-meta-year'] = $ret[0].'';
-					$metadata['x-archive-meta-date'] = $ret[0].'';
-				}
-			}
-	
-			$ret = ($mods->xpath($root.$ns."originInfo/".$ns."publisher"));
-			if ($ret && count($ret) > 0) {
-				$metadata['x-archive-meta-publisher'] = str_replace('"', "'", $ret[0]).'';
-			}
-	
-			$ret = ($mods->xpath($root.$ns."language/".$ns."languageTerm"));
-			if ($ret && count($ret) > 0) {
-				$metadata['x-archive-meta-language'] = $ret[0].'';
-			}
-		} else {
-			$metadata['x-archive-meta-title'] =                     str_replace('"', "'", $this->CI->book->get_metadata('title'));
-				
-			$creators = $this->CI->book->get_metadata('creator');
-			if (is_array($creators)) {
-				$c = 1;
-				foreach ($creators as $creator) {
-					$metadata['x-archive-meta'.sprintf("%02d", $c++).'-creator'] = str_replace('"', "'", $creator);
-				}				
-			} else {
-				$metadata['x-archive-meta-creator'] = str_replace('"', "'", $this->CI->book->get_metadata('creator'));
-			}
-			
-			$subjects = $this->CI->book->get_metadata('subject');
-			if (is_array($subjects)) {
-				$c = 1;
-				foreach ($subjects as $subject) {
-					$metadata['x-archive-meta'.sprintf("%02d", $c++).'-subject'] = str_replace('"', "'", $subject);
-				}				
-			} else {
-				$metadata['x-archive-meta-subject'] = str_replace('"', "'", $this->CI->book->get_metadata('subject'));
-			}
-
-			$metadata['x-archive-meta-genre'] =                     str_replace('"', "'", $this->CI->book->get_metadata('genre'));
-			$metadata['x-archive-meta-abstract'] =                  str_replace('"', "'", $this->CI->book->get_metadata('abstract'));
-			$metadata['x-archive-meta-year'] =                      str_replace('"', "'", $this->CI->book->get_metadata('year'));
-			$metadata['x-archive-meta-date'] =                      str_replace('"', "'", $this->CI->book->get_metadata('date'));
-			$metadata['x-archive-meta-publisher'] =                 str_replace('"', "'", $this->CI->book->get_metadata('publisher'));
-			$metadata['x-archive-meta-source'] =                    str_replace('"', "'", $this->CI->book->get_metadata('source'));
-			$metadata['x-archive-meta-language'] =                  str_replace('"', "'", $this->CI->book->get_metadata('language'));
-			$metadata['x-archive-meta-rights-holder'] =             str_replace('"', "'", $this->CI->book->get_metadata('rights_holder'));
-			$metadata['x-archive-meta-scanning-institution'] =      str_replace('"', "'", $this->CI->book->get_metadata('scanning_institution'));
-			$metadata['x-archive-meta-copy-specific-information'] = str_replace('"', "'", $this->CI->book->get_metadata('copy_specific_information'));
-      if ($this->CI->book->get_metadata('identifier_doi')) {
-				$metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('identifier_doi'));
-			} elseif ($this->CI->book->get_metadata('identifier-doi')) {
-				$metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('identifier-doi'));
-			} elseif ($this->CI->book->get_metadata('doi')) {
-				$metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('doi'));
-			}
-
-		}
-
 
 		if ($this->CI->book->get_metadata('volume')) {
 			$metadata['x-archive-meta-volume'] = $this->CI->book->get_metadata('volume').'';
 		}
+
+		if ($this->CI->book->get_metadata('series')) {
+			$metadata['x-archive-meta-series'] = $this->CI->book->get_metadata('series').'';
+		}
+
+		if ($this->CI->book->get_metadata('issue')) {
+			$metadata['x-archive-meta-issue'] = $this->CI->book->get_metadata('issue').'';
+		}
+
+		// Is this a Virtual Item?
+		if ($this->CI->book->get_metadata('bhl_virtual_titleid') || $this->CI->book->get_metadata('bhl_virtual_volume')) {
+			if ($this->CI->book->get_metadata('bhl_virtual_titleid')) {
+				$metadata['x-archive-meta-bhl--virtual--titleid'] = $this->CI->book->get_metadata('bhl_virtual_titleid').'';
+			}
+			if ($this->CI->book->get_metadata('bhl_virtual_volume')) {
+				$metadata['x-archive-meta-bhl--virtual--volume'] = $this->CI->book->get_metadata('bhl_virtual_volume').'';
+			}
+		}
+		
 
 		if ($this->CI->book->get_metadata('call_number')) {
 			$val = $this->CI->book->get_metadata('call_number').'';
@@ -2802,22 +2791,22 @@ class Internet_archive extends Controller {
 			$metadata['x-archive-meta-identifier-bib'] = $val;
 		}
 
-// 		$ret = ($mods->xpath($root.$ns."note"));
-// 		$c = 0;
-// 		if ($ret && is_array($ret)) {
-// 			foreach ($ret as $r) {
-// 				$str = '';
-// 				if ($r['type']) {
-// 					$str = $r['type'].': '.$r;
-// 				} else {
-// 					$str = $r.'';
-// 				}
-// 				if ($str) {
-// 					$metadata['x-archive-meta'.sprintf("%02d", $c).'-description'] = str_replace('"', '\\"', $str);
-// 					$c++;
-// 				}
-// 			}
-// 		}
+		// $ret = ($mods->xpath($root.$ns."note"));
+		// $c = 0;
+		// if ($ret && is_array($ret)) {
+		// 	foreach ($ret as $r) {
+		// 		$str = '';
+		// 		if ($r['type']) {
+		// 			$str = $r['type'].': '.$r;
+		// 		} else {
+		// 			$str = $r.'';
+		// 		}
+		// 		if ($str) {
+		// 			$metadata['x-archive-meta'.sprintf("%02d", $c).'-description'] = str_replace('"', '\\"', $str);
+		// 			$c++;
+		// 		}
+		// 	}
+		// }
 		
 		$tm = time();
 		if (isset($this->CI->book->date_review_end) && $this->CI->book->date_review_end != '0000-00-00 00:00:00') {
@@ -2891,7 +2880,8 @@ class Internet_archive extends Controller {
 
 			return $metadata;
 		} else {
-			// If this is a virtual item, we need to continue without MARC XML
+			// If we have no MARC information AND we have no indicator that this
+			// is a virual item, do nothing. This is an invalid set of data.
 			if (!$this->CI->book->get_metadata('bhl_virtual_volume')) {
 				return null;
 			}		
@@ -2938,7 +2928,7 @@ class Internet_archive extends Controller {
 	// todo: make sure we are getting the volume or year properly. Should it come from the page?
 	// ----------------------------
 	function identifier($book, $metadata) {
-
+		
 		$this->CI->book->load($book->barcode);
 
 		$identifier = '';
@@ -2960,20 +2950,23 @@ class Internet_archive extends Controller {
 		// Get the title and author from MODS, sometimes it's not available on the book's metadata
 		// Process the title
 		
-		$title = $this->_utf8_clean($metadata['x-archive-meta-title']);
+		$title = iconv("UTF-8", "ASCII//TRANSLIT//IGNORE", $metadata['x-archive-meta-title']);
 		$title = preg_replace('/\b(the|a|an|and|or|of|for|to|in|it|is|are|at|of|by)\b/i', '', $title);
 		$title = preg_replace('/[^a-zA-Z0-9]/', '', $title);
 		$title = substr($title, 0, 15);
 		// Process the author
 		$author = '';
 		if (isset($metadata['x-archive-meta-creator'])) {
-			$author = $this->_utf8_clean($metadata['x-archive-meta-creator']);
+			$author = iconv("UTF-8", "ASCII//TRANSLIT//IGNORE", $metadata['x-archive-meta-creator']);
+			$author = substr(preg_replace('/[^a-zA-Z0-9]/', '', $author), 0, 4);
+		} elseif (isset($metadata['x-archive-meta01-creator'])) {
+			$author = iconv("UTF-8", "ASCII//TRANSLIT//IGNORE", $metadata['x-archive-meta01-creator']);
 			$author = substr(preg_replace('/[^a-zA-Z0-9]/', '', $author), 0, 4);
 		}
-		
+
 		while ($count3 <= 26) {
 		while ($count2 <= 26) {
-			while ($count <= 26) {			
+			while ($count <= 26) {
 				// If we got to this point, we don't have an identifier. Make a new one.
 				$number = '00';
 				$pages = $this->CI->book->get_pages();
@@ -2986,22 +2979,22 @@ class Internet_archive extends Controller {
 				}
 				$number = substr(preg_replace('/[^a-zA-Z0-9]/', '', $number), 0, 4);
 	
-	//			// We didn't get a volume, so let's check for a year
-	// 			if ($number == '') {
-	// 				foreach ($pages as $p) {
-	// 					if ($p->year) {
-	// 						// Add a couple of zeros and we'll take the last two digits, just to be safe
-	// 						if (preg_match('/.+(\d{2,})$/', '00'.$p->year, $m)) { // get the last two digits of the number
-	// 							$number = sprintf("%02d",$m[1]);
-	// 						}
-	// 						break;
-	// 					}
-	// 				}
-	// 			}
+				// // We didn't get a volume, so let's check for a year
+				// if ($number == '') {
+				// 	foreach ($pages as $p) {
+				// 		if ($p->year) {
+				// 			// Add a couple of zeros and we'll take the last two digits, just to be safe
+				// 			if (preg_match('/.+(\d{2,})$/', '00'.$p->year, $m)) { // get the last two digits of the number
+				// 				$number = sprintf("%02d",$m[1]);
+				// 			}
+				// 			break;
+				// 		}
+				// 	}
+				// }
 	
 				// Make this lowercase becuse SIL (and maybe others) uses it as a URL and URLs are case-insensitive (or should be)
 				$identifier = strtolower($title.$number.$author);
-	
+				
 				if ($count3 > 0) {
 					$identifier .= chr($count3+96);
 				}
@@ -3130,23 +3123,6 @@ class Internet_archive extends Controller {
 	}
 
 	// ----------------------------
-	// Function: _utf8_clean()
-	//
-	// Parameters:
-	//    $input: The string to clean
-	//
-	// Converts a string that may contain UTF characters to pure ASCII characters. This is
-	// not a perfect solution, but anything else was overly complicated. Generally this is
-	// needed when creating an identifer for use at internet archive.
-	// ----------------------------
-	function _utf8_clean($input) {
-		return strtr(utf8_decode($input),
-		           utf8_decode('ŠŒŽšœžŸ¥µÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýÿ'),
-		           'SOZsozYYuAAAAAAACEEEEIIIIDNOOOOOOUUUUYsaaaaaaaceeeeiiiionoooooouuuuyy');
-
-	}
-
-	// ----------------------------
 	// Function: _get_books()
 	//
 	// Parameters:
@@ -3254,11 +3230,11 @@ class Internet_archive extends Controller {
 		if (file_exists($destination) && !$overwrite) {
 			return false;
 		}
-    // We don't want giant paths!
-    $curdir = getcwd();
-    if ($working_dir) {
-			chdir($working_dir);   
-    }
+		// We don't want giant paths!
+		$curdir = getcwd();
+		if ($working_dir) {
+				chdir($working_dir);   
+		}
 		$valid_files = array();
 		//if files were passed in...
 		if (is_array($files)) {
