@@ -45,7 +45,7 @@
 	</style>
 </head>
 <body class="yui-skin-sam">
-	<hidden name="bookid" value="<?php echo  ?>"/>
+	<hidden name="bookid" value="<?php echo $id ?>"/>
 	<?php $this->load->view('global/header_view') ?>
 	<h1><?php echo $incomingpath?></h1>
 </body>

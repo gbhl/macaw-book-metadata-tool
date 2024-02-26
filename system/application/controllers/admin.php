@@ -1175,6 +1175,35 @@ class Admin extends Controller {
 		$content = $this->load->view('admin/stalled_exports');
 	}
 
+	function virtual_items_itemlist($name) {
+		if (!$this->common->check_session(true)) {
+			return;
+		}
+		$is_local_admin = $this->user->has_permission('local_admin');
+		$is_admin = $this->user->has_permission('admin');
+		$org_id = $this->user->org_id;
+
+		$sql = "select vi.*, i.status_code from ".
+			"custom_virtual_items vi inner join item i on vi.barcode = i.barcode ".
+			"where vi.source = ".$this->db->escape($name)." and i.status_code <> 'completed' ".
+			" UNION ".
+			"(select vi.*, i.status_code from ".
+			"custom_virtual_items vi inner join item i on vi.barcode = i.barcode ".
+			"where vi.source = ".$this->db->escape($name)." and i.status_code = 'completed' limit 100) order by created desc";
+		$query = $this->db->query($sql);
+		$rows = $query->result_array();
+
+		// Sort our records into the subarrays
+		foreach ($rows as $r) {
+			if ($is_admin || $org_id == $r->org_id) {
+				$data[] = $r;
+			}				
+		}
+		$this->common->ajax_headers();
+		echo json_encode(array('data' => $data));
+
+	}
+
 	function virtual_items($config = null, $name = null) {
 		$this->common->check_session();
 		// Permission Checking
@@ -1187,25 +1216,26 @@ class Admin extends Controller {
 		$data['sources'] = null;
 		$data['config'] = null;
 		$data['config_params'] = null;
-		$data['items'] = null;
 
 		if ($config && !$config != 'config') {
+			// ----------------------------------------
+			// List the articles and statuses for one source
+			// ----------------------------------------
+			$data['name'] = $config;
+
 			$sql = "select count(*) as thecount, status_code from ".
 			  "custom_virtual_items vi inner join item i on vi.barcode = i.barcode ".
-				"where vi.source = ".$this->db->escape($config)." group by status_code;";
+				"where vi.source = ".$this->db->escape($data['name'])." group by status_code order by status_code;";
 			$query = $this->db->query($sql);
 			$rows = $query->result_array();
 			$data['item_summary'] = $rows;
-
-			$sql = "select vi.*, i.status_code from ".
-			  "custom_virtual_items vi inner join item i on vi.barcode = i.barcode ".
-				"where vi.source = ".$this->db->escape($config)." order by created desc limit 10";
-			$query = $this->db->query($sql);
-			$rows = $query->result_array();
-			$data['items'] = $rows;
-
+			$data['filter'] = array('All', 'In Progress', 'Awaiting Export', 'Exporting', 'Completed');
+			unset($data['items']);
+			$data['view_items'] = 1;
 		} elseif ($config == 'config' && $name) {
-
+			// ----------------------------------------
+			// List the details of a source's configuration file
+			// ----------------------------------------
 			$macaw_config = $this->config->item('macaw'); // PHP Sucks, two step when one would suffice.
 			require_once($macaw_config['plugins_directory'].'/import/Virtual_items.php');
 			$vi_config = new Virtual_items();
@@ -1237,7 +1267,9 @@ class Admin extends Controller {
 			}
 			
 		} else {
-			// Load the Virtual Item list of configs
+			// ----------------------------------------
+			// List all sources and configuration files
+			// ----------------------------------------
 			$macaw_config = $this->config->item('macaw'); // PHP Sucks, two step when one would suffice.
 			require_once($macaw_config['plugins_directory'].'/import/Virtual_items.php');
 			$vi_config = new Virtual_items();
@@ -1279,6 +1311,7 @@ class Admin extends Controller {
 
 
 		}
+
 		$content = $this->load->view('admin/virtual_items', $data);
 	}
 }
