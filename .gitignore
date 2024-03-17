@@ -8,6 +8,7 @@ system/application/config/macaw.php
 # system/application/config/virtual_items
 system/application/config/virtual_items/*
 !system/application/config/virtual_items/sample-config.php
+!system/application/config/virtual_items/Sample-Source
 
 ########################################
 # PLUGINS
@@ -25,10 +26,7 @@ plugins/metadata/*
 !plugins/metadata/Generic.php
 !plugins/metadata/Standard_Metadata.js
 !plugins/metadata/Standard_Metadata.php
-!plugins/import/Virtual_items.php
-!plugins/import/virtual_items
-plugins/import/virtual_items/*
-!plugins/import/virtual_items/Sample-Source
+!plugins/import/Virtual_Item_Configs.php
 
 ########################################
 # DATA DIRECTORIES

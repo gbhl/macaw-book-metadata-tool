@@ -83,7 +83,7 @@
 						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/monthly_report"><img src="<?php echo $this->config->item('base_url'); ?>images/10_view_logs_icon_sm.png">Monthly Report</a></li>
 						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/scheduled_jobs"><img src="<?php echo $this->config->item('base_url'); ?>images/12_manually_run_icon_sm.png">Scheduled Jobs</a></li>
 						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/stalled_exports"><img src="<?php echo $this->config->item('base_url'); ?>images/10_view_logs_icon_sm.png">Stalled Exports</a></li>
-						<li class="last"><a href="<?php echo $this->config->item('base_url'); ?>admin/virtual_items"><img src="<?php echo $this->config->item('base_url'); ?>images/12_manually_run_icon_sm.png">Virtual Items</a></li>
+						<li class="last"><a href="<?php echo $this->config->item('base_url'); ?>virtual_items"><img src="<?php echo $this->config->item('base_url'); ?>images/12_manually_run_icon_sm.png">Virtual Items</a></li>
 					</ul>
 				</li>
 				<li class="top"><a href="#" title="This is how much disk space is remaining for macaw to use for TIFF files, etc."><?php print $free.'% Free'; ?></a></li>

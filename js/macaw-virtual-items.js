@@ -55,7 +55,7 @@
 					argument: []
 				}; 
 				YAHOO.util.Event.addListener("queue-filter", "change", VirtualListItems.updateData);
-				url = '/admin/virtual_items_itemlist/' + VirtualListItems.sourceName;
+				url = '/virtual_items/source_itemlist/' + VirtualListItems.sourceName;
 				var transaction = YAHOO.util.Connect.asyncRequest('GET', sBaseUrl + url, loadDataCallback);
 			}
 

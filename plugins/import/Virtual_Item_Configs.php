@@ -13,16 +13,18 @@
  * @version 1.0 admin.php created: 2010-09-20 last-modified: 2010-08-19
  **/
 
-class Virtual_items extends Controller {
+class Virtual_Item_Configs extends Controller {
 
 	private $CI;
 	private $cfg;
 	private $vi_config;
 	public $error;
-	public $config_path = 'plugins/import/virtual_items';
+	public $config_path = 'system/application/config/virtual_items';
+	public $working_path = 'system/application/config/virtual_items';
 
 	function __construct() {
 		$this->CI = get_instance();
+		$this->cfg = $this->CI->config->item('macaw');
 	}
 
 	/**
@@ -712,10 +714,23 @@ class Virtual_items extends Controller {
 				$this->CI->db->query(
 					"create table custom_virtual_items (".
 					  "source varchar(128), ".
+						"batch_id int,".
 					  "title varchar(128), ".
 					  "barcode varchar(128), ".
 					  "created timestamp, ".
 					  "PRIMARY KEY(`barcode`)".
+					  ") ENGINE=InnoDB CHARACTER SET=utf8 COLLATE=utf8_unicode_ci;"
+				);
+			}	
+			if (!$this->CI->db->table_exists('custom_virtual_items_batches')) {
+				$this->CI->db->query(
+					"create table custom_virtual_items_batches (".
+						"id int(11) auto_increment NOT NULL,".
+						"source_filename varchar(128), ".
+					  "uploader varchar(32), ".
+					  "total_items int, ".
+						"created timestamp, ".
+					  "PRIMARY KEY(`id`)".
 					  ") ENGINE=InnoDB CHARACTER SET=utf8 COLLATE=utf8_unicode_ci;"
 				);
 			}	
