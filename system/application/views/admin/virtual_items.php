@@ -6,48 +6,14 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=9" />
 	<title>Virtual Items | Macaw</title>
 	<?php $this->load->view('global/head_view') ?>
-	<script type="text/javascript">
-		/* Initialization script, called when the page is ready */
-    <?php if ($sources) { ?>
-  		function init() {
-        var myDataSource = new YAHOO.util.DataSource(YAHOO.util.Dom.get("viAllSources"));
-        myDataSource.responseType = YAHOO.util.DataSource.TYPE_HTMLTABLE;
-        myDataSource.responseSchema = {fields: [{ key: "Name" },{ key: "Path" },{ key: "Count", parser:"number" },{ key: "Valid" }]};
-        var myColumnDefs = [{ key: "Name" },{ key: "Path" },{ key: "Count" },{ key: "Valid" }];         
-        var myDataTable = new YAHOO.widget.DataTable("VirtualItemSources", myColumnDefs, myDataSource);
-      }
-  		YAHOO.util.Event.onDOMReady(init);
-    <?php } ?>
-    <?php if ($config) { ?>
-  		function init() {
-        var myDataSource = new YAHOO.util.DataSource(YAHOO.util.Dom.get("viConfig"));
-        myDataSource.responseType = YAHOO.util.DataSource.TYPE_HTMLTABLE;
-        myDataSource.responseSchema = {fields: [{ key: "Name" },{ key: "Value" }]};
-        var myColumnDefs = [{ key: "Name" },{ key: "Value" }];
-        var myDataTable = new YAHOO.widget.DataTable("VirtualItemConfig", myColumnDefs, myDataSource);
-      }
-  		YAHOO.util.Event.onDOMReady(init);
-    <?php } ?>
-    <?php if ($items) { ?>
-  		function init() {
-        var myDataSource = new YAHOO.util.DataSource(YAHOO.util.Dom.get("viSummary"));
-        myDataSource.responseType = YAHOO.util.DataSource.TYPE_HTMLTABLE;
-        myDataSource.responseSchema = {fields: [{ key: "Status" },{ key: "Count", parser:"number" }]};
-        var myColumnDefs = [{ key: "Status", formatter: formatStatus },{ key: "Count" }];
-        var myDataTable = new YAHOO.widget.DataTable("VirtualItemSummary", myColumnDefs, myDataSource);
-
-        var myDataSource = new YAHOO.util.DataSource(YAHOO.util.Dom.get("viLastTen"));
-        myDataSource.responseType = YAHOO.util.DataSource.TYPE_HTMLTABLE;
-        myDataSource.responseSchema = {fields: [{ key: "Identifier" },{ key: "Title" },{ key: "Created" },{ key: "Status" }]};
-        var myColumnDefs = [{ key: "Identifier" },{ key: "Title" },{ key: "Created", formatter: formatDateAge },{ key: "Status", formatter: formatStatus }];
-        var myDataTable = new YAHOO.widget.DataTable("VirtualItemLastTen", myColumnDefs, myDataSource);
-      }
-  		YAHOO.util.Event.onDOMReady(init);
-    <?php } ?>
-
-  </script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/themes/prism.min.css"/>
-
+  <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/themes/prism.min.css"/> -->
+	<?php if ($view_items) { ?>	
+		<script type="text/javascript">
+			VirtualListItems.displayMode = 'items';
+			VirtualListItems.sourceName = '<?php echo $name; ?>';
+			YAHOO.util.Event.onDOMReady(VirtualListItems.init);
+		</script>
+	<?php } ?>
 </head>
 <body id="manualbody" class="yui-skin-sam">
 	<?php $this->load->view('global/header_view') ?>
@@ -70,10 +36,14 @@
           ?>
         </tbody>
       </table>
-    </div>   
+    </div>
+		<script type="text/javascript">
+			VirtualListItems.displayMode = 'sources';
+			YAHOO.util.Event.onDOMReady(VirtualListItems.init);
+		</script>
   <?php } ?>
   
-  <?php  if ($config) { ?>
+  <?php if ($config) { ?>
     <h1>Virtual Item Configuration: <?php echo $name ?></h1>
     <div id="VirtualItemConfig" class="fulltable">
       <table id="viConfig">
@@ -98,10 +68,13 @@
         <pre class="language-php"><code class="language-php"><?php echo($raw_config); ?></code></pre>
       </div>
 		</div>
-
+		<script type="text/javascript">
+			VirtualListItems.displayMode = 'config';
+			YAHOO.util.Event.onDOMReady(VirtualListItems.init);
+		</script>
   <?php } ?>
   
-  <?php if ($items) { ?>
+  <?php if ($view_items) { ?>
     <h1>Virtual Item for <?php echo $name; ?></h1>
     <h2>Summary</h2>
     <div id="VirtualItemSummary" class="halftable">
@@ -121,29 +94,24 @@
       </table>
     </div>   
 
-    <h2>Last Ten Items</h2>
-    <div id="VirtualItemLastTen" class="fulltable">
-      <table id="viLastTen">
-        <thead>
-          <tr><th>Identifier</th><th>Title</th><th>Created</th><th>Status</th></tr>
-        </thead>
-        <tbody>
-          <?php foreach ($items as $i) {
-            echo "<tr>";
-              echo "<td>".$i['barcode']."</td>";
-              echo "<td>".$i['title']."</td>";
-              echo "<td style=\"white-space: nowrap;\">".$i['created']."</td>";
-              echo "<td style=\"white-space: nowrap;\">".$i['status_code']."</td>";
-            echo "</tr>";
-          }
-          ?>
-        </tbody>
-      </table>
-    </div>   
+    <h2>Items</h2>
+	
+		<div id="userqueues" class="fulltable">
+			<ul class="queueheading">
+				<li class="selected"><a href="#tab2">Virtual Item Articles</a></li>
+				<select id="queue-filter">
+					<?php foreach ($filter as $f) { ?>
+						<option value="<?php echo strtolower($f) ?>"><?php echo $f ?></option>
+					<?php } ?>
+				</select>
+			</ul>
+			<div class="yui-content"></div>
+			<div id="divInProgress"></div>
+		</div>
 
   <?php } ?>
 
 	<?php $this->load->view('global/footer_view') ?>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/prism.min.js"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/prism.min.js"></script> -->
 </body>
 </html>
