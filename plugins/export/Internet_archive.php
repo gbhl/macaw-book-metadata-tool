@@ -568,9 +568,9 @@ class Internet_archive extends Controller {
 				}
 
 				if ($file == '' || $file == 'creators') {
-					// create the IDENTIFIER_creators.xml file
-					write_file($fullpath.'/'.$id.'_creators.xml', $this->_create_creators_xml($id, $this->CI->book));
-					$this->CI->logging->log('book', 'debug', 'Created '.$id.'_creators.xml', $bc);
+					// create the IDENTIFIER_bhlcreators.xml file
+					write_file($fullpath.'/'.$id.'_bhlcreators.xml', $this->_create_creators_xml($id, $this->CI->book));
+					$this->CI->logging->log('book', 'debug', 'Created '.$id.'_bhlcreators.xml', $bc);
 				}
 
 				// upload the files to internet archive
@@ -822,7 +822,7 @@ class Internet_archive extends Controller {
 					$cmd .= ' --location';
 					$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
 					$cmd .= ' --header "x-archive-queue-derive:0"';
-					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_creators.xml" "http://s3.us.archive.org/'.$id.'/'.$id.'_creators.xml" 2>&1';
+					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_bhlcreators.xml" "http://s3.us.archive.org/'.$id.'/'.$id.'_bhlcreators.xml" 2>&1';
 					echo "\n\n".$cmd."\n\n";
 
 					if (!$this->cfg['testing']) {
@@ -843,7 +843,7 @@ class Internet_archive extends Controller {
 							}
 							$message = "Error processing export.\n\n".
 								"Identifier: {$bc}\n\n".
-								"File: {$id}_creators.xml\n\n".
+								"File: {$id}_bhlcreators.xml\n\n".
 								"Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
 							$this->CI->common->email_error($message);
 							if ($ret == 56 || $ret == 52) {
@@ -1051,11 +1051,20 @@ class Internet_archive extends Controller {
 			// Get a list of what was uploaded
 			$urls = $this->_get_derivative_urls($id);
 
+			// Is this a virtual item
+			$is_virtual_item = false;
+			if ($this->CI->book->get_metadata('bhl_virtual_titleid') || $this->CI->book->get_metadata('bhl_virtual_volume')) {
+				$is_virtual_item = true;
+			}
+
 			// We check a list of all files to determine if they are there. If they
 			// are, then the item was uploaded and processed successfully.
 			$verified = 1;
 			$error = '';
 			foreach ($this->required_extensions as $ext) {
+				// If this is a virtual item, we don't check for _marc.xml
+				if ($ext == '_marc.xml' && $is_virtual_item) { continue; }
+
 				if (!in_array($id.$ext, $urls[1])) {
 					if (!$error) {
 						$error = '('.$ext.' file not found)';
