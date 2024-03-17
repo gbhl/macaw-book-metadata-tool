@@ -508,6 +508,9 @@ class Virtual_items extends Controller {
 			$ret = $this->CI->book->load($info['barcode']);
 			$ret = $this->CI->book->import_images();
 			$this->CI->logging->log('book', 'info', "Finished loading images from PDF.", $info['barcode']);
+			
+			// Set the creator ids
+			$this->CI->book->set_metadata('creator_ids', $info['creator_ids']);
 
 			// Set the page metadata
 			// *********************************
