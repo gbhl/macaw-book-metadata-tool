@@ -13,7 +13,7 @@
 		dataTable: null,
 		dataSource: null,
 		displayMode: null,
-		sourceName: null,
+		SpreadsheetID: null,
 		init: function() {
 			if (VirtualListItems.displayMode == 'sources') {
         var myDataSource = new YAHOO.util.DataSource(YAHOO.util.Dom.get("viAllSources"));
@@ -57,7 +57,54 @@
 				YAHOO.util.Event.addListener("queue-filter", "change", VirtualListItems.updateData);
 				url = '/virtual_items/source_itemlist/' + VirtualListItems.sourceName;
 				var transaction = YAHOO.util.Connect.asyncRequest('GET', sBaseUrl + url, loadDataCallback);
-			}
+
+			} else if (VirtualListItems.displayMode == 'spreadsheet') {
+	 			// Set up the tabs
+				var loadDataCallback = {
+					success: function(o) {
+						eval('var r = '+ o.responseText);
+						if (r.redirect) {
+							window.location = r.redirect;
+						} else if (r.error) {
+							General.showErrorMessage(r.error);
+						} else {
+							// Set up the data tables
+							VirtualListItems.loadSpreadsheets(r.data);
+						}
+					},
+					failure: function(o) {
+						General.showErrorMessage('There was a problem loading the data. If it helps, the error was:<blockquote style="font-weight:bold;color:#990000;">'+o.statusText+"</blockquote>");
+					},
+					argument: []
+				}; 
+				// YAHOO.util.Event.addListener("queue-filter", "change", VirtualListItems.updateData);
+				url = '/virtual_items/source_spreadsheet_list/';
+				var transaction = YAHOO.util.Connect.asyncRequest('GET', sBaseUrl + url, loadDataCallback);
+
+			} else if (VirtualListItems.displayMode == 'spreadsheetitems') {
+				// Set up the tabs
+			 var loadDataCallback = {
+				 success: function(o) {
+					 eval('var r = '+ o.responseText);
+					 if (r.redirect) {
+						 window.location = r.redirect;
+					 } else if (r.error) {
+						 General.showErrorMessage(r.error);
+					 } else {
+						 // Set up the data tables
+						 VirtualListItems.loadTables(r.data);
+					 }
+				 },
+				 failure: function(o) {
+					 General.showErrorMessage('There was a problem loading the data. If it helps, the error was:<blockquote style="font-weight:bold;color:#990000;">'+o.statusText+"</blockquote>");
+				 },
+				 argument: []
+			 }; 
+			 YAHOO.util.Event.addListener("queue-filter", "change", VirtualListItems.updateData);
+			 url = '/virtual_items/source_itemlist/spreadsheet/' + VirtualListItems.SpreadsheetID;
+			 var transaction = YAHOO.util.Connect.asyncRequest('GET', sBaseUrl + url, loadDataCallback);
+
+		 }
 
 			MessageBox.init();
 
@@ -74,6 +121,27 @@
 				scope   : VirtualListItems.dataTable, 
 				argument: state 
 			}); 
+		},
+		loadSpreadsheets: function(data) {
+
+			fmtSpreadsheetLink = function(elLiner, oRecord, oColumn, oData) { 
+				var id = YAHOO.lang.escapeHTML(oData.replace(/\\'/g, "'")); 
+				elLiner.innerHTML = "<a href=\"" + sBaseUrl + "/virtual_items/source/Spreadsheet/" + oRecord.getData('id') + "\">" + oData + "</a>"; 
+			};
+			
+			var myColumnDefs = [
+				{key:"id",				      label: 'ID', sortable: false },
+				{key:"source_filename", label: 'Filename',    formatter:fmtSpreadsheetLink, sortable: false },
+				{key:"uploader",				label: 'Uploaded by', sortable: false },
+				{key:"total_items",		  label: '# Items',	    sortable: false },
+				{key:"created",	        label: 'Created',		  sortable: false },
+				{key:"status",	        label: 'Status',		  sortable: false }
+			];
+
+			dsSpreadsheet = new YAHOO.util.DataSource(data);
+			dsSpreadsheet.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
+			dsSpreadsheet.responseSchema = {fields: ["id","source_filename","uploader","total_items","created","status"] };
+			VirtualListItems.dataTable = new YAHOO.widget.DataTable("divSpreadsheets", myColumnDefs, dsSpreadsheet);
 		},
 		loadTables: function(data) {
 			
