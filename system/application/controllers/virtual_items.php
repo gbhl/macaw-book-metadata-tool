@@ -68,7 +68,7 @@ class Virtual_Items extends Controller {
 				$dirs = preg_split("/[\\/]/", $source_path);
 				$source = array(
 					'url' => $this->config->item('base_url')."virtual_items/source/".$dirs[4],
-					'config_url' => $this->config->item('base_url')."virtual_items/config/".$dirs[4],
+					'config_url' => $this->config->item('base_url')."virtual_items/view_config/".$dirs[4],
 					'name' => $dirs[4],
 					'path' => $source_path,
 					'item_count' => 0,
@@ -93,7 +93,7 @@ class Virtual_Items extends Controller {
 		$content = $this->load->view('virtual_items/sources', $data);
 	}
 
-	function source($name) {
+	function source($name, $id = null) {
 		$this->common->check_session();
 
 		// Permission Checking
@@ -106,6 +106,12 @@ class Virtual_Items extends Controller {
 		// ----------------------------------------
 		// List the articles and statuses for one source
 		// ----------------------------------------
+
+		if ($name == 'Spreadsheet') {
+			$this->source_spreadsheet($id);
+			return;
+		}
+
 		$data['name'] = $name;
 
 		$sql = "select count(*) as thecount, status_code from ".
@@ -122,7 +128,34 @@ class Virtual_Items extends Controller {
 
 	}
 
-	function source_itemlist($name) {
+	function source_spreadsheet($id = null) {
+		$this->common->check_session();
+
+		// Permission Checking
+		if (!$this->user->has_permission('admin') && !$this->user->has_permission('local_admin')) {
+			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			redirect($this->config->item('base_url').'main/listitems');
+			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
+		}
+
+		if ($id) {
+			$id = preg_replace("/[^0-9]/", '', $id);
+			$sql = "select * from custom_virtual_items_batches where id = $id";
+			$query = $this->db->query($sql);
+			$rows = $query->result_array();
+			$data = [];
+			$data['name'] = $rows[0]['source_filename'];
+			$data['uploaded_by'] = $rows[0]['uploader'];
+			$data['created'] = $rows[0]['created'];
+			$data['id'] = $id;
+			$data['filter'] = array('All', 'Awaiting Export', 'Exporting', 'Completed');
+			$content = $this->load->view('virtual_items/source_spreadsheet_items', $data);
+		} else {
+			$content = $this->load->view('virtual_items/source_spreadsheet', []);
+		}
+	}
+
+	function source_spreadsheet_list() {
 		if (!$this->common->check_session(true)) {
 			return;
 		}
@@ -130,17 +163,44 @@ class Virtual_Items extends Controller {
 		$is_admin = $this->user->has_permission('admin');
 		$org_id = $this->user->org_id;
 
+		// List all the spreadsheets that have been uploaded, and their statuses
+		$sql = "SELECT *, 'Unknown' as status from custom_virtual_items_batches ORDER BY created desc";
+		$query = $this->db->query($sql);
+		$rows = $query->result_array();
+
+		$data = [];
+		foreach ($rows as $r) {
+		//	if ($is_admin || $org_id == $r->org_id) {
+				$data[] = $r;
+		//	}				
+		}
+
+		$this->common->ajax_headers();
+		echo json_encode(array('data' => $data));
+
+	}
+
+	function source_itemlist($name, $id) {
+		if (!$this->common->check_session(true)) {
+			return;
+		}
+		$is_local_admin = $this->user->has_permission('local_admin');
+		$is_admin = $this->user->has_permission('admin');
+		$org_id = $this->user->org_id;
+		$id = preg_replace("/[^0-9]/", '', $id);
+
 		$sql = "select vi.*, i.status_code from ".
 			"custom_virtual_items vi inner join item i on vi.barcode = i.barcode ".
-			"where vi.source = ".$this->db->escape($name)." and i.status_code <> 'completed' ".
+			"where vi.source = ".$this->db->escape($name)." and vi.batch_id ".($id ? '= '.$id : "is null")." and i.status_code <> 'completed' ".
 			" UNION ".
 			"(select vi.*, i.status_code from ".
 			"custom_virtual_items vi inner join item i on vi.barcode = i.barcode ".
-			"where vi.source = ".$this->db->escape($name)." and i.status_code = 'completed' limit 100) order by created desc";
+			"where vi.source = ".$this->db->escape($name)." and vi.batch_id ".($id ? '= '.$id : "is null")." and i.status_code = 'completed' limit 100) order by created desc";
 		$query = $this->db->query($sql);
 		$rows = $query->result_array();
 
 		// Sort our records into the subarrays
+		$data = [];
 		foreach ($rows as $r) {
 			if ($is_admin || $org_id == $r->org_id) {
 				$data[] = $r;
@@ -150,7 +210,7 @@ class Virtual_Items extends Controller {
 		echo json_encode(array('data' => $data));
 	}
 
-	function config($name) {
+	function view_config($name) {
 		$this->common->check_session();
 
 		// Permission Checking
