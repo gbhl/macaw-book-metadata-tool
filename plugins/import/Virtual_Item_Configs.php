@@ -135,7 +135,6 @@ class Virtual_Item_Configs extends Controller {
 	 */
 	/* 
 	function process_oai_dc($name, $path, $single_id = null, $command = null) {
-		$counter = 0;
 		$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Processing OAI Feed");
 		// Set up some working folders for efficiency
 		$this->vi_config['working-path'] = $path.'/working';
@@ -263,9 +262,6 @@ class Virtual_Item_Configs extends Controller {
 					$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Added item with barcode ".$info['barcode']);
 				}
 			}
-			// TODO Remove this when testng is complete
-			$counter++;
-			if ($counter >= 10) { break; }
 		}
 		return $new_items;
 	}
@@ -284,7 +280,6 @@ class Virtual_Item_Configs extends Controller {
 	 */
 
 	function process_oai_mods($name, $path, $single_id = null, $command = null) {
-		$counter = 0;
 		$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Processing OAI Feed");
 		// Set up some working folders for efficiency
 		$this->vi_config['working-path'] = $path.'/working';
@@ -485,10 +480,6 @@ class Virtual_Item_Configs extends Controller {
 					$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Added item with barcode ".$info['barcode']);
 				}
 			}
-			// TODO Remove this when testng is complete
-			$counter++;
-			if ($counter >= 20) { break; }
-
 		}
 		return $new_items;
 	}
