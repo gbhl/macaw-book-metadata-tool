@@ -12,6 +12,8 @@ $vi['collections'] = ['biodiversity'];
 $vi['upload-org-id'] = 000000; // Macaw Identifier of the Uploading Organization
 $vi['contributor'] = 'PUBLISHER NAME'; // Also "Holding Institution"
 
+# TODO - Collect Type of Segment from BHL Vocabulary list
+
 // Copyright Info
 $vi['copyright'] = 1; // In copyright, permission granted
 $vi['creative-commons'] = 'http://creativecommons.org/licenses/by/4.0';
