@@ -50,45 +50,46 @@ class Virtual_Items extends Controller {
 		// ----------------------------------------
 		// List all sources and configuration files
 		// ----------------------------------------
-		require_once($this->cfg['plugins_directory'].'/import/Virtual_Item_Configs.php');
-		$vi_config = new Virtual_Item_Configs();
+		if (file_exists($this->cfg['plugins_directory'].'/import/Virtual_Item_Configs.php')) {
+			require_once($this->cfg['plugins_directory'].'/import/Virtual_Item_Configs.php');
+			$vi_config = new Virtual_Item_Configs();
 
-		$data = [];
-		// Find and process the Virtual Item Sources
-		$data['sources'] = [];
-		$dir = new DirectoryIterator($vi_config->config_path);
-		foreach ($dir as $fileinfo) {
-			if ($fileinfo->isDot()) {
-				continue;
-			}
-
-			if ($fileinfo->isDir()) {
-				$source_path = $fileinfo->getPathName().'/config.php';
-
-				$dirs = preg_split("/[\\/]/", $source_path);
-				$source = array(
-					'url' => $this->config->item('base_url')."virtual_items/source/".$dirs[4],
-					'config_url' => $this->config->item('base_url')."virtual_items/view_config/".$dirs[4],
-					'name' => $dirs[4],
-					'path' => $source_path,
-					'item_count' => 0,
-					'valid' => false,
-				);
-
-				if (file_exists($source_path)) {
-					// Load one Virtual Item Source configuration
-					$vi = []; require($source_path);
-					$source['valid'] = $vi_config->check_config($vi, $fileinfo->getPathName());
-
-					// Count the items
-					$query = $this->db->query("select count(*) as total from custom_virtual_items where source = ".$this->db->escape($dirs[4]));
-					$row = $query->result();					
-					$source['item_count'] = $row[0]->total;
+			$data = [];
+			// Find and process the Virtual Item Sources
+			$data['sources'] = [];
+			$dir = new DirectoryIterator($vi_config->config_path);
+			foreach ($dir as $fileinfo) {
+				if ($fileinfo->isDot()) {
+					continue;
 				}
-				$data['sources'][] = $source;
+
+				if ($fileinfo->isDir()) {
+					$source_path = $fileinfo->getPathName().'/config.php';
+
+					$dirs = preg_split("/[\\/]/", $source_path);
+					$source = array(
+						'url' => $this->config->item('base_url')."virtual_items/source/".$dirs[4],
+						'config_url' => $this->config->item('base_url')."virtual_items/view_config/".$dirs[4],
+						'name' => $dirs[4],
+						'path' => $source_path,
+						'item_count' => 0,
+						'valid' => false,
+					);
+
+					if (file_exists($source_path)) {
+						// Load one Virtual Item Source configuration
+						$vi = []; require($source_path);
+						$source['valid'] = $vi_config->check_config($vi, $fileinfo->getPathName());
+
+						// Count the items
+						$query = $this->db->query("select count(*) as total from custom_virtual_items where source = ".$this->db->escape($dirs[4]));
+						$row = $query->result();					
+						$source['item_count'] = $row[0]->total;
+					}
+					$data['sources'][] = $source;
+				}
 			}
 		}
-
 
 		$content = $this->load->view('virtual_items/sources', $data);
 	}
@@ -180,7 +181,7 @@ class Virtual_Items extends Controller {
 
 	}
 
-	function source_itemlist($name, $id) {
+	function source_itemlist($name, $id=null) {
 		if (!$this->common->check_session(true)) {
 			return;
 		}
