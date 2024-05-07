@@ -621,6 +621,13 @@ class Utils extends Controller {
 			echo "Permission denied to write to ".$tmp.'/import_export'.".\n";
 			die;			
 		}
+		if (!file_exists($tmp.'/import_export/serialize')) {
+			mkdir($tmp.'/import_export/serialize');
+		}
+		if (!is_writable($tmp.'/import_export/serialize')) {
+			echo "Permission denied to write to ".$tmp.'/import_export/serialize'.".\n";
+			die;
+		}
 		if (!file_exists($tmp.'/import_export/'.$barcode)) {
 			mkdir($tmp.'/import_export/'.$barcode);
 		}		
@@ -639,7 +646,7 @@ class Utils extends Controller {
 		# 2. Get the item_export_status information
 		$query = $this->db->query('select * from item_export_status where item_id = ?', array($id));
 		$item_export_status = $query->result();
-		write_file($tmp.'/import_export/'.$item_export_status.'/item_export_status.dat', serialize((array)$item_export_status));
+		write_file($tmp.'/import_export/'.$barcode.'/item_export_status.dat', serialize((array)$item_export_status));
 
 		# 3. Get the page information
 		echo "Pages... ";
@@ -660,7 +667,7 @@ class Utils extends Controller {
 		write_file($tmp.'/import_export/'.$barcode.'/metadata.dat', serialize($metadata));
 
 		# 5. Gather the files
-		$files = array('marc.xml', 'thumbs', 'preview');		
+		$files = array('marc.xml', 'thumbs', 'preview', 'scans');
 		foreach ($files as $f) {
 			echo "$f... ";
 			if (file_exists($this->cfg['data_directory'].'/'.$barcode.'/'.$f)) {
@@ -673,6 +680,7 @@ class Utils extends Controller {
 		# tar things up
 		echo "Creating $tmp/import_export/".$barcode.".tgz ...\n";
 		system('cd '.$tmp.'/import_export && tar fcz '.$barcode.'.tgz '.$barcode);
+		rename("$tmp/import_export/".$barcode.".tgz", "$tmp/import_export/serialize/".$barcode.".tgz");
 		# cleanup
 		system('rm -r '.$tmp.'/import_export/'.$barcode);
 		echo "Finished!\n";
@@ -729,6 +737,9 @@ class Utils extends Controller {
 		if (!file_exists($this->cfg['data_directory'].'/'.$barcode.'/preview')) {
 			mkdir($this->cfg['data_directory'].'/'.$barcode.'/preview');
 		}
+		if (!file_exists($this->cfg['data_directory'].'/'.$barcode.'/scans')) {
+			mkdir($this->cfg['data_directory'].'/'.$barcode.'/scans');
+		}
 		system('cd '.$tmp.'/import_export && tar fxz '.$barcode.'.tgz');
 		if (file_exists($tmp.'/import_export/'.$barcode.'/marc.xml')) {
 			system('mv -f '.$tmp.'/import_export/'.$barcode.'/marc.xml  '.$this->cfg['data_directory'].'/'.$barcode);
@@ -738,6 +749,9 @@ class Utils extends Controller {
 		}
 		if (file_exists($tmp.'/import_export/'.$barcode.'/preview')) {
 			system('mv -f '.$tmp.'/import_export/'.$barcode.'/preview/* '.$this->cfg['data_directory'].'/'.$barcode.'/preview/');
+		}
+		if (file_exists($tmp.'/import_export/'.$barcode.'/scans')) {
+			system('mv -f '.$tmp.'/import_export/'.$barcode.'/scans/* '.$this->cfg['data_directory'].'/'.$barcode.'/scans/');
 		}
 
 		$item = unserialize(read_file($tmp.'/import_export/'.$barcode.'/item.dat'));
