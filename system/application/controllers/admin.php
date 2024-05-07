@@ -1174,4 +1174,5 @@ class Admin extends Controller {
 	function stalled_exports(){
 		$content = $this->load->view('admin/stalled_exports');
 	}
+
 }

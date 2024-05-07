@@ -1,5 +1,4 @@
 <?php include('system/application/config/version.php'); ?>
-
 <!-- Combo-handled YUI CSS files: -->
 <link rel="stylesheet" type="text/css" href="<?php echo $this->config->item('base_url'); ?>css/yui-combo.css?v=<?php echo $version_rev; ?>">  
 <link rel="stylesheet" type="text/css" href="<?php echo $this->config->item('base_url'); ?>css/macaw.css?v=<?php echo $version_rev; ?>" id="macaw_css" />
@@ -23,3 +22,4 @@
 <script type="text/javascript" src="<?php echo $this->config->item('base_url'); ?>js/macaw-admin.js?v=<?php echo $version_rev; ?>"></script>
 <script type="text/javascript" src="<?php echo $this->config->item('base_url'); ?>js/macaw-import.js?v=<?php echo $version_rev; ?>"></script>
 <script type="text/javascript" src="<?php echo $this->config->item('base_url'); ?>js/macaw-export.js?v=<?php echo $version_rev; ?>"></script>
+<script type="text/javascript" src="<?php echo $this->config->item('base_url'); ?>js/macaw-virtual-items.js?v=<?php echo $version_rev; ?>"></script>
