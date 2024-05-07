@@ -956,7 +956,6 @@ class Internet_archive extends Controller {
 						} // if (!$this->cfg['testing'])
 					} // if ($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both')
 				} // if ($file == '' || $file == 'scans')
-
 				
 				// If we got this far, we were completely successful. Yay!
 
@@ -1069,8 +1068,6 @@ class Internet_archive extends Controller {
 					if (!$error) {
 						$error = '('.$ext.' file not found)';
 					}
-					// $this->CI->logging->log('book', 'info', 'Item failed to upload to internet archive. ('.$ext.' file not found)', $b->barcode);
-					// $this->CI->logging->log('access', 'info', 'Item with barcode '.$b->barcode.' failed to upload to internet archive. ('.$ext.' file not found)');
 					$verified = 0;
 					continue;
 				}
@@ -1157,8 +1154,6 @@ class Internet_archive extends Controller {
 					if (!$error) {
 						$error = '('.$ext.' file not found)';
 					}
-					// $this->CI->logging->log('book', 'info', 'Item NOT verified at internet archive. ('.$ext.' file not found)', $b->barcode);
-					// $this->CI->logging->log('access', 'info', 'Item with barcode '.$b->barcode.' NOT verified at internet archive. ('.$ext.' file not found)');
 					$verified = 0;
 					continue;
 				}
@@ -1313,7 +1308,6 @@ class Internet_archive extends Controller {
 							if ($this->cfg['purge_ia_deriatives']) {
 								echo 'The purging IA export directory '.$id."\n";
 								$cmd = 'rm -fr '.$this->cfg['data_directory'].'/import_export/Internet_archive/'.$id;
-								// system($cmd);
 							}
 						}
 
@@ -2613,9 +2607,6 @@ class Internet_archive extends Controller {
 		// Handle copyright - Permission Granted to Scan
 		} elseif ($this->CI->book->get_metadata('copyright') == '1'  || strtoupper($this->CI->book->get_metadata('copyright')) == 'T' ) {
 			$metadata['x-archive-meta-possible-copyright-status'] = "In copyright. Digitized with the permission of the rights holder.";
-			// TODO Verify this. It's new for in copyright items
-			// Looks to be a license url for the metadata, yes?
-			// $metadata['x-archive-meta-licenseurl'] = 'http://creativecommons.org/licenses/by-nc-sa/4.0/';
 			$metadata['x-archive-meta-rights'] = 'http://biodiversitylibrary.org/permissions';
 
 		// Handle copyright - Due Dillegene Performed to determine public domain status
@@ -2623,11 +2614,6 @@ class Internet_archive extends Controller {
 			$metadata['x-archive-meta-possible-copyright-status'] = "No known copyright restrictions as determined by scanning institution.";
 			$metadata['x-archive-meta-due-diligence'] = 'http://biodiversitylibrary.org/permissions';
 			$metadata['x-archive-meta-duediligence'] = 'http://biodiversitylibrary.org/permissions';
-			// TODO Verify this. It's new for in copyright items
-			// Looks to be a license url for the metadata, yes?
-			// if (isset($metadata['x-archive-meta-licenseurl'])) {
-			//   unset($metadata['x-archive-meta-licenseurl']);
-			// }
 
 		// Handle copyright - Default, we hope we never hit this
 		} else {
@@ -2639,7 +2625,6 @@ class Internet_archive extends Controller {
 			$ret = ($mods->xpath($root.$ns."titleInfo[not(@type)]/".$ns."title"));
 			if ($ret && count($ret) > 0) {
 				$metadata['x-archive-meta-title'] = str_replace('"', "'", $ret[0].'');
-				print "Setting x-archive-meta-title to ". $metadata['x-archive-meta-title']."\n";
 			}
 
 			$ret = ($mods->xpath($root.$ns."name/".$ns."role/".$ns."roleTerm[.='creator']/../../".$ns."namePart"));
@@ -2779,7 +2764,6 @@ class Internet_archive extends Controller {
 				$metadata['x-archive-meta-bhl--virtual--volume'] = $this->CI->book->get_metadata('bhl_virtual_volume').'';
 			}
 		}
-		
 
 		if ($this->CI->book->get_metadata('call_number')) {
 			$val = $this->CI->book->get_metadata('call_number').'';
@@ -2799,23 +2783,6 @@ class Internet_archive extends Controller {
 			$metadata['x-archive-meta-call-number'] = $val;
 			$metadata['x-archive-meta-identifier-bib'] = $val;
 		}
-
-		// $ret = ($mods->xpath($root.$ns."note"));
-		// $c = 0;
-		// if ($ret && is_array($ret)) {
-		// 	foreach ($ret as $r) {
-		// 		$str = '';
-		// 		if ($r['type']) {
-		// 			$str = $r['type'].': '.$r;
-		// 		} else {
-		// 			$str = $r.'';
-		// 		}
-		// 		if ($str) {
-		// 			$metadata['x-archive-meta'.sprintf("%02d", $c).'-description'] = str_replace('"', '\\"', $str);
-		// 			$c++;
-		// 		}
-		// 	}
-		// }
 		
 		$tm = time();
 		if (isset($this->CI->book->date_review_end) && $this->CI->book->date_review_end != '0000-00-00 00:00:00') {
@@ -2912,11 +2879,7 @@ class Internet_archive extends Controller {
 	function _create_marc_xml() {
 		// Just get the MARC XML from the book and format the XML file properly
 		$marc = $this->CI->book->get_metadata('marc_xml');
-		// if (!preg_match("/<\?xml.*?\/>/", $marc)) {
-		// 	return '<?xml version="1.0" encoding="UTF-8" ?'.'>'."\n".$marc;
-		// } else {
 		return $marc;
-		// }
 	}
 
 	// ----------------------------
@@ -2937,7 +2900,6 @@ class Internet_archive extends Controller {
 	// todo: make sure we are getting the volume or year properly. Should it come from the page?
 	// ----------------------------
 	function identifier($book, $metadata) {
-		
 		$this->CI->book->load($book->barcode);
 
 		$identifier = '';
@@ -2972,7 +2934,6 @@ class Internet_archive extends Controller {
 			$author = iconv("UTF-8", "ASCII//TRANSLIT//IGNORE", $metadata['x-archive-meta01-creator']);
 			$author = substr(preg_replace('/[^a-zA-Z0-9]/', '', $author), 0, 4);
 		}
-
 		while ($count3 <= 26) {
 		while ($count2 <= 26) {
 			while ($count <= 26) {
@@ -2987,23 +2948,8 @@ class Internet_archive extends Controller {
 					}
 				}
 				$number = substr(preg_replace('/[^a-zA-Z0-9]/', '', $number), 0, 4);
-	
-				// // We didn't get a volume, so let's check for a year
-				// if ($number == '') {
-				// 	foreach ($pages as $p) {
-				// 		if ($p->year) {
-				// 			// Add a couple of zeros and we'll take the last two digits, just to be safe
-				// 			if (preg_match('/.+(\d{2,})$/', '00'.$p->year, $m)) { // get the last two digits of the number
-				// 				$number = sprintf("%02d",$m[1]);
-				// 			}
-				// 			break;
-				// 		}
-				// 	}
-				// }
-	
 				// Make this lowercase becuse SIL (and maybe others) uses it as a URL and URLs are case-insensitive (or should be)
 				$identifier = strtolower($title.$number.$author);
-				
 				if ($count3 > 0) {
 					$identifier .= chr($count3+96);
 				}
