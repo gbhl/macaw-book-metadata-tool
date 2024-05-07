@@ -311,6 +311,20 @@ $config['macaw']['cc_licenses'] = array(
 	array('title' => 'CC BY-NC-SA 4.0', 'value' => 'http://creativecommons.org/licenses/by-nc-sa/4.0/'),
 	array('title' => 'CC BY-NC-ND 4.0', 'value' => 'http://creativecommons.org/licenses/by-nc-nd/4.0/'),
 );
+// ------------------------------
+// Item Metadata Groupings
+// ------------------------------
+// Use this to group the item level metadata fields into different sections when editing the data
+// Each element is an array. The value of each element will be the name of the section and the array
+// for each element contains the fieldnames (in desired order of display) for the fields in that section.
+// See Also: COPYRIGHT VALUES and CREATIVE COMMONS LICENSES
+
+$config['macaw']['item_metadata_groups'] = array(
+	'Copyright Information' => array('copyright','cc_license','rights_holder'),
+	'Optional Information' => array('copy_specific_information','scanning_institution','contributor'),
+	'Bibliographic Information' => array('title','author','year','volume','collection','marc_xml','text_direction','sponsor'),
+	'Miscellaneous' => array('from_pdf','pdf_source','ia_identifier'),
+);
 
 // ------------------------------
 // JPEG 2000 Quality
@@ -320,7 +334,7 @@ $config['macaw']['cc_licenses'] = array(
 // version 6.8.8-2 or later. 
 //
 // The setting "jpeg2000_quality" is used for JP2 files created from other iamges, TIFF, PNG.
-// The setting "jpeg2000_quality" is used for JP2 files created from PDFs uploaded to Macaw.
+// The setting "jpeg2000_quality_pdf" is used for JP2 files created from PDFs uploaded to Macaw.
 // $config['macaw']['jpeg2000_quality'] = '35';
 // $config['macaw']['jpeg2000_quality_pdf'] = '35';
 

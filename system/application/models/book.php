@@ -1159,8 +1159,10 @@ class Book extends Model {
 					}
 				}
 				
-				if ($info['marc_xml']) {
-					$marc_data = $info['marc_xml'];
+				if (isset($info['marc_xml'])) {
+					if ($info['marc_xml']) {
+						$marc_data = $info['marc_xml'];
+					}
 				}
 
 				if ($marc_data) {
