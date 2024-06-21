@@ -13,6 +13,7 @@
 
 $(function () {
     'use strict';
+	var loadingPDF = false;
 	
 	// Disables the Cancel button from the start.
 	$('.btn-warning.cancel').prop("disabled", true);
@@ -57,9 +58,6 @@ $(function () {
 		// Call when we start uploading a single file
 		// We need to know if we are uploading a PDF so we can handle buttons and messages later.
     $('#fileupload').bind('fileuploadsend', function (e, data) {
-			if (data.files["0"].name.match(/\.pdf$/)) {
-				loadingPDF = true;
-			}
 			// Enables the Cancel button while the file is being uploaded.
 			//$('.btn-warning.cancel').prop("disabled", false);
     });
@@ -84,13 +82,15 @@ $(function () {
     $('#fileupload').bind('fileuploaddone', function (e, data) {
     	if (data.result) {
 				if (data.result.reload) {
-					loadingPDF = true;
-					$('#pdfmessage')[0].innerHTML = 'Status: '+data.result.message;
-					$('#pdfmessage')[0].style.display = 'inline-block';
-					setTimeout(function(){
-						$('.' + $("#fileupload").fileupload("option").downloadTemplateId).remove();
-						initializeFiles();
-					}, 3000);
+					if (!loadingPDF) {
+						loadingPDF = true;
+						$('#pdfmessage')[0].innerHTML = 'Status: '+data.result.message;
+						$('#pdfmessage')[0].style.display = 'inline-block';
+						setTimeout(function(){
+							$('.' + $("#fileupload").fileupload("option").downloadTemplateId).remove();
+							initializeFiles();
+						}, 3000);
+					}
 				} else {
 					if (loadingPDF) {
 						if (hasMissingPages) {

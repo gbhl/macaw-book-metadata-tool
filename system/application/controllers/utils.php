@@ -1249,7 +1249,9 @@ class Utils extends Controller {
 		}
 		
 		// Mark that we are processing the PDF, but don't use built-in functions
-		// We might get a race condition
+		// We might get a race condition, and this will create multiple records
+		// for each pdf that is processing (if there are more than one uploaded 
+		// at the same time)
 		$this->db->insert('metadata', array(
 			'item_id'   => $this->book->id,
 			'fieldname' => 'processing_pdf',
@@ -1292,13 +1294,14 @@ class Utils extends Controller {
 		foreach ($pages as $p) {
 			$this->book->set_page_sequence($p->id, $seq++);
 		}
-		$this->book->update();
 
-		// Indicate that we are done processing the PDF			
+		// Indicate that we are done processing the PDF
+		// But we delete only one record just in case
+		// we are processing more than one PDF at a time
 		$this->db->query(
 			'delete from metadata
 			where item_id = '.$this->book->id.'
-			and page_id is null and fieldname = \'processing_pdf\''
+			and page_id is null and fieldname = \'processing_pdf\' limit 1'
 		);
 		if ($this->book->status == 'new' || $this->book->status == 'scanning') {
 			$this->book->set_status('scanning');
