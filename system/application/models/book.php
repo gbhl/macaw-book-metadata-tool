@@ -446,7 +446,11 @@ class Book extends Model {
 		} else {
 			$this->db->where('item_id', $this->id);
 		}
-		if ($order) {$this->db->order_by($order, $dir);}
+		if ($order) {
+			// Approximate a natural sort
+			$this->db->order_by('length('.$order.')', $dir);
+			$this->db->order_by($order, $dir);
+		}
 		if ($limit) {$this->db->limit($limit);}
 		$this->db->order_by('sequence_number');
 		$query = $this->db->get('page');
@@ -1871,9 +1875,12 @@ class Book extends Model {
 			exec($exec, $output);
 			$this->logging->log('book', 'info', 'After splitting '.$filename.', "gs" output is '.count($output), $this->barcode);			
 			// Done! Let's mark the images as having been derived from a PDF
-			$this->set_metadata('from_pdf', 'yes', true);
-			$this->set_metadata('pdf_source', $filename, false);
-			$this->book->update();
+
+			// Avoid using book->update and save
+			// directly to the database
+			// This fixes potential concurrency problems with multiple PDFs
+			$this->direct_set_metadata('from_pdf', 'yes');
+			$this->direct_set_metadata('pdf_source', $filename);
 		}
 	}
 	
@@ -2157,12 +2164,27 @@ class Book extends Model {
 				$titles[] = trim(preg_replace('/[,.;:\/ ]+$/', '', (string)$ret[0]));
 			}
 		}
-		$this->db->insert('metadata', array(
-			'item_id'   => $this->id,
-			'fieldname' => 'title',
-			'counter'   => 1,
-			'value'     => implode(' ', $titles)
-		));	
+		// Prevent duplicates
+		// Does the title already exist?
+		$this->db->select('*');
+		$this->db->where('item_id', $this->id);
+		$this->db->where('page_id', null);
+		$this->db->where('fieldname', 'title');
+		$rows = $this->db->get('metadata')->result_array();
+		if (count($rows)) {
+			// Yes, update it
+			$this->db->set(array('value' => implode(' ', $titles)));
+			$this->db->where('id', $rows[0]['id']);
+			$this->db->update('metadata');	
+		} else {
+			// No, Add it
+			$this->db->insert('metadata', array(
+				'item_id'   => $this->id,
+				'fieldname' => 'title',
+				'counter'   => 1,
+				'value'     => implode(' ', $titles)
+			));	
+		}
 	}
 	
 	/**
@@ -2228,6 +2250,78 @@ class Book extends Model {
 			array_push($collections, $row['value']);
 		}
 		return $collections;
+	}
+	
+	/**
+	 * Query the database for a metadata value.
+	 * 
+	 * This avoids any in-memory data to get the latest value(s) from the database. 
+	 * If the database contains multiple records, it returns only the first value found.
+	 * If no record is found, returns null.
+	 *
+	 * @param string [$filename] The field being sought.
+	 * @return (string|null) 
+	 * @since version 2.9
+	 */
+	function direct_get_metadata($fieldname) {
+		$this->db->select('*');
+		$this->db->where('item_id', $this->id);
+		$this->db->where('page_id', null);
+		$this->db->where('fieldname', $fieldname);
+		$rows = $this->db->get('metadata')->result_array();
+		if (count($rows) > 0) {
+			return ($rows[0]['value'] !== null ? $rows[0]['value'] : $rows[0]['value_large']);
+		}
+		return null;
+	}
+
+	/**
+	 * Directly insert metadata into the database
+	 * 
+	 * Determines if an exact field/value already exist.
+	 * If it does not, it is inserted, and allowed to 
+	 * be added multiple times. Values larger than 1000 bytes
+	 * are handled appropriately.
+	 *
+	 * @param string [$filename] The field being addded.
+	 * @param string [$filename] The value to save to the field.
+	 * @return null
+	 * @since version 2.9
+	 */
+	function direct_set_metadata($fieldname, $value) {
+		// See if our field and value exists
+		$this->db->select('*');
+		$this->db->where('item_id', $this->id);
+		$this->db->where('page_id', null);
+		$this->db->where('fieldname', $fieldname);
+		if (strlen($value) > 1000) {
+			$this->db->where('value_large', $value);
+		} else {
+			$this->db->where('value', $value);
+		}
+		$db_rows = $this->db->get('metadata')->result_array();
+		if (count($db_rows) == 0) { 
+			// Not found, so we need to add the field.
+			// Get the max counter for the field we are to add, just in
+			// case it's a duplicate field.
+			$counter = 0;
+			$this->db->select('max(counter) as c');
+			$this->db->where('item_id', $this->id);
+			$this->db->where('page_id', null);
+			$this->db->where('fieldname', $fieldname);
+			$max_c = $this->db->get('metadata')->result_array();
+			if (count($max_c)) {
+				$counter = $max_c[0]['c'];
+			}
+
+			// Insert the record
+			$counter++;
+			$this->db->query(
+				"INSERT INTO `metadata` (`item_id`, `page_id`, `fieldname`, `counter`, `value`) VALUES (?, NULL, ?, ?, ?);", 
+				array($this->id, $fieldname, $counter, $value)
+			);
+		}
+		return null;
 	}
 
 }
