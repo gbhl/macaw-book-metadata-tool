@@ -1861,6 +1861,8 @@ class Book extends Model {
 			} else {
 				$outname = escapeshellarg($scans_dir.preg_replace('/^(.+)\.(.*?)$/', '$1', $filename).'_%04d.png');
 			}
+			$outname = str_replace('+', '_', $outname);
+			$outname = str_replace(',', '_', $outname);
 			$this->logging->log('book', 'info', 'About to split  '.$filename.' to PNG files', $this->barcode);
 			// Find ghostscript
 			$gs = 'gs';
