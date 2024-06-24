@@ -1137,15 +1137,20 @@ class Utils extends Controller {
 
 		$query = $this->db->query('select count(*) from item_export_status where item_id = ?', array($id));
 		$count = $query->result();
-		$record_count = $record_count + $count[0]->count;
-
+		if (isset($count[0]->count)) {
+			$record_count = $record_count + $count[0]->count;
+		} 
 		$query = $this->db->query('select count(*) from page where item_id = ?', array($id));
 		$count = $query->result();
-		$record_count = $record_count + $count[0]->count;
+		if (isset($count[0]->count)) {
+			$record_count = $record_count + $count[0]->count;
+		} 
 
 		$query = $this->db->query('select count(*) from metadata where item_id = ?', array($id));
 		$count = $query->result();
-		$record_count = $record_count + $count[0]->count;
+		if (isset($count[0]->count)) {
+			$record_count = $record_count + $count[0]->count;
+		} 
 		
 		echo "You are about to delete ".count($files)." files and $record_count database records.\nAre you sure you want to continue? (y/N) ";
 
