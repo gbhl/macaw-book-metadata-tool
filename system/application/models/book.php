@@ -1056,6 +1056,31 @@ class Book extends Model {
 					}
 				}
 
+				// Normalize the CC License from what's in the Macaw config file
+				// If it's not there, it's not allowed.
+				if (isset($info['cc_license']) && $info['cc_license']) {
+					$licenses = array('/\/by\//', '/\/by-sa\//', '/\/by-nd\//', '/\/by-nc\//', '/\/by-nc-sa\//', '/\/by-nc-nd\//', '/\/zero\//');
+					$matches = [];
+					if (preg_match("/(by(-nc)?(-sa)?(-nd)?|zero)/", $info['cc_license'], $matches)) {
+						$this->logging->log('book', 'info', 'Found CC license '.$matches[1], $info['barcode']);
+						$new_license = '';
+						foreach ($this->cfg['cc_licenses'] as $ccl) {
+							if (preg_match('/\/'.$matches[1].'\//', $ccl['value'])) {
+								$new_license = $ccl['value'];
+								break;
+							}
+						}
+						if ($new_license) {
+							$info['cc_license'] = $new_license;
+							$this->logging->log('book', 'info', 'Normalized CC license to '.$ccl['value'], $info['barcode']);
+						} else {
+							$this->logging->log('book', 'info', 'Unable to normalize CC license: '.$info['cc_license'], $info['barcode']);
+						}
+					} else {
+						$this->logging->log('book', 'info', 'CC license not found: '.$info['cc_license'], $info['barcode']);
+					}
+				}
+
 				// Create the item record in the database
 				if (!isset($this->CI->user->username) || !$this->CI->user->username) {
 					$this->CI->user->load('admin');
