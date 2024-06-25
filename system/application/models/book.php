@@ -1061,11 +1061,11 @@ class Book extends Model {
 				if (isset($info['cc_license']) && $info['cc_license']) {
 					$licenses = array('/\/by\//', '/\/by-sa\//', '/\/by-nd\//', '/\/by-nc\//', '/\/by-nc-sa\//', '/\/by-nc-nd\//', '/\/zero\//');
 					$matches = [];
-					if (preg_match("/(by(-nc)?(-sa)?(-nd)?|zero)/", $info['cc_license'], $matches)) {
+					if (preg_match("/(by(-nc)?(-sa)?(-nd)?|zero)/i", $info['cc_license'], $matches)) {
 						$this->logging->log('book', 'info', 'Found CC license '.$matches[1], $info['barcode']);
 						$new_license = '';
 						foreach ($this->cfg['cc_licenses'] as $ccl) {
-							if (preg_match('/\/'.$matches[1].'\//', $ccl['value'])) {
+							if (preg_match('/\/'.$matches[1].'\//i', $ccl['value'])) {
 								$new_license = $ccl['value'];
 								break;
 							}
