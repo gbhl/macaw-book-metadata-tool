@@ -1062,7 +1062,7 @@ class Book extends Model {
 					$licenses = array('/\/by\//', '/\/by-sa\//', '/\/by-nd\//', '/\/by-nc\//', '/\/by-nc-sa\//', '/\/by-nc-nd\//', '/\/zero\//');
 					$matches = [];
 					if (preg_match("/(by(-nc)?(-sa)?(-nd)?|zero)/i", $info['cc_license'], $matches)) {
-						$this->logging->log('book', 'info', 'Found CC license '.$matches[1], $info['barcode']);
+						$this->logging->log('book', 'info', 'CC license found: '.$matches[1], $info['barcode']);
 						$new_license = '';
 						foreach ($this->cfg['cc_licenses'] as $ccl) {
 							if (preg_match('/\/'.$matches[1].'\//i', $ccl['value'])) {
@@ -1072,9 +1072,9 @@ class Book extends Model {
 						}
 						if ($new_license) {
 							$info['cc_license'] = $new_license;
-							$this->logging->log('book', 'info', 'Normalized CC license to '.$ccl['value'], $info['barcode']);
+							$this->logging->log('book', 'info', 'CC license normalized to: '.$ccl['value'], $info['barcode']);
 						} else {
-							$this->logging->log('book', 'info', 'Unable to normalize CC license: '.$info['cc_license'], $info['barcode']);
+							$this->logging->log('book', 'info', 'CC license could not normalize: '.$info['cc_license'], $info['barcode']);
 						}
 					} else {
 						$this->logging->log('book', 'info', 'CC license not found: '.$info['cc_license'], $info['barcode']);
