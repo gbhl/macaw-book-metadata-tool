@@ -905,7 +905,13 @@ class CI_DB_active_record extends CI_DB_driver {
 				$part = trim($part);
 				if ( ! in_array($part, $this->ar_aliased_tables))
 				{
-					$part = $this->_protect_identifiers(trim($part));
+					// JMR 8/2/2024 - This is getting in the way of using functions
+					// in ORDER BY clauses. It will escape part of the function params
+					// which causes an error. WE also don't use spaces in our fieldnames
+					// so this is redundant for Macaw.
+					// 
+					// $part = $this->_protect_identifiers(trim($part));
+					$part = trim($part);
 				}
 				
 				$temp[] = $part;
