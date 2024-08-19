@@ -22,6 +22,16 @@ class Virtual_Item_Configs extends Controller {
 	public $config_path = 'system/application/config/virtual_items';
 	public $working_path = 'system/application/config/virtual_items';
 
+	private $id_types = array(
+		array('doi' => 'VIAF', 'mods' => 'viaf', 'bhl' => 'viaf'),
+		array('doi' => 'ORCID', 'mods' => 'orcid', 'bhl' => 'orcid'),
+		array('doi' => 'BioStor', 'mods' => 'biostor', 'bhl' => 'biostor'),
+		array('doi' => 'DLC', 'mods' => 'dlc', 'bhl' => 'dlc'),
+		array('doi' => 'ResearchGate', 'mods' => 'researchgate', 'bhl' => 'researchgate profile'),
+		array('doi' => 'SNAC', 'mods' => 'snac ', 'bhl' => 'snac ark'),
+		array('doi' => 'Tropicos', 'mods' => 'tropicos', 'bhl' => 'tropicos'),
+	);
+
 	function __construct() {
 		$this->CI = get_instance();
 		$this->cfg = $this->CI->config->item('macaw');
@@ -102,22 +112,18 @@ class Virtual_Item_Configs extends Controller {
 		// Validate the configuration		
 		if (!$this->check_config($config, $path)) {
 			$this->CI->logging->log('access', 'error', "Virutal Items: Source: $name: Config file is not valid");
-			print "Config File for ".$name." is not valid\n";
 			return false;
 		}
 		if ($config['feed-type'] == 'oai_dc') {
 			$this->vi_config = $config;
-			print "Processing OAI-DC\n";
 			$this->process_oai_dc($name, $path, $single_id, $command);
 		}
 		if ($config['feed-type'] == 'oai_mods') {
 			$this->vi_config = $config;
-			print "Processing OAI-MODS\n";
 			$this->process_oai_mods($name, $path, $single_id, $command);
 		}
 		if ($config['feed-type'] == 'spreadsheet') {
 			$this->vi_config = $config;
-			print "Processing Spreadsheet\n";
 			$this->process_spreadsheet($name, $path, $single_id, $command);
 		}
 	}
@@ -213,18 +219,17 @@ class Virtual_Item_Configs extends Controller {
 				// Create Virtual Item ID
 				$vi_data = [];
 				$vi_data = $this->vi_config['vi-identifier-data']($this->vi_config, $info, $r);
-				$info['bhl_virtual_titleid'] = $this->vi_config['title-id'];
 				$info['bhl_virtual_volume'] = $vi_data['virtual-volume'];
 				$info['volume'] = $vi_data['volume'];
 				$info['series'] = $vi_data['series'];
 				$info['issue'] = $vi_data['issue'];
 				$info['segment_date'] = $vi_data['year'];
-				$info['page_start'] = $vi_data['page-start'];
-				$info['page_end'] = $vi_data['page-end'];
+				$info['page_start'] = $vi_data['page_start'];
+				$info['page_end'] = $vi_data['page_end'];
 				$info['year'] = $vi_data['year'];
 				$info['date'] = $vi_data['date'];
 				$info['source'] = $vi_data['source'];
-				$info['page_range'] = $vi_data['page-range'];
+				$info['page_range'] = $vi_data['page_range'];
 
 				// TODO Remove this for production
 				// -------------------------------
@@ -299,7 +304,6 @@ class Virtual_Item_Configs extends Controller {
 		// Reminder: read_oai returns an array of XML fragments
 
 		$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Got ".count($records)." records: $name");
-		print  "Virutal Items: Source: $name: Got ".count($records)." records: $name\n";
 		$new_items = [];
 		foreach ($records as $r) {
 			$r = new SimpleXMLElement($r);
@@ -308,149 +312,150 @@ class Virtual_Item_Configs extends Controller {
 			$id = $this->safe_xpath($r, '//header/identifier', 0);
 
 			$barcode = preg_replace("/[\/.]/", '_', $id); // No slashes!;
-			if ($this->record_exists($barcode)) {
-				print "Virutal Items: Source: $name: OAI Record $id already processed\n";
-				// Have we seen the item?
-				// Yes, report and skip.
-				$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: OAI Record $id already processed");
-			} else {
+			if (!$this->record_exists($barcode)) {
 				// pull the details and build the metadata
 				$info = [];
 				$info['barcode'] = $barcode; 
 				$this->CI->logging->log('book', 'info', "Creating Virtual Item Segment item.", $info['barcode']);
 
-				$info['journal_title'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:titleInfo/mods:title", 0);
-				$info['title'] = $this->safe_xpath($r, "//mods:mods/mods:titleInfo/mods:title", 0);
-				$info['volume'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:detail[@type='volume']/mods:number", 0);
-				$info['issue'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:detail[@type='issue']/mods:number", 0);
-				$info['number'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:detail[@type='number']/mods:number", 0);
-				$info['series'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:detail[@type='series']/mods:number", 0);
-				$info['page_start'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:extent[@unit='pages']/mods:start", 0);
-				$info['page_end'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:extent[@unit='pages']/mods:end", 0);
-				$matches = [];
-				$info['page_range'] = null;
-				if (preg_match('/(\d+)\-(\d+)/', $info['page_start'], $matches)) {
-					$info['pages'] = $info['page_start'];
-					$info['page_range'] = $info['page_start'];
-					$info['page_start'] = $matches[1];
-					$info['page_end'] = $matches[2];
-				}
-
-				// $foo = $r->xpath("//mods:relatedItem[@type='host']/mods:part/mods:date");
-				// $info['date'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:date", 0);
-				// print_r($foo[0]->asXML());
-				// print_r($info['date']);
-				// die;
-
-
-				$info['date'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:date", 0);
-
-				$journal_year = '';
-				if (preg_match('/^\d\d\d\d$/', $info['date'])) {
-					$info['year'] = $info['date'];
-					$info['date'] = $this->safe_xpath($r, "//mods:extension/mods:dateAvailable", 0);
-				}
-				
-				$info['holding_institution'] = $this->vi_config['contributor'];
-				$info['publisher'] = $this->safe_xpath($r, "//mods:originInfo/mods:publisher", 0);
-				$info['sponsor'] = $info['holding_institution'];
-				$info['org_id'] = $this->vi_config['upload-org-id'];; 
-				$info['genre'] = 'article';
-				$info['collections'] = $this->vi_config['collections']; 
-				// Copyright info all comes from the config file
-				// There is no mechanism to pull it from the OAI feed (yet?)
-				$info['copyright'] = $this->vi_config['copyright'];
-				$info['cc_license'] = $this->vi_config['creative-commons'];
-				$info['rights_holder'] = $this->vi_config['rights-holder'];
-				// $info['possible_copyright_status'] = $this->vi_config['possible-copyright-status'];
-				$info['rights'] = $this->vi_config['rights'];
-				
-				$info['subject'] = $this->safe_xpath($r, "//mods:subject/mods:topic");
-				for ($i=0; $i < count($info['subject']); $i++) { $info['subject'][$i] = (string)$info['subject'][$i]; }
-
-				$info['creator'] = $this->safe_xpath($r, "//mods:mods/mods:name/mods:role/mods:roleTerm[text()=\"author\"]/../../mods:namePart");
-				for ($i=0; $i < count($info['creator']); $i++) { $info['creator'][$i] = (string)$info['creator'][$i]; }
-				
-				$creator_ids = [];
-				foreach ($info['creator'] as $c) {
-					$res = [];
-					$res['name'] = $c;
-					$orcid = $this->safe_xpath($r, "//mods:mods/mods:name/mods:role/mods:roleTerm[text()=\"author\"]/../../mods:namePart[text()=\"$c\"]/../mods:nameIdentifier[@type=\"orcid\"]");
-					if (is_array($orcid) && count($orcid)) {
-						$res['orcid'] = (string)$orcid[0];
-					}
-					$viaf = $this->safe_xpath($r, "//mods:mods/mods:name/mods:role/mods:roleTerm[text()=\"author\"]/../../mods:namePart[text()=\"$c\"]/../mods:nameIdentifier[@type=\"viaf\"]");
-					if (is_array($viaf) && count($viaf)) {
-						$res['viaf'] = (string)$viaf[0];
-					}
-					$zbaut = $this->safe_xpath($r, "//mods:mods/mods:name/mods:role/mods:roleTerm[text()=\"author\"]/../../mods:namePart[text()=\"$c\"]/../mods:nameIdentifier[@type=\"zbaut\"]");
-					if (is_array($zbaut) && count($zbaut)) {
-						$res['zbaut'] = (string)$zbaut[0];
-					}
-					$scopus = $this->safe_xpath($r, "//mods:mods/mods:name/mods:role/mods:roleTerm[text()=\"author\"]/../../mods:namePart[text()=\"$c\"]/../mods:nameIdentifier[@type=\"scopus\"]");
-					if (is_array($scopus) && count($scopus)) {
-						$res['scopus'] = (string)$scopus[0];
-					}
-					$rid = $this->safe_xpath($r, "//mods:mods/mods:name/mods:role/mods:roleTerm[text()=\"author\"]/../../mods:namePart[text()=\"$c\"]/../mods:nameIdentifier[@type=\"rid\"]");
-					if (is_array($rid) && count($rid)) {
-						$res['rid'] = (string)$rid[0];
-					}
-					$creator_ids[] = $res;
-				}
-				$info['creator_ids'] = json_encode($creator_ids);
-				$info['abstract'] = $this->safe_xpath($r, "//mods:abstract", 0);
-			
-				for ($i = 0; $i < count($info['creator']); $i++) {
-					$info['creator'][$i] = html_entity_decode(preg_replace('/,([^ ])/', ', \1', $info['creator'][$i]));
-				}
-
-				// Language
-				$info['language'] = null;
-				$tmp = $this->safe_xpath($r, "//mods:language/mods:languageTerm");
-				if ($tmp) {
-					$attrs = $tmp[0]->attributes();
-					if ((string)$attrs['authority'] == 'rfc3066') {
-						$lang = (string)$tmp[0];
-						// Language identifier. e.g. en_US, es_ES, 
-						$lang = preg_replace('/[-_].+$/', '', $lang);
-						$info['language'] =  $this->iso639_2to3($lang);
-					} else {
-						$info['language'] = (string)$tmp[0];
-					}
-				}
-				
-				// Figure out the DOI
+				// Figure out the DOI\
 				$info['doi'] = $this->safe_xpath($r, "//mods:mods/mods:identifier[@type='doi']", 0);
+				$doi_details = [];
+
+				// There are common regardless of the source of data
+				$info['genre'] = 'article';
+				$info['org_id'] = $this->vi_config['upload-org-id'];; 
+				$info['collections'] = $this->vi_config['collections']; 
+				$info['copyright'] = $this->vi_config['copyright'];
+				$info['rights_holder'] = $this->vi_config['rights-holder'];
+				$info['rights'] = $this->vi_config['rights'];
+				$info['holding_institution'] = $this->vi_config['contributor'];
+				$info['sponsor'] = $this->vi_config['contributor']; // Yes, they are the same
+
+				// If we have a DOI, use that to fill in all of the data
+				$used_doi = false;
 				if ($info['doi']) {
-					if (!preg_match('/^10.\d{4,9}\/[-._;()\/:A-Z0-9]+$/i', $info['doi'])) {
-						if (preg_match('/doi/i', $tmp[0])) {
-							$info['doi'] = $this->normalize_doi($info['doi']);
-						}
-					}					
+					$info['doi'] = $this->normalize_doi($info['doi']);
+					$used_doi = $this->process_doi($info);
 				}
 
+				// Fill in the blanks: fall back to the MODS when something is blank
+
+				if (!isset($info['subject'])) {
+					$info['subject'] = $this->safe_xpath($r, "//mods:subject/mods:topic");
+					for ($i=0; $i < count($info['subject']); $i++) { $info['subject'][$i] = (string)$info['subject'][$i]; }
+				}
+
+				if (!isset($info['language'])) {
+					// $info['language'] = null;
+					$tmp = $this->safe_xpath($r, "//mods:language/mods:languageTerm");
+					if ($tmp) {
+						$attrs = $tmp[0]->attributes();
+						if ((string)$attrs['authority'] == 'rfc3066') {
+							$lang = (string)$tmp[0];
+							// Language identifier. e.g. en_US, es_ES, 
+							$lang = preg_replace('/[-_].+$/', '', $lang);
+							$info['language'] =  $this->iso639_2to3($lang);
+						} else {
+							$info['language'] = (string)$tmp[0];
+						}
+					}
+				}
+
+				if (!isset($info['abstract'])) {
+					$info['abstract'] = $this->safe_xpath($r, "//mods:abstract", 0);
+				}
+				if (!isset($info['cc_license'])) {
+					// default to the config file
+					$info['cc_license'] = $this->vi_config['creative-commons'];
+				}
+				if (!isset($info['publisher'])) {
+					$info['publisher'] = $this->safe_xpath($r, "//mods:originInfo/mods:publisher", 0);
+				}
+				if (!isset($info['journal_title'])) {
+					$info['journal_title'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:titleInfo/mods:title", 0);
+				}
+				if (!isset($info['volume'])) {
+					$info['volume'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:detail[@type='volume']/mods:number", 0);
+				}
+				if (!isset($info['issue'])) {
+					$info['issue'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:detail[@type='issue']/mods:number", 0);
+				}
+				if (!isset($info['number'])) {
+					$info['number'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:detail[@type='number']/mods:number", 0);
+				}
+				if (!isset($info['series'])) {
+					$info['series'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:detail[@type='series']/mods:number", 0);
+				}
+				if (!isset($info['date'])) {
+					$info['date'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:date", 0);
+				}
+				if (!isset($info['year']) && isset($info['date'])) {
+					if (preg_match('/^\d\d\d\d$/', $info['date'])) {
+						$info['year'] = $info['date'];
+						$info['date'] = $this->safe_xpath($r, "//mods:extension/mods:dateAvailable", 0);
+					} else {
+						$matches = [];
+						if (preg_match('/(\d\d\d\d)/', $info['date'], $matches)) {
+							$info['year'] = $matches[1];
+						}
+					}
+				}
+				if (!isset($info['page_start'])) {
+					$info['page_start'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:extent[@unit='pages']/mods:start", 0);
+				}
+				if (!isset($info['page_end'])) {
+					$info['page_end'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:extent[@unit='pages']/mods:end", 0);
+				}
+				if (!isset($info['page_range']) && isset($info['page_start']) && isset($info['page_end'])) {
+					$info['page_range'] = $info['page_start'].'-'.$info['page_end'];
+				}
+				if (!isset($info['pages']) && isset($info['page_start']) && isset($info['page_end'])) {
+					$info['pages'] = (int)$info['page_end'] - (int)$info['page_start'] + 1;
+				}
+				if (!isset($info['creator'])) {
+					$info['creator'] = $this->safe_xpath($r, "//mods:mods/mods:name/mods:role/mods:roleTerm[text()=\"author\"]/../../mods:namePart");
+					for ($i=0; $i < count($info['creator']); $i++) { 
+						$info['creator'][$i] = html_entity_decode(preg_replace('/,([^ ])/', ', \1', (string)$info['creator'][$i]));
+					}
+				}
+				if (!isset($info['creator_ids'])) {
+					$creator_ids = [];
+					foreach ($info['creator'] as $c) {
+						$res = [];
+						$res['name'] = $c;
+						
+						// Get the ID(s) from the MODS
+						foreach ($this->id_types as $type) {
+							$id_value = $this->safe_xpath($r, "//mods:mods/mods:name/mods:role/mods:roleTerm[text()=\"author\"]/../../mods:namePart[text()=\"$c\"]/../mods:nameIdentifier[@type=\"".$type['mods']."\"]");
+							if (is_array($id_value) && count($id_value)) {
+								$res[$type['bhl']] = (string)$id_value[0];
+							}	
+						}
+
+						$creator_ids[] = $res;
+					}
+					$info['creator_ids'] = json_encode($creator_ids);
+				}
+				
 				// Create Virtual Item ID and overwrite with custom info from the config
+				// TODO Make sure the various configs are prepared for this. (dashes vs underscores)
 				$vi_data = [];
 				$vi_data = $this->vi_config['vi-identifier-data']($this->vi_config, $info, $r);
-				$info['bhl_virtual_titleid'] = $this->vi_config['title-id'];
+				$info['bhl_virtual_titleid'] = $vi_data['virtual-id'];
 				$info['bhl_virtual_volume'] = $vi_data['virtual-volume'];
 				$info['volume'] = $vi_data['volume'];
 				$info['series'] = $vi_data['series'];
 				$info['issue'] = $vi_data['issue'];
-				$info['page_start'] = $vi_data['page-start'];
-				$info['page_end'] = $vi_data['page-end'];
-				$info['page_range'] = $vi_data['page-range'];
+				$info['page_start'] = $vi_data['page_start'];
+				$info['page_end'] = $vi_data['page_end'];
+				$info['page_range'] = $vi_data['page_range'];
 				$info['year'] = $vi_data['year'];
 				$info['date'] = $vi_data['date'];
 				$info['source'] = $vi_data['source'];
 
-				// TODO Remove this for production
-				// -------------------------------
-				$info['noindex'] = '1';
-				// -------------------------------
-				
 				// Get the PDF
-				$pdf_path = $this->vi_config['get-pdf']($this->vi_config, $r);
+				$pdf_path = $this->vi_config['get-pdf']($this->vi_config, $r, $info);
 
 				if (!$pdf_path) {
 					$this->CI->logging->log('book', 'error', "Could not get PDF for item. Aborting.", $info['barcode']);
@@ -482,6 +487,165 @@ class Virtual_Item_Configs extends Controller {
 			}
 		}
 		return $new_items;
+	}
+
+	/* ----------------------------
+	 * Function: process_doi()
+	 *
+	 * Parameters: $info
+	 *
+     * Extract what info we can from the DOI. Preliminary
+	 * searches show that DOI metadata is not standardized
+	 * which means that this will grow over time to accommodate
+	 * different sitautions and different metadata.
+	 * 
+	 * Assumes that $info['doi'] is set so that we can search
+	 * the DOI in the CrossRef API.
+	 * 
+	 * Reference: https://data.crossref.org/reports/help/schema_doc/5.3.1/index.html
+	 * ----------------------------
+	 */
+
+	function process_doi(&$info) {
+		$url = "https://api.crossref.org/works/". $info['doi'];
+		$doi_details = @file_get_contents($url);
+		if (!$doi_details) {
+			return false;
+		}
+
+		$doi_details = @json_decode($doi_details, true);
+		if (!$doi_details) {
+			return false;
+		}
+		
+		if ($doi_details['status'] != 'ok') {
+			return false;
+		}
+		$doi_details = $doi_details['message']; // derefernce for easier code
+
+		if (isset($doi_details['container-title'])) {
+			$temp = $doi_details['container-title'];
+			$info['journal_title'] = is_array($temp) ? $temp[0] : $temp;
+		} 
+
+		if (isset($doi_details['title'])) {
+			$temp = $doi_details['title'];
+			$info['title'] = is_array($temp) ? $temp[0] : $temp;
+		} 
+
+		if (isset($doi_details['volume'])) {
+			$temp = $doi_details['volume'];
+			$info['volume'] = is_array($temp) ? $temp[0] : $temp;	
+		}
+		if (isset($doi_details['issue'])) {
+			$temp = $doi_details['issue'];
+			$info['issue'] = is_array($temp) ? $temp[0] : $temp;
+		}
+		if (isset($doi_details['number'])) {
+			$temp = $doi_details['number'];
+			$info['number'] = is_array($temp) ? $temp[0] : $temp;
+		}
+		if (isset($doi_details['series'])) {
+			$temp = $doi_details['series'];
+			$info['series'] = is_array($temp) ? $temp[0] : $temp;
+		}
+		
+		if (isset($doi_details['abstract'])) {
+			$info['abstract'] = preg_replace('/<[^>]+>/','',$doi_details['abstract']);
+		}
+		if (isset($doi_details['publisher'])) {
+			$temp = $doi_details['publisher'];
+			$info['publisher'] = is_array($temp) ? $temp[0] : $temp;
+		}
+
+		// subjects are missing from Pensoft DOI Data - Don't know what it looks like
+		// language is missing from Pensoft DOI Data - Don't know what it looks like
+
+		// Split the page range if necessary
+		$matches = []; 
+		if (isset($doi_details['page'])) { // this is a page range for pensoft
+			if (preg_match('/(\d+)\-(\d+)/', $doi_details['page'], $matches)) {
+				$info['page_range'] = $doi_details['page'];
+				$info['page_start'] = $matches[1];
+				$info['page_end'] = $matches[2];
+				$info['pages'] = $info['page_end'] - $info['page_start'] + 1;
+			} else {
+				// Not sure this is correct when there's only one value.
+				$info['page_start'] = $doi_details['page'];
+			}
+		}
+
+		// Get a publication date. Or whatever we can find.
+		$pub_date = null;
+		if (isset($doi_details['publication_date']) && !$pub_date) { $pub_date = $doi_details['publication_date']; }
+		if (isset($doi_details['published']) && !$pub_date) { $pub_date = $doi_details['published']; }
+		if (isset($doi_details['published-online']) && !$pub_date) { $pub_date = $doi_details['published-online']; }
+		if (isset($doi_details['issued']) && !$pub_date) { $pub_date = $doi_details['issued']; }
+		if (isset($doi_details['created']) && !$pub_date) { $pub_date = $doi_details['created']; }
+	
+		if ($pub_date) {
+			$info['date'] = $pub_date['date-parts'][0][0].'-'.
+							$pub_date['date-parts'][0][1].'-'.
+							$pub_date['date-parts'][0][2];
+			$info['year'] = $pub_date['date-parts'][0][0];
+		}
+		if (isset($doi_details['license'])) {
+			if (isset($doi_details['license'][0]['URL'])) {
+				$info['cc_license'] = $doi_details['license'][0]['URL'];
+			}
+		}
+
+		$info['creator'] = [];
+		$creator_ids = [];
+		if (isset($doi_details['author'])) {
+			foreach ($doi_details['author'] as $author) {
+				$a = [];
+				if (isset($author['given']) && isset($author['family'])) {
+					// We have a full name
+					$a['given_name'] = $author['given'];
+					$a['family_name'] = $author['family'];
+					$a['name'] = $author['family'].', '.$author['given'];
+
+					$info['creator'][] = $author['family'].', '.$author['given'];
+
+				} elseif (isset($author['family'])) {
+					// Only last name...ok.
+					$a['family_name'] = $author['family'];
+					$a['name'] = $author['family'];
+
+					$info['creator'][] = $author['family'];
+				} elseif (isset($author['given'])) {
+					// Only first name?
+					$a['given_name'] = $author['given'];
+					$a['name'] = $author['given'];
+
+					$info['creator'][] = $author['given'];
+				}
+				
+				foreach ($this->id_types as $type) {
+					if (isset($author[$type['doi']])) {
+						$a[$type['bhl']] = $author[$type['doi']];
+					}
+				}
+				$creator_ids[] = $a;
+			}
+		}	
+		$info['creator_ids'] = json_encode($creator_ids);
+
+		// Attempt to get the PDF
+		if (isset($doi_details['link'])) {
+			if (is_array($doi_details['link'])) {
+				foreach ($doi_details['link'] as $link) {
+					if (isset($link['content-type']) && $link['content-type'] == 'application/pdf') {
+						$info['pdf_source'] = $link['URL'];
+						break;
+					}
+				}
+			}
+		}
+
+
+		return true;
 	}
 
 	function process_spreadsheet($name, $path, $single_id = null, $command = null) {
@@ -521,10 +685,10 @@ class Virtual_Item_Configs extends Controller {
 			}
 
 			foreach ($pages as $p) {
-				$this->CI->book->set_page_metadata($p->id, 'page_type', ($first ? 'Cover' : 'Text'));
+				$this->CI->book->set_page_metadata($p->id, 'page_type', $first ? 'Cover' : 'Text');
 				$this->CI->book->set_page_metadata($p->id, 'page_number', $page_num);
 				$this->CI->book->set_page_metadata($p->id, 'page_number_implicit', 0);
-				$this->CI->book->set_page_metadata($p->id, 'page_side', (($even++ % 2) ? 'left (verso)' : 'Right (recto)'));				
+				$this->CI->book->set_page_metadata($p->id, 'page_side', ($even++ % 2) ? 'left (verso)' : 'Right (recto)');				
 
 				$this->CI->book->set_page_metadata($p->id, 'year', $info['year']);
 				if (isset($info['volume'])) {
@@ -556,7 +720,7 @@ class Virtual_Item_Configs extends Controller {
 			$this->CI->logging->log('book', 'info', "Marking item as reviewed.", $info['barcode']);
 		} else {
 			if (strlen($this->CI->book->last_error) > 0) {
-				print $this->CI->book->last_error."\n";
+				$this->CI->logging->log('book', 'info', $this->CI->book->last_error, $info['barcode']);
 			}
 		}
 
@@ -596,6 +760,12 @@ class Virtual_Item_Configs extends Controller {
 		$md5 = md5($url);
 		$cache_file = $this->vi_config['cache-path'].'/'.$md5;
 
+		// Delete cache if it's too old (24 hours)
+		if (file_exists($cache_file)) {
+			if (time()-filemtime($cache_file) > 86400) {
+				unlink($cache_file);
+			}
+		}
 		// Cache the URL if it doesn't exist
 		if (!file_exists($cache_file)) {
 			file_put_contents(
@@ -644,29 +814,23 @@ class Virtual_Item_Configs extends Controller {
 	function check_config($config, $path) {
 		// Do we have a Title ID
 		if (!$config['title-id']) {
-			print "No TitleID\n";
 			return false;
 		}
 		// Do we have a feed
 		if (!isset($config['feed'])) {
-			print "No feed specified.\n";
 			return false;
 		}
 		// Do we have a feed type
 		if (!isset($config['feed-type'])) {
-			print "Feed type not specified.\n";
 			return false;
 		}
 		if ($config['feed-type'] != "oai_dc" && $config['feed-type'] != "oai_mods" && $config['feed-type'] != "spreadsheet") {
-			print "Feed type not recognized. Must be one of: oai_dc, oai_mods, spreadsheet\n";
 			return false;
 		}
 		if (is_callable('$config[\'vi-identifier-data\']')) {
-			print "'vi_identifier_data' is not a function.\n";
 			return false;
 		}
 		if (is_callable('$config[\'get-pdf\']')) {
-			print "'get_pdf' is not a function.\n";
 			return false;
 		}
 
@@ -679,12 +843,8 @@ class Virtual_Item_Configs extends Controller {
 			}
 		}
 		if (!$found) {
-			print "Rights holder is not found at BHL. (\"".$config['rights-holder']."\")\n";
 			return false;
 		}
-
-
-
 
 		// Nake sure the contributor is valid in BHL
 		// Make sure something else is valid
