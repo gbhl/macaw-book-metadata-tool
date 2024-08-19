@@ -382,6 +382,7 @@ class Utils extends Controller {
 					$restored_images = true;
 				} elseif (substr($filename, -3, 3) == 'tar') {
 					// It's a the Tar file
+					print "Got a TAR file!\n";
 					require_once 'Archive/Tar.php';
 					$tar = new Archive_Tar($filename);
 					$files = $tar->listContent();
@@ -1047,10 +1048,10 @@ class Utils extends Controller {
 										$page_types = explode(',', $p[$k]);
 										$cpt = 1;
 										foreach ($page_types as $pt) {
-											$this->book->set_page_metadata($row->id, $k, $pt, $cpt++);
+											$this->book->set_page_metadata($row->id, $k, trim($pt), $cpt++);
 										}
 									} else {
-										$this->book->set_page_metadata($row->id, $k, $p[$k], 1);
+										$this->book->set_page_metadata($row->id, $k, trim($p[$k]), 1);
 									}
 								}
 							}
