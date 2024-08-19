@@ -210,6 +210,7 @@ class Internet_archive extends Controller {
 				$id = null;
 				if ($metadata) {
 					$id = $this->identifier($b, $metadata);
+					if (!$id) { print "No Identifier can be found\n"; return; }
 					$metadata['x-archive-meta-identifier'] = $id;
 				} else {
 					$message = "Error processing export.\n\n".
@@ -1020,6 +1021,7 @@ class Internet_archive extends Controller {
 			$id = null;
 			if ($metadata) {
 				$id = $this->identifier($b, $metadata);
+				if (!$id) { print "No Identifier can be found\n"; return; }
 				$metadata['x-archive-meta-identifier'] = $id;
 			} else {
 				$message = "Error processing export.\n\n".
@@ -1116,6 +1118,7 @@ class Internet_archive extends Controller {
 			$id = null;
 			if ($metadata) {
 				$id = $this->identifier($b, $metadata);
+				if (!$id) { print "No Identifier can be found\n"; return; }
 				$metadata['x-archive-meta-identifier'] = $id;
 			} else {
 				$message = "Error processing export.\n\n".
@@ -1218,6 +1221,7 @@ class Internet_archive extends Controller {
 			$id = null;
 			if ($metadata) {
 				$id = $this->identifier($b, $metadata);
+				if (!$id) { print "No Identifier can be found\n"; return; }
 				$metadata['x-archive-meta-identifier'] = $id;
 			} else { 
 				$message = "Error processing export.\n\n".
@@ -2224,13 +2228,25 @@ class Internet_archive extends Controller {
 	function _create_creators_xml($id, $book) {
 		$creators = json_decode($book->get_metadata('creator_ids'), JSON_OBJECT_AS_ARRAY);
 		$output = "<creators>\n";
-		$id_types = ['orcid','viaf','zbaut','scopus','rid'];
+
+		// Note: This array is copied from the Virtual_Items_Configs.php class
+		$id_types = array(
+			array('mods' => 'viaf', 'bhl' => 'viaf'),
+			array('mods' => 'orcid', 'bhl' => 'orcid'),
+			array('mods' => 'biostor', 'bhl' => 'biostor'),
+			array('mods' => 'dlc', 'bhl' => 'dlc'),
+			array('mods' => 'researchgate', 'bhl' => 'researchgate profile'),
+			array('mods' => 'snac ', 'bhl' => 'snac ark'),
+			array('mods' => 'biostor', 'bhl' => 'biostor author id'),
+			array('mods' => 'tropicos', 'bhl' => 'tropicos'),
+		);
+	
 		foreach ($creators as $c) {
 			$output .= "  <creator>\n";
 			$output .= "    <name>".$c['name']."</name>\n";
 			foreach ($id_types as $id) {
-				if (isset($c[$id])) {
-					$output .= "    <identifier type=\"$id\">".$c[$id]."</identifier>\n";
+				if (isset($c[$id['bhl']])) {
+					$output .= "    <identifier type=\"".$id['bhl']."\">".$c[$id]."</identifier>\n";
 				}
 			}
 			$output .= "  </creator>\n";
@@ -2912,6 +2928,34 @@ class Internet_archive extends Controller {
 			$identifier = $ret[0]->identifier;
 			return $identifier;
 		}
+
+		// Do we aeady have an id_identifier metadata field?
+		$identifier = $this->CI->book->get_metadata('ia_identifier');
+		if ($identifier) {
+			// Clean it
+			$identifier = preg_replace('/[^A-Za-z0-9_-]/', '_', $identifier);
+			// Yes, does it exist at IA?
+			if (!$this->_bucket_exists($identifier)) {				
+				// No, save it and use it
+				$this->CI->db->insert(
+					'custom_internet_archive',
+					array(
+						'item_id' => $book->id,
+						'identifier' => $identifier
+					)
+				);
+				return $identifier;
+			} else {
+				//   Yes, return an error
+				$this->CI->logging->log('book', 'error', 'Metadata field ia_identifier "'.$identifier.'" could not be used. Bucket already exists at IA.', $this->CI->book->barcode);
+				$message = "Error processing export.\n\n".
+					"Identifier:    ".$this->CI->book->barcode."\n\n".
+					"IA Identifier: ".$identifier."\n\n".
+					"Error Message: IA identifier was specified on the item, but already exists at IA. Not Exporting.\n\n";
+				$this->CI->common->email_error($message);
+				return '';
+			}	
+		} 
 
 		// A counter to help make things unique
 		$count = 0;
