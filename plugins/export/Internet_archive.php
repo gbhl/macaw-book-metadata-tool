@@ -683,7 +683,7 @@ class Internet_archive extends Controller {
 					$pdf = $this->CI->book->get_metadata('pdf_source');
 					if ($pdf) {
 
-						$files = NULL;
+						$files = [];
 
 						// Copies the file(s) to the export directory and renames them.
 						if (is_array($pdf)) {
@@ -2246,7 +2246,7 @@ class Internet_archive extends Controller {
 			$output .= "    <name>".$c['name']."</name>\n";
 			foreach ($id_types as $id) {
 				if (isset($c[$id['bhl']])) {
-					$output .= "    <identifier type=\"".$id['bhl']."\">".$c[$id]."</identifier>\n";
+					$output .= "    <identifier type=\"".$id['bhl']."\">".$c[$id['bhl']]."</identifier>\n";
 				}
 			}
 			$output .= "  </creator>\n";
@@ -2736,7 +2736,8 @@ class Internet_archive extends Controller {
 			}
 
 			$metadata['x-archive-meta-genre'] =                     str_replace('"', "'", $this->CI->book->get_metadata('genre'));
-			$metadata['x-archive-meta-abstract'] =                  str_replace('"', "'", $this->CI->book->get_metadata('abstract'));
+			$metadata['x-archive-meta-abstract'] =                  preg_replace('/"/', "'", $this->CI->book->get_metadata('abstract'));
+			$metadata['x-archive-meta-abstract'] =                  preg_replace('/[\r\n]/', "<br>",  $this->CI->book->get_metadata('abstract'));
 			$metadata['x-archive-meta-year'] =                      str_replace('"', "'", $this->CI->book->get_metadata('year'));
 			$metadata['x-archive-meta-date'] =                      str_replace('"', "'", $this->CI->book->get_metadata('date'));
 			$metadata['x-archive-meta-publisher'] =                 str_replace('"', "'", $this->CI->book->get_metadata('publisher'));
