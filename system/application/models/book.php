@@ -126,7 +126,7 @@ class Book extends Model {
 				// Only create these if the book is not completed
 				// Trying to prevent a pile of extra folders from being created
 				if ($this->status != 'completed') {				
-					$this->logging->log('access', 'info', 'Creating scans, thumbs, preview folders for '.$this->barcode);
+					// $this->logging->log('access', 'info', 'Creating scans, thumbs, preview folders for '.$this->barcode);
 					// $this->logging->log('book', 'info', 'Creating scans, thumbs, preview folders.', $this->barcode);
 					// Creates the directories to store our files,
 					$path = $this->cfg['data_directory'].'/'.$barcode;
@@ -460,7 +460,6 @@ class Book extends Model {
 		if ($limit) {$this->db->limit($limit);}
 		$this->db->order_by('sequence_number');
 		$query = $this->db->get('page');
-		$this->logging->log('book', 'info', $this->db->last_query(), $this->barcode);
 		$pages = $query->result();
 
 		// Get the metadata for this item
