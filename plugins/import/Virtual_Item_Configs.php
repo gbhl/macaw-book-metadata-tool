@@ -252,7 +252,7 @@ class Virtual_Item_Configs extends Controller {
 					
 					// Create the book
 					$this->CI->logging->log('book', 'info', "Adding item to the system.", $info['barcode']);
- 					$this->add_book($name, $info, $pdf_path);
+ 					$page_count = $this->add_book($name, $info, $pdf_path);
 
 					$this->CI->logging->log('book', 'info', "Recording item to custom table.", $info['barcode']);
 					$this->CI->db->insert(
@@ -264,7 +264,7 @@ class Virtual_Item_Configs extends Controller {
 							'created' => date("Y-m-d H:i:s")
 						)
 					);
-					$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Added item with barcode ".$info['barcode']);
+					$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Added item with barcode ".$info['barcode']." with $page_count pages.");
 				}
 			}
 		}
@@ -340,6 +340,13 @@ class Virtual_Item_Configs extends Controller {
 				}
 
 				// Fill in the blanks: fall back to the MODS when something is blank
+				if (!$used_doi) {
+					$this->CI->logging->log('book', 'info', "DOI not found or unavailable. Falling back to MODS.", $info['barcode']);
+				}
+				
+				if (!isset($info['title'])) {
+					$info['title'] = $this->safe_xpath($r, "//mods:mods/mods:titleInfo/mods:title", 0);
+				}
 
 				if (!isset($info['subject'])) {
 					$info['subject'] = $this->safe_xpath($r, "//mods:subject/mods:topic");
@@ -456,6 +463,13 @@ class Virtual_Item_Configs extends Controller {
 
 				// Get the PDF
 				$pdf_path = $this->vi_config['get-pdf']($this->vi_config, $r, $info);
+				// Test for PDF-ness
+				$finfo = new finfo(FILEINFO_MIME);
+				$mime_type = finfo_file($finfo, $pdf_path);
+				if (!preg_match('/pdf/', $mime_type)) {
+					$this->CI->logging->log('book', 'error', "Did not get a valid PDF file. (Got: $mime_type)", $info['barcode']);
+					$pdf_path = null;
+				}
 
 				if (!$pdf_path) {
 					$this->CI->logging->log('book', 'error', "Could not get PDF for item. Aborting.", $info['barcode']);
@@ -470,7 +484,7 @@ class Virtual_Item_Configs extends Controller {
 					
 					// Create the book
 					$this->CI->logging->log('book', 'info', "Adding item to the system.", $info['barcode']);
- 					$this->add_book($name, $info, $pdf_path);
+					$page_count = $this->add_book($name, $info, $pdf_path);
 
 					$this->CI->logging->log('book', 'info', "Recording item to custom table.", $info['barcode']);
 					$this->CI->db->insert(
@@ -482,7 +496,7 @@ class Virtual_Item_Configs extends Controller {
 							'created' => date("Y-m-d H:i:s")
 						)
 					);
-					$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Added item with barcode ".$info['barcode']);
+					$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Added item with barcode ".$info['barcode']." with $page_count pages.");
 				}
 			}
 		}
@@ -652,6 +666,7 @@ class Virtual_Item_Configs extends Controller {
 	}
 
 	function add_book($name, $info, $pdf_path) {
+		$page_count = -1;
 		try {
 			$ret = $this->CI->book->add($info);
 		} catch (Exception $e) {
@@ -676,6 +691,7 @@ class Virtual_Item_Configs extends Controller {
 			$this->CI->logging->log('book', 'info', "Setting basic page metadata.", $info['barcode']);
 			$ret = $this->CI->book->load($info['barcode']);
 			$pages = $this->CI->book->get_pages();
+			$page_count = count($pages);
 
 			$first = true;
 			$even = 0;
@@ -724,7 +740,7 @@ class Virtual_Item_Configs extends Controller {
 			}
 		}
 
-
+		return $page_count;
 	}
 
 	/* ----------------------------
@@ -797,6 +813,10 @@ class Virtual_Item_Configs extends Controller {
 
 		// Gather all the nodes
 		$xmlNode = $xmlObj->ListRecords;
+		if (!$xmlNode) {
+			$this->CI->logging->log('access', 'info', "Virutal Items: No Records found for: $url");
+			return [];
+		}
 		foreach ($xmlNode->record as $rNode) {
 			$records[] = $rNode->asXML();
 		}
