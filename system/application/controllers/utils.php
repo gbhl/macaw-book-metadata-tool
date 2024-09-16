@@ -1113,7 +1113,7 @@ class Utils extends Controller {
 	 *
 	 * @since Version 1.6
 	 */
-	function delete_item($barcode) {
+	function delete_item($barcode, $confirm = null) {
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
 			die;
@@ -1152,12 +1152,15 @@ class Utils extends Controller {
 		if (isset($count[0]->count)) {
 			$record_count = $record_count + $count[0]->count;
 		} 
-		
-		echo "You are about to delete ".count($files)." files and $record_count database records.\nAre you sure you want to continue? (y/N) ";
+		if (strtolower($confirm) == 'yes') {
+			$stdin = 'y';
+		} else {
+			echo "You are about to delete ".count($files)." files and $record_count database records.\nAre you sure you want to continue? (y/N) ";
 
-		if(!defined("STDIN")) {
-			define("STDIN", fopen('php://stdin','r'));
-		}				
+			if(!defined("STDIN")) {
+				define("STDIN", fopen('php://stdin','r'));
+			}
+		}
 		$stdin = fread(STDIN, 80); // Read up to 80 characters or a newline
 		if (preg_match("/y/i", $stdin)) {
 			echo "Deleting!\n";
