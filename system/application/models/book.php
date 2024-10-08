@@ -123,12 +123,18 @@ class Book extends Model {
 				$this->total_mbytes        = $row->total_mbytes;
 				$this->metadata_array      = $this->_populate_metadata();
 
-				// Creates the directories to store our files,
-				$path = $this->cfg['data_directory'].'/'.$barcode;
-				if (!file_exists($path)) { mkdir($path, 0775); }
-				if (!file_exists($path.'/scans')) { mkdir($path.'/scans', 0775); }
-				if (!file_exists($path.'/thumbs')) { mkdir($path.'/thumbs', 0775); }
-				if (!file_exists($path.'/preview')) { mkdir($path.'/preview', 0775); }
+				// Only create these if the book is not completed
+				// Trying to prevent a pile of extra folders from being created
+				if ($this->status != 'completed') {				
+					$this->logging->log('access', 'info', 'Creating scans, thumbs, preview folders for '.$this->barcode);
+					// $this->logging->log('book', 'info', 'Creating scans, thumbs, preview folders.', $this->barcode);
+					// Creates the directories to store our files,
+					$path = $this->cfg['data_directory'].'/'.$barcode;
+					if (!file_exists($path)) { mkdir($path, 0775); }
+					if (!file_exists($path.'/scans')) { mkdir($path.'/scans', 0775); }
+					if (!file_exists($path.'/thumbs')) { mkdir($path.'/thumbs', 0775); }
+					if (!file_exists($path.'/preview')) { mkdir($path.'/preview', 0775); }
+				}
 			}
 
 		} else {
@@ -446,10 +452,15 @@ class Book extends Model {
 		} else {
 			$this->db->where('item_id', $this->id);
 		}
-		if ($order) {$this->db->order_by($order, $dir);}
+		if ($order) {
+			// Approximate a natural sort
+			$this->db->order_by("CAST(REGEXP_SUBSTR($order, '^\\\\d+') AS SIGNED)");
+			$this->db->order_by("REGEXP_SUBSTR($order, '\\\\D.+$')");
+		}
 		if ($limit) {$this->db->limit($limit);}
 		$this->db->order_by('sequence_number');
 		$query = $this->db->get('page');
+		$this->logging->log('book', 'info', $this->db->last_query(), $this->barcode);
 		$pages = $query->result();
 
 		// Get the metadata for this item
@@ -1052,6 +1063,31 @@ class Book extends Model {
 					}
 				}
 
+				// Normalize the CC License from what's in the Macaw config file
+				// If it's not there, it's not allowed.
+				if (isset($info['cc_license']) && $info['cc_license']) {
+					$licenses = array('/\/by\//', '/\/by-sa\//', '/\/by-nd\//', '/\/by-nc\//', '/\/by-nc-sa\//', '/\/by-nc-nd\//', '/\/zero\//');
+					$matches = [];
+					if (preg_match("/(by(-nc)?(-sa)?(-nd)?|zero)/i", $info['cc_license'], $matches)) {
+						$this->logging->log('book', 'info', 'CC license found: '.$matches[1], $info['barcode']);
+						$new_license = '';
+						foreach ($this->cfg['cc_licenses'] as $ccl) {
+							if (preg_match('/\/'.$matches[1].'\//i', $ccl['value'])) {
+								$new_license = $ccl['value'];
+								break;
+							}
+						}
+						if ($new_license) {
+							$info['cc_license'] = $new_license;
+							$this->logging->log('book', 'info', 'CC license normalized to: '.$ccl['value'], $info['barcode']);
+						} else {
+							$this->logging->log('book', 'info', 'CC license could not normalize: '.$info['cc_license'], $info['barcode']);
+						}
+					} else {
+						$this->logging->log('book', 'info', 'CC license not found: '.$info['cc_license'], $info['barcode']);
+					}
+				}
+
 				// Create the item record in the database
 				if (!isset($this->CI->user->username) || !$this->CI->user->username) {
 					$this->CI->user->load('admin');
@@ -1159,8 +1195,10 @@ class Book extends Model {
 					}
 				}
 				
-				if ($info['marc_xml']) {
-					$marc_data = $info['marc_xml'];
+				if (isset($info['marc_xml'])) {
+					if ($info['marc_xml']) {
+						$marc_data = $info['marc_xml'];
+					}
 				}
 
 				if ($marc_data) {
@@ -1855,6 +1893,8 @@ class Book extends Model {
 			} else {
 				$outname = escapeshellarg($scans_dir.preg_replace('/^(.+)\.(.*?)$/', '$1', $filename).'_%04d.png');
 			}
+			$outname = str_replace('+', '_', $outname);
+			$outname = str_replace(',', '_', $outname);
 			$this->logging->log('book', 'info', 'About to split  '.$filename.' to PNG files', $this->barcode);
 			// Find ghostscript
 			$gs = 'gs';
@@ -1869,9 +1909,12 @@ class Book extends Model {
 			exec($exec, $output);
 			$this->logging->log('book', 'info', 'After splitting '.$filename.', "gs" output is '.count($output), $this->barcode);			
 			// Done! Let's mark the images as having been derived from a PDF
-			$this->set_metadata('from_pdf', 'yes', true);
-			$this->set_metadata('pdf_source', $filename, false);
-			$this->book->update();
+
+			// Avoid using book->update and save
+			// directly to the database
+			// This fixes potential concurrency problems with multiple PDFs
+			$this->direct_set_metadata('from_pdf', 'yes');
+			$this->direct_set_metadata('pdf_source', $filename);
 		}
 	}
 	
@@ -2155,12 +2198,27 @@ class Book extends Model {
 				$titles[] = trim(preg_replace('/[,.;:\/ ]+$/', '', (string)$ret[0]));
 			}
 		}
-		$this->db->insert('metadata', array(
-			'item_id'   => $this->id,
-			'fieldname' => 'title',
-			'counter'   => 1,
-			'value'     => implode(' ', $titles)
-		));	
+		// Prevent duplicates
+		// Does the title already exist?
+		$this->db->select('*');
+		$this->db->where('item_id', $this->id);
+		$this->db->where('page_id', null);
+		$this->db->where('fieldname', 'title');
+		$rows = $this->db->get('metadata')->result_array();
+		if (count($rows)) {
+			// Yes, update it
+			$this->db->set(array('value' => implode(' ', $titles)));
+			$this->db->where('id', $rows[0]['id']);
+			$this->db->update('metadata');	
+		} else {
+			// No, Add it
+			$this->db->insert('metadata', array(
+				'item_id'   => $this->id,
+				'fieldname' => 'title',
+				'counter'   => 1,
+				'value'     => implode(' ', $titles)
+			));	
+		}
 	}
 	
 	/**
@@ -2226,6 +2284,78 @@ class Book extends Model {
 			array_push($collections, $row['value']);
 		}
 		return $collections;
+	}
+	
+	/**
+	 * Query the database for a metadata value.
+	 * 
+	 * This avoids any in-memory data to get the latest value(s) from the database. 
+	 * If the database contains multiple records, it returns only the first value found.
+	 * If no record is found, returns null.
+	 *
+	 * @param string [$filename] The field being sought.
+	 * @return (string|null) 
+	 * @since version 2.9
+	 */
+	function direct_get_metadata($fieldname) {
+		$this->db->select('*');
+		$this->db->where('item_id', $this->id);
+		$this->db->where('page_id', null);
+		$this->db->where('fieldname', $fieldname);
+		$rows = $this->db->get('metadata')->result_array();
+		if (count($rows) > 0) {
+			return ($rows[0]['value'] !== null ? $rows[0]['value'] : $rows[0]['value_large']);
+		}
+		return null;
+	}
+
+	/**
+	 * Directly insert metadata into the database
+	 * 
+	 * Determines if an exact field/value already exist.
+	 * If it does not, it is inserted, and allowed to 
+	 * be added multiple times. Values larger than 1000 bytes
+	 * are handled appropriately.
+	 *
+	 * @param string [$filename] The field being addded.
+	 * @param string [$filename] The value to save to the field.
+	 * @return null
+	 * @since version 2.9
+	 */
+	function direct_set_metadata($fieldname, $value) {
+		// See if our field and value exists
+		$this->db->select('*');
+		$this->db->where('item_id', $this->id);
+		$this->db->where('page_id', null);
+		$this->db->where('fieldname', $fieldname);
+		if (strlen($value) > 1000) {
+			$this->db->where('value_large', $value);
+		} else {
+			$this->db->where('value', $value);
+		}
+		$db_rows = $this->db->get('metadata')->result_array();
+		if (count($db_rows) == 0) { 
+			// Not found, so we need to add the field.
+			// Get the max counter for the field we are to add, just in
+			// case it's a duplicate field.
+			$counter = 0;
+			$this->db->select('max(counter) as c');
+			$this->db->where('item_id', $this->id);
+			$this->db->where('page_id', null);
+			$this->db->where('fieldname', $fieldname);
+			$max_c = $this->db->get('metadata')->result_array();
+			if (count($max_c)) {
+				$counter = $max_c[0]['c'];
+			}
+
+			// Insert the record
+			$counter++;
+			$this->db->query(
+				"INSERT INTO `metadata` (`item_id`, `page_id`, `fieldname`, `counter`, `value`) VALUES (?, NULL, ?, ?, ?);", 
+				array($this->id, $fieldname, $counter, $value)
+			);
+		}
+		return null;
 	}
 
 }

@@ -674,6 +674,10 @@ td.yui-dt-last {
 	width:940px;
 	margin: 0px auto
 }
+.halftable{
+	width:470px;
+	margin: 0px auto
+}
 .queueheading{
 	height: 45px;
 	background-color: #4F7E97;
@@ -699,10 +703,10 @@ td.yui-dt-last {
 	border:1px solid #4E7D96;
 	border-top:none;
 }
-#divInProgress a{
+#divInProgress a, #VirtualItemSources a{
 	color:#3588A8;
 }
-#divInProgress a:hover{
+#divInProgress a:hover, #VirtualItemSources a:hover{
 	color:#056A92;
 }
 .yui-dt-odd{
@@ -1490,10 +1494,10 @@ span#btnHistoryOk {
 	text-align: left;
 }
 /* Log Listing */
-#historyholder{
+#historyholder, #viConfigHolder {
 	margin: 0px auto;
 }
-#historyholder h1 {
+#historyholder h1{
 	margin: 0px auto;
 	padding: 10px 15px;
 	width: 90%;
@@ -1509,7 +1513,7 @@ span#btnHistoryOk {
 	text-align: left !important;
 	font-weight: normal;
 }
-#history {
+#history, #viConfig {
 	margin: 0px auto;
 	width: 90%;
 	padding: 15px 15px 10px 15px;
@@ -1520,7 +1524,10 @@ span#btnHistoryOk {
 	-moz-border-radius-bottomleft: 6px;
 	-moz-border-radius-bottomright: 6px;
 }
-#history #log_listing {
+#viConfig {
+	width: 908px;
+}
+#history #log_listing, #viConfig #viConfigListing {
 	width: 100%;
 	font-size: 90%;
 	font-family: monospace;
