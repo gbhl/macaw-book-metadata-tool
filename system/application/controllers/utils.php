@@ -382,6 +382,7 @@ class Utils extends Controller {
 					$restored_images = true;
 				} elseif (substr($filename, -3, 3) == 'tar') {
 					// It's a the Tar file
+					print "Got a TAR file!\n";
 					require_once 'Archive/Tar.php';
 					$tar = new Archive_Tar($filename);
 					$files = $tar->listContent();
@@ -621,6 +622,13 @@ class Utils extends Controller {
 			echo "Permission denied to write to ".$tmp.'/import_export'.".\n";
 			die;			
 		}
+		if (!file_exists($tmp.'/import_export/serialize')) {
+			mkdir($tmp.'/import_export/serialize');
+		}
+		if (!is_writable($tmp.'/import_export/serialize')) {
+			echo "Permission denied to write to ".$tmp.'/import_export/serialize'.".\n";
+			die;
+		}
 		if (!file_exists($tmp.'/import_export/'.$barcode)) {
 			mkdir($tmp.'/import_export/'.$barcode);
 		}		
@@ -639,7 +647,7 @@ class Utils extends Controller {
 		# 2. Get the item_export_status information
 		$query = $this->db->query('select * from item_export_status where item_id = ?', array($id));
 		$item_export_status = $query->result();
-		write_file($tmp.'/import_export/'.$item_export_status.'/item_export_status.dat', serialize((array)$item_export_status));
+		write_file($tmp.'/import_export/'.$barcode.'/item_export_status.dat', serialize((array)$item_export_status));
 
 		# 3. Get the page information
 		echo "Pages... ";
@@ -660,7 +668,7 @@ class Utils extends Controller {
 		write_file($tmp.'/import_export/'.$barcode.'/metadata.dat', serialize($metadata));
 
 		# 5. Gather the files
-		$files = array('marc.xml', 'thumbs', 'preview');		
+		$files = array('marc.xml', 'thumbs', 'preview', 'scans');
 		foreach ($files as $f) {
 			echo "$f... ";
 			if (file_exists($this->cfg['data_directory'].'/'.$barcode.'/'.$f)) {
@@ -673,6 +681,7 @@ class Utils extends Controller {
 		# tar things up
 		echo "Creating $tmp/import_export/".$barcode.".tgz ...\n";
 		system('cd '.$tmp.'/import_export && tar fcz '.$barcode.'.tgz '.$barcode);
+		rename("$tmp/import_export/".$barcode.".tgz", "$tmp/import_export/serialize/".$barcode.".tgz");
 		# cleanup
 		system('rm -r '.$tmp.'/import_export/'.$barcode);
 		echo "Finished!\n";
@@ -729,6 +738,9 @@ class Utils extends Controller {
 		if (!file_exists($this->cfg['data_directory'].'/'.$barcode.'/preview')) {
 			mkdir($this->cfg['data_directory'].'/'.$barcode.'/preview');
 		}
+		if (!file_exists($this->cfg['data_directory'].'/'.$barcode.'/scans')) {
+			mkdir($this->cfg['data_directory'].'/'.$barcode.'/scans');
+		}
 		system('cd '.$tmp.'/import_export && tar fxz '.$barcode.'.tgz');
 		if (file_exists($tmp.'/import_export/'.$barcode.'/marc.xml')) {
 			system('mv -f '.$tmp.'/import_export/'.$barcode.'/marc.xml  '.$this->cfg['data_directory'].'/'.$barcode);
@@ -738,6 +750,9 @@ class Utils extends Controller {
 		}
 		if (file_exists($tmp.'/import_export/'.$barcode.'/preview')) {
 			system('mv -f '.$tmp.'/import_export/'.$barcode.'/preview/* '.$this->cfg['data_directory'].'/'.$barcode.'/preview/');
+		}
+		if (file_exists($tmp.'/import_export/'.$barcode.'/scans')) {
+			system('mv -f '.$tmp.'/import_export/'.$barcode.'/scans/* '.$this->cfg['data_directory'].'/'.$barcode.'/scans/');
 		}
 
 		$item = unserialize(read_file($tmp.'/import_export/'.$barcode.'/item.dat'));
@@ -1033,10 +1048,10 @@ class Utils extends Controller {
 										$page_types = explode(',', $p[$k]);
 										$cpt = 1;
 										foreach ($page_types as $pt) {
-											$this->book->set_page_metadata($row->id, $k, $pt, $cpt++);
+											$this->book->set_page_metadata($row->id, $k, trim($pt), $cpt++);
 										}
 									} else {
-										$this->book->set_page_metadata($row->id, $k, $p[$k], 1);
+										$this->book->set_page_metadata($row->id, $k, trim($p[$k]), 1);
 									}
 								}
 							}
@@ -1123,15 +1138,20 @@ class Utils extends Controller {
 
 		$query = $this->db->query('select count(*) from item_export_status where item_id = ?', array($id));
 		$count = $query->result();
-		$record_count = $record_count + $count[0]->count;
-
+		if (isset($count[0]->count)) {
+			$record_count = $record_count + $count[0]->count;
+		} 
 		$query = $this->db->query('select count(*) from page where item_id = ?', array($id));
 		$count = $query->result();
-		$record_count = $record_count + $count[0]->count;
+		if (isset($count[0]->count)) {
+			$record_count = $record_count + $count[0]->count;
+		} 
 
 		$query = $this->db->query('select count(*) from metadata where item_id = ?', array($id));
 		$count = $query->result();
-		$record_count = $record_count + $count[0]->count;
+		if (isset($count[0]->count)) {
+			$record_count = $record_count + $count[0]->count;
+		} 
 		
 		echo "You are about to delete ".count($files)." files and $record_count database records.\nAre you sure you want to continue? (y/N) ";
 
@@ -1235,7 +1255,9 @@ class Utils extends Controller {
 		}
 		
 		// Mark that we are processing the PDF, but don't use built-in functions
-		// We might get a race condition
+		// We might get a race condition, and this will create multiple records
+		// for each pdf that is processing (if there are more than one uploaded 
+		// at the same time)
 		$this->db->insert('metadata', array(
 			'item_id'   => $this->book->id,
 			'fieldname' => 'processing_pdf',
@@ -1278,13 +1300,14 @@ class Utils extends Controller {
 		foreach ($pages as $p) {
 			$this->book->set_page_sequence($p->id, $seq++);
 		}
-		$this->book->update();
 
-		// Indicate that we are done processing the PDF			
+		// Indicate that we are done processing the PDF
+		// But we delete only one record just in case
+		// we are processing more than one PDF at a time
 		$this->db->query(
 			'delete from metadata
 			where item_id = '.$this->book->id.'
-			and page_id is null and fieldname = \'processing_pdf\''
+			and page_id is null and fieldname = \'processing_pdf\' limit 1'
 		);
 		if ($this->book->status == 'new' || $this->book->status == 'scanning') {
 			$this->book->set_status('scanning');

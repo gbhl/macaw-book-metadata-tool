@@ -808,6 +808,8 @@ class Main extends Controller {
 			$data['ia_ready_images'] = false;
 			$data['page_progression'] = 'ltr';
 			$data['is_qa_user'] = false;
+			$data['missing_metadata'] = array();
+			$data['organization'] = $this->user->org_name;
 			$this->session->set_userdata('errormessage', $e->getMessage().' Please go back and try again.');
 			$data['org_has_qa'] = false;
 			if ($this->user->org_has_qa()) {

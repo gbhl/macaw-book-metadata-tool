@@ -348,6 +348,7 @@ class Scan extends Controller {
 					return;
 				}
 			} elseif (!$this->book->needs_qa && ($this->book->status == 'qa-ready' || $this->book->status == 'qa-active')) {
+				// Reset the status because not needing QA but having a QA status doesn't make sense.
 				$this->book->set_status('qa-active');
 				$this->book->set_status('reviewed');
 				$this->book->set_status('reviewing');
@@ -366,6 +367,7 @@ class Scan extends Controller {
 			$data['base_directory'] = $this->cfg['base_directory'];
 			$data['metadata_modules'] = $this->cfg['metadata_modules'];
 			$data['item_title'] = $this->session->userdata('title');
+			$data['qa_is_active'] = ($this->book->status == 'qa-active');
 			$this->load->view('scan/review_view', $data);
 			$this->logging->log('access', 'info', 'Scanning review begins for '.$this->book->barcode);
 			$this->logging->log('book', 'info', 'Scanning review begins.', $this->book->barcode);
@@ -622,6 +624,7 @@ class Scan extends Controller {
 			} elseif ($this->book->needs_qa) {
 				// Is the person reviewing the book a QA person?
 				if ($this->user->has_permission('qa')) {
+					// Did they reject for QA?
 					// Only a QA person can finish a book that's marked for QA
 					$this->book->set_status('reviewed');
 					$this->session->set_userdata('message', 'Changes saved! ');
@@ -979,7 +982,7 @@ class Scan extends Controller {
 			$foundFiles = $this->_get_existing_files($scans_dir, $barcode);
 
 			header("Content-Type: application/json; charset=utf-8");
-			if ($this->book->get_metadata('processing_pdf')) {
+			if ($this->book->direct_get_metadata('processing_pdf')) {
 				$total = count($foundFiles);
 				$count = count($this->book->get_pages());
 				echo json_encode(array('files' => $foundFiles, 'reload' => 'true', 'message' => 'Processing PDF pages ('.$count.'/'.$total.')...', 'dir' => $scans_dir));
@@ -1031,8 +1034,6 @@ class Scan extends Controller {
 						exec($exec, $output);
 
 					}
-					$this->book->set_metadata('processing_pdf','yes');
-					$this->book->update();
 					
 					$foundFiles = $this->_get_existing_files($scans_dir, $barcode);
 					header("Content-Type: application/json; charset=utf-8");
