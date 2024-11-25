@@ -2984,14 +2984,20 @@ class Internet_archive extends Controller {
 			while ($count <= 26) {
 				// If we got to this point, we don't have an identifier. Make a new one.
 				$number = '00';
-				$pages = $this->CI->book->get_pages();
 				// Get the volume number of the book
-				foreach ($pages as $p) {
-					if (property_exists($p, "volume") && $p->volume) {
-						$number = $p->volume;
-						break;
-					}
+				$vol = $this->CI->book->get_metadata('volume');
+				if ($vol) { $number = $vol; }
+				// No volume? Get it from the pages?
+				if ($number == '00') {
+					$pages = $this->CI->book->get_pages();
+					foreach ($pages as $p) {
+						if (property_exists($p, "volume") && $p->volume) {
+							$number = $p->volume;
+							break;
+						}
+					}					
 				}
+
 				$number = substr(preg_replace('/[^a-zA-Z0-9]/', '', $number), 0, 4);
 				// Make this lowercase becuse SIL (and maybe others) uses it as a URL and URLs are case-insensitive (or should be)
 				$identifier = strtolower($title.$number.$author);
