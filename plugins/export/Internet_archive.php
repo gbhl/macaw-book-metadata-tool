@@ -74,6 +74,7 @@ class Internet_archive extends Controller {
 	private $download_extensions = array('_djvu.xml', '_chocr.html.gz'); // What must be online after derivation? These indicate IA is finished deriving.
 	private $required_extensions = array('_jp2.zip', '_marc.xml', '_scandata.xml'); // What must be online after upload? These are things that we uploaded.
 
+	var $curl;
 	var $CI;
 	var $cfg;
 	var $cookie_jar;

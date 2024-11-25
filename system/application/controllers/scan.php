@@ -563,7 +563,17 @@ class Scan extends Controller {
 				echo json_encode(array('error' => $msg));
 				return;
 			}
-		
+			// // Make sure at least 10% of the pages have page numbers
+			// $page_number_count = 0;
+			// foreach ($all_pages as $p) {
+			// 	if (isset($p->page_number) && $p->page_number != '') {
+			// 		$page_number_count++;
+			// 	}
+			// }
+			// if ($page_number_count == 0) {
+			// 	$this->session->set_userdata('warning', "The item was completed with no page numbers. Please verify that this is correct.");
+			// }
+
 			// Make sure each page as a page side
 			foreach ($all_pages as $p) {
 				if (!isset($p->page_side) || !$p->page_side) {
