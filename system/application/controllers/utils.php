@@ -1534,5 +1534,180 @@ class Utils extends Controller {
 		}
 	}
 
+	/**
+	 * RE-Import XML from a a marc.xml file from disk
+	 *
+	 * CLI: If "identifier/marc.xml" exists, add it to the metadata
+	 * for the given book.
+	 * Usage: 
+	 *   sudo -u apache php index.php utils reload_marcxml 3908801242356
+	 * 
+	 * @since Version 2.9.0
+	 */
+	function reload_marcxml($barcode) {
+		if (!$barcode) {
+			echo "Please supply a barcode\n";
+			die;
+		}
+		if (!$this->book->exists($barcode)) {
+			echo "Item not found with barcode $barcode.\n";
+			die;
+		}
+
+		// Set the status to reviewing
+		$this->book->load($barcode);
+		$marcfile = $this->cfg['data_directory'].'/'.$barcode.'/marc.xml';
+
+		if (file_exists($marcfile)) {
+			$data = file_get_contents($marcfile);
+			$this->book->set_metadata('marc_xml', $data);
+			$this->book->update();
+		}
+	}
+
+	/**
+	 * RE-Import data for items from a CSV file
+	 *
+	 * CLI: Given a filename of a CSV file, update the metadata for the
+	 * item if existing metadata is not already there.
+	 * 
+	 *
+	 * Usage: 
+	 *   sudo -u apache php index.php utils csv_reimport import-62p7ac.csv
+	 * 
+	 * @since Version 2.9.0
+	 */
+	function csv_reimport($filename, $username = 'admin') {
+		// Import the file
+		$errors = array();
+		
+		$fname = $this->cfg['data_directory'].'/import_export/'.$filename;
+
+		// Load the effective user. This is probably a huge security hole.
+		$this->user->load($username);
+
+		// Just in case we didn't have a second filename make sure it's null and not "null"
+		$items_imported = 0;
+		$items_skipped = 0;
+		$pages_imported = 0;
+		$pages_skipped = 0;
+		$orig_fname = $fname;
+
+		$errorcount = 0;
+		
+		if (file_exists($fname)) {
+			// Read the entire file to check the encoding
+			$all_file = file_get_contents($fname);
+			// Clean up the 'marc6552' column which is often mangled by Excel into a date
+			if (preg_match('/,Mar-52,/',$all_file)) {
+				$all_file = preg_replace('/,Mar\-52,/', ',marc6552,', $all_file);
+				file_put_contents($fname, $all_file);
+			}
+			$allowed_encodings = array(
+				'ASCII',
+				'7bit',
+				'8bit',
+				'UTF-8',
+				'UTF-16',
+				'UTF-16BE',
+				'UTF-16LE',
+				'UTF-32',
+				'UTF-32BE',
+				'UTF-32LE',
+				'ISO-8859-1',
+				'ISO-8859-2',
+				'ISO-8859-3',
+				'ISO-8859-4',
+				'ISO-8859-5',
+				'ISO-8859-6',
+				'ISO-8859-7',
+				'ISO-8859-8',
+				'ISO-8859-9',
+				'ISO-8859-10',
+				'ISO-8859-13',
+				'ISO-8859-14',
+				'ISO-8859-15',
+				'ISO-8859-16',
+				'Windows-1252',
+				'Windows-1254',
+				'Windows-1251',
+			);
+			
+			$encoding = mb_detect_encoding($all_file, $allowed_encodings, true);
+			unset($all_file);
+			
+			$row = 1;
+			$message = '';
+			$value = '';
+			$ext = pathinfo($fname, PATHINFO_EXTENSION);
+
+			// Parse the CSV file
+			include APPPATH . 'classes/ParseCSV.php';
+			$csv = new parseCSV();		
+		    $csv->delimiter = ",";
+		    $csv->allow_duplicate_headers = true;
+			if ($ext == 'txt') { $csv->delimiter = "\t"; }
+			$csv->encoding($encoding, 'UTF-8');
+			$csv->parse($fname);
+
+			# make sure the titles are lowercase
+			$titles = $csv->titles;
+			$changed = false;
+			for ($i = 0; $i < count($titles); $i++) {
+				if ($titles[$i] != strtolower($titles[$i])) {
+					$changed = true;
+					$titles[$i] = strtolower($titles[$i]);
+				}
+			}
+			if ($changed) {
+				$csv->fields = $titles;
+				$csv->parse($fname);
+			}
+			
+			$info = $csv->data;
+
+			// Insert the data into the database
+			$c = 1;
+			$max = count($info);
+			foreach ($info as $b) {
+				// Is this book already in our database?
+				if ($this->book->exists($b['identifier'])) {
+					// Yes
+					// Load the book
+					print "Processing item ".$b['identifier']."\n";
+					$set_fields = [];
+					$already_fields = [];
+					$this->book->load($b['identifier']);
+					foreach (array_keys($b) as $k) {
+						// Skip this, it's not a metadata field
+						if ($k == 'identifier') { continue; }
+						// print "Checking metadata $k...\n";
+						$d = $this->book->get_metadata($k);
+						if (isset($d)) {
+							$already_fields[]= $k;
+						} else {
+							if (is_array($b[$k])) {
+								foreach ($b[$k] as $val) {
+									$set_fields[] = $k;
+									$this->book->set_metadata($k, $val, false);	
+								}
+							} else {
+								$set_fields[] = $k;
+								$this->book->set_metadata($k, $b[$k]);	
+							}
+						}
+					}					
+					$this->book->update();
+					print "  ALREADY SET: ".implode(', ', $already_fields)."\n";
+					print "  UPDATED:     ".implode(', ', $set_fields)."\n";
+				} else {
+					print "Barcode not found: ".$b['identifier']."\n";
+				}
+			}
+		} else {
+			echo "File not found: $fname\n";
+		}
+	}
+
 }
 
