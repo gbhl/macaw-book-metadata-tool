@@ -29,6 +29,13 @@ CREATE SEQUENCE page_id_seq
     NO MINVALUE
     CACHE 1;
 
+CREATE SEQUENCE metadata_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
 create table organization (
     id integer NOT NULL,
     name VARCHAR(100),
@@ -104,7 +111,8 @@ CREATE TABLE page (
 );
 
 CREATE TABLE metadata (
-    item_id integer NOT NULL,
+    id integer NOT NULL,
+    item_id int NOT NULL,
     page_id integer,
     fieldname character varying(32),
     counter integer DEFAULT 1,
@@ -147,6 +155,7 @@ ALTER TABLE organization ALTER COLUMN id SET DEFAULT nextval('organization_id_se
 ALTER TABLE account ALTER COLUMN id SET DEFAULT nextval('account_id_seq'::regclass);
 ALTER TABLE item ALTER COLUMN id SET DEFAULT nextval('item_id_seq'::regclass);
 ALTER TABLE page ALTER COLUMN id SET DEFAULT nextval('page_id_seq'::regclass);
+ALTER TABLE metadata ALTER COLUMN id SET DEFAULT nextval('metadata_id_seq'::regclass);
 
 ALTER TABLE ONLY organization ADD CONSTRAINT organization_pkey PRIMARY KEY (id);
 ALTER TABLE ONLY account ADD CONSTRAINT account_pkey PRIMARY KEY (id);

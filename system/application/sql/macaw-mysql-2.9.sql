@@ -1,0 +1,1 @@
+alter table metadata MODIFY id bigint auto_increment;
