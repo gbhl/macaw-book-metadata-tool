@@ -1491,7 +1491,7 @@ class Book extends Model {
 			
 			// Checks for a redundant Scanning Instition and ignores it if found.
 			if ($key == 'scanning_institution' && $value == $this->get_contributor()){
-				$msg = 'The Added By field was not saved because it is the same as the Contributor. Please refer to the <a href="https://docs.google.com/document/d/1-_XCe2LmbroQfnOC1Y5_tNpAhzI1BOiFVjkJH_ykvak/edit">Macaw User Guide</a> for details.';
+				$msg = 'The Added By/Scanning Institution field was not saved because it is the same as the Contributor. Please refer to the <a href="https://docs.google.com/document/d/1-_XCe2LmbroQfnOC1Y5_tNpAhzI1BOiFVjkJH_ykvak/edit">Macaw User Guide</a> for details.';
 				$this->session->set_userdata('warning', $msg);
 				return;
 			}
@@ -2191,7 +2191,7 @@ class Book extends Model {
 				$xml->registerXPathNamespace('x', $namespace);
 			}
 		}
-		$titles = NULL;
+		$titles = [];
 		foreach (array('a', 'b') as $code){
 			if ($ret = $xml->xpath("//x:record/x:datafield[@tag=\"245\"]/x:subfield[@code=\"{$code}\"]")){
 				$titles[] = trim(preg_replace('/[,.;:\/ ]+$/', '', (string)$ret[0]));
