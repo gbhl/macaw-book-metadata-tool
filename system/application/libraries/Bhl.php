@@ -49,7 +49,7 @@ class BHL extends Controller {
 		);
 		// Get the institutions
 		$url = 'https://www.biodiversitylibrary.org/api2/httpquery.ashx?op=GetInstitutions&format=json&apikey='.$this->cfg['bhl_api_key'];
-    	$json = file_get_contents($url, false, stream_context_create($arrContextOptions));
+    	$json = @file_get_contents($url, false, stream_context_create($arrContextOptions));
 		if ($json) {
 			$json = json_decode($json);
 			if ($json->Status == 'ok') {
