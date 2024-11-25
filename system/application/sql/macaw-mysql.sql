@@ -57,7 +57,7 @@ CREATE TABLE logging (
 ) ENGINE=InnoDB CHARACTER SET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE metadata (
-    item_id int(11) NOT NULL,
+    item_id bigint NOT NULL,
     page_id int(11),
     fieldname varchar(32),
     counter int(11) DEFAULT 1,

@@ -1,0 +1,1 @@
+ALTER TABLE metadata ALTER id SET DATA TYPE bigint;
