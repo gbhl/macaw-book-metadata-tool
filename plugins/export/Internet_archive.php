@@ -597,7 +597,7 @@ class Internet_archive extends Controller {
 							$cmd .= ' --header "'.$k.':'.$metadata[$k].'"';
 						}
 					}
-					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_scandata.xml" "http://s3.us.archive.org/'.$id.'/'.$id.'_scandata.xml" 2>&1';
+					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_scandata.xml" "https://s3.us.archive.org/'.$id.'/'.$id.'_scandata.xml" 2>&1';
 					echo "\n\n".$cmd."\n\n";
 
 					// execute the CURL command and echo back any responses
@@ -641,7 +641,7 @@ class Internet_archive extends Controller {
 					foreach (array_keys($metadata) as $k) {
 						$cmd .= ' --header "'.$k.':'.$metadata[$k].'"';
 					}
-					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_scandata.xml" "http://s3.us.archive.org/'.$id.'/'.$id.'_scandata.xml" 2>&1';
+					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_scandata.xml" "https://s3.us.archive.org/'.$id.'/'.$id.'_scandata.xml" 2>&1';
 					echo "\n\n".$cmd."\n\n";
 
 					// execute the CURL command and echo back any responses
@@ -711,7 +711,7 @@ class Internet_archive extends Controller {
 							$cmd .= ' --location';
 							$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
 							$cmd .= ' --header "x-archive-queue-derive:0"';
-							$cmd .= ' --upload-file "'.$fullpath.'/'.$pdf.'" "http://s3.us.archive.org/'.$id.'/'.$pdf.'" 2>&1';
+							$cmd .= ' --upload-file "'.$fullpath.'/'.$pdf.'" "https://s3.us.archive.org/'.$id.'/'.$pdf.'" 2>&1';
 							echo "\n\n".$cmd."\n\n";
 
 							if (!$this->cfg['testing']) {
@@ -781,7 +781,7 @@ class Internet_archive extends Controller {
 					$cmd .= ' --location';
 					$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
 					$cmd .= ' --header "x-archive-queue-derive:0"';
-					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_marc.xml" "http://s3.us.archive.org/'.$id.'/'.$id.'_marc.xml" 2>&1';
+					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_marc.xml" "https://s3.us.archive.org/'.$id.'/'.$id.'_marc.xml" 2>&1';
 					echo "\n\n".$cmd."\n\n";
 
 					if (!$this->cfg['testing']) {
@@ -824,7 +824,7 @@ class Internet_archive extends Controller {
 					$cmd .= ' --location';
 					$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
 					$cmd .= ' --header "x-archive-queue-derive:0"';
-					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_bhlcreators.xml" "http://s3.us.archive.org/'.$id.'/'.$id.'_bhlcreators.xml" 2>&1';
+					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_bhlcreators.xml" "https://s3.us.archive.org/'.$id.'/'.$id.'_bhlcreators.xml" 2>&1';
 					echo "\n\n".$cmd."\n\n";
 
 					if (!$this->cfg['testing']) {
@@ -874,7 +874,7 @@ class Internet_archive extends Controller {
 							$cmd .= ' --header "x-archive-queue-derive:1"';
 						}
 						$cmd .= ' --header "x-archive-size-hint:'.sprintf("%u", filesize($fullpath.'/'.$id.'_jp2.zip')).'"';
-						$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_jp2.zip" "http://s3.us.archive.org/'.$id.'/'.$id.'_jp2.zip" 2>&1';
+						$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_jp2.zip" "https://s3.us.archive.org/'.$id.'/'.$id.'_jp2.zip" 2>&1';
 						echo "\n\n".$cmd."\n\n";
 
 						if (!$this->cfg['testing']) {
@@ -920,7 +920,7 @@ class Internet_archive extends Controller {
 						$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
 						$cmd .= ' --header "x-archive-queue-derive:1"';
 						$cmd .= ' --header "x-archive-size-hint:'.sprintf("%u", filesize($fullpath.'/'.$id.'_orig_jp2.tar')).'"';
-						$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_orig_jp2.tar" "http://s3.us.archive.org/'.$id.'/'.$id.'_orig_jp2.tar" 2>&1';
+						$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_orig_jp2.tar" "https://s3.us.archive.org/'.$id.'/'.$id.'_orig_jp2.tar" 2>&1';
 						echo "\n\n".$cmd."\n\n";
 
 						if (!$this->cfg['testing']) {
@@ -2624,13 +2624,13 @@ class Internet_archive extends Controller {
 		// Handle copyright - Permission Granted to Scan
 		} elseif ($this->CI->book->get_metadata('copyright') == '1'  || strtoupper($this->CI->book->get_metadata('copyright')) == 'T' ) {
 			$metadata['x-archive-meta-possible-copyright-status'] = "In copyright. Digitized with the permission of the rights holder.";
-			$metadata['x-archive-meta-rights'] = 'http://biodiversitylibrary.org/permissions';
+			$metadata['x-archive-meta-rights'] = 'https://biodiversitylibrary.org/permissions';
 
 		// Handle copyright - Due Dillegene Performed to determine public domain status
 		} elseif ($this->CI->book->get_metadata('copyright') == '2') {
 			$metadata['x-archive-meta-possible-copyright-status'] = "No known copyright restrictions as determined by scanning institution.";
-			$metadata['x-archive-meta-due-diligence'] = 'http://biodiversitylibrary.org/permissions';
-			$metadata['x-archive-meta-duediligence'] = 'http://biodiversitylibrary.org/permissions';
+			$metadata['x-archive-meta-due-diligence'] = 'https://biodiversitylibrary.org/permissions';
+			$metadata['x-archive-meta-duediligence'] = 'https://biodiversitylibrary.org/permissions';
 
 		// Handle copyright - Default, we hope we never hit this
 		} else {
@@ -3115,7 +3115,7 @@ class Internet_archive extends Controller {
 	//
 	// Gets a list of all of the files from the IDENTIFIER_files.xml file
 	// and determines the "base" of the URL, which is now always
-	//   http://www.archive.org/download/IDENTIFIER
+	//   https://www.archive.org/download/IDENTIFIER
 	// ----------------------------
 	function _get_derivative_urls($id) {
 		$base = "https://archive.org/download/$id";
