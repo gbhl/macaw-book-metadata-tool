@@ -380,12 +380,12 @@ class Main extends Controller {
 		} else {
 			$data['cc_licenses'] = array(
 				array('title' => '(none)', 			'value' => ''),
-				array('title' => 'CC BY', 			'value' => 'http://creativecommons.org/licenses/by/3.0/'),
-				array('title' => 'CC BY-SA', 		'value' => 'http://creativecommons.org/licenses/by-sa/3.0/'),
-				array('title' => 'CC BY-ND', 		'value' => 'http://creativecommons.org/licenses/by-nd/3.0/'),
-				array('title' => 'CC BY-NC', 		'value' => 'http://creativecommons.org/licenses/by-nc/3.0/'),
-				array('title' => 'CC BY-NC-SA', 'value' => 'http://creativecommons.org/licenses/by-nc-sa/3.0/'),
-				array('title' => 'CC BY-NC-ND', 'value' => 'http://creativecommons.org/licenses/by-nc-nd/3.0/'),
+				array('title' => 'CC BY', 			'value' => 'http://creativecommons.org/licenses/by/4.0/'),
+				array('title' => 'CC BY-SA', 		'value' => 'http://creativecommons.org/licenses/by-sa/4.0/'),
+				array('title' => 'CC BY-ND', 		'value' => 'http://creativecommons.org/licenses/by-nd/4.0/'),
+				array('title' => 'CC BY-NC', 		'value' => 'http://creativecommons.org/licenses/by-nc/4.0/'),
+				array('title' => 'CC BY-NC-SA', 	'value' => 'http://creativecommons.org/licenses/by-nc-sa/4.0/'),
+				array('title' => 'CC BY-NC-ND', 	'value' => 'http://creativecommons.org/licenses/by-nc-nd/4.0/'),
 			);
 		}
 		$data['cc_license'] = $this->book->get_metadata('cc_license');
@@ -758,12 +758,12 @@ class Main extends Controller {
 		} else {
 			$data['cc_licenses'] = array(
 				array('title' => '(none)', 			'value' => ''),
-				array('title' => 'CC BY', 			'value' => 'http://creativecommons.org/licenses/by/3.0/'),
-				array('title' => 'CC BY-SA', 		'value' => 'http://creativecommons.org/licenses/by-sa/3.0/'),
-				array('title' => 'CC BY-ND', 		'value' => 'http://creativecommons.org/licenses/by-nd/3.0/'),
-				array('title' => 'CC BY-NC', 		'value' => 'http://creativecommons.org/licenses/by-nc/3.0/'),
-				array('title' => 'CC BY-NC-SA', 'value' => 'http://creativecommons.org/licenses/by-nc-sa/3.0/'),
-				array('title' => 'CC BY-NC-ND', 'value' => 'http://creativecommons.org/licenses/by-nc-nd/3.0/'),
+				array('title' => 'CC BY', 			'value' => 'http://creativecommons.org/licenses/by/4.0/'),
+				array('title' => 'CC BY-SA', 		'value' => 'http://creativecommons.org/licenses/by-sa/4.0/'),
+				array('title' => 'CC BY-ND', 		'value' => 'http://creativecommons.org/licenses/by-nd/4.0/'),
+				array('title' => 'CC BY-NC', 		'value' => 'http://creativecommons.org/licenses/by-nc/4.0/'),
+				array('title' => 'CC BY-NC-SA', 	'value' => 'http://creativecommons.org/licenses/by-nc-sa/4.0/'),
+				array('title' => 'CC BY-NC-ND', 	'value' => 'http://creativecommons.org/licenses/by-nc-nd/4.0/'),
 			);
 		}
 		$data['cc_license'] = '';
