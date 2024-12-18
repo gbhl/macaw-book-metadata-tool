@@ -117,16 +117,51 @@ class Internet_archive extends Controller {
 		// Auto-upgrade for the new features
 		$this->CI->db->query("update item_export_status set status_code = 'verified_upload' where status_code = 'verified';");
 
+		// --------------------------------------
+		// Prevent multiple copies of this export
+		// --------------------------------------
+		// Attempt to acquire the file lock
+		$lock_file = fopen($this->cfg['data_directory'].'/ia_export.lock', 'c');
+		$got_lock = flock($lock_file, LOCK_EX | LOCK_NB, $wouldblock);
+		$continue = true;
+		if ($lock_file === false || (!$got_lock && !$wouldblock)) {
+			print "Couldn't lock.\n";
+			$continue = false;
+		} else if (!$got_lock && $wouldblock) {
+			print "Another instance is already running.\n";
+			$continue = false;
+		}
+		
+		// Save the PID now so we don't overwrite it later
+		if ($continue) {
+			ftruncate($lock_file, 0);
+			fwrite($lock_file, getmypid() . "\n");
+		}
+
+		// Handle overrides, because sometimes we need to
+		if (!$continue) {
+			if (!getenv("MACAW_OVERRIDE")) {
+				$this->CI->logging->log('access', 'info', "Cron command 'export Internet_archive' is already running. Stopping.");
+				return false;				
+			} else {
+				$this->CI->logging->log('access', 'info', "Cron command 'export Internet_archive' is already running, but we continue anyway due to override.");
+			}
+		}
+
 		// Since the Internet Archive upload does multiple things, this
 		// method simply calls the other methods in order.
 		$this->harvest($args);
 		$this->verify_uploaded($args);
 		$this->verify_derived($args);
 		$this->upload($args);
+
+		// Clean up the lock file.
+		ftruncate($lock_file, 0);
+		flock($lock_file, LOCK_UN);
 	}
 
 
-	// ----------------------------
+  // ----------------------------
 	// Function: export()
 	//
 	// Parameters:
@@ -2536,6 +2571,10 @@ class Internet_archive extends Controller {
 
 		// Contributor: Prefer the entered metadata, then the item's organization, then the hardcoded organization
 		$metadata['x-archive-meta-contributor'] = $this->CI->book->get_contributor();
+		// Really ensure we don't have more than one contributor
+		if (is_array($metadata['x-archive-meta-contributor'])) {
+			$metadata['x-archive-meta-contributor'] = $metadata['x-archive-meta-contributor'][0];
+		}
 
 		// These are almost as easy
 		$metadata['x-archive-meta-sponsor'] = $this->CI->book->get_metadata('sponsor');
