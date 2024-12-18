@@ -564,17 +564,22 @@ class Scan extends Controller {
 				echo json_encode(array('error' => $msg));
 				return;
 			}
-			// // Make sure at least 10% of the pages have page numbers
-			// $page_number_count = 0;
-			// foreach ($all_pages as $p) {
-			// 	if (isset($p->page_number) && $p->page_number != '') {
-			// 		$page_number_count++;
-			// 	}
-			// }
-			// if ($page_number_count == 0) {
-			// 	$this->session->set_userdata('warning', "The item was completed with no page numbers. Please verify that this is correct.");
-			// }
-
+			// Make sure at least 10% of the pages have page numbers
+			$page_number_count = 0;
+			foreach ($all_pages as $p) {
+				if (isset($p->page_number) && $p->page_number != '') {
+					$page_number_count++;
+				}
+			}
+			if ($page_number_count == 0) {
+				$this->session->set_userdata('warning', "The item was completed with no page numbers. Please verify that this is correct.");
+			}
+			// Make sure we have exactly one contributor
+			$contributor = $this->book->get_contributor();
+			if (is_array($contributor)) {
+				$c = $contributor[0];
+				$this->session->set_userdata('warning', "The item has more than one Holding Institution defined. Please fix this or \"$c\" will be sent to the Internet Archive.");
+			}
 			// Make sure each page as a page side
 			foreach ($all_pages as $p) {
 				if (!isset($p->page_side) || !$p->page_side) {
