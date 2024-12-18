@@ -2050,10 +2050,6 @@ class Book extends Model {
 		return $return;
 	}
 
-	function archive() {
-		// TODO: Need to be able to track the different statuses across export processes before we code this.
-	}
-
 	function check_paths() {
 		$this->last_error = '';
 		$paths = array();

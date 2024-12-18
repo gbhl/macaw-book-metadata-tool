@@ -145,13 +145,6 @@ class Cron extends Controller {
 		$args = func_get_args();
 
 		$this->exporter->export($args);
-
-		// When we're done, archive the books
-		$books = $this->book->search('status_code', 'completed', 'date_completed');
-		foreach ($books as $b) {
-			$this->book->load($b->barcode);
-			$this->book->archive();
-		}
 	}
 
 	function statistics() {
