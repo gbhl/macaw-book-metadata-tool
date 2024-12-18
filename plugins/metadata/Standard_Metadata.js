@@ -138,12 +138,18 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 
 		// Set the page_type information into an array that will contain
 		// the page type as well as the ID of the item on the page.
-			if (typeof(this.data.piece) == 'string') {
-				this.pieces.push( {
-					"type": this.data.piece,
-					"text": this.data.piece_text,
-					"id" : null
-				} );
+		if (typeof(this.data.piece) == 'string') {
+			this.pieces.push( {
+				"type": this.data.piece,
+				"text": this.data.piece_text,
+				"id" : null
+			} );
+		} else if (typeof(this.data.piece) == 'undefined') {
+			this.pieces.push( {
+				"type": '',
+				"text": this.data.piece_text,
+				"id" : null
+			} );
 		} else {
 			for (var i in this.data.piece) {
 				this.pieces.push( {

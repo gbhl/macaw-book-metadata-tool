@@ -477,6 +477,7 @@ class Scan extends Controller {
 						//  cycle through that array of values
 						foreach ($dt[$key] as $val) {
 							// Save the values and increment the counter as we go
+							if (is_array($val)) { $val = $val[0]; }
 							$this->book->set_page_metadata($page['page_id'], $key, $val, $c);
 							$c++;
 						}
