@@ -2189,10 +2189,17 @@ class Internet_archive extends Controller {
 							$i = array_search('Part', $p->piece);
 							if (isset($i)) {
 								$output .= '      <piece prefix="'.$p->piece[$i].'">'.$p->piece_text[$i].'</piece>'."\n";
+							} else {
+								$i = array_search('Suppl.', $p->piece);
+								if (isset($i)) {
+									$output .= '      <piece prefix="'.$p->piece[$i].'">'.$p->piece_text[$i].'</piece>'."\n";
+								} 
 							}
 						}
 					}
 				}
+			} elseif (property_exists($p, 'piece_text')) {
+				$output .= '      <piece>'.$p->piece_text[0].'</piece>'."\n";
 			}
 
 			// Year
@@ -2242,15 +2249,17 @@ class Internet_archive extends Controller {
 			array('mods' => 'tropicos', 'bhl' => 'tropicos'),
 		);
 	
-		foreach ($creators as $c) {
-			$output .= "  <creator>\n";
-			$output .= "    <name>".$c['name']."</name>\n";
-			foreach ($id_types as $id) {
-				if (isset($c[$id['bhl']])) {
-					$output .= "    <identifier type=\"".$id['bhl']."\">".$c[$id['bhl']]."</identifier>\n";
+		if ($creators) {
+			foreach ($creators as $c) {
+				$output .= "  <creator>\n";
+				$output .= "    <name>".$c['name']."</name>\n";
+				foreach ($id_types as $id) {
+					if (isset($c[$id['bhl']])) {
+						$output .= "    <identifier type=\"".$id['bhl']."\">".$c[$id['bhl']]."</identifier>\n";
+					}
 				}
+				$output .= "  </creator>\n";
 			}
-			$output .= "  </creator>\n";
 		}
 		$output .= "</creators>\n";
 		return $output;
