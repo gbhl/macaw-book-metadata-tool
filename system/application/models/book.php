@@ -490,6 +490,7 @@ class Book extends Model {
 			            ? number_format($p->bytes/1024, 0).' K'
 			            : number_format($p->bytes/(1024*1024), 1).' M');
 
+      $pieces = [];
 			foreach ($metadata as $row) {
 				// TODO: This can't be using names of fields!!
 				// It needs to be smarter and make arrays when necessary
@@ -508,12 +509,27 @@ class Book extends Model {
 					} else {
 						$p->{$row['fieldname']} = $row['value'].'';
 					}
-
-				}
+          // Since we changed from piece/piece_text
+          // accumulate the data so we can compress it down.
+          if ($row['fieldname'] == 'piece' || $row['fieldname'] == 'piece_text') {
+            $pieces[] = $row['value'].'';
+          }
+        }
 			}
 			$p->is_missing = ($p->is_missing ? $p->is_missing == 't' : false);
-		}
-		return $pages;
+
+      // Since we changed from piece/piece_text
+      // we need to convert existing data to a 
+      // single piece_text value.
+      if (count($pieces)) {
+        if (isset($p->{'piece'})) {
+          unset($p->{'piece'});
+        }
+        $p->{'piece_text'} = implode(' ', $pieces);
+      }
+    }
+
+    return $pages;
 	}
 
 	/**

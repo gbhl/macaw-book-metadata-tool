@@ -25,10 +25,10 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 	this.pageNumberImplicit = null;
 	this.pageTypes = new Array();
 	this.year = null;
-	this.volume = null;
+	this.volume = null; // Level 1
+	this.piece_text = null; // Level 1
 	this.notes = null;
 	this.pageSide = null;
-	this.pieces = new Array();
 	this.parent = parent;
 	this.pageID = this.parent.parent.pageID;
 
@@ -87,8 +87,8 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 			{key:"page_number", label:'Page', formatter:formatPage},
 			{key:"page_type",   label:'Type'  },
 			{key:"year",        label:'Year'  },
-			{key:"volume",      label:'Vol.'  },
-			{key:"piece",       label:'Piece' },
+			{key:"volume",      label:'Lvl 1' },
+			{key:"piece_text",  label:'Lvl 2' },
 			{key:"page_side",   label:'Side'  },
 			{key:"extra",       label:'',     formatter:formatExtra}
 		];
@@ -116,6 +116,7 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 		if (this.data.page_number_implicit) this.pageNumberImplicit = this.data.page_number_implicit;
 		if (this.data.year)                 this.year = this.data.year;
 		if (this.data.volume)               this.volume = this.data.volume;
+		if (this.data.piece_text)           this.piece_text = this.data.piece_text;
 		if (this.data.notes)                this.notes = this.data.notes;
 		if (this.data.page_side)            this.pageSide = this.data.page_side;
 		if (this.data.filebase)             this.filebase = this.data.filebase;
@@ -136,30 +137,6 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 			}
 		}
 
-		// Set the page_type information into an array that will contain
-		// the page type as well as the ID of the item on the page.
-		if (typeof(this.data.piece) == 'string') {
-			this.pieces.push( {
-				"type": this.data.piece,
-				"text": this.data.piece_text,
-				"id" : null
-			} );
-		} else if (typeof(this.data.piece) == 'undefined') {
-			this.pieces.push( {
-				"type": '',
-				"text": this.data.piece_text,
-				"id" : null
-			} );
-		} else {
-			for (var i in this.data.piece) {
-				this.pieces.push( {
-					"type": this.data.piece[i],
-					"text": this.data.piece_text[i],
-					"id" : null
-				} );
-			}
-		}
-
 		// Set up handling for the buttons and fields on our metadata fields.
 
 		// This is really special. We DO NOT want to call this more than once.
@@ -171,9 +148,6 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 
 			oBook.obtnShowAddPageTypeDlg = new Elem('btnShowAddPageTypeDlg');
 			oBook.obtnShowAddPageTypeDlg.on("click", this.showAddPageTypeDialog, null, oBook);
-
-			oBook.obtnShowAddPieceDlg = new Elem('btnShowAddPieceDlg');
-			oBook.obtnShowAddPieceDlg.on("click", this.showAddPieceDialog, null, oBook);
 
 			oBook.obtnClearYear = new Elem('btnClearYear');
 			oBook.obtnClearYear.on("click", this.clearYear, null, oBook);
@@ -187,11 +161,11 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 			oBook.obtnClearPageNumber = new Elem('btnClearPageNumber');
 			oBook.obtnClearPageNumber.on("click", this.clearPageNumber, null, oBook);
 
-			oBook.obtnClearPiece = new Elem('btnClearPiece');
-			oBook.obtnClearPiece.on("click", this.clearPiece, null, oBook);
+			oBook.obtnClearPieceText = new Elem('btnClearPieceText');
+			oBook.obtnClearPieceText.on("click", this.clearPieceText, null, oBook);
 
-			oBook.obtnShowAddPieceDlg = new Elem('btnClearPageType');
-			oBook.obtnShowAddPieceDlg.on("click", this.clearPageType, null, oBook);
+			oBook.obtnClearPageType = new Elem('btnClearPageType');
+			oBook.obtnClearPageType.on("click", this.clearPageType, null, oBook);
 
 			oBook.initialized_Standard_Metadata = true;
 		}
@@ -221,10 +195,6 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 
 		var pc = new Array();
 		var pct = new Array();
-		for (var p in this.pieces) {
-			pc.push(this.pieces[p].type);
-			pct.push(this.pieces[p].text);
-		}
 
 		data['page_prefix'] = this.pagePrefix;
 		data['page_number'] = this.pageNumber;
@@ -233,8 +203,7 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 		data['year'] = this.year;
 		data['volume'] = this.volume;
 		data['notes'] = this.notes;
-		data['piece'] = pc;
-		data['piece_text'] = pct;
+		data['piece_text'] = this.piece_text;
 		data['page_side'] = this.pageSide;
 
 		return data;
@@ -258,10 +227,6 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 		for (var i in this.pageTypes) {
 			pt.push(this.pageTypes[i].type);
 		}
-		var pc = new Array();
-		for (var i in this.pieces) {
-			pc.push(this.pieces[i].type+' '+this.pieces[i].text);
-		}
 
 		return {
 			page_prefix:   this.pagePrefix,
@@ -270,7 +235,7 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 			page_type:     pt.join(', '),
 			year:          this.year,
 			volume:        this.volume,
-			piece:         pc.join(', '),
+			piece_text:    this.piece_text,
 			page_side:     this.pageSide,
 			flag:          this.flagFutureReview,
 			notes:         this.notes
@@ -280,7 +245,7 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 	// ----------------------------
 	// Function: addPageTypeInternal()
 	//
-	// Adds a Page Type, both appending it to the pieces[] array and
+	// Adds a Page Type, both appending it to the page_types[] array and
 	// and to the screen. The object passed in is assumed to have a ".value" property.
 	//
 	// Arguments
@@ -305,38 +270,7 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 			if (el) Dom.get('page_types').appendChild(el);
 			// Add the item to the array
 			this.pageTypes.push({ "type": val, "id": el.id });
-			YAHOO.macaw.Standard_Metadata.closeAddPagePieceDialog(YAHOO.macaw.dlgPageType);
-		}
-	}
-
-	// ----------------------------
-	// Function: addPiece()
-	//
-	// Adds a Piece, both appending it to the pieces[] array and
-	// and to the screen.
-	//
-	// Arguments
-	//    keycode - The key that was pressed in the box. We only respond to Enter (13).
-	//
-	// Return Value / Effect
-	//    Item is added to the metadata array and to the screen
-	// ----------------------------
-	this.addPiece = function (type, value) {
-		// Make sure we aren't duplicating a piece type
-		var found = false;
-		for (var p in this.pieces) {
-			if (this.pieces[p].type == type) {
-				found = true;
-				break;
-			}
-		}
-
-		if (!found) {
-			// Add the new element to the page
-			var el = this._createMetadataTypeElement('pieces', type+' '+value)
-			if (el) Dom.get('pieces').appendChild(el);
-			// Add the item to the array
-			this.pieces.push({ "type": type, "text": value, "id": el.id });
+			YAHOO.macaw.Standard_Metadata.closeAddPageDialog(YAHOO.macaw.dlgPageType);
 		}
 	}
 
@@ -435,63 +369,10 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 	}
 
 	// ----------------------------
-	// Function: removePiece()
-	//
-	// Removes a piece from the metadata and from the screen. Called from the
-	// "X" button next to the Piece. Resizes the window just in case the height
-	// of the metadata changed.
-	//
-	// Arguments
-	//    e - The YUI Event
-	//    obj - The element associated to the event
-	//
-	// Return Value / Effect
-	//    The item is removed from the array and the page
-	// ----------------------------
-	this.removePiece = function(e, obj) {
-		var id = obj.id;
-		for (var i in this.pieces) {
-			if (this.pieces[i].id == id) {
-				// Remove the element from the array
-				Scanning.log(this.pageID, 'DELETE_piece', this.pieces[i].type);
-				Scanning.log(this.pageID, 'DELETE_piece_text', this.pieces[i].text);
-				this.pieces.splice(i, 1);
-				this._unrenderOneMetadataType('pieces',id);
-				Scanning.resizeWindow();
-			}
-		}
-		oBook._updateDataTableRecordset();
-	}
-
-	// ----------------------------
-	// Function: removeAllPieces()
-	//
-	// Unconditionally removes all pieces from the metadata. Resizes the
-	// window just in case the height of the metadata changed.
-	//
-	// Arguments
-	//    none
-	//
-	// Return Value / Effect
-	//    all pieces gone from the screen and from memory
-	// ----------------------------
-	this.removeAllPieces = function (mult) {
-		if (!mult) {
-			for (var i in this.pieces) {
-				try {
-					this._unrenderOneMetadataType('pieces', this.pieces[i].id);
-				} catch (err) {}
-			}
-		}
-		this.pieces = null;
-		this.pieces = new Array();
-		Scanning.resizeWindow();
-	}
-	// ----------------------------
 	// Function: _renderPageTypes()
 	//
 	// Fills in the Page Types section of the page. Also makes sure that the ID of the
-	// element that is created is saved back in the .pieces[] array of the metadata
+	// element that is created is saved back in the .page_types[] array of the metadata
 	// for future reference.
 	//
 	// Arguments
@@ -506,28 +387,6 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 			var el = this._createMetadataTypeElement('page_types', this.pageTypes[i].type)
 			this.pageTypes[i].id = el.id;
 			Dom.get('page_types').appendChild(el);
-		}
-	}
-
-	// ----------------------------
-	// Function: _renderPieces()
-	//
-	// Fills in the Pieces section of the page. Also makes sure that the ID of the
-	// element that is created is saved back in the .pieces[] array of the metadata
-	// for future reference.
-	//
-	// Arguments
-	//    none
-	//
-	// Return Value / Effect
-	//    Zero or more items are added to the Pieces section of the page
-	// ----------------------------
-	this._renderPieces = function() {
-		// Loop through the page types adding them to the page
-		for (var i in this.pieces) {
-			var el = this._createMetadataTypeElement('pieces', this.pieces[i].type+' '+this.pieces[i].text)
-			this.pieces[i].id = el.id;
-			Dom.get('pieces').appendChild(el);
 		}
 	}
 
@@ -555,13 +414,13 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 	// ----------------------------
 	// Function: _createMetadataTypeElement()
 	//
-	// This adds an element to either the Page Types or Pieces section of the
+	// This adds an element to either the Page Types section of the
 	// page. Creating the necessary objects, tags, and event listeners to handle
 	// the delete button. Makes sure that the element isn't already on the page.
 	// We don't like duplicates, even if it doesn't affect the metadata.
 	//
 	// Arguments
-	//    parent - To where are we adding: "page_types" or "pieces"
+	//    parent - To where are we adding: "page_types"
 	//    txt - The text of the element to create
 	//
 	// Return Value / Effect
@@ -588,8 +447,6 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 		Dom.addClass(t, 'keytext');
 		if (parent == 'page_types') {
 			Event.addListener(a, "click", this.removePageType, sp, this);
-		} else {
-			Event.addListener(a, "click", this.removePiece, sp, this);
 		}
 		a.innerHTML = 'X';
 		t.innerHTML = txt;
@@ -602,11 +459,11 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 	// ----------------------------
 	// Function: _unrenderMetadataTypes()
 	//
-	// This removes all of the Page Types or Pieces from the screen (but not
+	// This removes all of the Page Types from the screen (but not
 	// from the pages.metadata object.)
 	//
 	// Arguments
-	//    parent - From where are we removeing "page_types" or "pieces"
+	//    parent - From where are we removeing "page_types"
 	//
 	// Return Value / Effect
 	//    All of the elements are deleted
@@ -623,11 +480,11 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 	// ----------------------------
 	// Function: _unrenderOneMetadataType()
 	//
-	// This removes one of the Page Types or Pieces from the screen (but not
+	// This removes one of the Page Types from the screen (but not
 	// from the pages.metadata object.)
 	//
 	// Arguments
-	//    parent - From where are we removeing "page_types" or "pieces"
+	//    parent - From where are we removeing "page_types"
 	//    id - the ID of the element to remove.
 	//
 	// Return Value / Effect
@@ -666,12 +523,12 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 			// Is this the click event on the button that opened the panel? If so, exit.
 			if (el.id == 'btnShowPagesDlg') return;
 			if (el !== Dom.get(obj.id) && !Dom.isAncestor(obj.id, el)) {
-				YAHOO.macaw.Standard_Metadata.closeAddPagePieceDialog(obj);
+				YAHOO.macaw.Standard_Metadata.closeAddPageDialog(obj);
 			}
 		}
 
 		var handleCancel = function() {
-			YAHOO.macaw.Standard_Metadata.closeAddPagePieceDialog(YAHOO.macaw.dlgPageNumbering);
+			YAHOO.macaw.Standard_Metadata.closeAddPageDialog(YAHOO.macaw.dlgPageNumbering);
 		};
 		var handleReplace = function() {
 			// Verify that we got numbers
@@ -682,11 +539,11 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 				return;
 			}
 			YAHOO.macaw.Standard_Metadata.setPageNumbering();
-			YAHOO.macaw.Standard_Metadata.closeAddPagePieceDialog(YAHOO.macaw.dlgPageNumbering);
+			YAHOO.macaw.Standard_Metadata.closeAddPageDialog(YAHOO.macaw.dlgPageNumbering);
 		};
 		var handlePrefix = function() {
 			YAHOO.macaw.Standard_Metadata.setPageNumbering(true);
-			YAHOO.macaw.Standard_Metadata.closeAddPagePieceDialog(YAHOO.macaw.dlgPageNumbering);
+			YAHOO.macaw.Standard_Metadata.closeAddPageDialog(YAHOO.macaw.dlgPageNumbering);
 		};
 		var myButtons = [
 			{ text: "Replace", handler: handleReplace, isDefault: true },
@@ -732,7 +589,7 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 			// Is this the click event on the button that opened the panel? If so, exit.
 			if (el.id == 'btnShowAddPageTypeDlg') return;
 			if (el !== Dom.get(obj.id) && !Dom.isAncestor(obj.id, el)) {
-				YAHOO.macaw.Standard_Metadata.closeAddPagePieceDialog(obj);
+				YAHOO.macaw.Standard_Metadata.closeAddPageDialog(obj);
 			}
 		}
 		YAHOO.macaw.dlgPageType = new YAHOO.widget.Panel("pnlPageType", {
@@ -743,117 +600,6 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 		YAHOO.macaw.dlgPageType.show();
 		Event.addListener(document, 'click', checkPanelClick, YAHOO.macaw.dlgPageType);
 	}
-
-	// ----------------------------
-	// Function: showAddPieceDialog()
-	//
-	// Displays the popup dialog box to select a piece type and value. Includes
-	// creating an event listener to follow click activities on the page to
-	// close the dialog if/when the user clicks outside of the dialog box. The
-	// event listener is cleared when the dialog closes.
-	//
-	// Arguments
-	//    none
-	//
-	// Return Value / Effect
-	//    The dialog is created and displayed, the event listener is set up
-	// ----------------------------
-	this.showAddPieceDialog = function() {
-		if (oBook.pages.arrayHighlighted().length == 0) {
-			alert('Please select one or more pages before entering a piece.');
-			return;
-		}
-		var checkPanelClick = function(e, obj) {
-			// Get the element that we clicked on
-			var el = YAHOO.util.Event.getTarget(e);
-			// Is this the click event on the button that opened the panel? If so, exit.
-			if (el.id == 'btnShowAddPieceDlg') return;
-			if (el !== Dom.get(obj.id) && !Dom.isAncestor(obj.id, el)) {
-				YAHOO.macaw.Standard_Metadata.closeAddPagePieceDialog(obj);
-			}
-		}
-		YAHOO.macaw.dlgPieceType = new YAHOO.widget.Panel("pnlPieceType", {
-			visible:false, draggable:false, close:false, underlay: "none"
-		} );
-		YAHOO.macaw.dlgPieceType.setBody(Dom.get('dlgHTMLSelectPiece').innerHTML);
-		YAHOO.macaw.dlgPieceType.render("tdYearVolume");
-		YAHOO.macaw.dlgPieceType.show();
-		Event.addListener(document, 'click', checkPanelClick, YAHOO.macaw.dlgPieceType);
-	}
-
-	// ----------------------------
-	// Function: addPageType()
-	//
-	// Adds the page type to the metadata for the selected items.
-	//
-	// Arguments
-	//    none
-	//
-	// Return Value / Effect
-	//    The page type is ADDED to the existing page types for the selected pages.
-	// ----------------------------
-// 	this.addPageType = function(obj) {
-//
-// 		// Get the things that are selected
-// 		var pg = oBook.pages.arrayHighlighted();
-// 		// Set an array to accumulate any pageids we modify
-// 		var page_ids = new Array();
-// 		// This will APPEND the Piece to those that are selected.
-// 		// Other fields (except Piece) REPLACE the data that's on the object.
-// 		var i;
-// 		for (var i in pg) {
-// 			pg[i].metadata.addPageTypeInternal(obj.value);
-// 			// Collect the pageids we modify
-// 			page_ids.push(pg[i].pageID);
-// 		}
-// 		// Hide the dialog for selecting a pagetype
-// 		YAHOO.macaw.Standard_Metadata.closeAddPagePieceDialog(YAHOO.macaw.dlgPageType);
-// 		YAHOO.macaw.dlgPageType = null;
-// 		// Resize the window to accommodate any additional height
-// 		Scanning.resizeWindow();
-// 		// Log all the pages that were modified at once to not spam the server
-// 		Scanning.log(page_ids.join('|'), 'addPageType', obj.value);
-// 		oBook._updateDataTableRecordset();
-// 	}
-
-	// ----------------------------
-	// Function: addPiece()
-	//
-	// Adds a piece type and text to the metadata for the selected items.
-	//
-	// Arguments
-	//    none
-	//
-	// Return Value / Effect
-	//    The piece is ADDED to the existing pieces for the selected pages.
-	// ----------------------------
-// 	this.addPiece = function(obj, code) {
-//
-// 		if (code == 13) {
-// 			// Get the things that are selected
-// 			var pg = oBook.pages.arrayHighlighted();
-// 			// Set an array to accumulate any pageids we modify
-// 			var page_ids = new Array();
-// 			// This will APPEND the Piece to those that are selected.
-// 			// Other fields (except Page Type) REPLACE the data that's on the object.
-// 			var i;
-// 			for (var i in pg) {
-// 				var el = Dom.get('selPiece');
-// 				var el2 = Dom.get('txtPieceExtra');
-// 				pg[i].metadata.addPieceInternal(el.value, el2.value);
-// 				// Collect the pageids we modify
-// 				page_ids.push(pg[i].pageID);
-// 			}
-// 			// Hide the dialog for selecting a piece
-// 			YAHOO.macaw.Standard_Metadata.closeAddPagePieceDialog(YAHOO.macaw.dlgPieceType);
-// 			YAHOO.macaw.dlgPieceType = null;
-// 			// Resize the window to accommodate any additional height
-// 			Scanning.resizeWindow();
-// 			// Log all the pages that were modified at once to not spam the server
-// 			Scanning.log(page_ids.join('|'), 'addPiece', el.value + ' ' + el2.value);
-// 			oBook._updateDataTableRecordset();
-// 		}
-// 	}
 
 	this.clearYear = function () {
 		// Get the things that are selected
@@ -887,7 +633,7 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 		var page_ids = new Array();
 
 		if (multiple) {
-			if (!confirm('Are you sure you want to clear the Volume for '+pg.length+' items?')) {
+			if (!confirm('Are you sure you want to clear Level 1 for '+pg.length+' items?')) {
 				return;
 			}
 		} else {
@@ -927,7 +673,7 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 		Scanning.log(page_ids.join('|'), 'clearPageSide', 'DELETED');
 	}
 
-	this.clearPiece = function () {
+  this.clearPieceText = function () {
 		// Get the things that are selected
 		var pg = oBook.pages.arrayHighlighted();
 		var multiple = (pg.length > 1);
@@ -935,19 +681,21 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 		var page_ids = new Array();
 
 		if (multiple) {
-			if (!confirm('Are you sure you want to clear the Pieces for '+pg.length+' items?')) {
+			if (!confirm('Are you sure you want to clear Level 2 for '+pg.length+' items?')) {
 				return;
 			}
+		} else {
+			Dom.get('piece_text').value = '';
 		}
 		for (var i in pg) {
-			pg[i].metadata.callFunction('removeAllPieces', multiple);
+			pg[i].metadata.callFunction('set', 'piece_text', '', 0);
 			// Collect the pageids we modify
 			page_ids.push(pg[i].pageID);
 		}
 		oBook._updateDataTableRecordset();
 		// Log all the pages that were modified at once to not spam the server
-		Scanning.log(page_ids.join('|'), 'clearPiece', 'DELETED');
-	}
+		Scanning.log(page_ids.join('|'), 'piece_text', 'DELETED');
+  }
 
 
 	this.clearPageType = function () {
@@ -1043,6 +791,11 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 				this.volume = value;
 			}
 
+		} else if (field == 'piece_text') {
+			if (!mult || (mult && !isBlank(value))) {
+				this.piece_text = value;
+			}
+
 		} else if (field == 'pageSide') {
 			if (!mult || (mult && !isBlank(value))) {
 				this.pageSide = value;
@@ -1069,11 +822,11 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 		Dom.removeClass('page_number_implicit_text', 'grey');
 		if (this.year) Dom.get('year').value = this.year;
 		if (this.volume) Dom.get('volume').value = this.volume;
+		if (this.piece_text) Dom.get('piece_text').value = this.piece_text;
 		if (this.notes) Dom.get('notes').value = this.notes;
 		if (this.notes) Dom.get('notes').innerHTML = this.notes;
 
 		this._renderPageTypes();
-		this._renderPieces();
 		this._renderPageSide(this.pageSide);
 
 	}
@@ -1098,12 +851,12 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 		Dom.removeClass('page_number_implicit_text', 'grey');
 		Dom.get('year').value = '';
 		Dom.get('volume').value = '';
+		Dom.get('piece_text').value = '';
 		Dom.get('notes').value = '';
 		Dom.get('notes').innerHTML = '';
 		Dom.get('page_side').selectedIndex = 0;
 
 		this._unrenderMetadataTypes('page_types');
-		this._unrenderMetadataTypes('pieces');
 
 	}
 
@@ -1253,9 +1006,9 @@ YAHOO.macaw.Standard_Metadata.setPageNumbering = function(prefix_only) {
 
 
 // ----------------------------
-// Function: closeAddPagePieceDialog()
+// Function: closeAddPageDialog()
 //
-// Close either of the Page Type or Piece Type dialog boxes. Also, cancel the
+// Close either of the Page Type dialog boxes. Also, cancel the
 // click event listener that was created when the dialog box was opened.
 //
 // Arguments
@@ -1264,7 +1017,7 @@ YAHOO.macaw.Standard_Metadata.setPageNumbering = function(prefix_only) {
 // Return Value / Effect
 //    The dialog is closed and the listener is removed.
 // ----------------------------
-YAHOO.macaw.Standard_Metadata.closeAddPagePieceDialog = function(obj) {
+YAHOO.macaw.Standard_Metadata.closeAddPageDialog = function(obj) {
 	try {
 		if (obj) {
 			obj.hide();  // Hide the dialog
@@ -1281,7 +1034,7 @@ YAHOO.macaw.Standard_Metadata.closeAddPagePieceDialog = function(obj) {
 // ----------------------------
 // Function: metadataChange()
 //
-// Called when any of the metadata elements (except Page Type and Piece)
+// Called when any of the metadata elements (except Page Type)
 // are changed in the interface. This actually sets the metadata into the
 // objects.
 //
@@ -1295,7 +1048,7 @@ YAHOO.macaw.Standard_Metadata.metadataChange = function(obj) {
 	// Get the things that are selected
 	var pg = oBook.pages.arrayHighlighted();
 	// All of these REPLACE the data that's on the object.
-	// Only the Page Type and Pieces will APPEND.
+	// Only the Page Type will APPEND.
 	var i;
 	// Set an array to accumulate any pageids we modify
 	var page_ids = new Array();
@@ -1322,6 +1075,9 @@ YAHOO.macaw.Standard_Metadata.metadataChange = function(obj) {
 
 		} else if (obj.id == 'volume') {
 			pg[i].metadata.callFunction('set', 'volume', obj.value, multiple, multiple);
+
+    } else if (obj.id == 'piece_text') {
+			pg[i].metadata.callFunction('set', 'piece_text', obj.value, multiple, multiple);
 
 		} else if (obj.id == 'page_side') {
 			pg[i].metadata.callFunction('set', 'pageSide', obj.value, multiple, multiple);
@@ -1354,7 +1110,7 @@ YAHOO.macaw.Standard_Metadata.metadataChange = function(obj) {
 // ----------------------------
 // Function: addPageTypeInternal()
 //
-// Adds a Page Type, both appending it to the pieces[] array and
+// Adds a Page Type, both appending it to the page_ids[] array and
 // and to the screen. The object passed in is assumed to have a ".value" property.
 // Operates on all selected pages.
 //
@@ -1379,44 +1135,9 @@ YAHOO.macaw.Standard_Metadata.evtAddPageType = function (obj) {
 	Scanning.log(page_ids.join('|'), 'page_type', obj.value);
 
 	// All done!
-	YAHOO.macaw.Standard_Metadata.closeAddPagePieceDialog(YAHOO.macaw.dlgPieceType);
 	oBook._updateDataTableRecordset();
-
+  
 }
 
-// ----------------------------
-// Function: addPiece()
-//
-// Adds a Piece, both appending it to the pieces[] array and
-// and to the screen. Operates on all selected pages.
-//
-// Arguments
-//    keycode - The key that was pressed in the box. We only respond to Enter (13).
-//
-// Return Value / Effect
-//    Item is added to the metadata array and to the screen
-// ----------------------------
-YAHOO.macaw.Standard_Metadata.evtAddPiece = function (keycode) {
-	// We only do stiff when the enter key is pressed
-	if (keycode == 13) {
-		var type = Dom.get('selPiece').value;
-		var value = Dom.get('txtPieceExtra').value;
-
-		// Get the things that are selected
-		var pg = oBook.pages.arrayHighlighted();
-		// This will accumulate which page IDs are selected
-		var page_ids = new Array();
-		for (var i in pg) {
-			pg[i].metadata.callFunction('addPiece', type, value);
-			page_ids.push(pg[i].pageID);
-		}
-		// Save all of pages to the server together in order to not spam the server
-		Scanning.log(page_ids.join('|'), 'piece', type);
-		Scanning.log(page_ids.join('|'), 'piece_text', value);
-
-		YAHOO.macaw.Standard_Metadata.closeAddPagePieceDialog(YAHOO.macaw.dlgPieceType);
-		oBook._updateDataTableRecordset();
-	}
-}
 
 

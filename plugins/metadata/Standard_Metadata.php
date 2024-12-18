@@ -53,16 +53,15 @@
 						</td>
 					</tr>
 					<tr>
-						<td><label for="volume">Volume:</label></td>
+						<td><label for="volume">Level&nbsp;1:</label></td>
 						<td id="tdYearVolume">
 							<input type="text" name="volume" id="volume" value="" onChange="YAHOO.macaw.Standard_Metadata.metadataChange(this);" onFocus="focusOn(this);" onBlur="focusOff();">&nbsp;<img src="<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearVolume" class="icon" onMouseOver="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';">
 						</td>
 					</tr>
 					<tr>
-						<td nowrap><label for="piece">Piece:&nbsp;<img src="<?php echo $this->config->item('base_url'); ?>images/icons/add.png" id="btnShowAddPieceDlg" class="icon">&nbsp;<img src="<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearPiece" class="icon" onMouseOver="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';"></label></td>
+						<td nowrap><label for="piece">Level&nbsp;2:</label></td>
 						<td>
-							<div id="pieces"></div>
-							<div class="clear"><!-- --></div>
+              <input type="text" name="piece_text" id="piece_text" value="" onChange="YAHOO.macaw.Standard_Metadata.metadataChange(this);" onFocus="focusOn(this);" onBlur="focusOff();">&nbsp;<img src="<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearPieceText" class="icon" onMouseOver="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';">
 						</td>
 					</tr>
 					<tr>
@@ -94,14 +93,6 @@
 			<option value=""></option>
 			<?php echo(implode('', array_map('option', $page_types))); ?>
 		</select>
-	</div>
-	<div id="dlgHTMLSelectPiece" style="display: none">
-		<div style="float:right;font-size: 80%; color: #999;margin-left: 5px;">(Type Enter<br>to Save)</div>
-		Piece: <select id="selPiece" onFocus="focusOn(this);" onBlur="focusOff();">
-			<option value=""></option>
-			<?php echo(implode('', array_map('option', $piece_types))); ?>
-		</select>
-		Value: <input id="txtPieceExtra" type="text" size="3" maxlength="20" onKeyPress="YAHOO.macaw.Standard_Metadata.evtAddPiece(getKeyCode(event));" onFocus="focusOn(this);" onBlur="focusOff();">
 	</div>
 	<div id="dlgPageNumbering" style="display: none;margin-top:-200px">
 		<div style="border: 1px solid #999; padding: 5px; line-height: 1.7; margin: 0 0 5px;">
