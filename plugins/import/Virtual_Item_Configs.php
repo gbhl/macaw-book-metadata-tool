@@ -704,7 +704,7 @@ class Virtual_Item_Configs extends Controller {
 				$this->CI->book->set_page_metadata($p->id, 'page_type', $first ? 'Cover' : 'Text');
 				$this->CI->book->set_page_metadata($p->id, 'page_number', $page_num);
 				$this->CI->book->set_page_metadata($p->id, 'page_number_implicit', 0);
-				$this->CI->book->set_page_metadata($p->id, 'page_side', ($even++ % 2) ? 'left (verso)' : 'Right (recto)');				
+				$this->CI->book->set_page_metadata($p->id, 'page_side', ($even++ % 2) ? 'Left (verso)' : 'Right (recto)');				
 
 				$this->CI->book->set_page_metadata($p->id, 'year', $info['year']);
 				if (isset($info['volume'])) {
