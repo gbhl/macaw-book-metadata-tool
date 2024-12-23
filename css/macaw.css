@@ -1034,6 +1034,7 @@ table#admin_scheduled_jobs td {
 }
 #metadata #volume,
 #metadata #page_prefix,
+#metadata #piece_text,
 #metadata #year {
 	width: 6em;
 }
