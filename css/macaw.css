@@ -398,6 +398,7 @@ td.yui-dt-last {
     top: 0;
     z-index: 10;
 }
+
 #login button{
 	font-family: Georgia;
    background-color: #426a80;
@@ -429,6 +430,13 @@ td.yui-dt-last {
 }
 #login_details a:hover{
 	color: #bcebff;
+}
+#loginheader {
+	text-align: left;
+}
+#loginheader a {
+	color: white;
+	
 }
 /* ****************************** */
 /* Global Body */

@@ -21,15 +21,16 @@
 	<div id="logincontainerborder">
 	<div id="logincontainer">
 		<div id="loginheader">
-		<img id="hero" width="318" height="483" alt="Rosellas" src="<?php echo $this->config->item('base_url'); ?>images/rosellas_macaw_login.png">
-				<h1>Macaw</h1>
-				<h2>Metadata Collection and Workflow System</h2>
-				<hr>
-				<?php if ($version_rev == 'VERSION_GOES_HERE') { ?>
-					<h3>Demo / Development Version</h3>
-				<?php } else { ?>
-					<h3>Version <?php echo($version_rev); ?> / <?php echo($version_date); ?></h3>
-				<?php } ?>
+			<img id="hero" width="318" height="483" alt="Rosellas" src="<?php echo $this->config->item('base_url'); ?>images/rosellas_macaw_login.png">
+			<h1>Macaw</h1>
+			<h2>Metadata Collection and Workflow System</h2>
+			<hr>
+			<?php if ($version_rev == 'VERSION_GOES_HERE') { ?>
+				<h3>Demo / Development Version</h3>
+			<?php } else { ?>
+				<h3>Version <?php echo($version_rev); ?> / <?php echo($version_date); ?></h3>
+				<a href="https://docs.google.com/document/d/18TD8BkHbuP6hTKUKb0OV1UzlZ4Qcx0MdOkJt_cjcWL8/edit?usp=sharing" target="_blank">Changes and Release Notes</a>
+			<?php } ?>
 		</div>
 		<?php $this->load->view('global/error_messages_view') ?>	
 		
