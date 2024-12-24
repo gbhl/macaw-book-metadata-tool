@@ -116,37 +116,31 @@ class Internet_archive extends Controller {
 
 		// Auto-upgrade for the new features
 		$this->CI->db->query("update item_export_status set status_code = 'verified_upload' where status_code = 'verified';");
+    $this->CI->logging->log('access', 'info', "Starting Internet_archive export.");
 
 		// --------------------------------------
-		// Prevent multiple copies of this export
+    // If we can run multiple exports, then do so
 		// --------------------------------------
-		// Attempt to acquire the file lock
-		$lock_file = fopen($this->cfg['data_directory'].'/ia_export.lock', 'c');
-		$got_lock = flock($lock_file, LOCK_EX | LOCK_NB, $wouldblock);
-		$continue = true;
-		if ($lock_file === false || (!$got_lock && !$wouldblock)) {
-			print "Couldn't lock.\n";
-			$continue = false;
-		} else if (!$got_lock && $wouldblock) {
-			print "Another instance is already running.\n";
-			$continue = false;
-		}
-		
-		// Save the PID now so we don't overwrite it later
-		if ($continue) {
-			ftruncate($lock_file, 0);
-			fwrite($lock_file, getmypid() . "\n");
-		}
+    $limit = 1;
+    if (array_key_exists('export_concurrency_limit', $this->cfg)) {
+      $limit = (int)$this->cfg['export_concurrency_limit'];
+      if ($limit < 1) { $limit = 1; } // Limit the limits
+    }
 
-		// Handle overrides, because sometimes we need to
-		if (!$continue) {
-			if (!getenv("MACAW_OVERRIDE")) {
-				$this->CI->logging->log('access', 'info', "Cron command 'export Internet_archive' is already running. Stopping.");
-				return false;				
-			} else {
-				$this->CI->logging->log('access', 'info', "Cron command 'export Internet_archive' is already running, but we continue anyway due to override.");
-			}
-		}
+		// --------------------------------------
+    // Are there too many sibling processes? 
+		// --------------------------------------
+    $found = $this->count_exports();
+
+    if ($found > ($limit-1)) { // We subtract one to account for ourself
+      // No, so we quit.
+      if (!getenv("MACAW_OVERRIDE")) {
+        $this->CI->logging->log('access', 'info', "Too many Internet_archive children. Exiting.");
+        return false;
+      } else {
+        $this->CI->logging->log('access', 'info', "Got override. Continuing.");
+      }
+    }
 
 		// Since the Internet Archive upload does multiple things, this
 		// method simply calls the other methods in order.
@@ -154,10 +148,6 @@ class Internet_archive extends Controller {
 		$this->verify_uploaded($args);
 		$this->verify_derived($args);
 		$this->upload($args);
-
-		// Clean up the lock file.
-		ftruncate($lock_file, 0);
-		flock($lock_file, LOCK_UN);
 	}
 
 
@@ -198,9 +188,8 @@ class Internet_archive extends Controller {
 			$books = $this->_get_books('NULL');
 		}
 
-
-		// Cycle through these items
-		foreach ($books as $b) {
+    while (count($books) > 0) {
+      $b = array_pop($books);
 			try {
 				print "Exporting ".$b->barcode."...\n";
 				$bc = $b->barcode;
@@ -275,6 +264,9 @@ class Internet_archive extends Controller {
 				}
 
 				$this->CI->logging->log('book', 'debug', 'Identifier is '.$id.'.', $bc);
+        
+        // Mark that this is being uploaded to keep it our of other lists.
+				$this->CI->book->set_export_status('uploading'); 
 
 				$archive_file_orig = '';
 				$archive_file = '';
@@ -1021,7 +1013,12 @@ class Internet_archive extends Controller {
 			$this->access = '';
 			$this->secret = '';
 			
-		} // foreach ($books as $b)
+      if (!$sent_id) {
+        // Refresh the list of books. They could have changed while we were doing stuff.
+        // But only if we didn't get a specific ID to work on.
+        $books = $this->_get_books('NULL');
+      }
+    } // while (count($books))
 	} // function upload($args)
 
 	// ----------------------------
@@ -3321,4 +3318,31 @@ class Internet_archive extends Controller {
 			return false;
 		}
 	}
+
+  function count_exports() {
+		// --------------------------------------
+    // Count how many are running, remember we count as one process
+		// --------------------------------------
+		$commands = array();
+		$pid = getmypid().'';
+		$found = 0;
+    $search = "export ".basename(__FILE__, '.php'); 
+
+    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+      // Windows will be always be limited to 1.
+			exec("tasklist | FIND \"php\"",$commands);
+			$search = "php.exe";
+		} else {
+			exec("ps -fe | grep -v sudo | grep php", $commands);
+		}
+    
+		if (count($commands) > 0) {
+			foreach ($commands as $command) {
+				if (strpos($command, $search) > 0 && strpos($command, $pid) == 0) {
+					$found++;
+				}
+			}
+		}
+    return $found;
+  }
 }
