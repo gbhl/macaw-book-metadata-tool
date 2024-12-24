@@ -80,5 +80,68 @@ class Export_Generic extends Controller {
 	// ----------------------------
 	function export($args) {
 
+		// --------------------------------------
+    // If we can run multiple exports, then do so
+		// --------------------------------------
+    $limit = 1;
+    if (array_key_exists('export_concurrency_limit', $this->cfg)) {
+      $limit = (int)$this->cfg['export_concurrency_limit'];
+      if ($limit < 1) { $limit = 1; } // Limit the limits
+    }
+
+		// --------------------------------------
+    // Are there too many sibling processes? 
+		// --------------------------------------
+    $found = $this->count_exports();
+
+    if ($found > ($limit-1)) { // We subtract one to account for ourself
+      // No, so we quit.
+      if (!getenv("MACAW_OVERRIDE")) {
+        $this->CI->logging->log('access', 'info', "Too many Internet_archive children. Exiting.");
+        return false;
+      } else {
+        $this->CI->logging->log('access', 'info', "Got override. Continuing.");
+      }
+    }
+
+    // --------------------------------------
+    // Start the export work here
+    // --------------------------------------
+
 	}
+
+	// ----------------------------
+	// Function: count_exports()
+	//
+	// Count how many processes like ourselves already exists.
+  // 
+  // Self-contained, but using this on windows will usually
+  // always return 1. 
+	// ----------------------------
+  function count_exports() {
+		// --------------------------------------
+    // Count how many are running, remember we count as one process
+		// --------------------------------------
+		$commands = array();
+		$pid = getmypid().'';
+		$found = 0;
+    $search = "export ".basename(__FILE__, '.php'); 
+
+    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+      // Windows will be always be limited to 1.
+			exec("tasklist | FIND \"php\"",$commands);
+			$search = "php.exe";
+		} else {
+			exec("ps -fe | grep -v sudo | grep php", $commands);
+		}
+    
+		if (count($commands) > 0) {
+			foreach ($commands as $command) {
+				if (strpos($command, $search) > 0 && strpos($command, $pid) == 0) {
+					$found++;
+				}
+			}
+		}
+    return $found;
+  }
 }
