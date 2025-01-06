@@ -2102,8 +2102,13 @@ class Book extends Model {
 	// Since Version 1.6
 
 	function get_contributor() {
-		if ($this->get_metadata('contributor')) {
-			return $this->get_metadata('contributor');
+    $c = $this->get_metadata('contributor');
+		if ($c) {
+      if (is_array($c)) { 
+        return $c[0];
+      } else {
+        return $c;
+      }
 
 		} elseif ($this->org_name != 'Default') {
 			return $this->org_name;

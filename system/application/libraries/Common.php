@@ -538,6 +538,7 @@ class Common extends Controller {
 		$xml = new DOMDocument;
 		$xsl = new DOMDocument;
 		$proc = new XSLTProcessor;
+    if (is_array($text)) { $text = $text[0]; }
 		$ret = $xml->loadXML($text);    // Load the MARC XML to convert to MODS
 		
 		if ($ret) {
