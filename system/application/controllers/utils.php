@@ -191,7 +191,7 @@ class Utils extends Controller {
 
 		// Restore the directories that Macaw expects
  		echo "Recreating the directory structure ...\n";
- 		$pth = $this->cfg['data_directory'].'/'.$barcode;
+ 		$pth = $this->cfg['data_directory'].DIRECTORY_SEPARATOR.$barcode;
 		if (!file_exists($pth)) {
 			mkdir($pth);
 			echo "books/$barcode created...\n";
@@ -289,7 +289,7 @@ class Utils extends Controller {
       } else {
 				// Download the PDF(s) from the internet archive: IDENTIFIER_orig_pdf.zip or IDENTIFIER_orig_pdf_##.zip
 				$url = "https://archive.org/download/$identifier/".$pdfs[0];
-				$dest = $pth.'/'.$pdfs[0];
+				$dest = $pth.DIRECTORY_SEPARATOR.$pdfs[0];
 				$fileext = 'png';
 				if (!file_exists($dest)) {
 					file_put_contents($dest, file_get_contents($url));
@@ -308,7 +308,7 @@ class Utils extends Controller {
 				$c = 0;
 				foreach ($pages as $p) {
 					print chr(13)."Extracting images...(".($c++)."/".count($pages).")";
-					$outname = $pth.'/scans/'.$p->filebase.'.png';
+					$outname = $pth.DIRECTORY_SEPARATOR.'scans'.DIRECTORY_SEPARATOR.$p->filebase.'.png';
 					$exec = $this->cfg['gs_exe']." -sDEVICE=png16m -r450x450 -dSAFER -dBATCH -dNOPAUSE ".
 											"-dFirstPage=".$p->sequence_number." -dLastPage=".$p->sequence_number." -dTextAlphaBits=4 ".
 											"-dUseCropBox -sOutputFile=".escapeshellarg($outname)." ".

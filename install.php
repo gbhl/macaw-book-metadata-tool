@@ -59,10 +59,10 @@
 	$config_path = __DIR__.'/system/application/config';
 	
 	if (!is_writable(__DIR__) && $step < 6) {
-		$errors[] = "Permission denied to write to <b>".__DIR__."</b>. Please make sure that the web server user has read and write permissions.";
+		$errors[] = "Permission denied to write to <b>".__DIR__."</b> for user ".get_current_user().". Please make sure that the web server user has read and write permissions.";
 	}
 	if (!is_writable($config_path) && $step < 6) {
-		$errors[] = "Permission denied to write to <b>$config_path</b>. Please make sure that the web server user has read and write permissions.";
+		$errors[] = "Permission denied to write to <b>$config_path</b> for user ".get_current_user().". Please make sure that the web server user has read and write permissions.";
 	}
 
 	if (!$errors) {
@@ -656,6 +656,7 @@
 			\PDO::ATTR_EMULATE_PREPARES   => false,
 		];
 		$dsn = "mysql:host=$host;dbname=$db;port=$port";
+		$pdo = null;
 		try {
 			$pdo = new \PDO($dsn, $user, $pass, $options);
 		} catch (\PDOException $e) {
@@ -847,7 +848,7 @@
 	}
 
 	function eol() {
-		if (PHP_OS_FAMILY == 'WIN') {
+		if (PHP_OS_FAMILY == 'Windows') {
 			return "\r\n";
 		} else {
 			return "\n";
