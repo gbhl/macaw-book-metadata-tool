@@ -255,7 +255,7 @@ class Book extends Model {
 	 * Module name is not required, only the status. We figure out the name of the
 	 * calling module using debug_backtrace()
 	 */
-	function set_export_status($status = '') {
+	function set_export_status($status = '', $override = false) {
 		// Get the name of the php file that called us. That's the module name.
 		$d = debug_backtrace();
 		preg_match('/^\/.+\/(.*?)\.php$/', $d[0]['file'], $m);
@@ -271,7 +271,7 @@ class Book extends Model {
 				$this->db->where('item_id', $this->id);
 				$this->db->where('export_module', $module_name);
 				$this->db->update('item_export_status', $data);
-				$this->set_status('exporting');
+				$this->set_status('exporting', $override);
 			} else {
 				// Add the record with the new status
 				$data = array(
@@ -281,7 +281,7 @@ class Book extends Model {
 					'date'		    => date('Y-m-d H:i:s.u')
 				);
 				$this->db->insert('item_export_status', $data);
-				$this->set_status('exporting');
+				$this->set_status('exporting', $override);
 			}
 			$this->logging->log('book', 'info', 'Export status set to '.$status.'.', $this->barcode);
 
@@ -290,7 +290,7 @@ class Book extends Model {
 			$this->db->where('item_id', $this->id);
 			$this->db->where('status_code', 'completed');
 			if ($this->db->count_all_results('item_export_status') >= count($this->cfg['export_modules'])) {
-				$this->set_status('completed');
+				$this->set_status('completed', $override);
 			}
 			//echo $this->db->last_query()."\n";
 		}
@@ -2286,7 +2286,8 @@ class Book extends Model {
 	 */	
 	function get_all_collections(){
 		$collections = array();
-		
+		return $collections; 
+    
 		$this->db->distinct();
 		$this->db->select('value');
 		$this->db->where('fieldname', 'collection');
