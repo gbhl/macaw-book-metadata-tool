@@ -1790,7 +1790,7 @@ class Book extends Model {
 							}
 
 							// Switched to using PNG. The files are smaller. Quality is maintained compared tp jpeg2000
-							$exec = "$gs -sDEVICE=png16m -r450x450 -dSAFER -dBATCH -dNOPAUSE -dTextAlphaBits=4 -dUseCropBox -sOutputFile=".escapeshellarg($outname)." ".escapeshellarg($fnamenew);
+							$exec = "\"$gs\" -sDEVICE=png16m -r450x450 -dSAFER -dBATCH -dNOPAUSE -dTextAlphaBits=4 -dUseCropBox -sOutputFile=".escapeshellarg($outname)." ".escapeshellarg($fnamenew);
 							$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->barcode);
 							exec($exec, $output);
 							
@@ -1918,7 +1918,7 @@ class Book extends Model {
 			}
 			$output = '';
 			// Build the ghostscript command
-			$exec = "$gs -sDEVICE=png16m -r450x450 -dSAFER -dBATCH -dNOPAUSE -dTextAlphaBits=4 -dUseCropBox -sOutputFile=".$outname." ".escapeshellarg($book_dir.$filename);
+			$exec = "\"$gs\" -sDEVICE=png16m -r450x450 -dSAFER -dBATCH -dNOPAUSE -dTextAlphaBits=4 -dUseCropBox -sOutputFile=".$outname." ".escapeshellarg($book_dir.$filename);
 			$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->barcode);
 			// Do the splitting, this takes a while and is largely uninformative
 			exec($exec, $output);

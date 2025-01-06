@@ -813,23 +813,12 @@ class Admin extends Controller {
 			$fname = $this->logging->log('cron', 'info', 'Cron job \''.$action.'\' manually initiated.');
 			// SCS Changed the spawn process for windows compatability
 			// Assumes php.exe is in the path somewhere.
-			$exec = 'php "'.$this->cfg['base_directory'].'/index.php" cron '.$action;
+			$exec = 'START "'.PHP_BINDIR.DIRECTORY_SEPARATOR.'php" "'.$this->cfg['base_directory'].DIRECTORY_SEPARATOR.'index.php" cron '.$action;
 		} else {
-			$php_exe = PHP_BINDIR.'/php5';		
-			if (!file_exists($php_exe)) {
-				$php_exe = PHP_BINDIR.'/php';
-			}
-			
-			if (!file_exists($php_exe)) {
-				echo json_encode(array('error' => 'Could not find php executable (php or php5) in '.PHP_BINDIR.'.'));
-				$this->logging->log('error', 'debug', 'Could not find php executable (php or php5) in '.PHP_BINDIR.'.');
-				return;
-			}
-
 			$fname = $this->logging->log('cron', 'info', 'Cron job \''.$action.'\' manually initiated.');
 
 			// Now we can spawn the cron process.
-			$exec = 'cd "'.$this->cfg['base_directory'].'" && MACAW_OVERRIDE=1 "'.$php_exe.'" "'.$this->cfg['base_directory'].'/index.php" cron '.$action.' >> "'.$fname.'" 2>&1';
+			$exec = 'cd "'.$this->cfg['base_directory'].'" && MACAW_OVERRIDE=1 "'.PHP_BINDIR.'/php" "'.$this->cfg['base_directory'].'/index.php" cron '.$action.' >> "'.$fname.'" 2>&1';
 		}
 		$this->logging->log('cron', 'info', "EXEC: $exec");
 		system($exec);

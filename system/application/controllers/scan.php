@@ -121,26 +121,14 @@ class Scan extends Controller {
 			// Set the status to tell the import code it's OK to continue
 			// We've moved this into the "cron import_pages" routine (or into the book model itself. It doesn't belong here.)
 			// $this->book->set_status('scanning');
-
-			// Try to identify the PHP executable on this system
-			$php_exe = PHP_BINDIR.'/php5';		
-			if (!file_exists($php_exe)) {
-				$php_exe = PHP_BINDIR.'/php';
-			}
 			
-			if (!file_exists($php_exe)) {
-				echo json_encode(array('error' => 'Could not find php executable (php or php5) in '.PHP_BINDIR.'.'));
-				$this->logging->log('error', 'debug', 'Could not find php executable (php or php5) in '.PHP_BINDIR.'.');
-				return;
-			}
-
 			$fname = $this->logging->log('cron', 'info', 'Cron job "import_pages" initiated during import pages.');
 	
 			$this->common->ajax_headers();
 			echo json_encode(array('message' => ''));
 
 			// Now we can spawn the cron process.
-			system('MACAW_OVERRIDE=1 "'.$php_exe.'" "'.$this->cfg['base_directory'].'/index.php" cron import_pages \''.$this->book->barcode.'\' > /dev/null 2> /dev/null < /dev/null &');
+			system('MACAW_OVERRIDE=1 "'.PHP_BINDIR.DIRECTORY_SEPARATOR.'php" "'.$this->cfg['base_directory'].'/index.php" cron import_pages \''.$this->book->barcode.'\' > /dev/null 2> /dev/null < /dev/null &');
 			
 		} catch (Exception $e) {
 			$this->common->ajax_headers();
@@ -1014,16 +1002,8 @@ class Scan extends Controller {
 					
 					$output = '';
 
-					$php_exe = PHP_BINDIR.'/php5';		
-					if (!file_exists($php_exe)) {
-						$php_exe = PHP_BINDIR.'/php';
-					}
-
 					if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-						$php_exe ='php';
-						//$exec = 'MACAW_OVERRIDE=1 "'.$php_exe.'" "'.$this->cfg['base_directory'].'/index.php" utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file['name'][0]).'> /dev/null 2> /dev/null < /dev/null &';
-						//$exec = $php_exe.' '.$this->cfg['base_directory'].'/index.php utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file['name'][0]).'> NUL 2> NUL < NUL &';
-						$exec = 'START '.$php_exe.' '.$this->cfg['base_directory'].'/index.php utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file['name'][0]).'> NUL 2> NUL < NUL';
+						$exec = 'START "'.PHP_BINDIR.DIRECTORY_SEPARATOR.'php" "'.$this->cfg['base_directory'].DIRECTORY_SEPARATOR.'index.php" utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file['name'][0]).'> NUL 2> NUL < NUL';
 						$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->book->barcode);
 						//exec($exec, $output);
 						pclose(popen($exec,"r"));
@@ -1035,7 +1015,7 @@ class Scan extends Controller {
 						}
 						$this->logging->log('book', 'info', 'EXEC Output: '.$logoutput, $this->book->barcode);		
 					} else {
-						$exec = 'MACAW_OVERRIDE=1 "'.$php_exe.'" "'.$this->cfg['base_directory'].'/index.php" utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file['name'][0]).'> /dev/null 2> /dev/null < /dev/null &';
+						$exec = 'MACAW_OVERRIDE=1 "'.PHP_BINDIR.'/php" "'.$this->cfg['base_directory'].'/index.php" utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file['name'][0]).'> /dev/null 2> /dev/null < /dev/null &';
 						$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->book->barcode);
 						exec($exec, $output);
 
