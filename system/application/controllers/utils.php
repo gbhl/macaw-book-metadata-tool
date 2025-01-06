@@ -273,8 +273,20 @@ class Utils extends Controller {
 			}
 			// If there is more than one, throw an error or ask for which one to use
 			if (count($pdfs) > 1) {
+        foreach ($pdfs as $p) {
+          $url = "https://archive.org/download/$identifier/".$p;
+          $dest = $pth.'/'.$p;
+          if (!file_exists($dest)) {
+            file_put_contents($dest, file_get_contents($url));
+          }  
+        }
 				print "More than one PDF was found. Please address this manually.\n";
-			} else {
+        print "Files are located in: $pth\n";
+        die;
+			} elseif (count($pdfs) == 0) {
+				print "No PDF was found for $barcode. Cannot continue.\n";
+        die;
+      } else {
 				// Download the PDF(s) from the internet archive: IDENTIFIER_orig_pdf.zip or IDENTIFIER_orig_pdf_##.zip
 				$url = "https://archive.org/download/$identifier/".$pdfs[0];
 				$dest = $pth.'/'.$pdfs[0];
