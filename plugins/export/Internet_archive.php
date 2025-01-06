@@ -266,7 +266,7 @@ class Internet_archive extends Controller {
 				$this->CI->logging->log('book', 'debug', 'Identifier is '.$id.'.', $bc);
         
         // Mark that this is being uploaded to keep it our of other lists.
-				$this->CI->book->set_export_status('uploading'); 
+				$this->CI->book->set_export_status('uploading', $force); 
 
 				$archive_file_orig = '';
 				$archive_file = '';
@@ -989,7 +989,7 @@ class Internet_archive extends Controller {
 				// If we got this far, we were completely successful. Yay!
 
 				// TODO Update uploaded date field in the item table
-				$this->CI->book->set_export_status('uploaded');
+				$this->CI->book->set_export_status('uploaded', $force);
 				$this->CI->logging->log('book', 'info', 'Item successfully uploaded to internet archive.', $bc);
 				$this->CI->logging->log('access', 'info', 'Item with barcode '.$bc.' uploaded to internet archive.');
 				$this->CI->book->set_metadata('ia_identifier', $id);
@@ -1006,7 +1006,7 @@ class Internet_archive extends Controller {
 					"Stack Trace:\n\n".
 					$e->getTraceAsString();
 				$this->CI->common->email_error($message);
-				print "\n\nError Processing. Email sent to administrator.\n";
+        print "\n\nError Processing. Email sent to administrator.\n";
 			} // try-catch
 			
 			// Clear the access and secret just so we don't accidentally upload things incorrectly.
@@ -2652,7 +2652,9 @@ class Internet_archive extends Controller {
 
 		// BHL Copyright guidelines: https://bhl.wikispaces.com/copyright
 		// Handle copyright - Not in Copyright
-		if ($this->CI->book->get_metadata('copyright') == '0' || strtoupper($this->CI->book->get_metadata('copyright')) == 'F' ) {
+    $copyright = $this->CI->book->get_metadata('copyright', false);
+    if (is_array($copyright)) { $copyright = $copyright[0]; }
+		if ($copyright == '0' || strtoupper($copyright) == 'F' ) {
 			if ($bhl == 1) {
 				$metadata['x-archive-meta-possible-copyright-status'] = "Public domain. The BHL considers that this work is no longer under copyright protection.";
 				if (isset($metadata['x-archive-meta-licenseurl'])) {
@@ -2667,19 +2669,19 @@ class Internet_archive extends Controller {
 			}
 
 		// Handle copyright - Permission Granted to Scan
-		} elseif ($this->CI->book->get_metadata('copyright') == '1'  || strtoupper($this->CI->book->get_metadata('copyright')) == 'T' ) {
+		} elseif ($copyright == '1'  || strtoupper($copyright) == 'T' ) {
 			$metadata['x-archive-meta-possible-copyright-status'] = "In copyright. Digitized with the permission of the rights holder.";
 			$metadata['x-archive-meta-rights'] = 'https://biodiversitylibrary.org/permissions';
 
 		// Handle copyright - Due Dillegene Performed to determine public domain status
-		} elseif ($this->CI->book->get_metadata('copyright') == '2') {
+		} elseif ($copyright == '2') {
 			$metadata['x-archive-meta-possible-copyright-status'] = "No known copyright restrictions as determined by scanning institution.";
 			$metadata['x-archive-meta-due-diligence'] = 'https://biodiversitylibrary.org/permissions';
 			$metadata['x-archive-meta-duediligence'] = 'https://biodiversitylibrary.org/permissions';
 
 		// Handle copyright - Default, we hope we never hit this
 		} else {
-			$metadata['x-archive-meta-possible-copyright-status'] = $this->CI->book->get_metadata('copyright');
+			$metadata['x-archive-meta-possible-copyright-status'] = $copyright;
 		}
 
 		// Now we use xpath to get stuff out of the mods. Fun!
@@ -2729,12 +2731,12 @@ class Internet_archive extends Controller {
 
 			//modified JC 4/2/12
 			if ($this->CI->book->get_metadata('year')) {
-				$metadata['x-archive-meta-date'] = $this->CI->book->get_metadata('year').'';
-				$metadata['x-archive-meta-year'] = $this->CI->book->get_metadata('year').'';
+				$metadata['x-archive-meta-date'] = $this->CI->book->get_metadata('year', false).'';
+				$metadata['x-archive-meta-year'] = $this->CI->book->get_metadata('year', false).'';
 			// LEGACY? Remove this? 
 			} elseif ($this->CI->book->get_metadata('pub_date')) {
-				$metadata['x-archive-meta-date'] = $this->CI->book->get_metadata('pub_date').'';
-				$metadata['x-archive-meta-year'] = $this->CI->book->get_metadata('pub_date').'';
+				$metadata['x-archive-meta-date'] = $this->CI->book->get_metadata('pub_date', false).'';
+				$metadata['x-archive-meta-year'] = $this->CI->book->get_metadata('pub_date', false).'';
 			} else {
 				$ret = ($mods->xpath($root.$ns."originInfo/".$ns."dateIssued[@encoding='marc'][@point='start']"));
 				if (count($ret) == 0) {
@@ -2782,14 +2784,15 @@ class Internet_archive extends Controller {
 			}
 
 			$metadata['x-archive-meta-genre'] =                     str_replace('"', "'", $this->CI->book->get_metadata('genre'));
-			$metadata['x-archive-meta-abstract'] =                  preg_replace('/"/', "'", $this->CI->book->get_metadata('abstract'));
-			$metadata['x-archive-meta-abstract'] =                  preg_replace('/[\r\n]/', "<br>",  $this->CI->book->get_metadata('abstract'));
-			$metadata['x-archive-meta-year'] =                      str_replace('"', "'", $this->CI->book->get_metadata('year'));
-			$metadata['x-archive-meta-date'] =                      str_replace('"', "'", $this->CI->book->get_metadata('date'));
-			$metadata['x-archive-meta-publisher'] =                 str_replace('"', "'", $this->CI->book->get_metadata('publisher'));
-			$metadata['x-archive-meta-source'] =                    str_replace('"', "'", $this->CI->book->get_metadata('source'));
-			$metadata['x-archive-meta-language'] =                  str_replace('"', "'", $this->CI->book->get_metadata('language'));
-			$metadata['x-archive-meta-rights-holder'] =             str_replace('"', "'", $this->CI->book->get_metadata('rights_holder'));
+      $abstract = $this->CI->book->get_metadata('abstract', false);
+			$abstract = preg_replace('/"/', "'", $abstract);
+			$metadata['x-archive-meta-abstract'] =                  preg_replace('/[\r\n]/', "<br>",  $abstract);
+			$metadata['x-archive-meta-year'] =                      str_replace('"', "'", $this->CI->book->get_metadata('year', false));
+			$metadata['x-archive-meta-date'] =                      str_replace('"', "'", $this->CI->book->get_metadata('date', false));
+			$metadata['x-archive-meta-publisher'] =                 str_replace('"', "'", $this->CI->book->get_metadata('publisher', false));
+			$metadata['x-archive-meta-source'] =                    str_replace('"', "'", $this->CI->book->get_metadata('source', false));
+			$metadata['x-archive-meta-language'] =                  str_replace('"', "'", $this->CI->book->get_metadata('language', false));
+			$metadata['x-archive-meta-rights-holder'] =             str_replace('"', "'", $this->CI->book->get_metadata('rights_holder', false));
 			if ($this->CI->book->get_metadata('scanning_institution')) {
 				$metadata['x-archive-meta-scanning-institution'] = str_replace('"', "'", $this->CI->book->get_metadata('scanning_institution'));
 			}
@@ -2802,20 +2805,20 @@ class Internet_archive extends Controller {
 			} elseif ($this->CI->book->get_metadata('identifier-doi')) {
 				$metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('identifier-doi'));
 			} elseif ($this->CI->book->get_metadata('doi')) {
-				$metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('doi'));
+				$metadata['x-archive-meta-identifier-doi'] = str_replace('"', "'", $this->CI->book->get_metadata('doi', false));
 			}
 		}
 
 		if ($this->CI->book->get_metadata('volume')) {
-			$metadata['x-archive-meta-volume'] = $this->CI->book->get_metadata('volume').'';
+			$metadata['x-archive-meta-volume'] = $this->CI->book->get_metadata('volume', false).'';
 		}
 
 		if ($this->CI->book->get_metadata('series')) {
-			$metadata['x-archive-meta-series'] = $this->CI->book->get_metadata('series').'';
+			$metadata['x-archive-meta-series'] = $this->CI->book->get_metadata('series', false).'';
 		}
 
 		if ($this->CI->book->get_metadata('issue')) {
-			$metadata['x-archive-meta-issue'] = $this->CI->book->get_metadata('issue').'';
+			$metadata['x-archive-meta-issue'] = $this->CI->book->get_metadata('issue', false).'';
 		}
 
 		// Is this a Virtual Item?
