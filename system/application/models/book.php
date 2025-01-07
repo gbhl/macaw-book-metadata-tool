@@ -2291,8 +2291,7 @@ class Book extends Model {
 	 */	
 	function get_all_collections(){
 		$collections = array();
-		return $collections; 
-    
+		    
 		$this->db->distinct();
 		$this->db->select('value');
 		$this->db->where('fieldname', 'collection');
