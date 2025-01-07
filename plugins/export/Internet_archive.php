@@ -1,68 +1,68 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
-// ***********************************************************
-// Macaw Metadata Collection and Workflow System
-//
-// EXPORT LIBRARY
-//
-// Each destination with whom we share our book will have an export routine
-// which contains functions for sending data to the system, verifying receipt
-// of the data, and optionally pulling any derivative data, etc.
-// Each Export library corresponds to an entry in the macaw.php file.
-//
-// Each module has a library with the name "Export_Name.php". The name
-// must correspond to one of the items in the export_modules entry in the macaw.php
-// configuration file. Each must contain ax export() methox. Other functions
-// may be used if necessary.
-//
-// Each module must set a "completed" status to the export process via the
-// Book objects set_export_status() method:
-//
-//     $this->CI->book->set_export_status('completed');
-//
-// Other statuses are allowed if the exporting happens in multiple steps.
-// This module is required to maintan the statuses and eventually set a
-// status of 'completed' when it's finished exporting. Once all export
-// modules have marked the item as completed, Macaw then proceeds to archive
-// and purge the data on its own schedule, if such routines are set up.
-//
-// CONNECTION PARAMETERS
-//
-// To connect to the Internet Archive, you need your login credentials. The 
-// API Key and Secret should be set in the config/macaw.php file.
-// 
-// The variables are:
-//
-//    $config['macaw']['internet_archive_access_key'] = "";
-// 	  $config['macaw']['internet_archive_secret'] = "";
-//
-// OTHER NOTES
-//
-// Imagemagick MUST be compiled with JPEG2000 support.
-//     For macports, this is: port install imagemagick +jpeg2
-//     For standard, this is: ./configure --with-jpeg2 (and whatever other options you have)
-//
-// The Jasper JPEG200 ibrary should be installed, too. Duh.
-// ***********************************************************
+/* ***********************************************************
+ * Macaw Metadata Collection and Workflow System
+ *
+ * EXPORT LIBRARY
+ *
+ * Each destination with whom we share our book will have an export routine
+ * which contains functions for sending data to the system, verifying receipt
+ * of the data, and optionally pulling any derivative data, etc.
+ * Each Export library corresponds to an entry in the macaw.php file.
+ *
+ * Each module has a library with the name "Export_Name.php". The name
+ * must correspond to one of the items in the export_modules entry in the macaw.php
+ * configuration file. Each must contain ax export() methox. Other functions
+ * may be used if necessary.
+ *
+ * Each module must set a "completed" status to the export process via the
+ * Book objects set_export_status() method:
+ *
+ *     $this->CI->book->set_export_status('completed');
+ *
+ * Other statuses are allowed if the exporting happens in multiple steps.
+ * This module is required to maintan the statuses and eventually set a
+ * status of 'completed' when it's finished exporting. Once all export
+ * modules have marked the item as completed, Macaw then proceeds to archive
+ * and purge the data on its own schedule, if such routines are set up.
+ *
+ * CONNECTION PARAMETERS
+ *
+ * To connect to the Internet Archive, you need your login credentials. The 
+ * API Key and Secret should be set in the config/macaw.php file.
+ * 
+ * The variables are:
+ *
+ *    $config['macaw']['internet_archive_access_key'] = "";
+ * 	  $config['macaw']['internet_archive_secret'] = "";
+ *
+ * OTHER NOTES
+ *
+ * Imagemagick MUST be compiled with JPEG2000 support.
+ *     For macports, this is: port install imagemagick +jpeg2
+ *     For standard, this is: ./configure --with-jpeg2 (and whatever other options you have)
+ *
+ * The Jasper JPEG200 ibrary should be installed, too. Duh.
+  *********************************************************** */
 include ('Archive/Tar.php');
 
-// SYNOPSIS
-// Run the entire harvest/verify/export routine for all items
-// 		sudo -u www php index.php cron export Internet_archive
-//
-// Run the harvest/verify/export routine for one item (supplying the item id)
-// 		sudo -u www php index.php cron export Internet_archive 123
-//
-// Run export routine for just one file of one item
-// 		sudo -u www php index.php cron export Internet_archive 123 marc
-// 		sudo -u www php index.php cron export Internet_archive 123 scans
-// 		sudo -u www php index.php cron export Internet_archive 123 scandata
-//
-// Alternatively, we can force it to run all of the files using:
-// 		sudo -u www php index.php cron export Internet_archive 123 force
-// 
-// Or run the export for one file
-// 		sudo -u www php index.php cron export Internet_archive 123 scans force
-
+ /* SYNOPSIS
+ * Run the entire harvest/verify/export routine for all items
+ * 		sudo -u www php index.php cron export Internet_archive
+ *
+ * Run the harvest/verify/export routine for one item (supplying the item id)
+ * 		sudo -u www php index.php cron export Internet_archive 123
+ *
+ * Run export routine for just one file of one item
+ * 		sudo -u www php index.php cron export Internet_archive 123 marc
+ * 		sudo -u www php index.php cron export Internet_archive 123 scans
+ * 		sudo -u www php index.php cron export Internet_archive 123 scandata
+ *
+ * Alternatively, we can force it to run all of the files using:
+ * 		sudo -u www php index.php cron export Internet_archive 123 force
+ * 
+ * Or run the export for one file
+ * 		sudo -u www php index.php cron export Internet_archive 123 scans force
+ */
 class Internet_archive extends Controller {
 
 	// This info is from account at Internet Archive. Change one, change them all.
@@ -79,13 +79,13 @@ class Internet_archive extends Controller {
 	var $cfg;
 	var $cookie_jar;
 
-	// ----------------------------
-	// Function: CONSTRUCTOR
-	//
-	// Be sure to rename this from "Export_Generic" to whatever you named the
-	// class above. Othwerwise, ugly things will happen. You don't need to edit
-	// anything here, either.
-	// ----------------------------
+	/* ----------------------------
+	 * Function: CONSTRUCTOR
+	 *
+	 * Be sure to rename this from "Export_Generic" to whatever you named the
+	 * class above. Othwerwise, ugly things will happen. You don't need to edit
+	 * anything here, either.
+	 * ---------------------------- */
 	function __construct() {
 		$this->CI = get_instance();
 		$this->cfg = $this->CI->config->item('macaw');
@@ -99,16 +99,16 @@ class Internet_archive extends Controller {
 		}
 	}
 
-	// ----------------------------
-	// Function: export()
-	//
-	// Parameters:
-	//    $args - An array of items passed from the command line (or URL)
-	//            that are specific to this module. The Export Mode
-	//            simply passes these in as the were received.
-	//
-	// Simply calls the other functions to interact with Internet Archive.
-	// ----------------------------
+	/* ----------------------------
+	 * Function: export()
+	 *
+	 * Parameters:
+	 *    $args - An array of items passed from the command line (or URL)
+	 *            that are specific to this module. The Export Mode
+	 *            simply passes these in as the were received.
+	 *
+	 * Simply calls the other functions to interact with Internet Archive.
+	 * ---------------------------- */
 	function export($args) {
 		// We REALLY need this table to exist, but this can be run only once per session
 		// due to ornery caching on the part of the DB module.
@@ -116,31 +116,36 @@ class Internet_archive extends Controller {
 
 		// Auto-upgrade for the new features
 		$this->CI->db->query("update item_export_status set status_code = 'verified_upload' where status_code = 'verified';");
-    $this->CI->logging->log('access', 'info', "Starting Internet_archive export.");
+		$this->CI->logging->log('access', 'info', "Starting Internet_archive export.");
 
 		// --------------------------------------
-    // If we can run multiple exports, then do so
+		// If we can run multiple exports, then do so
 		// --------------------------------------
-    $limit = 1;
-    if (array_key_exists('export_concurrency_limit', $this->cfg)) {
-      $limit = (int)$this->cfg['export_concurrency_limit'];
-      if ($limit < 1) { $limit = 1; } // Limit the limits
-    }
+		$limit = 1;
+		if (array_key_exists('export_concurrency_limit', $this->cfg)) {
+			$limit = (int)$this->cfg['export_concurrency_limit'];
+			if ($limit < 1) { $limit = 1; } // Limit the limits
+		}
 
 		// --------------------------------------
-    // Are there too many sibling processes? 
+		// Are there too many sibling processes? 
 		// --------------------------------------
-    $found = $this->count_exports();
+		$found = $this->count_exports();
+		if ($found == 0) {
+			// If we didn't find an invocation of "php index.php cron export Internet_archive"
+			// then we look for all exports and count from there.
+			$found = $this->count_exports("cron export");
+		}
 
-    if ($found > ($limit-1)) { // We subtract one to account for ourself
-      // No, so we quit.
-      if (!getenv("MACAW_OVERRIDE")) {
-        $this->CI->logging->log('access', 'info', "Too many Internet_archive children. Exiting.");
-        return false;
-      } else {
-        $this->CI->logging->log('access', 'info', "Got override. Continuing.");
-      }
-    }
+		if ($found > ($limit-1)) { // We subtract one to account for ourself
+			// No, so we quit.
+			if (!getenv("MACAW_OVERRIDE")) {
+				$this->CI->logging->log('access', 'info', "Too many Internet_archive children. Exiting.");
+				return false;
+			} else {
+				$this->CI->logging->log('access', 'info', "Got override. Continuing.");
+			}
+		}
 
 		// Since the Internet Archive upload does multiple things, this
 		// method simply calls the other methods in order.
@@ -150,18 +155,17 @@ class Internet_archive extends Controller {
 		$this->upload($args);
 	}
 
-
-  // ----------------------------
-	// Function: export()
-	//
-	// Parameters:
-	//    $args - An array of items passed from the command line (or URL)
-	//            that are specific to this module. The Export Mode
-	//            simply passes these in as the were received.
-	//
-	// Sends everything to the Internet Archive. This function is called by the
-	// export() method above.
-	// ----------------------------
+	/* ----------------------------
+	 * Function: export()
+	 *
+	 * Parameters:
+	 *    $args - An array of items passed from the command line (or URL)
+	 *            that are specific to this module. The Export Mode
+	 *            simply passes these in as the were received.
+	 *
+	 * Sends everything to the Internet Archive. This function is called by the
+	 * export() method above.
+	 * ---------------------------- */
 	function upload($args) {
 		$sent_id = null;
 
@@ -188,8 +192,8 @@ class Internet_archive extends Controller {
 			$books = $this->_get_books('NULL');
 		}
 
-    while (count($books) > 0) {
-      $b = array_pop($books);
+		while (count($books) > 0) {
+      		$b = array_pop($books);
 			try {
 				print "Exporting ".$b->barcode."...\n";
 				$bc = $b->barcode;
@@ -584,11 +588,6 @@ class Internet_archive extends Controller {
 						$this->CI->logging->log('book', 'debug', 'No MARC XML to create _marc.xml file.', $bc);
 					}
 				} // if ($file == '' || $file == 'marc')
-
-				// create the IDENTIFIER_IDENTIFIER_dc.xml file
-				// TODO: Do we need this?
-				// write_file($fullpath.'/'.$id.'_dc.xml', _create_dc_xml($b));
-				// $this->CI->logging->log('book', 'debug', 'Created '.$fullpath.'/'.$id.'_dc.xml', $bc);
 
 				if ($file == '' || $file == 'scandata') {
 					// create the IDENTIFIER_scandata.xml file
@@ -1021,14 +1020,14 @@ class Internet_archive extends Controller {
     } // while (count($books))
 	} // function upload($args)
 
-	// ----------------------------
-	// Function: verify()
-	//
-	// Parameters:
-	//    $args - An array of items passed from the command line (or URL)
-	//            that are specific to this module. The calling export
-	//            controller simply passes these in as the were received.
-	// ----------------------------
+	/* ----------------------------
+	 * Function: verify()
+	 *
+	 * Parameters:
+	 *    $args - An array of items passed from the command line (or URL)
+	 *            that are specific to this module. The calling export
+	 *            controller simply passes these in as the were received.
+	 * ---------------------------- */
 	function verify_uploaded($args) {
 		$sent_id = (count($args) >= 1 ? $args[0] : null);
 
@@ -1127,7 +1126,6 @@ class Internet_archive extends Controller {
 		}
 	}
 
-
 	function verify_derived($args) {
 		$sent_id = (count($args) >= 1 ? $args[0] : null);
 
@@ -1218,18 +1216,17 @@ class Internet_archive extends Controller {
 		}
 	}
 
-
-	// ----------------------------
-	// Function: harvest($args)
-	//
-	// Parameters:
-	//    $args - An array of items passed from the command line (or URL)
-	//            that are specific to this module. The calling export
-	//            controller simply passes these in as the were received.
-	//
-	// Copy back from the internet archive anything that they may have created that
-	// we would be interested in.
-	// ----------------------------
+	/* ----------------------------
+	 * Function: harvest($args)
+	 *
+	 * Parameters:
+	 *    $args - An array of items passed from the command line (or URL)
+	 *            that are specific to this module. The calling export
+	 *            controller simply passes these in as the were received.
+	 *
+	 * Copy back from the internet archive anything that they may have created that
+	 * we would be interested in.
+	 * ---------------------------- */
 	function harvest($args) {
 
 		$sent_id = (count($args) >= 1 ? $args[0] : null);
@@ -1364,15 +1361,15 @@ class Internet_archive extends Controller {
 
 	}
 
-	// ----------------------------
-	// Function: missing()
-	//
-	// Parameters:
-	//    NONE
-	//
-	// Submits missing pages for export. If the export module doesn't accept
-	// missing pages, then this function should do nothing but return true.
-	// ----------------------------
+	/* ----------------------------
+	 * Function: missing()
+	 *
+	 * Parameters:
+	 *    NONE
+	 *
+	 * Submits missing pages for export. If the export module doesn't accept
+	 * missing pages, then this function should do nothing but return true.
+	 * ----------------------------  */
 	function missing() {
 		// 7.	Update the Export Upload procedure to:
 		// a.	If the item's date uploaded field has a value then we need to send up only the changed pages.
@@ -1383,18 +1380,18 @@ class Internet_archive extends Controller {
 		// TODO: This really needs to be addressed better.
 	}
 	
-	// ----------------------------
-	// Function: _create_segments_xml()
-	//
-	// Parameters:
-	//    $id: The ID of the item as determined earlier
-	//    $book: A book object
-	//    $pages: The pages from the book (assume they were gathered earlier)
-	//
-	// Returns the XML for the segments.xml file. Does not create the file.
-	// This is specific to Internet Archive but is left here as a reminder.
-	// This should call Book.get_item_metadata().
-	// ----------------------------
+	/* ----------------------------
+	 * Function: _create_segments_xml()
+	 *
+	 * Parameters:
+	 *    $id: The ID of the item as determined earlier
+	 *    $book: A book object
+	 *    $pages: The pages from the book (assume they were gathered earlier)
+	 *
+	 * Returns the XML for the segments.xml file. Does not create the file.
+	 * This is specific to Internet Archive but is left here as a reminder.
+	 * This should call Book.get_item_metadata().
+	 * ---------------------------- */
 	function _create_segments_xml($id, $book, $pages) {
 		// This should not be used yet. Return empty element.
 		return '<bhlSegmentData></bhlSegmentData>';
@@ -2059,18 +2056,18 @@ class Internet_archive extends Controller {
 		return str_replace('<?xml version="1.0"?>', '', $xml->saveXML());
 	}
 
-	// ----------------------------
-	// Function: _create_scandata_xml()
-	//
-	// Parameters:
-	//    $id: The ID of the item as determined earlier
-	//    $book: A book object
-	//    $pages: The pages from the book (assume they were gathered earlier)
-	//
-	// Returns the XML for the scandata.xml file. Does not create the file.
-	// This is specific to Internet Archive but is left here as a reminder.
-	// This should call Book.get_item_metadata().
-	// ----------------------------
+	/* ----------------------------
+	 * Function: _create_scandata_xml()
+	 *
+	 * Parameters:
+	 *    $id: The ID of the item as determined earlier
+	 *    $book: A book object
+	 *    $pages: The pages from the book (assume they were gathered earlier)
+	 *
+	 * Returns the XML for the scandata.xml file. Does not create the file.
+	 * This is specific to Internet Archive but is left here as a reminder.
+	 * This should call Book.get_item_metadata().
+	 * ---------------------------- */
 	function _create_scandata_xml($id, $book, $pages) {
 
 		$this->CI->load->library('image_lib');
@@ -2255,16 +2252,16 @@ class Internet_archive extends Controller {
 		return $output;
 	}
 
-	// ----------------------------
-	// Function: _create_creators_xml()
-	//
-	// Parameters:
-	//    $id: The ID of the item as determined earlier
-	//    $book: A book object
-	//
-	// Returns the XML for the creators.xml file. Does not create the file.
-	// This is specific to Internet Archive but is left here as a reminder.
-	// ----------------------------
+	/* ----------------------------
+	 * Function: _create_creators_xml()
+	 *
+	 * Parameters:
+	 *    $id: The ID of the item as determined earlier
+	 *    $book: A book object
+	 *
+	 * Returns the XML for the creators.xml file. Does not create the file.
+	 * This is specific to Internet Archive but is left here as a reminder.
+	 * ---------------------------- */
 	function _create_creators_xml($id, $book) {
 		$creators = json_decode($book->get_metadata('creator_ids'), JSON_OBJECT_AS_ARRAY);
 		$output = "<creators>\n";
@@ -2296,18 +2293,16 @@ class Internet_archive extends Controller {
 		$output .= "</creators>\n";
 		return $output;
 	}
-	// ----------------------------
-	// Function: _get_bhl_pagetypes()
-	//
-	// Parameters:
-	//    $p: A page from a book in Macaw
-	//
-	// Translates the page type values for one page into an array of pagetypes
-	// suitable for BHL. This is sent in addition to the page type data for
-	// internet archive.
-	//
-	// TODO: get these translations from my notes
-	// ----------------------------
+	/* ----------------------------
+	 * Function: _get_bhl_pagetypes()
+	 *
+	 * Parameters:
+	 *    $p: A page from a book in Macaw
+	 *
+	 * Translates the page type values for one page into an array of pagetypes
+	 * suitable for BHL. This is sent in addition to the page type data for
+	 * internet archive.
+	 * ---------------------------- */
 	function _get_bhl_pagetypes($p) {
 		for ($i=0; $i < count($p); $i++) {
 			if ($p[$i] == 'Appendix') { $p[$i] = 'Appendix';}
@@ -2333,7 +2328,7 @@ class Internet_archive extends Controller {
 			elseif ($p[$i] == 'List of Illustrations') { $p[$i] = 'List of Illustrations'; }
 			elseif ($p[$i] == 'Photograph') { $p[$i] = 'Photograph'; }
 			elseif ($p[$i] == 'Table') { $p[$i] = 'Chart'; }
-      elseif ($p[$i] == 'Specimen') { $p[$i] = 'Specimen'; }
+			elseif ($p[$i] == 'Specimen') { $p[$i] = 'Specimen'; }
 			elseif ($p[$i] == 'Suppress') { $p[$i] = 'Delete'; }
 			elseif ($p[$i] == 'Tissue') { $p[$i] = 'Delete'; }
 			elseif ($p[$i] == 'White card') { $p[$i] = 'Delete'; }
@@ -2343,17 +2338,15 @@ class Internet_archive extends Controller {
 		return $p;
 	}
 
-	// ----------------------------
-	// Function: _get_pagetype()
-	//
-	// Parameters:
-	//    $t: A page type from Macaw
-	//
-	// Translates a page type value into something more suitable for Internet
-	// Archive.
-	//
-	// TODO: get these translations from my notes
-	// ----------------------------
+	/* ----------------------------
+	 * Function: _get_pagetype()
+	 *
+	 * Parameters:
+	 *    $t: A page type from Macaw
+	 *
+	 * Translates a page type value into something more suitable for Internet
+	 * Archive.
+	 * ---------------------------- */
 	function _get_pagetype($t) {
 		if (in_array('Cover', $t)) {
 			return 'Cover';
@@ -2401,19 +2394,19 @@ class Internet_archive extends Controller {
 		return 'Normal';
 	}
 
-	// ----------------------------
-	// Function: _get_dpi()
-	//
-	// Parameters:
-	//    $book: A book object
-	//    $pages: The pages in the book (the pages should have been retrieved already)
-	//
-	// Uses the page metadata and the MARC information to estimate the DPI of the
-	// scanned pages based on the pixel dimensions of the first image it can find
-	// and the measurement of the height of the book from the MARC record. This is
-	// quirky and really only gives a good guess as to the DPI. If all fails, we
-	// return 450.
-	// ----------------------------
+	/* ----------------------------
+	 * Function: _get_dpi()
+	 *
+	 * Parameters:
+	 *    $book: A book object
+	 *    $pages: The pages in the book (the pages should have been retrieved already)
+	 *
+	 * Uses the page metadata and the MARC information to estimate the DPI of the
+	 * scanned pages based on the pixel dimensions of the first image it can find
+	 * and the measurement of the height of the book from the MARC record. This is
+	 * quirky and really only gives a good guess as to the DPI. If all fails, we
+	 * return 450.
+	 * ---------------------------- */
 	function _get_dpi($book, $pages) {
 		// Retrieve our MARC data.
 		$marc = $this->_get_marc($book->get_metadata('marc_xml'));
@@ -2481,7 +2474,6 @@ class Internet_archive extends Controller {
 
 	}
 
-
 	function _get_ia_meta_xml($b, $id) {
 		// Get the meta XML file from IA, we want to keep some of the data elements
 		$urls = $this->_get_derivative_urls($id);
@@ -2527,15 +2519,15 @@ class Internet_archive extends Controller {
 			return $marc;
 		}
 	}
-	// ----------------------------
-	// Function: _get_metadata()
-	//
-	// Parameters:
-	//    $id: The identifer of the item in question
-	//
-	// Standard function for creating an array of internet-archive-specific
-	// metadat elements to be used when uploading an item to IA.
-	// ----------------------------
+	/* ----------------------------
+	 * Function: _get_metadata()
+	 *
+	 * Parameters:
+	 *    $id: The identifer of the item in question
+	 *
+	 * Standard function for creating an array of internet-archive-specific
+	 * metadat elements to be used when uploading an item to IA.
+	 * ---------------------------- */
 	function _get_metadata() {
 		// Converts MARC data to MODS to retrieve certain information.
 		$marc_xml = $this->CI->book->get_metadata('marc_xml');
@@ -2932,39 +2924,37 @@ class Internet_archive extends Controller {
 		return $metadata;
 	}
 
-	// ----------------------------
-	// Function: _create_marc_xml()
-	//
-	// Parameters:
-	//    NONE
-	//
-	// Returns the XML for the meta.xml file. Does not create the file. This
-	// is specific to Internet Archive but is left here as a reminder. This
-	// should call Book.get_marc_xml().
-	// ----------------------------
+	/* ----------------------------
+	 * Function: _create_marc_xml()
+	 *
+	 * Parameters:
+	 *    NONE
+	 *
+	 * Returns the XML for the meta.xml file. Does not create the file. This
+	 * is specific to Internet Archive but is left here as a reminder. This
+	 * should call Book.get_marc_xml().
+	 * ---------------------------- */
 	function _create_marc_xml() {
 		// Just get the MARC XML from the book and format the XML file properly
 		$marc = $this->CI->book->get_metadata('marc_xml');
 		return $marc;
 	}
 
-	// ----------------------------
-	// Function: identifier()
-	//
-	// Parameters:
-	//    $book: The book record from the database (used to create a book object)
-	//
-	// Given a book, use some algorithm to create a (hopefully) unique identifier
-	// to use at Internet Archive. We'll go ahead and check here to make sure that
-	// the identifier is unique by hitting a URL at IA.
-	//
-	// Note: this is not in the Book() model because the logic is specific to
-	// internet archive. We're trying to mimic what they do:
-	// 		TITLE(16chars)NUM(2chars)AUTHOR(4chars)
-	//      example: gisassessmentofs05mack, chinaecosystemse08bubb, carbonindrylands08unep, progressreporton08cmss
-	//
-	// todo: make sure we are getting the volume or year properly. Should it come from the page?
-	// ----------------------------
+	/* ----------------------------
+	 * Function: identifier()
+	 *
+	 * Parameters:
+	 *    $book: The book record from the database (used to create a book object)
+	 *
+	 * Given a book, use some algorithm to create a (hopefully) unique identifier
+	 * to use at Internet Archive. We'll go ahead and check here to make sure that
+	 * the identifier is unique by hitting a URL at IA.
+	 *
+	 * Note: this is not in the Book() model because the logic is specific to
+	 * internet archive. We're trying to mimic what they do:
+	 * 		TITLE(16chars)NUM(2chars)AUTHOR(4chars)
+	 *      example: gisassessmentofs05mack, chinaecosystemse08bubb, carbonindrylands08unep, progressreporton08cmss
+	 * ---------------------------- */
 	function identifier($book, $metadata) {
 		$this->CI->book->load($book->barcode);
 
@@ -3099,19 +3089,19 @@ class Internet_archive extends Controller {
 		return '';
 	}
 
-	// ----------------------------
-	// Function: _bucket_exists()
-	//
-	// Parameters:
-	//    $id: The IA identifier we are testing for
-	//
-	// Makes an attempt to determine whether or not an item exists at internet
-	// archive by checking the details page. If we get a 503 error or the string
-	// "item cannot be found" appears on the page, then we assume that the s3
-	// bucket does not exist. This is used in both making sure we aren't using an
-	// identifier that already exists as well as for checking to see if the
-	// bucket is created before uploading additional items to it.
-	// ----------------------------
+	/* ----------------------------
+	 * Function: _bucket_exists()
+	 *
+	 * Parameters:
+	 *    $id: The IA identifier we are testing for
+	 *
+	 * Makes an attempt to determine whether or not an item exists at internet
+	 * archive by checking the details page. If we get a 503 error or the string
+	 * "item cannot be found" appears on the page, then we assume that the s3
+	 * bucket does not exist. This is used in both making sure we aren't using an
+	 * identifier that already exists as well as for checking to see if the
+	 * bucket is created before uploading additional items to it.
+	 * ---------------------------- */
 	function _bucket_exists($id) {
 		if (!isset($this->curl)) {
 			$this->curl = curl_init();
@@ -3155,16 +3145,16 @@ class Internet_archive extends Controller {
 
 	}
 
-	// ----------------------------
-	// Function: _get_derivative_urls()
-	//
-	// Parameters:
-	//    $id - The Internet Archive ID of the book in question
-	//
-	// Gets a list of all of the files from the IDENTIFIER_files.xml file
-	// and determines the "base" of the URL, which is now always
-	//   https://www.archive.org/download/IDENTIFIER
-	// ----------------------------
+	/* ----------------------------
+	 * Function: _get_derivative_urls()
+	 *
+	 * Parameters:
+	 *    $id - The Internet Archive ID of the book in question
+	 *
+	 * Gets a list of all of the files from the IDENTIFIER_files.xml file
+	 * and determines the "base" of the URL, which is now always
+	 *   https://www.archive.org/download/IDENTIFIER
+	 * ---------------------------- */
 	function _get_derivative_urls($id) {
 		$base = "https://archive.org/download/$id";
 		$files = array();
@@ -3177,16 +3167,16 @@ class Internet_archive extends Controller {
 		return array($base, $files);		
 	}
 
-	// ----------------------------
-	// Function: _get_books()
-	//
-	// Parameters:
-	//    $status: The status of the items we are interested in
-	//
-	// Get those books that need to be uploaded by searching for those that are
-	// ready to be uploaded (item.status_code = 'reviewed') and have not yet been
-	// uploaded (item_export_status.status_code is blank or <whatever $status is>).
-	// ----------------------------
+	/* ----------------------------
+	 * Function: _get_books()
+	 *
+	 * Parameters:
+	 *    $status: The status of the items we are interested in
+	 *
+	 * Get those books that need to be uploaded by searching for those that are
+	 * ready to be uploaded (item.status_code = 'reviewed') and have not yet been
+	 * uploaded (item_export_status.status_code is blank or <whatever $status is>).
+	 * ---------------------------- */
 	function _get_books($status) {
 		$sql = "select i.id
 			from item i
@@ -3220,13 +3210,13 @@ class Internet_archive extends Controller {
 		return array();
 	}
 
-	// ----------------------------
-	// Function: _check_custom_table()
-	//
-	// Parameters:
-	//
-	// Makes sure that the CUSTOM_INTERNET_ARCHIVE table exists in the database.
-	// ----------------------------
+	/* ----------------------------
+	 * Function: _check_custom_table()
+	 *
+	 * Parameters:
+	 *
+	 * Makes sure that the CUSTOM_INTERNET_ARCHIVE table exists in the database.
+	 * ---------------------------- */
 	function _check_custom_table() {
 		if (!$this->CI->db->table_exists('custom_internet_archive')) {
 			$this->CI->load->dbforge();
@@ -3247,14 +3237,14 @@ class Internet_archive extends Controller {
 		}
 	}
 	
-	// ----------------------------
-	// Function: _get_ia_keys()
-	//
-	// Parameters:
-	//
-	// Given an organization ID, go to the custom IA table and get the access keys for
-	// uploading to IA.
-	// ----------------------------
+	/* ----------------------------
+	 * Function: _get_ia_keys()
+	 *
+	 * Parameters:
+	 *
+	 * Given an organization ID, go to the custom IA table and get the access keys for
+	 * uploading to IA.
+	 * ---------------------------- */
 	function _get_ia_keys($org_id) {
 		$query = $this->CI->db->query('select access_key, secret from custom_internet_archive_keys where org_id = '.$org_id);
 		foreach ($query->result() as $row) {
@@ -3322,23 +3312,25 @@ class Internet_archive extends Controller {
 		}
 	}
 
-  function count_exports() {
+	function count_exports($search = null) {
 		// --------------------------------------
-    // Count how many are running, remember we count as one process
+		// Count how many are running, remember we count as one process
 		// --------------------------------------
 		$commands = array();
 		$pid = getmypid().'';
 		$found = 0;
-    $search = "export ".basename(__FILE__, '.php'); 
+		if (!$search) {
+			$search = "export ".basename(__FILE__, '.php'); 
+		}
 
-    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-      // Windows will be always be limited to 1.
-			exec("tasklist | FIND \"php\"",$commands);
+		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+			// Windows will be always be limited to 1.
+			exec("tasklist | FIND \"php\"", $commands);
 			$search = "php.exe";
 		} else {
 			exec("ps -fe | grep -v sudo | grep php", $commands);
 		}
-    
+		// print_r($commands);
 		if (count($commands) > 0) {
 			foreach ($commands as $command) {
 				if (strpos($command, $search) > 0 && strpos($command, $pid) == 0) {
@@ -3346,6 +3338,6 @@ class Internet_archive extends Controller {
 				}
 			}
 		}
-    return $found;
-  }
+		return $found;
+	}
 }
