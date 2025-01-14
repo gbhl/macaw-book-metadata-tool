@@ -68,9 +68,10 @@ YAHOO.macaw.Pages = function(parent, data, mdModules) {
 	// ----------------------------
 	this.render = function() {
 		// Loop through the pages, render them all
+		pageDelay = 30; // Don't go below 20
 		for (var i in this.pages) {
-			// Render the page
-			this.pages[i].render();
+			// Render the page, with a delay
+			this.pages[i].render(i*pageDelay);
 		}
 	}
 
