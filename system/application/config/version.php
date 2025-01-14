@@ -7,4 +7,4 @@
 |
 */
 $version_rev = '2.9.6';
-$version_date = '14 Dec 2025';
+$version_date = '14 Jan 2025';
