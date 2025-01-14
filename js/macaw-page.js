@@ -54,7 +54,7 @@ YAHOO.macaw.Page = function(parent, data, mdModules) {
 	// Return Value / Effect
 	//    Thumbnail created, click event is being watched for
 	// ----------------------------
-	this.render = function() {
+	this.render = function(delay=0) {
 
 		// Create the thumbnail LI element
 		var new_thumb = Dom.get(document.createElement('li'));
@@ -75,8 +75,10 @@ YAHOO.macaw.Page = function(parent, data, mdModules) {
 		// Create the thumbnail image element
 		var new_img = Dom.get(document.createElement('img'));
 		Dom.addClass(new_img, 'image');
-		Dom.get(new_img).src = this.urlThumbnail;
-		//Dom.get(new_img).width = 100;
+		// Load the images isa via a delay as specified by the caller
+		setTimeout(function(pageImage, pageURL) {
+			Dom.get(pageImage).src = pageURL;
+		}, delay, new_img, this.urlThumbnail);
 
 		// Create the thumbnail caption element
 		var new_caption = Dom.get(document.createElement('div'));
