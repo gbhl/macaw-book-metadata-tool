@@ -59,6 +59,7 @@
 					</div>
 				</div>
 				<div class="yui-gc">
+					
 					<div id="thumb_controls" class="yui-u first" style="width: 100%">
 						<div id="selects">
 							<span id="title">Select:</span>
@@ -78,6 +79,7 @@
 							<div id="sliderbg"><div id="sliderthumb"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/slider-thumb-n.gif"></div></div>
 							<div class="icon"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/bullet_picture.png" border="0" height="16" width="16" title="Zoom In"></div>
 						</div>
+						<div id="thumb_controls_overlay">Loading images. Please wait...</div>
 					</div>
 				</div>
 				<div id="metadata" class="yui-gc">
