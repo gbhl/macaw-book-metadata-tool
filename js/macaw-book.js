@@ -302,7 +302,7 @@ YAHOO.macaw.Book = function() {
 	//    The book is drawn on the page, the render flag in the book/pages is set,
 	//    the data table is filled in.
 	// ----------------------------
-	this.render = function(divThumbs, divDataTable) {
+	this.render = async function(divThumbs, divDataTable) {
 		// Save where we are going to place the thumbnail images
 		if (divThumbs) this.elemThumbnails = Dom.get(divThumbs);
 
@@ -322,6 +322,10 @@ YAHOO.macaw.Book = function() {
 			this._renderDataTable();
 		}
 
+		while (!this.pages.fullyRendered) {
+			await timer(100);
+		}
+		
 		// Create the popup menu, later we'll associate it to the thumbnail images
 		this.contextMenu = new YAHOO.widget.ContextMenu(
 			'pagecontextmenu', {

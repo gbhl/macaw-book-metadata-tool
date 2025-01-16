@@ -473,17 +473,11 @@ class Book extends Model {
 				$p->thumbnail = $p->filebase.'_thumb.'.$p->extension;
 				$p->preview = $p->filebase.'_large.'.$p->extension;
 			} else {
-				// Take the filebase and convert it into the proper filenames for preview and thumbnail files
-				#$p->thumbnail = $thumb_path.'/'.$p->filebase.'.'.$this->cfg['thumbnail_format'];
-				$filename = $p->filebase.'.'.$this->cfg['thumbnail_format'];
-				$p->thumbnail = $this->config->item('base_url').'image.php?img='.urlencode($filename).'&ext='.$this->cfg['thumbnail_format'].'&code='.$this->barcode.'&type=thumbnail';
-				
-				#$p->preview = $preview_path.'/'.$p->filebase.'.'.$this->cfg['preview_format'];
-				$p->preview = $this->config->item('base_url').'image.php?img='.urlencode($filename).'&ext='.$this->cfg['thumbnail_format'].'&code='.$this->barcode.'&type=preview';
-				
-				$p->scan_filename = $p->filebase.'.'.$p->extension;
-				#$p->scan = $scans_path.'/'.$p->scan_filename;
-				$p->scan = $this->config->item('base_url').'image.php?img='.urlencode($p->scan_filename).'&ext='.$p->extension.'&code='.$this->barcode.'&type=original';
+				// Send the URL pattern and filenames. Let the browser make the URL.
+				$p->image_url = $this->config->item('base_url').'image.php?img=FILENAME&ext=EXT&code='.$this->barcode.'&type=TYPE';
+				$p->thumbnail_filename = urlencode($p->filebase.'.'.$this->cfg['thumbnail_format']);
+				$p->preview_filename = $p->thumbnail_filename; // Always the same filename as the thumbnail
+				$p->scan_filename = urlencode($p->filebase.'.'.$p->extension);
 			}
 			// Make a more human readable of "250 K" or "1.5 MB"
 			$p->size = ($p->bytes < 1048576
