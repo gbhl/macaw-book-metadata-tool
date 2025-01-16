@@ -40,7 +40,6 @@
 	$config = null;
 	require(BASEPATH.$application_folder.'/config/macaw.php');
 
-	header('Content-Type: image/' . $_GET['ext']);
 	$type = $_GET['type'];
 	$barcode = $_GET['code'];
 	$img = urldecode($_GET['img']);
@@ -79,6 +78,13 @@
 			return;
 		}
 		$path = preg_replace('/BARCODE/', $barcode, $path);
-		readfile( $path . '/' . $img); 
+		if (file_exists($path . '/' . $img)) {
+			header('Content-Type: image/' . $_GET['ext']);
+			readfile( $path . '/' . $img); 
+		} else {
+			http_response_code(404);
+			print "<!doctype html><html><head><title>404 Not Found</title></head><body><h1>404 not found</h1></body></html>";
+		}
+		
 	}
 ?>
