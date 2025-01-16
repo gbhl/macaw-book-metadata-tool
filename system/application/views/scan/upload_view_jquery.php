@@ -61,7 +61,7 @@
 			Upload image files (<strong>PNG, TIFF, JP2</strong>) or PDFs for this item to the Macaw server.<br>
 			You can <strong>drag &amp; drop</strong> files from your desktop on this webpage (Chrome, Firefox, Safari, Internet Explorer 10+).<br>
 			The maximum size for each file is <strong><?php echo($upload_max_filesize) ?></strong><br>
-			<span style="font-weight:bold;color:#900;">Please note: Thumbnails for existing image files have been removed.</span>
+			<span style="font-weight:bold;color:#900;">Please note: Thumbnails for existing image files are no longer displayed.</span>
 			</p>
 			
 			<!-- The file upload form used as target for the file upload widget -->
