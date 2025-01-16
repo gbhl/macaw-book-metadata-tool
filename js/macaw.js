@@ -426,3 +426,6 @@ var sortStatus = function(a, b, desc, field) {
 (function() {
 	
 });
+
+// This give us a proper sleep function. Just: await timer(100) in an async function;
+const timer = ms => new Promise(res => setTimeout(res, ms))

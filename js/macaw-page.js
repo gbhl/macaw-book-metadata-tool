@@ -15,13 +15,26 @@
 // Revision History
 //     2010/08/06 JMR - Created, initial coding completed.
 // ------------------------------
+function sleep(functionToExecute, delay){
+	let timeoutId = setTimeout(functionToExecute(), delay);
+	return timeoutId;
+}
 
 YAHOO.macaw.Page = function(parent, data, mdModules) {
 
 	this.pageID = data.id;
 	this.itemID = data.item_id;
-	this.urlThumbnail = data.thumbnail;
-	this.urlPreview = data.preview;
+	this.urlTemplateImage = data.image_url;
+
+	this.fileThumbnail = data.thumbnail_filename;
+	this.filePreview = data.preview_filename;
+	this.fileScan = data.scan_filename;
+
+	this.urlThumbnail = null;
+	this.urlPreview = null;
+	this.urlScan = null;
+
+
 	this.metadata = new YAHOO.macaw.Metadata(this, data, mdModules);
 	this.parent = parent;
 	this.isMissing = data.is_missing;
@@ -75,11 +88,25 @@ YAHOO.macaw.Page = function(parent, data, mdModules) {
 		// Create the thumbnail image element
 		var new_img = Dom.get(document.createElement('img'));
 		Dom.addClass(new_img, 'image');
-		// Load the images isa via a delay as specified by the caller
-		setTimeout(function(pageImage, pageURL) {
-			Dom.get(pageImage).src = pageURL;
-		}, delay, new_img, this.urlThumbnail);
+		new_img.id = "img"+this.pageID;
 
+		// // Load the images isa via a delay as specified by the caller
+		// codeSnippet = "document.getElementById('"+new_img.id+"').src = '"+this.urlThumbnail+"';";
+		// // alert(codeSnippet);
+		// setTimeout(
+		// 	"document.getElementById('"+new_img.id+"').src = '"+this.urlThumbnail+"';",
+		// 	delay
+		// );
+		// setTimeout(function(pageImage, pageURL) {
+		// 	Dom.get(pageImage).src = pageURL;
+		// }, delay, new_img, this.urlThumbnail);
+		
+		var newURL = this.urlTemplateImage;
+		newURL = newURL.replace('FILENAME', this.fileThumbnail);
+		newURL = newURL.replace('EXT', this.fileThumbnail.split('.').pop());
+		newURL = newURL.replace('TYPE', 'thumbnail');
+		// alert (newURL);
+		Dom.get(new_img).src = newURL;
 		// Create the thumbnail caption element
 		var new_caption = Dom.get(document.createElement('div'));
 		Dom.addClass(new_caption, 'caption');

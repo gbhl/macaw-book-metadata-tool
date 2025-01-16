@@ -26,6 +26,7 @@ YAHOO.macaw.Pages = function(parent, data, mdModules) {
 	this.availablePieces = null;
 
 	this.mdModules = mdModules;
+	this.fullyRendered = false;
 
 	// Create our pages based on the data we receive
 	// Leave the pages unrendered
@@ -66,13 +67,13 @@ YAHOO.macaw.Pages = function(parent, data, mdModules) {
 	// Return Value / Effect
 	//    The page thumbnails should be appearing in the window
 	// ----------------------------
-	this.render = function() {
+	this.render = async function() {
 		// Loop through the pages, render them all
-		pageDelay = 30; // Don't go below 20
 		for (var i in this.pages) {
-			// Render the page, with a delay
-			this.pages[i].render(i*pageDelay);
+			this.pages[i].render();
+			await timer(21); // Don't go below 20
 		}
+		this.fullyRendered = true;
 	}
 
 	// ----------------------------
@@ -775,7 +776,12 @@ YAHOO.macaw.Pages = function(parent, data, mdModules) {
 
 		// Is there exactly one highligted item left?
 		if (arrHighlighted.length == 1) {
-			Dom.get('preview_img').src = arrHighlighted[0].urlPreview;
+			var newURL = arrHighlighted[0].urlTemplateImage;
+			newURL = newURL.replace('FILENAME', arrHighlighted[0].filePreview);
+			newURL = newURL.replace('EXT', arrHighlighted[0].filePreview.split('.').pop());
+			newURL = newURL.replace('TYPE', 'preview');
+	
+			Dom.get('preview_img').src = newURL;
 			Dom.setStyle('preview_img', 'cursor', "url('"+sBaseUrl+"/inc/magnifier/assets/mag-cursor.gif'),auto");
 			Dom.setStyle('preview-new-win', 'display', 'block');
 		} else if (arrHighlighted.length > 1) {

@@ -1048,7 +1048,6 @@ class Scan extends Controller {
 			$info->size = $data['file_size'];
 			$info->type = $data['file_type'];
 			$info->url = $upload_path_url . $data['file_name'];
-			$info->thumbnailUrl = $upload_thumb_url . pathinfo($data['file_name'], PATHINFO_FILENAME).'.jpg';
 			$info->deleteUrl = 'none';
 			$info->deleteType = 'NONE';
 			$info->error = null;
@@ -1080,11 +1079,6 @@ class Scan extends Controller {
 			$foundFiles[$f]['size'] = $info['size'];
 			$foundFiles[$f]['url'] = $upload_path_url . $fileName;
 
-			if (file_exists($dir.'../thumbs/'.$thumbfileName)) {
-				$foundFiles[$f]['thumbnailUrl'] = $upload_thumb_url . $thumbfileName;			
-			} else {
-				$foundFiles[$f]['thumbnailUrl'] = '/images/spacer.gif';				
-			}
 			$foundFiles[$f]['deleteUrl'] = 'none';
 			$foundFiles[$f]['deleteType'] = 'DELETE';
 			$foundFiles[$f]['error'] = '';

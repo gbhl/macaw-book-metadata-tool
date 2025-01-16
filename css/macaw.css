@@ -2129,6 +2129,10 @@ div.progress {
 #fileupload table {
 	margin: 0 auto;
 }
+#fileupload table p {
+	margin: 0;
+	padding: 0;
+}
 #fileupload tbody.files td {
 	width: 38%;
 }
