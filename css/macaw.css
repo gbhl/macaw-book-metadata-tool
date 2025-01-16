@@ -952,11 +952,22 @@ td.yui-dt-last {
 	margin-top: 5px;
 }
 #thumb_controls, #metadata {
+	position: relative;
 	margin-left: .5em;
 }
 #thumb_controls #selects {
 	float: left;
 	margin-bottom: 10px;
+}
+#thumb_controls_overlay {
+	position: absolute;
+	background-color: #e6e6e6;
+	font-weight: bold;
+	text-align: center;
+	padding: 4px;
+	top: 0px;
+	z-index: 100;
+	width: 320px;
 }
 table#admin_scheduled_jobs {
 	width: 90%;

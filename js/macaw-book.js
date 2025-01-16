@@ -317,13 +317,15 @@ YAHOO.macaw.Book = function() {
 		}
 		this.pages.render();
 
-		if (divDataTable) {
-			// Render the datatable
-			this._renderDataTable();
-		}
 
 		while (!this.pages.fullyRendered) {
 			await timer(100);
+		}
+
+		if (divDataTable) {
+			// Render the datatable
+			this._renderDataTable();
+			Dom.get('thumb_controls_overlay').style.display = 'none';
 		}
 		
 		// Create the popup menu, later we'll associate it to the thumbnail images

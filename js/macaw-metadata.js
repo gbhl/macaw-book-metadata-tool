@@ -138,7 +138,15 @@ YAHOO.macaw.Metadata = function(parent, data, mdModules) {
 		}
         results.filebase = this.filebase;
         results.sequence = this.sequence;
-        results.thumbnail = this.parent.urlThumbnail;
+
+		var newURL = this.parent.urlTemplateImage;
+		newURL = newURL.replace('FILENAME', this.parent.fileThumbnail);
+		newURL = newURL.replace('EXT', this.parent.fileThumbnail.split('.').pop());
+		newURL = newURL.replace('TYPE', 'thumbnail');
+		// alert (newURL);
+		results.thumbnail = newURL;
+
+		//results.thumbnail = this.parent.urlThumbnail;
 		// Return an object of name-value pairs. Values may be an array of similar items (i.e. Page Type)
 		return results;
 	}
