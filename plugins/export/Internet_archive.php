@@ -381,9 +381,9 @@ class Internet_archive extends Controller {
 								(!file_exists($jp2path.'/'.$new_filebase.'.jp2') || filesize($jp2path.'/'.$new_filebase.'.jp2') == 0))) {
 						$start_time = microtime(true);
 						// Convert to JP2
-						echo "SCAN ".$p->scan_filename."...";
+						echo "SCAN ".urldecode($p->scan_filename)."...";
 						if ($this->timing) { echo "TIMING (start): 0.0000\n"; }
-						$preview = new Imagick($scanspath.'/'.$p->scan_filename);
+						$preview = new Imagick($scanspath.'/'.urldecode($p->scan_filename));
 
 						if ($this->timing) { echo "TIMING (open image): ".round((microtime(true) - $start_time), 5)."\n"; }
 
@@ -437,7 +437,7 @@ class Internet_archive extends Controller {
 						}
 						if ($this->send_orig_jp2 == 'no' || $this->send_orig_jp2 == 'both') {
 							// If the images are IA-ready, we don't recompress. 
-							if (!$this->CI->book->ia_ready_images || !preg_match("/\.jp[2f]$/", $p->scan_filename) ) {
+							if (!$this->CI->book->ia_ready_images || !preg_match("/\.jp[2f]$/", urldecode($p->scan_filename)) ) {
 								echo " (compressing) ";
 								$preview->setImageCompression(imagick::COMPRESSION_JPEG2000);
 								// If we got our images from a PDF, we use the highest quality we can
@@ -500,7 +500,7 @@ class Internet_archive extends Controller {
 							} else {
 								// Write the jp2 out to the local directory
 								echo " copied $new_filebase".".jp2";
-								copy($scanspath.'/'.$p->scan_filename, $jp2path.'/'.$new_filebase.'.jp2');
+								copy($scanspath.'/'.urldecode($p->scan_filename), $jp2path.'/'.$new_filebase.'.jp2');
 								if ($this->timing) { echo "TIMING (copy): ".round((microtime(true) - $start_time), 5)."\n"; }
 							}
 						}
