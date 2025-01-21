@@ -71,7 +71,7 @@ YAHOO.macaw.Pages = function(parent, data, mdModules) {
 		// Loop through the pages, render them all
 		for (var i in this.pages) {
 			this.pages[i].render();
-			await timer(21); // Don't go below 20
+			await timer(11); // Don't go below 11.
 		}
 		this.fullyRendered = true;
 	}
