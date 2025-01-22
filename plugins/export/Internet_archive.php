@@ -2760,20 +2760,30 @@ class Internet_archive extends Controller {
 			if (is_array($creators)) {
 				$c = 1;
 				foreach ($creators as $creator) {
-					$metadata['x-archive-meta'.sprintf("%02d", $c++).'-creator'] = str_replace('"', "'", $creator);
+					$creator = str_replace('"', "'", $creator);
+					$creator = str_replace('`', "'", $creator);
+					$metadata['x-archive-meta'.sprintf("%02d", $c++).'-creator'] = $creator;
 				}				
 			} else {
-				$metadata['x-archive-meta-creator'] = str_replace('"', "'", $this->CI->book->get_metadata('creator'));
+				$creator = $this->CI->book->get_metadata('creator');
+				$creator = str_replace('"', "'", $creator);
+				$creator = str_replace('`', "'", $creator);
+				$metadata['x-archive-meta-creator'] = $creator;
 			}
 			
 			$subjects = $this->CI->book->get_metadata('subject');
 			if (is_array($subjects)) {
 				$c = 1;
 				foreach ($subjects as $subject) {
-					$metadata['x-archive-meta'.sprintf("%02d", $c++).'-subject'] = str_replace('"', "'", $subject);
+					$subject = str_replace('"', "'", $subject);
+					$subject = str_replace('`', "'", $subject);
+					$metadata['x-archive-meta'.sprintf("%02d", $c++).'-subject'] = $subject;
 				}				
 			} else {
-				$metadata['x-archive-meta-subject'] = str_replace('"', "'", $this->CI->book->get_metadata('subject'));
+				$subject = $this->CI->book->get_metadata('subject');
+				$subject = str_replace('"', "'", $subject);
+				$subject = str_replace('`', "'", $subject);
+				$metadata['x-archive-meta-subject'] = $subject;
 			}
 
 			$metadata['x-archive-meta-genre'] =                     str_replace('"', "'", $this->CI->book->get_metadata('genre'));
