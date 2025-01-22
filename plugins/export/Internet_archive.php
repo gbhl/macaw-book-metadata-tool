@@ -2718,6 +2718,7 @@ class Internet_archive extends Controller {
 			$ret = ($mods->xpath($root.$ns."abstract"));
 			if ($ret && count($ret) > 0) {
 				$metadata['x-archive-meta-abstract'] = str_replace('"', "'", $ret[0].'');
+				$metadata['x-archive-meta-abstract'] = str_replace('`', "'", $ret[0].'');
 				$metadata['x-archive-meta-abstract'] = preg_replace('/[\r\n]/','<br/>',$metadata['x-archive-meta-abstract']);
 			}
 
@@ -2776,8 +2777,9 @@ class Internet_archive extends Controller {
 			}
 
 			$metadata['x-archive-meta-genre'] =                     str_replace('"', "'", $this->CI->book->get_metadata('genre'));
-      $abstract = $this->CI->book->get_metadata('abstract', false);
+			$abstract = $this->CI->book->get_metadata('abstract', false);
 			$abstract = preg_replace('/"/', "'", $abstract);
+			$abstract = preg_replace('/`/', "'", $abstract);
 			$metadata['x-archive-meta-abstract'] =                  preg_replace('/[\r\n]/', "<br>",  $abstract);
 			$metadata['x-archive-meta-year'] =                      str_replace('"', "'", $this->CI->book->get_metadata('year', false));
 			$metadata['x-archive-meta-date'] =                      str_replace('"', "'", $this->CI->book->get_metadata('date', false));
