@@ -1,1 +1,1 @@
-ALTER TABLE item ADD ia_ready_images BOOLEAN;
+ALTER TABLE item ADD COLUMN IF NOT EXISTS ia_ready_images BOOLEAN;
