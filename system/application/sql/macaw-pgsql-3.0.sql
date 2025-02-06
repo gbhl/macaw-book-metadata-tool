@@ -1,16 +1,15 @@
--- Cumulative update? 
-
-INSERT INTO settings VALUES ('version', '2.10');
-ALTER TABLE account MODIFY widgets varchar(255) DEFAULT '[["summary","perday"],["disk","pages"]]';
-CREATE INDEX idx_account_username ON account (username);
-CREATE INDEX idx_metadata_fieldname ON metadata (fieldname);
-CREATE INDEX idx_metadata_itemid_pageid ON metadata (itemid, pageid);
-CREATE INDEX idx_metadata_itemid_pageid_fieldname_counter ON metadata (itemid, pageid, fieldname, counter);
-CREATE INDEX idx_logging_date_statistic ON logging (date, statistic);
-CREATE INDEX idx_permission_username_permission ON permission (username, permission);
-CREATE INDEX idx_item_barcode ON item (barcode);
-ALTER TABLE session MODIFY user_agent VARCHAR(120) NOT NULL;
-ALTER TABLE item ADD needs_qa boolean;
-ALTER TABLE account ADD email varchar(128);
-DROP TABLE collection;
-ALTER TABLE metadata MODIFY value VARCHAR(1024);
+INSERT INTO settings VALUES ('version', '2.10') ON CONFLICT DO NOTHING;
+ALTER TABLE account ALTER COLUMN widgets SET DEFAULT '[["summary","perday"],["disk","pages"]]';
+CREATE INDEX IF NOT EXISTS idx_account_username ON account (username);
+CREATE INDEX IF NOT EXISTS idx_metadata_fieldname ON metadata (fieldname);
+CREATE INDEX IF NOT EXISTS idx_metadata_itemid_pageid ON metadata (item_id, page_id);
+CREATE INDEX IF NOT EXISTS idx_metadata_itemid_pageid_fieldname_counter ON metadata (item_id, page_id, fieldname, counter);
+CREATE INDEX IF NOT EXISTS idx_logging_date_statistic ON logging (date, statistic);
+CREATE INDEX IF NOT EXISTS idx_permission_username_permission ON permission (username, permission);
+CREATE INDEX IF NOT EXISTS idx_item_barcode ON item (barcode);
+ALTER TABLE session ALTER COLUMN user_agent TYPE VARCHAR(120);
+ALTER TABLE session ALTER COLUMN user_agent SET NOT NULL;
+ALTER TABLE item ADD COLUMN IF NOT EXISTS needs_qa boolean;
+ALTER TABLE account ADD COLUMN IF NOT EXISTS email varchar(128);
+DROP TABLE IF EXISTS collection;
+ALTER TABLE metadata ALTER COLUMN value TYPE VARCHAR(1024);
