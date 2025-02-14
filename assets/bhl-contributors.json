@@ -21,6 +21,12 @@
 			"BHLMember": false
 		},
 		{
+			"InstitutionCode": "ANSP2",
+			"InstitutionName": "Academy of Natural Sciences of Drexel University",
+			"InstitutionUrl": "https://ansp.org/",
+			"BHLMember": true
+		},
+		{
 			"InstitutionCode": "ANSP",
 			"InstitutionName": "Academy of Natural Sciences of Drexel University, Library and Archives",
 			"InstitutionUrl": "https://ansp.org/research/library/",
@@ -120,6 +126,12 @@
 			"InstitutionCode": "AMDS",
 			"InstitutionName": "American Daffodil Society",
 			"InstitutionUrl": "http://daffodilusa.org/",
+			"BHLMember": false
+		},
+		{
+			"InstitutionCode": "AEI",
+			"InstitutionName": "American Entomological Institute",
+			"InstitutionUrl": "http://www.amentinst.org/home.php",
 			"BHLMember": false
 		},
 		{
@@ -261,6 +273,12 @@
 			"BHLMember": true
 		},
 		{
+			"InstitutionCode": "AAHS",
+			"InstitutionName": "Australasian Affiliation of Herpetological Societies",
+			"InstitutionUrl": "https://www.herpetofauna-journal.org",
+			"BHLMember": false
+		},
+		{
 			"InstitutionCode": "ANOS",
 			"InstitutionName": "Australasian Native Orchid Society",
 			"InstitutionUrl": "https://anos.org.au/",
@@ -352,7 +370,7 @@
 		},
 		{
 			"InstitutionCode": "BB2000",
-			"InstitutionName": "BB 2000 Ltd",
+			"InstitutionName": "BB2000 Ltd",
 			"InstitutionUrl": "http://britishbirds.co.uk/",
 			"BHLMember": false
 		},
@@ -783,6 +801,12 @@
 			"BHLMember": true
 		},
 		{
+			"InstitutionCode": "CHS",
+			"InstitutionName": "Chicago Herpetological Society",
+			"InstitutionUrl": "https://chicagoherp.org/",
+			"BHLMember": false
+		},
+		{
 			"InstitutionCode": "CPAR",
 			"InstitutionName": "Christopher Parker",
 			"InstitutionUrl": "",
@@ -903,6 +927,12 @@
 			"BHLMember": false
 		},
 		{
+			"InstitutionCode": "DF",
+			"InstitutionName": "Daryl Fleay",
+			"InstitutionUrl": "",
+			"BHLMember": false
+		},
+		{
 			"InstitutionCode": "DHP",
 			"InstitutionName": "David Harold Paisley",
 			"InstitutionUrl": "",
@@ -936,36 +966,6 @@
 			"InstitutionCode": "DENPS",
 			"InstitutionName": "Delaware Native Plant Society",
 			"InstitutionUrl": "http://www.delawarenativeplants.org/",
-			"BHLMember": false
-		},
-		{
-			"InstitutionCode": "AMU",
-			"InstitutionName": "DELETE_American Ornithologists\u0027 Union",
-			"InstitutionUrl": "http://www.aou.org/",
-			"BHLMember": false
-		},
-		{
-			"InstitutionCode": "AOSOC",
-			"InstitutionName": "DELETE_AOU",
-			"InstitutionUrl": "https://americanornithology.org/",
-			"BHLMember": false
-		},
-		{
-			"InstitutionCode": "AHCKRC",
-			"InstitutionName": "DELETE_Atlanta History Center",
-			"InstitutionUrl": "",
-			"BHLMember": false
-		},
-		{
-			"InstitutionCode": "KYACADSCI",
-			"InstitutionName": "DELETE_Kentucky Academy",
-			"InstitutionUrl": "https://kyscience.org/",
-			"BHLMember": false
-		},
-		{
-			"InstitutionCode": "AESOC",
-			"InstitutionName": "DELETE_TheAmerEntoSoc",
-			"InstitutionUrl": "https://americanentomologicalsociety.org/",
 			"BHLMember": false
 		},
 		{
@@ -1119,6 +1119,12 @@
 			"BHLMember": false
 		},
 		{
+			"InstitutionCode": "ENTNZ",
+			"InstitutionName": "Entomological Society of New Zealand",
+			"InstitutionUrl": "https://ento.org.nz/",
+			"BHLMember": false
+		},
+		{
 			"InstitutionCode": "ESOO",
 			"InstitutionName": "Entomological Society of Ontario",
 			"InstitutionUrl": "http://www.entsocont.ca/",
@@ -1239,6 +1245,12 @@
 			"BHLMember": false
 		},
 		{
+			"InstitutionCode": "FLMALESIA",
+			"InstitutionName": "Flora Malesiana",
+			"InstitutionUrl": "https://floramalesiana.org/new/",
+			"BHLMember": false
+		},
+		{
 			"InstitutionCode": "FLSCI",
 			"InstitutionName": "Florida Academy of Sciences, Inc.",
 			"InstitutionUrl": "http://www.floridaacademyofsciences.org/",
@@ -1287,6 +1299,12 @@
 			"BHLMember": false
 		},
 		{
+			"InstitutionCode": "FOTIR",
+			"InstitutionName": "Friends of the Innamincka Reserves",
+			"InstitutionUrl": "https://friendsofinnamincka.org.au/wp/",
+			"BHLMember": false
+		},
+		{
 			"InstitutionCode": "FONZ",
 			"InstitutionName": "Friends of the National Zoo",
 			"InstitutionUrl": "https://nationalzoo.si.edu/membership/about-fonz",
@@ -1312,8 +1330,8 @@
 		},
 		{
 			"InstitutionCode": "GEORAS",
-			"InstitutionName": "Geological Institute of Russian Academy of Sciences",
-			"InstitutionUrl": "",
+			"InstitutionName": "Geological Institute of the Russian Academy of Sciences",
+			"InstitutionUrl": "http://ginras.ru/index.php",
 			"BHLMember": false
 		},
 		{
@@ -1380,6 +1398,12 @@
 			"InstitutionCode": "GCR",
 			"InstitutionName": "Gulf Coast Research Laboratory and the University of Southern Mississippi",
 			"InstitutionUrl": "http://aquila.usm.edu/gcr/",
+			"BHLMember": false
+		},
+		{
+			"InstitutionCode": "HFNC",
+			"InstitutionName": "Hamilton Field Naturalists Club",
+			"InstitutionUrl": "https://www.hamilton-field-naturalists-club-victoria.org.au/",
 			"BHLMember": false
 		},
 		{
@@ -1557,6 +1581,12 @@
 			"BHLMember": true
 		},
 		{
+			"InstitutionCode": "BERKIGSL",
+			"InstitutionName": "Institute of Governmental Studies Library, University of California Berkeley",
+			"InstitutionUrl": "https://www.lib.berkeley.edu/visit/governmental-studies",
+			"BHLMember": false
+		},
+		{
 			"InstitutionCode": "IM",
 			"InstitutionName": "Institute of Malacology (IM)",
 			"InstitutionUrl": "https://instituteofmalacology.org/",
@@ -1618,7 +1648,7 @@
 		},
 		{
 			"InstitutionCode": "ICZN",
-			"InstitutionName": "International Commission on Zoological Nomenclature",
+			"InstitutionName": "International Commission on Zoological Nomenclature (ICZN)",
 			"InstitutionUrl": "https://www.iczn.org/",
 			"BHLMember": false
 		},
@@ -1679,6 +1709,12 @@
 		{
 			"InstitutionCode": "MOSCOSO",
 			"InstitutionName": "Jardín Botánico Nacional, Dr. Rafael María Moscoso",
+			"InstitutionUrl": "",
+			"BHLMember": false
+		},
+		{
+			"InstitutionCode": "MLIKO",
+			"InstitutionName": "Jiří Mlíkovský",
 			"InstitutionUrl": "",
 			"BHLMember": false
 		},
@@ -1786,7 +1822,7 @@
 		},
 		{
 			"InstitutionCode": "LVFNC",
-			"InstitutionName": "Latrobe Valley Field Naturalist Club",
+			"InstitutionName": "Latrobe Valley Field Naturalists Club",
 			"InstitutionUrl": "https://www.lvfieldnats.org/",
 			"BHLMember": false
 		},
@@ -1887,10 +1923,10 @@
 			"BHLMember": false
 		},
 		{
-			"InstitutionCode": "LONSJ",
-			"InstitutionName": "Long, Steven J.",
-			"InstitutionUrl": "",
-			"BHLMember": false
+			"InstitutionCode": "LACABGL2",
+			"InstitutionName": "Los Angeles County Arboretum \u0026 Botanic Garden",
+			"InstitutionUrl": "http://www.arboretum.org/",
+			"BHLMember": true
 		},
 		{
 			"InstitutionCode": "LBF",
@@ -1917,6 +1953,12 @@
 			"BHLMember": false
 		},
 		{
+			"InstitutionCode": "MWLR",
+			"InstitutionName": "Manaaki Whenua Landcare Research",
+			"InstitutionUrl": "https://www.landcareresearch.co.nz/",
+			"BHLMember": false
+		},
+		{
 			"InstitutionCode": "MSG",
 			"InstitutionName": "Mantis Study Group",
 			"InstitutionUrl": "http://mantodea.myspecies.info/",
@@ -1925,6 +1967,12 @@
 		{
 			"InstitutionCode": "ARCE",
 			"InstitutionName": "María de Lourdes Rico Arce",
+			"InstitutionUrl": "",
+			"BHLMember": false
+		},
+		{
+			"InstitutionCode": "MBP",
+			"InstitutionName": "Mary Bamas Pomeroy",
 			"InstitutionUrl": "",
 			"BHLMember": false
 		},
@@ -1957,6 +2005,12 @@
 			"InstitutionName": "Meise Botanic Garden",
 			"InstitutionUrl": "https://www.plantentuinmeise.be/en",
 			"BHLMember": true
+		},
+		{
+			"InstitutionCode": "MIJEN",
+			"InstitutionName": "Michael Jennings",
+			"InstitutionUrl": "",
+			"BHLMember": false
 		},
 		{
 			"InstitutionCode": "MICHBOT",
@@ -1995,6 +2049,12 @@
 			"BHLMember": true
 		},
 		{
+			"InstitutionCode": "MSF",
+			"InstitutionName": "Monika Shaffer-Fehre",
+			"InstitutionUrl": "",
+			"BHLMember": false
+		},
+		{
 			"InstitutionCode": "MTSTL",
 			"InstitutionName": "Montana State Library",
 			"InstitutionUrl": "http://msl.state.mt.us/",
@@ -2013,9 +2073,21 @@
 			"BHLMember": false
 		},
 		{
+			"InstitutionCode": "MABA",
+			"InstitutionName": "Moths and Butterflies Australasia",
+			"InstitutionUrl": "https://www.maba.org.au/",
+			"BHLMember": false
+		},
+		{
 			"InstitutionCode": "MUGARBU",
 			"InstitutionName": "Mugar Memorial Library, Boston University",
 			"InstitutionUrl": null,
+			"BHLMember": false
+		},
+		{
+			"InstitutionCode": "MEG",
+			"InstitutionName": "Munchner Entomologische Gesellschaft e.V.",
+			"InstitutionUrl": "",
 			"BHLMember": false
 		},
 		{
@@ -2145,6 +2217,12 @@
 			"BHLMember": false
 		},
 		{
+			"InstitutionCode": "NMNHS",
+			"InstitutionName": "National Museum of Natural History Bulgarian Academy Sciences",
+			"InstitutionUrl": "https://www.nmnhs.com/",
+			"BHLMember": false
+		},
+		{
 			"InstitutionCode": "NMNHSI",
 			"InstitutionName": "National Museum of Natural History, Smithsonian Institution",
 			"InstitutionUrl": "http://naturalhistory.si.edu/",
@@ -2163,10 +2241,22 @@
 			"BHLMember": false
 		},
 		{
+			"InstitutionCode": "NTBG",
+			"InstitutionName": "National Tropical Botanical Garden",
+			"InstitutionUrl": "https://ntbg.org/",
+			"BHLMember": false
+		},
+		{
 			"InstitutionCode": "NUS",
 			"InstitutionName": "National University of Singapore Libraries",
 			"InstitutionUrl": "https://nus.edu.sg/nuslibraries",
 			"BHLMember": true
+		},
+		{
+			"InstitutionCode": "YBC",
+			"InstitutionName": "National Yiddish Book Center",
+			"InstitutionUrl": "https://www.yiddishbookcenter.org/",
+			"BHLMember": false
 		},
 		{
 			"InstitutionCode": "NZP",
@@ -2221,6 +2311,12 @@
 			"InstitutionName": "Nature Kenya, East Africa Natural History Society",
 			"InstitutionUrl": "http://www.naturekenya.org/",
 			"BHLMember": true
+		},
+		{
+			"InstitutionCode": "NRMSE",
+			"InstitutionName": "Naturhistoriska riksmuseet (Swedish Museum of Natural History)",
+			"InstitutionUrl": "https://www.nrm.se/",
+			"BHLMember": false
 		},
 		{
 			"InstitutionCode": "NPS",
@@ -2392,8 +2488,8 @@
 		},
 		{
 			"InstitutionCode": "NSIS",
-			"InstitutionName": "Nova Scotia Institute of Science",
-			"InstitutionUrl": "http://nsis.chebucto.org/",
+			"InstitutionName": "Nova Scotian Institute of Science",
+			"InstitutionUrl": "https://nsis1862.ca/",
 			"BHLMember": false
 		},
 		{
@@ -2430,6 +2526,12 @@
 			"InstitutionCode": "OME",
 			"InstitutionName": "Ontario Ministry of the Environment",
 			"InstitutionUrl": null,
+			"BHLMember": false
+		},
+		{
+			"InstitutionCode": "LONSJ",
+			"InstitutionName": "Opisthobranch Newsletter",
+			"InstitutionUrl": "",
 			"BHLMember": false
 		},
 		{
@@ -2487,9 +2589,21 @@
 			"BHLMember": false
 		},
 		{
+			"InstitutionCode": "PACOCL",
+			"InstitutionName": "Pacific Conchological Club",
+			"InstitutionUrl": "",
+			"BHLMember": false
+		},
+		{
 			"InstitutionCode": "PSBG",
 			"InstitutionName": "Pacific Seabird Group",
 			"InstitutionUrl": "http://www.pacificseabirdgroup.org/",
+			"BHLMember": false
+		},
+		{
+			"InstitutionCode": "PRI",
+			"InstitutionName": "Paleontological Research Institution",
+			"InstitutionUrl": "",
 			"BHLMember": false
 		},
 		{
@@ -2541,6 +2655,12 @@
 			"BHLMember": false
 		},
 		{
+			"InstitutionCode": "PBC",
+			"InstitutionName": "Philadelphia Botanical Club",
+			"InstitutionUrl": "http://www.philbotclub.org/",
+			"BHLMember": false
+		},
+		{
 			"InstitutionCode": "PMAL",
 			"InstitutionName": "Philadelphia Museum of Art, Library",
 			"InstitutionUrl": null,
@@ -2562,6 +2682,12 @@
 			"InstitutionCode": "PHYT",
 			"InstitutionName": "Phytologia",
 			"InstitutionUrl": "http://www.phytologia.org/",
+			"BHLMember": false
+		},
+		{
+			"InstitutionCode": "PHYTON",
+			"InstitutionName": "Phytoneuron",
+			"InstitutionUrl": "https://www.phytoneuron.net/",
 			"BHLMember": false
 		},
 		{
@@ -2620,8 +2746,8 @@
 		},
 		{
 			"InstitutionCode": "READ",
-			"InstitutionName": "Reading Natural History Society",
-			"InstitutionUrl": "",
+			"InstitutionName": "Reading \u0026 District Natural History Society",
+			"InstitutionUrl": "https://rdnhs.org.uk/",
 			"BHLMember": false
 		},
 		{
@@ -2643,6 +2769,18 @@
 			"BHLMember": false
 		},
 		{
+			"InstitutionCode": "MASERA",
+			"InstitutionName": "Ricardo Freddy Masera",
+			"InstitutionUrl": "https://mesetaspatagonicas.wixsite.com/freddymasera",
+			"BHLMember": false
+		},
+		{
+			"InstitutionCode": "RFNC",
+			"InstitutionName": "Ringwood Field Naturalists Club",
+			"InstitutionUrl": "https://www.rfnc.org.au/",
+			"BHLMember": false
+		},
+		{
 			"InstitutionCode": "RB",
 			"InstitutionName": "Robert Blakemore",
 			"InstitutionUrl": "https://vermecology.wordpress.com/",
@@ -2655,6 +2793,12 @@
 			"BHLMember": false
 		},
 		{
+			"InstitutionCode": "REMAGILL",
+			"InstitutionName": "Robert E Magill",
+			"InstitutionUrl": "",
+			"BHLMember": false
+		},
+		{
 			"InstitutionCode": "RCAOT",
 			"InstitutionName": "Roman Catholic Archdiocese of Toronto",
 			"InstitutionUrl": "",
@@ -2664,6 +2808,12 @@
 			"InstitutionCode": "RWLS",
 			"InstitutionName": "Roosevelt Wild Life Station",
 			"InstitutionUrl": "http://www.esf.edu/rwls/",
+			"BHLMember": false
+		},
+		{
+			"InstitutionCode": "RWATLING",
+			"InstitutionName": "Roy Watling",
+			"InstitutionUrl": "",
 			"BHLMember": false
 		},
 		{
@@ -2683,6 +2833,12 @@
 			"InstitutionName": "Royal Botanic Gardens Victoria",
 			"InstitutionUrl": "https://www.rbg.vic.gov.au/science/library/",
 			"BHLMember": true
+		},
+		{
+			"InstitutionCode": "RBGCA",
+			"InstitutionName": "Royal Botanical Gardens Canada",
+			"InstitutionUrl": "https://www.rbg.ca/",
+			"BHLMember": false
 		},
 		{
 			"InstitutionCode": "RCPHYSE",
@@ -2727,6 +2883,18 @@
 			"BHLMember": false
 		},
 		{
+			"InstitutionCode": "RSSA",
+			"InstitutionName": "Royal Society of South Australia",
+			"InstitutionUrl": "https://www.rssa.org.au/",
+			"BHLMember": false
+		},
+		{
+			"InstitutionCode": "RST",
+			"InstitutionName": "Royal Society of Tasmania",
+			"InstitutionUrl": "https://rst.org.au",
+			"BHLMember": false
+		},
+		{
 			"InstitutionCode": "RSV",
 			"InstitutionName": "Royal Society of Victoria",
 			"InstitutionUrl": "https://rsv.org.au/",
@@ -2736,6 +2904,12 @@
 			"InstitutionCode": "RSWA",
 			"InstitutionName": "Royal Society of Western Australia",
 			"InstitutionUrl": "https://www.rswa.org.au/",
+			"BHLMember": false
+		},
+		{
+			"InstitutionCode": "RZSNSW",
+			"InstitutionName": "Royal Zoological Society of New South Wales",
+			"InstitutionUrl": "https://www.rzsnsw.org.au/",
 			"BHLMember": false
 		},
 		{
@@ -2760,6 +2934,12 @@
 			"InstitutionCode": "SMCC",
 			"InstitutionName": "Saint Mary\u0027s College of California",
 			"InstitutionUrl": null,
+			"BHLMember": false
+		},
+		{
+			"InstitutionCode": "SDNHM2",
+			"InstitutionName": "San Diego Natural History Museum",
+			"InstitutionUrl": "https://www.sdnhm.org/",
 			"BHLMember": false
 		},
 		{
@@ -2823,6 +3003,12 @@
 			"BHLMember": false
 		},
 		{
+			"InstitutionCode": "SCARLQ",
+			"InstitutionName": "Sherwin Carlquist",
+			"InstitutionUrl": "",
+			"BHLMember": false
+		},
+		{
 			"InstitutionCode": "SBG",
 			"InstitutionName": "Singapore Botanic Gardens, National Parks Board Singapore",
 			"InstitutionUrl": "https://www.sbg.org.sg/",
@@ -2859,9 +3045,21 @@
 			"BHLMember": true
 		},
 		{
+			"InstitutionCode": "SOCENTOCL",
+			"InstitutionName": "Sociedad Chilena de Entomología",
+			"InstitutionUrl": "https://www.insectachile.cl/",
+			"BHLMember": false
+		},
+		{
 			"InstitutionCode": "SOCARG",
 			"InstitutionName": "Sociedad Científica Argentina",
 			"InstitutionUrl": "http://cientifica.org.ar/",
+			"BHLMember": false
+		},
+		{
+			"InstitutionCode": "SOCBIOCL",
+			"InstitutionName": "Sociedad de Biología de Concepción",
+			"InstitutionUrl": "",
 			"BHLMember": false
 		},
 		{
@@ -2880,6 +3078,12 @@
 			"InstitutionCode": "NAPOLI",
 			"InstitutionName": "Società dei Naturalisti in Napoli",
 			"InstitutionUrl": "",
+			"BHLMember": false
+		},
+		{
+			"InstitutionCode": "SEI",
+			"InstitutionName": "Società Entomologica Italiana",
+			"InstitutionUrl": "https://sei.pagepress.org/",
 			"BHLMember": false
 		},
 		{
@@ -2903,7 +3107,7 @@
 		{
 			"InstitutionCode": "SEL",
 			"InstitutionName": "Societas Europaea Lepidopterologica",
-			"InstitutionUrl": "",
+			"InstitutionUrl": "http://www.soceurlep.eu/",
 			"BHLMember": false
 		},
 		{
@@ -3057,6 +3261,12 @@
 			"BHLMember": false
 		},
 		{
+			"InstitutionCode": "TROULST",
+			"InstitutionName": "T\u0027ai Roulston",
+			"InstitutionUrl": "",
+			"BHLMember": false
+		},
+		{
 			"InstitutionCode": "TFNC",
 			"InstitutionName": "Tasmanian Field Naturalists Club",
 			"InstitutionUrl": "http://www.tasfieldnats.org.au/naturalist/",
@@ -3106,7 +3316,7 @@
 		},
 		{
 			"InstitutionCode": "LACABGL",
-			"InstitutionName": "The Arboretum Library at the Los Angeles County Arboretum and Botanic Garden",
+			"InstitutionName": "The Arboretum Library at the Los Angeles County Arboretum \u0026 Botanic Garden",
 			"InstitutionUrl": "http://www.arboretum.org/learn/library/",
 			"BHLMember": true
 		},
@@ -3171,6 +3381,12 @@
 			"BHLMember": false
 		},
 		{
+			"InstitutionCode": "TMSOC",
+			"InstitutionName": "The Micropalaeontological Society",
+			"InstitutionUrl": "https://www.tmsoc.org/",
+			"BHLMember": false
+		},
+		{
 			"InstitutionCode": "NHSMD",
 			"InstitutionName": "The Natural History Society of Maryland",
 			"InstitutionUrl": "http://marylandnature.org/",
@@ -3186,6 +3402,18 @@
 			"InstitutionCode": "NEWB",
 			"InstitutionName": "The Newberry Library",
 			"InstitutionUrl": "",
+			"BHLMember": false
+		},
+		{
+			"InstitutionCode": "OSU",
+			"InstitutionName": "The Ohio State University Library",
+			"InstitutionUrl": "https://library.osu.edu/",
+			"BHLMember": false
+		},
+		{
+			"InstitutionCode": "PALASS",
+			"InstitutionName": "The Palaeontological Association",
+			"InstitutionUrl": "https://www.palass.org/",
 			"BHLMember": false
 		},
 		{
@@ -3369,6 +3597,12 @@
 			"BHLMember": false
 		},
 		{
+			"InstitutionCode": "UNIOVI",
+			"InstitutionName": "Universidad de Oviedo",
+			"InstitutionUrl": "https://biologia.uniovi.es/inicio",
+			"BHLMember": false
+		},
+		{
 			"InstitutionCode": "UBJCS",
 			"InstitutionName": "University Library Johann Christian Senckenberg",
 			"InstitutionUrl": "https://www.ub.uni-frankfurt.de/home_en.html",
@@ -3504,6 +3738,12 @@
 			"InstitutionCode": "UMICH",
 			"InstitutionName": "University of Michigan",
 			"InstitutionUrl": null,
+			"BHLMember": false
+		},
+		{
+			"InstitutionCode": "UMICHHERB",
+			"InstitutionName": "University of Michigan Herbarium",
+			"InstitutionUrl": "https://lsa.umich.edu/herbarium",
 			"BHLMember": false
 		},
 		{
@@ -3699,6 +3939,12 @@
 			"BHLMember": false
 		},
 		{
+			"InstitutionCode": "VPLCA",
+			"InstitutionName": "Vancouver Public Library",
+			"InstitutionUrl": "https://www.vpl.ca/",
+			"BHLMember": false
+		},
+		{
 			"InstitutionCode": "VPH",
 			"InstitutionName": "Vascular Plant Herbarium, School of Life Sciences, Arizona State University",
 			"InstitutionUrl": "http://nhc.asu.edu/vpherbarium/",
@@ -3891,6 +4137,12 @@
 			"BHLMember": false
 		},
 		{
+			"InstitutionCode": "WWFGM",
+			"InstitutionName": "World Wildlife Fund (WWF) Greater Mekong",
+			"InstitutionUrl": "",
+			"BHLMember": false
+		},
+		{
 			"InstitutionCode": "WNPS",
 			"InstitutionName": "Wyoming Native Plant Society",
 			"InstitutionUrl": "http://www.wynps.org/",
@@ -3936,6 +4188,12 @@
 			"InstitutionCode": "ZFMK",
 			"InstitutionName": "Zoologisches Forschungsmuseum Alexander Koenig",
 			"InstitutionUrl": "https://www.zfmk.de/en",
+			"BHLMember": false
+		},
+		{
+			"InstitutionCode": "ARBOOKS",
+			"InstitutionName": "سور الأزبكية (Soor el-Azbakeya)",
+			"InstitutionUrl": "",
 			"BHLMember": false
 		}
 	]
