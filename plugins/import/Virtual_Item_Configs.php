@@ -6,6 +6,11 @@
  * item-level metadata for a given installation of Macaw. This contains one
  * function which returns a list of things that are ready to be imported into
  * Macaw.
+ * 
+ * Note: To delete and reload an item the value from "custom_internet_archive"
+ * table MUST be saved and restored to avoid creating a duplicate at IA. 
+ * Once saved, the Virtual Item Article should be be deleted entirely from 
+ * Macaw before it will be reimported to Macaw. Then the IA ID must be restored.
  *
  *
  * @package metadata
@@ -114,10 +119,10 @@ class Virtual_Item_Configs extends Controller {
 			$this->CI->logging->log('access', 'error', "Virutal Items: Source: $name: Config file is not valid");
 			return false;
 		}
-		if ($config['feed-type'] == 'oai_dc') {
-			$this->vi_config = $config;
-			$this->process_oai_dc($name, $path, $single_id, $command);
-		}
+		// if ($config['feed-type'] == 'oai_dc') {
+		// 	$this->vi_config = $config;
+		// 	$this->process_oai_dc($name, $path, $single_id, $command);
+		// }
 		if ($config['feed-type'] == 'oai_mods') {
 			$this->vi_config = $config;
 			$this->process_oai_mods($name, $path, $single_id, $command);
@@ -408,17 +413,27 @@ class Virtual_Item_Configs extends Controller {
 						}
 					}
 				}
-				if (!isset($info['page_start'])) {
-					$info['page_start'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:extent[@unit='pages']/mods:start", 0);
+				// Determine if we are an eLocator in the pages field? --  Form is "e\d+"
+				// If it's an eLocator then we number the pages based on the count of pages
+				// in the PDF. 1 to N.
+				$page_start = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:extent[@unit='pages']/mods:start", 0);
+				if (preg_match("/^e\d+$/", $page_start)) {
+					$info['elocator'] = $page_start;
 				}
-				if (!isset($info['page_end'])) {
-					$info['page_end'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:extent[@unit='pages']/mods:end", 0);
-				}
-				if (!isset($info['page_range']) && isset($info['page_start']) && isset($info['page_end'])) {
-					$info['page_range'] = $info['page_start'].'-'.$info['page_end'];
-				}
-				if (!isset($info['pages']) && isset($info['page_start']) && isset($info['page_end'])) {
-					$info['pages'] = (int)$info['page_end'] - (int)$info['page_start'] + 1;
+
+				if (!isset($info['elocator'])) {
+					if (!isset($info['page_start'])) {
+						$info['page_start'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:extent[@unit='pages']/mods:start", 0);
+					}
+					if (!isset($info['page_end'])) {
+						$info['page_end'] = $this->safe_xpath($r, "//mods:relatedItem[@type='host']/mods:part/mods:extent[@unit='pages']/mods:end", 0);
+					}
+					if (!isset($info['page_range']) && isset($info['page_start']) && isset($info['page_end'])) {
+						$info['page_range'] = $info['page_start'].'-'.$info['page_end'];
+					}
+					if (!isset($info['pages']) && isset($info['page_start']) && isset($info['page_end'])) {
+						$info['pages'] = (int)$info['page_end'] - (int)$info['page_start'] + 1;
+					}
 				}
 				if (!isset($info['creator'])) {
 					$info['creator'] = $this->safe_xpath($r, "//mods:mods/mods:name/mods:role/mods:roleTerm[text()=\"author\"]/../../mods:namePart");
@@ -444,7 +459,23 @@ class Virtual_Item_Configs extends Controller {
 					}
 					$info['creator_ids'] = json_encode($creator_ids);
 				}
-				
+
+				// Get the PDF
+				$pdf_path = $this->vi_config['get-pdf']($this->vi_config, $r, $info);
+
+				if ($pdf_path) {
+					if (isset($info['elocator'])) {
+						// Get these from the PDF
+						$pdf_image = new Imagick();
+						$pdf_image->pingImage($pdf_path);
+						$pp = $pdf_image->getNumberImages();
+	
+						$info['page_start'] = 1;
+						$info['page_end'] = $pp;
+						$info['page_range'] = "1-".$pp;
+						$info['pages'] = $pp;
+					}
+				}
 				// Create Virtual Item ID and overwrite with custom info from the config
 				// TODO Make sure the various configs are prepared for this. (dashes vs underscores)
 				$vi_data = [];
@@ -461,8 +492,8 @@ class Virtual_Item_Configs extends Controller {
 				$info['date'] = $vi_data['date'];
 				$info['source'] = $vi_data['source'];
 
-				// Get the PDF
-				$pdf_path = $this->vi_config['get-pdf']($this->vi_config, $r, $info);
+				// Clean up some potentially messy data
+				$info['title'] = $this->clean_string($info['title']);
 				// Test for PDF-ness
 				$finfo = new finfo(FILEINFO_MIME);
 				$mime_type = finfo_file($finfo, $pdf_path);
@@ -670,8 +701,9 @@ class Virtual_Item_Configs extends Controller {
 		try {
 			$ret = $this->CI->book->add($info);
 		} catch (Exception $e) {
+			print "Error: ".$e->getMessage()."\n";
 			$this->CI->logging->log('book', 'error', $e->getMessage(), $info['barcode']);
-			$this->CI->logging->log('access', 'error', $e->getMessage());
+			$this->CI->logging->log('error', 'info', $e->getMessage());
 			return false;
 		}
 
@@ -1124,5 +1156,11 @@ class Virtual_Item_Configs extends Controller {
 			}
 		}
 		return $ret;
+	}
+
+	function clean_string($s) {
+		$s = preg_replace("/[\r\n]+/", "", $s);
+
+		return $s;
 	}
 }
