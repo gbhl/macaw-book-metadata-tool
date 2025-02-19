@@ -13,6 +13,23 @@
 	<?php $this->load->view('global/error_messages_view') ?>
 	<div id="import">
 		<h1>Import CSV File</h1>
+
+    <div id="csv-documentation">
+      <p>
+        Documentation may be found at:
+        <ul>
+          <li><a href="https://docs.google.com/spreadsheets/d/1h6WeUILNBjiGHxrphDzUQKui2vVSXHwl6V-H1d0AIIY/edit?usp=sharing" _target="_blank">BHL Metadata Requirements | Schema Tables  v.2</a></li>
+        </ul>
+      </p>
+      <p>
+        CSV Templates may be found at: 
+        <ul>
+          <li><a href="https://drive.google.com/file/d/1t4evnIuz8zAvTT4Xrc_gZpOZPE-rNDp8/view?pli=1" _target="_blank">Macaw Item Level Template.xslx</a></li>
+          <li><a href="https://drive.google.com/file/d/1CkFEzLCRl5aKErpD7Dp7Kx11i5TYoJEM/view?pli=1" _target="_blank">Macaw Page Level Template.xslx</a></li>
+        </ul>
+        
+      </p>
+    </div>
 		<form id="upload_form" enctype="multipart/form-data" name="upload_form">
 			<input type="hidden" name="li_token" value="<?php echo($token); ?>">
 			<div id="fields">
