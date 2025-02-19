@@ -1750,6 +1750,10 @@ textarea, input {
 	padding: 2px 2px;
 	margin: 0 4px;
 	background: url(../images/icons/database_go.png) 2px 50%  no-repeat;
+  font-size: 100%;
+  font-family: Georgia;
+  height: 27px;
+  width: 70px;
 }
 #log_view {
 	margin-top: 2em;
@@ -2119,6 +2123,20 @@ textarea, input {
 	font-family: monospace;
 }
 
+/* ****************************** */
+/* CSV ITEM/PAGE UPLOADER         */
+/* ****************************** */
+#csv-documentation {
+  width: 50%;
+  margin: 10px auto;
+  padding: 1em;
+  text-align: left;
+  font-size: 110%;
+}
+
+#upload_form {
+  font-size: 110%;
+}
 
 /* ****************************** */
 /* JQUERY UPLOADER                */
