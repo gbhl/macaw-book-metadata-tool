@@ -1455,7 +1455,7 @@ class Book extends Model {
 			  if ($allow_array) {
 			    return $results;
 			  } else {
-			    return implode(';', $results);
+			    return $results[0];
 			  }
 			}			
 		} else {
