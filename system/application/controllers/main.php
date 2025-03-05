@@ -439,10 +439,12 @@ class Main extends Controller {
 		foreach ($_REQUEST as $field => $val) {			
 			// Validate the year. Arguably this shouldn't be here, but for now, it'll do.
 			if ($field == 'year') {
-				if (strlen($val[0]) > 0) {
-					if (!preg_match('/^\d\d\d\d$/', $val[0]) && !preg_match('/^\d\d\d\d-\d\d\d\d$/', $val[0])) {
-						$errormessages[] = 'Volume-specific 4-digit year or year range of publication is required. Format: YYYY or YYYY-YYYY. If year is unknown, leave BLANK.';
-					}
+				foreach ($val as $yr) {
+					if (strlen(trim($yr)) > 0) {
+						if (!preg_match('/^\d\d\d\d$/', trim($yr)) && !preg_match('/^\d\d\d\d-\d\d\d\d$/', trim($yr))) {
+							$errormessages[] = 'Volume-specific 4-digit year or year range of publication is required. Format: YYYY or YYYY-YYYY. If year is unknown, leave BLANK. (Found: "'.preg_replace('/ /', '&nbsp;', $yr).'")';
+						}
+					}	
 				}
 			}
 
@@ -453,7 +455,15 @@ class Main extends Controller {
 				$matches = array();
 				if (preg_match('/^new_fieldname_(\d+)$/', $field, $matches)) {
 					$c = $matches[1];
-					if (isset($_REQUEST['new_fieldname_'.$c]) && isset($_REQUEST['new_value_'.$c]) && $_REQUEST['new_value_'.$c] != '') {						
+					if (isset($_REQUEST['new_fieldname_'.$c]) && isset($_REQUEST['new_value_'.$c]) && $_REQUEST['new_value_'.$c] != '') {
+						if (trim($_REQUEST['new_fieldname_'.$c]) == 'year') {
+							$yr = $_REQUEST['new_value_'.$c];
+							if (strlen(trim($yr)) > 0) {
+								if (!preg_match('/^\d\d\d\d$/', trim($yr)) && !preg_match('/^\d\d\d\d-\d\d\d\d$/', trim($yr))) {
+									$errormessages[] = 'Volume-specific 4-digit year or year range of publication is required. Format: YYYY or YYYY-YYYY. If year is unknown, leave BLANK. (Found: "'.preg_replace('/ /', '&nbsp;', $yr).'")';
+								}
+							}		
+						}
 						// We got a value from the plain text field.
 						$this->book->set_metadata(trim($_REQUEST['new_fieldname_'.$c]), $_REQUEST['new_value_'.$c], false);
 					} elseif ($_REQUEST['new_fieldname_'.$c] && array_key_exists('new_value_'.$c.'_file', $_FILES)) {
@@ -467,6 +477,7 @@ class Main extends Controller {
 				} else {
 					if (is_array($val)) {
 						foreach ($val as $v) {
+							$v = trim($v);
 							// Don't save an empty value.
 							if (isset($v) && $v != '') {
 								$this->book->set_metadata(trim($field), $v, false);
