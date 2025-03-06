@@ -29,7 +29,7 @@ class Virtual_Item_Configs extends Controller {
 
 	private $id_types = array(
 		array('doi' => 'VIAF', 'mods' => 'viaf', 'bhl' => 'viaf'),
-		array('doi' => 'ORCID', 'mods' => 'orcid', 'bhl' => 'orcid'),
+		array('doi' => 'ORCID', 'mods' => 'orcid', 'bhl' => 'orcid'), // includes http(s)://orcid.org/ - Normalize it
 		array('doi' => 'BioStor', 'mods' => 'biostor', 'bhl' => 'biostor'),
 		array('doi' => 'DLC', 'mods' => 'dlc', 'bhl' => 'dlc'),
 		array('doi' => 'ResearchGate', 'mods' => 'researchgate', 'bhl' => 'researchgate profile'),
@@ -132,150 +132,6 @@ class Virtual_Item_Configs extends Controller {
 			$this->process_spreadsheet($name, $path, $single_id, $command);
 		}
 	}
-
-	/* ----------------------------
-	 * Function: process_oai_dc()
-	 *
-	 * Parameters: $name, $path
-	 *
-     * Main function to handle reading an OAI-PMH feed in Dublin Core format
-	 * to ingest it into macaw. This has clear knowledge
-	 * of the format of an OAI-PMH feed and expect there
-	 * to be metadata in Dublic Core (oai_dc) format. 
-	 * ----------------------------
-	 */
-	/* 
-	function process_oai_dc($name, $path, $single_id = null, $command = null) {
-		$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Processing OAI Feed");
-		// Set up some working folders for efficiency
-		$this->vi_config['working-path'] = $path.'/working';
-		$this->vi_config['cache-path'] = $path.'/cache';
-		@mkdir($this->vi_config['working-path'], 0755, true);
-		@mkdir($this->vi_config['cache-path'], 0755, true);
-		
-		// Get the OAI Feed
-		$records = [];
-		if (is_array($this->vi_config['feed'])) {
-			foreach((array)$this->vi_config['feed'] as $url) {
-				$records = array_merge($records, $this->read_oai($url));
-			}
-		} else {
-			$records = $this->read_oai($this->vi_config['feed']);
-		}
-		// Reminder: read_oai returns an array of XML fragments
-
-		$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Got ".count($records)." records: $name");
-		$new_items = [];
-		foreach ($records as $r) {
-			$r = new SimpleXMLElement($r);
-			$r->registerXPathNamespace('dc', 'http://purl.org/dc/elements/1.1/');
-			$id = (string)$r->xpath('//header/identifier')[0];
-			$title = (string)$r->xpath('//dc:title')[0];
-
-			$barcode = preg_replace("/[\/.]/", '_', $id); // No slashes!;
-			// if ($single_id && $single_id != $barcode) {
-			// 	print "$barcode is not $single_id. Skipping.";
-			// 	die;
-
-			// 	continue;
-			// }
-			if ($this->record_exists($barcode)) {
-				// Have we seen the item?
-				// Yes, report and skip.
-				$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: OAI Record $id already processed");
-			} else {
-				// pull the details and build the metadata
-				$info = [];
-				$info['barcode'] = $barcode; 
-				$this->CI->logging->log('book', 'info', "Creating Virtual Item Segment item.", $info['barcode']);
-				$info['title'] = $title;
-				$info['holding_institution'] = $this->vi_config['contributor'];
-				$info['publisher'] = (string)$r->xpath('//dc:publisher')[0];
-				$info['sponsor'] = $info['holding_institution'];
-				$info['org_id'] = $this->vi_config['upload-org-id'];; 
-				$info['genre'] = 'article';
-				$info['collections'] = $this->vi_config['collections']; 
-				// Copyright info all comes from the config file
-				// There is no mechanism to pull it from the OAI feed (yet?)
-				$info['copyright'] = $this->vi_config['copyright'];
-				$info['cc_license'] = $this->vi_config['creative-commons'];
-				$info['rights_holder'] = $this->vi_config['rights-holder'];
-				$info['possible_copyright_status'] = $this->vi_config['possible-copyright-status'];
-				$info['rights'] = $this->vi_config['rights'];
-				
-				$info['subject'] = [];
-				foreach ($r->xpath('//dc:subject') as $s) {
-					$info['subject'][] = (string)$s;
-				}
-				$info['creator'] = [];
-				foreach ($r->xpath('//dc:creator') as $a) {
-					$info['creator'][] = preg_replace('/,([^ ])/', ', \1', (string)$a);
-				}
-				$info['language'] = $this->iso639_2to3((string)$r->xpath('//dc:language')[0]);
-				$info['abstract'] = (string)$r->xpath('//dc:description')[0];
-				// Figure out the DOI
-				foreach ($r->xpath('//dc:identifier') as $i) {
-					if (preg_match('/^10.\d{4,9}\/[-._;()\/:A-Z0-9]+$/i', (string)$i)) {
-						$info['doi'] = (string)$i;
-					} elseif (preg_match('/doi/i', (string)$i)) {
-						$info['doi'] = $this->normalize_doi((string)$i);
-					}					
-				}
-				// Create Virtual Item ID
-				$vi_data = [];
-				$vi_data = $this->vi_config['vi-identifier-data']($this->vi_config, $info, $r);
-				$info['bhl_virtual_volume'] = $vi_data['virtual-volume'];
-				$info['volume'] = $vi_data['volume'];
-				$info['series'] = $vi_data['series'];
-				$info['issue'] = $vi_data['issue'];
-				$info['segment_date'] = $vi_data['year'];
-				$info['page_start'] = $vi_data['page_start'];
-				$info['page_end'] = $vi_data['page_end'];
-				$info['year'] = $vi_data['year'];
-				$info['date'] = $vi_data['date'];
-				$info['source'] = $vi_data['source'];
-				$info['page_range'] = $vi_data['page_range'];
-
-				// TODO Remove this for production
-				// -------------------------------
-				$info['noindex'] = '1';
-				// -------------------------------
-
-				// Get the PDF
-				$pdf_path = $this->vi_config['get-pdf']($this->vi_config, $r);
-
-				if (!$pdf_path) {
-					$this->CI->logging->log('book', 'error', "Could not get PDF for item. Aborting.", $info['barcode']);
-					$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Could not get PDF for item with barcode ".$info['barcode'].". Aborting.");
-				} else {
-					// Put the PDF in the incoming folder
-					$incoming_path = $this->CI->cfg['incoming_directory'].'/'.$info['barcode'];
-					if (!file_exists($incoming_path)) {
-						mkdir($incoming_path);
-					}
-					rename($pdf_path, $incoming_path.'/'.$info['barcode'].'.pdf');
-					
-					// Create the book
-					$this->CI->logging->log('book', 'info', "Adding item to the system.", $info['barcode']);
- 					$page_count = $this->add_book($name, $info, $pdf_path);
-
-					$this->CI->logging->log('book', 'info', "Recording item to custom table.", $info['barcode']);
-					$this->CI->db->insert(
-						'custom_virtual_items',
-						array(
-							'source' => $name,
-							'title' => substr($title,0,128),
-							'barcode' => $info['barcode'],
-							'created' => date("Y-m-d H:i:s")
-						)
-					);
-					$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Added item with barcode ".$info['barcode']." with $page_count pages.");
-				}
-			}
-		}
-		return $new_items;
-	}
-	*/
 	
 	/* ----------------------------
 	 * Function: process_oai_mods()
@@ -451,7 +307,7 @@ class Virtual_Item_Configs extends Controller {
 						foreach ($this->id_types as $type) {
 							$id_value = $this->safe_xpath($r, "//mods:mods/mods:name/mods:role/mods:roleTerm[text()=\"author\"]/../../mods:namePart[text()=\"$c\"]/../mods:nameIdentifier[@type=\"".$type['mods']."\"]");
 							if (is_array($id_value) && count($id_value)) {
-								$res[$type['bhl']] = (string)$id_value[0];
+								$res[$type['bhl']] = (string)$id_value[0]; // TODO for ORCID change http:// to https://
 							}	
 						}
 
