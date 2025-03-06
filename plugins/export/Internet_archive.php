@@ -2717,9 +2717,9 @@ class Internet_archive extends Controller {
 			// Abstract
 			$ret = ($mods->xpath($root.$ns."abstract"));
 			if ($ret && count($ret) > 0) {
-				$metadata['x-archive-meta-abstract'] = str_replace('"', "'", $ret[0].'');
-				$metadata['x-archive-meta-abstract'] = str_replace('`', "'", $ret[0].'');
-				$metadata['x-archive-meta-abstract'] = preg_replace('/[\r\n]/','<br/>',$metadata['x-archive-meta-abstract']);
+				$abstract = (string)$ret[0];
+				$abstract = preg_replace('/["`]/', "'", $abstract);
+				$metadata['x-archive-meta-abstract'] = preg_replace('/[\r\n]/', '<br/>', $abstract);
 			}
 
 			//modified JC 4/2/12
@@ -2823,6 +2823,10 @@ class Internet_archive extends Controller {
 
 		if ($this->CI->book->get_metadata('issue')) {
 			$metadata['x-archive-meta-issue'] = $this->CI->book->get_metadata('issue', false).'';
+		}
+
+		if ($this->CI->book->get_metadata('elocator')) {
+			$metadata['x-archive-identifier-elocator'] = $this->CI->book->get_metadata('elocator', false).'';
 		}
 
 		// Is this a Virtual Item?
