@@ -307,7 +307,11 @@ class Virtual_Item_Configs extends Controller {
 						foreach ($this->id_types as $type) {
 							$id_value = $this->safe_xpath($r, "//mods:mods/mods:name/mods:role/mods:roleTerm[text()=\"author\"]/../../mods:namePart[text()=\"$c\"]/../mods:nameIdentifier[@type=\"".$type['mods']."\"]");
 							if (is_array($id_value) && count($id_value)) {
-								$res[$type['bhl']] = (string)$id_value[0]; // TODO for ORCID change http:// to https://
+								if ($type['bhl'] == 'orcid') {
+									// for ORCID change http:// to https://
+									$id_value[0] = preg_replace("/http:/", 'https:', (string)$id_value[0]);
+								}
+								$res[$type['bhl']] = (string)$id_value[0]; 
 							}	
 						}
 
