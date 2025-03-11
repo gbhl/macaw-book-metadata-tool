@@ -149,9 +149,7 @@ class Virtual_Item_Configs extends Controller {
 		$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Processing OAI Feed");
 		// Set up some working folders for efficiency
 		$this->vi_config['working-path'] = $path.'/working';
-		$this->vi_config['cache-path'] = $path.'/cache';
 		@mkdir($this->vi_config['working-path'], 0755, true);
-		@mkdir($this->vi_config['cache-path'], 0755, true);
 		
 		// Get the OAI Feed
 		$records = [];
@@ -656,39 +654,6 @@ class Virtual_Item_Configs extends Controller {
 	}
 
 	/* ----------------------------
-	 * Function: cache_get_xml()
-	 *
-	 * Parameters: $url
-	 *
-     * Given a URL, read it from the web only if it doesn't
-	 * exist on disk.
-	 * ----------------------------
-	 */
-	function cache_get_xml($url) {
-		$md5 = md5($url);
-		$cache_file = $this->vi_config['cache-path'].'/'.$md5;
-
-		// Delete cache if it's too old (24 hours)
-		if (file_exists($cache_file)) {
-			if (time()-filemtime($cache_file) > 86400) {
-				unlink($cache_file);
-			}
-		}
-		// Cache the URL if it doesn't exist
-		if (!file_exists($cache_file)) {
-			file_put_contents(
-				$this->vi_config['cache-path'].'/'.$md5, 
-				file_get_contents($url)
-			);
-		}
-		
-		$xml = simplexml_load_file($this->vi_config['cache-path'].'/'.$md5);
-		$xml->registerXPathNamespace('oai-dc', 'http://www.openarchives.org/OAI/2.0/oai_dc/');
-		$xml->registerXPathNamespace('dc', 'http://purl.org/dc/elements/1.1/');
-		return $xml;
-	}
-
-	/* ----------------------------
 	 * Function: read_oai()
 	 *
 	 * Parameters: $url
@@ -701,16 +666,36 @@ class Virtual_Item_Configs extends Controller {
 	 */
 	function read_oai($url) {
 		$records = [];
-		$xmlObj = $this->cache_get_xml($url);
+		$content = file_get_contents($url);
+		$xml = simplexml_load_string($content);
+		$xml->registerXPathNamespace('oai-dc', 'http://www.openarchives.org/OAI/2.0/oai_dc/');
+		$xml->registerXPathNamespace('dc', 'http://purl.org/dc/elements/1.1/');
 
-		// Gather all the nodes
-		$xmlNode = $xmlObj->ListRecords;
-		if (!$xmlNode) {
-			$this->CI->logging->log('access', 'info', "Virutal Items: No Records found for: $url");
-			return [];
-		}
-		foreach ($xmlNode->record as $rNode) {
-			$records[] = $rNode->asXML();
+		$urlParts = parse_url($url);
+		$oai_host = $urlParts['scheme'] . "://" . $urlParts['host'] . "/";
+
+		$finished = false;
+		while (!$finished) {
+			// Gather all the nodes
+			$xml_records = $xml->ListRecords;
+			if (!$xml_records) {
+				$this->CI->logging->log('access', 'info', "Virutal Items: No Records found for: $url");
+				return [];
+			}
+			foreach ($xml_records->record as $xml_record) {
+				$records[] = $xml_record->asXML();
+			}
+			if ($xml_records->resumptionToken) {
+				$this->CI->logging->log('access', 'info', "Virutal Items: Found ".count($records)." records, continuing...");
+				print "Calling ".$oai_host.'?verb=ListRecords&resumptionToken='.$xml_records->resumptionToken[0]."\n";
+				unset($xml);
+				$content = file_get_contents($oai_host.'?verb=ListRecords&resumptionToken='.$xml_records->resumptionToken[0]);
+				$xml = simplexml_load_string($content);
+				$xml->registerXPathNamespace('oai-dc', 'http://www.openarchives.org/OAI/2.0/oai_dc/');
+				$xml->registerXPathNamespace('dc', 'http://purl.org/dc/elements/1.1/');
+			} else {
+				$finished = true;
+			}
 		}
 		return $records;
 	}
