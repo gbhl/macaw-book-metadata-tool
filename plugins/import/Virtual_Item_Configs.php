@@ -667,7 +667,11 @@ class Virtual_Item_Configs extends Controller {
 	function read_oai($url) {
 		$records = [];
 		$content = file_get_contents($url);
-		$xml = simplexml_load_string($content);
+		$xml = @simplexml_load_string($content);
+		if (!$xml) {
+			$this->CI->logging->log('access', 'info', "Virutal Items: Error getting records.");
+			return [];
+		}
 		$xml->registerXPathNamespace('oai-dc', 'http://www.openarchives.org/OAI/2.0/oai_dc/');
 		$xml->registerXPathNamespace('dc', 'http://purl.org/dc/elements/1.1/');
 
@@ -686,11 +690,14 @@ class Virtual_Item_Configs extends Controller {
 				$records[] = $xml_record->asXML();
 			}
 			if ($xml_records->resumptionToken) {
-				$this->CI->logging->log('access', 'info', "Virutal Items: Found ".count($records)." records, continuing...");
-				print "Calling ".$oai_host.'?verb=ListRecords&resumptionToken='.$xml_records->resumptionToken[0]."\n";
+				$this->CI->logging->log('access', 'info', "Virutal Items: Found ".count($records)." records, continuing with token: ".$xml_records->resumptionToken[0]);
 				unset($xml);
 				$content = file_get_contents($oai_host.'?verb=ListRecords&resumptionToken='.$xml_records->resumptionToken[0]);
-				$xml = simplexml_load_string($content);
+				$xml = @simplexml_load_string($content);
+				if (!$xml) {
+					$this->CI->logging->log('access', 'info', "Virutal Items: Error getting more records.");
+					return $records;
+				}
 				$xml->registerXPathNamespace('oai-dc', 'http://www.openarchives.org/OAI/2.0/oai_dc/');
 				$xml->registerXPathNamespace('dc', 'http://purl.org/dc/elements/1.1/');
 			} else {
