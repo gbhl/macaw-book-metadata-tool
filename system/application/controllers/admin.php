@@ -791,6 +791,35 @@ class Admin extends Controller {
 		return false;
 	}
 	
+  function view_config() {
+		$this->common->check_session();
+		// Permission Checking
+		if (!$this->user->has_permission('admin')) {
+			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			redirect($this->config->item('base_url').'main/listitems');
+			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
+		}
+
+    
+    $data = [];
+    $data['config_params'] = [];
+
+    foreach (array_keys($this->cfg) as $k) {
+      if (is_array($this->cfg[$k])) {
+        $data['config_params'][] = array(
+          'paramater' => $k, 
+          'value' => preg_replace('/\t/', '&nbsp;&nbsp;', print_r($this->cfg[$k], true))
+        );
+      } else {
+        $data['config_params'][] = array(
+          'paramater' => $k, 
+          'value' => $this->cfg[$k]
+        );
+      }
+    }
+    $this->load->view('admin/config_view', $data);
+  }
+
 	/* 
 	 * Spawn a cron activity 
 	 * 
