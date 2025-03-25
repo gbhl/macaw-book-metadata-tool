@@ -452,15 +452,30 @@ class Book extends Model {
 		} else {
 			$this->db->where('item_id', $this->id);
 		}
-		if ($order) {
-			// Approximate a natural sort
-			$this->db->order_by("CAST(REGEXP_SUBSTR($order, '^\\\\d+') AS SIGNED)");
-			$this->db->order_by("REGEXP_SUBSTR($order, '\\\\D.+$')");
-		}
 		if ($limit) {$this->db->limit($limit);}
 		$this->db->order_by('sequence_number');
 		$query = $this->db->get('page');
 		$pages = $query->result();
+
+	  if ($order) { 
+      if (isset($pages[0]->$order)) { // Sanity check
+        $this->logging->log('book', 'info', 'Re-sort alphanumeric on '.$order, $this->barcode);
+        
+        $pages_sorted = [];
+        foreach ($pages as $p) {
+          $pages_sorted[$p->$order] = $p;
+        }
+        ksort($pages_sorted, SORT_NATURAL); // Sort by the keys
+        $newpages = [];
+        foreach ($pages_sorted as $ps) {
+          $newpages[] = $ps;
+        }
+        // Minor validation, just in case
+        if (count($newpages) == count($pages)) {
+          $pages = $newpages;
+        }
+      }
+    }
 
 		// Get the metadata for this item
 		$this->db->where('item_id', $this->id);
