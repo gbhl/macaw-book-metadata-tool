@@ -49,7 +49,13 @@ class Book extends Model {
 	public $needs_qa = '';
 	public $last_error = '';
 	public $org_name = '';
+  public $date_created = '';
+  public $date_scanning_start = '';
+  public $date_scanning_end = '';
+  public $date_review_start = '';
 	public $date_review_end = '';
+	public $date_export_start = '';
+	public $date_completed = '';
 	public $ia_ready_images = '';
 	public $page_progression = '';
 	public $total_mbytes = 0;
@@ -107,8 +113,15 @@ class Book extends Model {
 				$this->pages_found   = $row->pages_found;
 				$this->pages_scanned = $row->pages_scanned;
 				$this->scan_time     = $row->scan_time;
-				$this->date_review_end = $row->date_review_end;
-				
+
+        $this->date_created        = $row->date_created;
+        $this->date_scanning_start = $row->date_scanning_start;
+        $this->date_scanning_end   = $row->date_scanning_end;
+        $this->date_review_start   = $row->date_review_start;
+        $this->date_review_end     = $row->date_review_end;
+        $this->date_export_start   = $row->date_export_start;
+        $this->date_completed      = $row->date_completed;
+      
 				if ($row->needs_qa == 't' || $row->needs_qa == '1') { 
 					$this->needs_qa = true;
 				} else {
@@ -314,6 +327,32 @@ class Book extends Model {
 			}
 		}
 		return null;
+	}
+
+  	/**
+	 * Get the status of all export modules
+	 *
+	 * Return allstatus of all export modules, including duplicates.
+	 *
+	 */
+	function get_all_export_status($module_name = '') {
+		// See if we have a record for this module in the database already
+		$this->db->where('item_id', $this->id);
+		$query = $this->db->get('item_export_status');
+    $ret = [];
+    $c = 0;
+    foreach ($query->result() as $r) {
+      $module = $r->export_module;
+      if (isset($ret[$module])) {
+        $c++;
+        $module .= " ($c)";
+      }
+      $ret[$module] = array(
+        'status_code' => $r->status_code,
+        'date' => $r->date
+      );
+    }
+    return $ret;
 	}
 
 	/**
