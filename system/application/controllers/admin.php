@@ -791,7 +791,7 @@ class Admin extends Controller {
 		return false;
 	}
 	
-  function view_config() {
+	function view_config() {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('admin')) {
@@ -800,25 +800,30 @@ class Admin extends Controller {
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 		}
 
-    
-    $data = [];
-    $data['config_params'] = [];
+		$data = [];
+		$data['config_params'] = [];
 
-    foreach (array_keys($this->cfg) as $k) {
-      if (is_array($this->cfg[$k])) {
-        $data['config_params'][] = array(
-          'paramater' => $k, 
-          'value' => preg_replace('/\t/', '&nbsp;&nbsp;', print_r($this->cfg[$k], true))
-        );
-      } else {
-        $data['config_params'][] = array(
-          'paramater' => $k, 
-          'value' => $this->cfg[$k]
-        );
-      }
-    }
-    $this->load->view('admin/config_view', $data);
-  }
+		foreach (array_keys($this->cfg) as $k) {
+			$val = '';
+			if (preg_match('/(pass|api_key|secret)/', $k)) {
+				$val = '<em>[REDACTED]</em>';
+			} else {
+				$val = $this->cfg[$k];
+			}
+			if (is_array($this->cfg[$k])) {
+				$data['config_params'][] = array(
+					'paramater' => $k, 
+					'value' => preg_replace('/\t/', '&nbsp;&nbsp;', print_r($val, true))
+				);
+			} else {
+				$data['config_params'][] = array(
+					'paramater' => $k, 
+					'value' => $val
+				);
+			}
+		}
+	$this->load->view('admin/config_view', $data);
+	}
 
 	/* 
 	 * Spawn a cron activity 
