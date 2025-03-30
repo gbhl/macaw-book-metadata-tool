@@ -270,8 +270,13 @@ class Book extends Model {
 	 */
 	function set_export_status($status = '', $override = false) {
 		// Get the name of the php file that called us. That's the module name.
-		$d = debug_backtrace();
-		preg_match('/^\/.+\/(.*?)\.php$/', $d[0]['file'], $m);
+		$d = debug_backtrace(2);
+		$m = [];
+		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+			preg_match('/^.+\\\(.*?)\.php$/', $d[0]['file'], $m);
+		} else {
+			preg_match('/^\/.+\/(.*?)\.php$/', $d[0]['file'], $m);
+		}
 		$module_name = $m[1];
 		// Can we continue?
 		if ($module_name != '' && $status != '') {
@@ -2414,9 +2419,12 @@ class Book extends Model {
 
 			// Insert the record
 			$counter++;
-			$this->db->query(
-				"INSERT INTO `metadata` (`item_id`, `page_id`, `fieldname`, `counter`, `value`) VALUES (?, NULL, ?, ?, ?);", 
-				array($this->id, $fieldname, $counter, $value)
+			$this->db->insert('metadata', array(
+				'item_id'   => $this->id,
+				'fieldname' => $fieldname,
+				'page_id'   => null,
+				'counter'   => $counter,
+				'value'     => $value)
 			);
 		}
 		return null;
