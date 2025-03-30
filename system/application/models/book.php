@@ -268,18 +268,20 @@ class Book extends Model {
 	 * Module name is not required, only the status. We figure out the name of the
 	 * calling module using debug_backtrace()
 	 */
-	function set_export_status($status = '', $override = false) {
+	function set_export_status($status = '', $override = false, $module_name = null) {
 		// Get the name of the php file that called us. That's the module name.
 		$d = debug_backtrace(2);
 		$m = [];
-		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-			preg_match('/^.+\\\(.*?)\.php$/', $d[0]['file'], $m);
-		} else {
-			preg_match('/^\/.+\/(.*?)\.php$/', $d[0]['file'], $m);
-		}
-		$module_name = $m[1];
+    if (!$module_name) {
+  		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+  			preg_match('/^.+\\\(.*?)\.php$/', $d[0]['file'], $m);
+  		} else {
+  			preg_match('/^\/.+\/(.*?)\.php$/', $d[0]['file'], $m);
+  		}
+  		$module_name = $m[1];
+    }
 		// Can we continue?
-		if ($module_name != '' && $status != '') {
+		if ($module_name != '' && $status != '' && $status != 'DELETE') {
 			// See if we have a record for this module in the database already
 			$this->db->where('item_id', $this->id);
 			$this->db->where('export_module', $module_name);
@@ -311,8 +313,13 @@ class Book extends Model {
 				$this->set_status('completed', $override);
 			}
 			//echo $this->db->last_query()."\n";
-		}
-	}
+    } elseif ($module_name != '' && $status == 'DELETE') {
+      // Super simple, we don't do any other checking
+      $this->db->where('item_id', $this->id);
+      $this->db->where('export_module', $module_name);
+      $this->db->delete('item_export_status');
+    }
+  }
 
 	/**
 	 * Get the status of one export modules
