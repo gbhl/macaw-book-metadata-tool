@@ -25,7 +25,8 @@
 				{key:"log", label: "Logs"}
 			];
 
-			var myDataSource = new YAHOO.util.XHRDataSource(sBaseUrl+'/admin/get_log/');
+      var txtFilter = Dom.get('txtLogFilter').value;
+			var myDataSource = new YAHOO.util.XHRDataSource(sBaseUrl+'/admin/get_log/?filter='+txtFilter);
 			myDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
 			myDataSource.responseSchema = {
 				fields: ["log"]
