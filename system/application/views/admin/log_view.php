@@ -9,17 +9,24 @@
 	<link rel="stylesheet" type="text/css" href="/css/yui-combo.css"> 
 	<?php $this->load->view('global/head_view') ?>
 	<script type="text/javascript">
-	<?php if ($filename) { ?>
-		Log.startingFile = '<?php echo $filename; ?>';
-	<?php } ?>
-		YAHOO.util.Event.onDOMReady(Log.initList);
+		function init() {
+      <?php if ($filename) { ?>
+  	  	Log.startingFile = '<?php echo $filename; ?>';
+    	<?php } ?>
+      YAHOO.util.Event.onDOMReady(Log.initList);
+      var obtnFilter = new YAHOO.widget.Button("btnFilter");
+			obtnFilter.on('click', Log.initList, 'save');
+		}
+		YAHOO.util.Event.onDOMReady(init);
 	</script>
 </head>
+
 <body class="yui-skin-sam" id="logsbody">
 	<?php $this->load->view('global/header_view') ?>
 	<h1>View Logs</h1>
 	<div id="log_view" class="yui-gf">
 		<div class="yui-u first">
+      <div id="filter" style="padding:0 1em">Filter: <input type="text" id="txtLogFilter" onKeyUp="Log.initList();return false;"><button id="btnFilter" onclick="" value="Go">Update</div>
 			<div id="logs"></div>
 			<div id="logs-pages" style="text-align:center"></div>
 		</div>
