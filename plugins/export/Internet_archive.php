@@ -181,6 +181,7 @@ class Internet_archive extends Controller {
 
 		// Find those items that need to be uploaded or use the ID we were given
 		if ($sent_id) {
+      $this->CI->logging->log('access', 'info', "Internet Archive: Starting upload for item $sent_id...");
 			$books = $this->CI->book->search('barcode', $sent_id, 'date_review_end');
 			if (count($books) == 0) {
 				$books = $this->CI->book->search('id', $sent_id, 'date_review_end');
@@ -189,6 +190,7 @@ class Internet_archive extends Controller {
 			// Get those books that need to be uploaded by searching for those that are
 			// ready to be uploaded (item.status_code = 'reviewed') and have not yet been
 			// uploaded (item_export_status.status_code is blank).
+      $this->CI->logging->log('access', 'info', "Internet Archive: Starting upload...");
 			$books = $this->_get_books('NULL');
 		}
 
@@ -365,6 +367,8 @@ class Internet_archive extends Controller {
 				$filenames = array();
 				echo "TOTAL PAGES: ".count($pages)."\n";
 				echo "JPEG-2000 Library: ".$this->imagick_jp2_library()."\n";
+        $this->CI->logging->log('book', 'debug', "TOTAL PAGES: ".count($pages), $bc);
+        $this->CI->logging->log('book', 'debug', "JPEG-2000 Library: ".$this->imagick_jp2_library(), $bc);
 				foreach ($pages as $p) {
 					// Reworked this to make a filename from scratch, ignoring anything that we may have seen before.
 					if ($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') {
@@ -382,6 +386,7 @@ class Internet_archive extends Controller {
 						$start_time = microtime(true);
 						// Convert to JP2
 						echo "SCAN ".urldecode($p->scan_filename)."...";
+            $this->CI->logging->log('book', 'debug', "SCAN ".urldecode($p->scan_filename)."...", $bc);
 						if ($this->timing) { echo "TIMING (start): 0.0000\n"; }
 						$preview = new Imagick($scanspath.'/'.urldecode($p->scan_filename));
 
@@ -505,7 +510,7 @@ class Internet_archive extends Controller {
 							}
 						}
 						if ($this->timing) { echo "TIMING (set compression): ".round((microtime(true) - $start_time), 5)."\n"; }
-
+            $this->CI->logging->log('book', 'debug', "CREATED ".$new_filebase.'.jp2', $bc);
 
 						echo "(".round((microtime(true) - $start_time), 3)." secs)\n";
 					} // if ((($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') && ...
@@ -1033,6 +1038,7 @@ class Internet_archive extends Controller {
 	 *            controller simply passes these in as the were received.
 	 * ---------------------------- */
 	function verify_uploaded($args) {
+		$this->CI->logging->log('access', 'info', "Internet Archive: Starting verify upload...");
 		$sent_id = (count($args) >= 1 ? $args[0] : null);
 
 		// Find those items that need to be verified or use the ID we were given
@@ -1135,11 +1141,13 @@ class Internet_archive extends Controller {
 
 		// Find those items that need to be verified or use the ID we were given
 		if ($sent_id) {
+      $this->CI->logging->log('access', 'info', "Internet Archive: Starting verify derived for $sent_id...");
 			$books = $this->CI->book->search('barcode', $sent_id, 'date_review_end');
 			if (count($books) == 0) {
 				$books = $this->CI->book->search('id', $sent_id, 'date_review_end');
 			}
 		} else {
+      $this->CI->logging->log('access', 'info', "Internet Archive: Starting verify derived...");
 			$books = $this->_get_books('verified_upload');
 		}
 
@@ -1232,16 +1240,17 @@ class Internet_archive extends Controller {
 	 * we would be interested in.
 	 * ---------------------------- */
 	function harvest($args) {
-
 		$sent_id = (count($args) >= 1 ? $args[0] : null);
 
 		// Find those items that need to be harvested or use the ID we were given
 		if ($sent_id) {
+      $this->CI->logging->log('access', 'info', "Internet Archive: Starting harvest for item $sent_id ...");
 			$books = $this->CI->book->search('barcode', $sent_id, 'id');
 			if (count($books) == 0) {
 				$books = $this->CI->book->search('id', $sent_id, 'id');
 			}
 		} else {
+      $this->CI->logging->log('access', 'info', "Internet Archive: Starting harvest ...");
 			$books = $this->_get_books('verified_derive');
 		}
 
