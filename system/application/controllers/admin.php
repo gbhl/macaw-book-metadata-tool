@@ -336,20 +336,39 @@ class Admin extends Controller {
 			$files = array();
 			// Get a list of the log files in the main log directory
 			$logs = directory_map($this->cfg['logs_directory'], true);
-			
-			for ($i=0; $i < count($logs); $i++) {
+      
+      $filter = '';
+      if (isset($_REQUEST['filter'])) {
+        $filter = $_REQUEST['filter'];
+        // $filter = preg_replace('/[^A-Za-z0-9]+/', '', $filter);
+      }
+      for ($i=0; $i < count($logs); $i++) {
 				if ($logs[$i] != 'books') {
-					// Add them to our array of files
-					array_push($files, array('log' => $logs[$i]));
+          if ($filter) {
+            if (@preg_match('|'.$filter.'|i', $logs[$i])) {
+  					  // Add them to our array of files
+  					  array_push($files, array('log' => $logs[$i]));
+            }
+          } else {
+  					// Add them to our array of files
+  					array_push($files, array('log' => $logs[$i]));
+          }
 				}
 			}
 		
 			// Get a list of the log files in the books directory
 			for ($i=0; $i < count($books); $i++) {
 				// Add them to our array of files
-				array_push($files, array('log' => 'books/'.$books[$i]));
+        if ($filter) {
+          if (@preg_match('|'.$filter.'|i', $books[$i])) {
+            array_push($files, array('log' => 'books/'.$books[$i]));
+          }
+        } else {
+          array_push($files, array('log' => 'books/'.$books[$i]));
+        }
 			}
-		    array_multisort($files);
+		  array_multisort($files);
+
 			// Send the data back to the browser
 			$this->common->ajax_headers();
 			 
@@ -791,6 +810,40 @@ class Admin extends Controller {
 		return false;
 	}
 	
+	function view_config() {
+		$this->common->check_session();
+		// Permission Checking
+		if (!$this->user->has_permission('admin')) {
+			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			redirect($this->config->item('base_url').'main/listitems');
+			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
+		}
+
+		$data = [];
+		$data['config_params'] = [];
+
+		foreach (array_keys($this->cfg) as $k) {
+			$val = '';
+			if (preg_match('/(pass|api_key|secret)/', $k)) {
+				$val = '<em>[REDACTED]</em>';
+			} else {
+				$val = $this->cfg[$k];
+			}
+			if (is_array($this->cfg[$k])) {
+				$data['config_params'][] = array(
+					'paramater' => $k, 
+					'value' => preg_replace('/\t/', '&nbsp;&nbsp;', print_r($val, true))
+				);
+			} else {
+				$data['config_params'][] = array(
+					'paramater' => $k, 
+					'value' => $val
+				);
+			}
+		}
+	$this->load->view('admin/config_view', $data);
+	}
+
 	/* 
 	 * Spawn a cron activity 
 	 * 

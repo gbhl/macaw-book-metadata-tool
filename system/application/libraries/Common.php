@@ -714,6 +714,15 @@ class Common extends Controller {
 		}
 		write_file($tmp.'/import_export/serialize/'.$barcode.'/metadata.dat', serialize($metadata));
 
+    if ($this->CI->db->table_exists('custom_internet_archive')) {
+      $query = $this->CI->db->query('select * from metadata where item_id = ?', array($id));
+      $custom_ia = $query->result();
+      for ($i = 0; $i < count($custom_ia); $i++) {
+        $custom_ia[$i] = (array)$custom_ia[$i];
+      }
+      write_file($tmp.'/import_export/serialize/'.$barcode.'/custom_internet_archive.dat', serialize($custom_ia));
+    }
+    
 		# 5. Gather the files
 		$files = array('marc.xml', 'thumbs', 'preview', 'scans');		
 		foreach ($files as $f) {

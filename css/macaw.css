@@ -1552,6 +1552,17 @@ span#btnHistoryOk {
 	font-size: 90%;
 	font-family: monospace;
 }
+#history #log_listing {
+  float: left;
+  width: 75%;
+}
+#history_status {
+  float: right;
+  width: 22%;
+}
+#history_status td:first-child {
+  font-weight: bold;
+}
 /* Admin Log Viewing Page */
 #logs {
 	padding: 1em;

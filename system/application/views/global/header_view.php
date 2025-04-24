@@ -57,7 +57,10 @@
 					<ul>					
 						<?php if ($can_edit_item) { ?>
 						<li><a href="<?php echo $this->config->item('base_url'); ?>main/edit"><img src="<?php echo $this->config->item('base_url'); ?>images/07_edit_items_icon_sm.png">Edit Item</a></li>						
-						<li><a href="<?php echo $this->config->item('base_url'); ?>scan/upload/"><img src="<?php echo $this->config->item('base_url'); ?>images/icon-upload-small.png">Upload Pages</a></li>
+            <?php if ($is_admin) { ?>
+              <li><a href="<?php echo $this->config->item('base_url'); ?>main/admin_edit"><img src="<?php echo $this->config->item('base_url'); ?>images/07_edit_items_icon_sm.png">Edit Item (Admin)</a></li>						
+            <?php } ?>
+            <li><a href="<?php echo $this->config->item('base_url'); ?>scan/upload/"><img src="<?php echo $this->config->item('base_url'); ?>images/icon-upload-small.png">Upload Pages</a></li>
 						<li><a href="<?php echo $this->config->item('base_url'); ?>scan/review"><img src="<?php echo $this->config->item('base_url'); ?>images/04_review_pages_icon_sm.png">Edit Page Metadata</a></li>
 						<li><a href="<?php echo $this->config->item('base_url'); ?>scan/missing/insert"><img src="<?php echo $this->config->item('base_url'); ?>images/05_insert_missing_pages_icon_sm.png">Insert Missing Pages</a></li>
 						<?php } else { ?>
@@ -83,6 +86,7 @@
 						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/monthly_report"><img src="<?php echo $this->config->item('base_url'); ?>images/10_view_logs_icon_sm.png">Monthly Report</a></li>
 						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/scheduled_jobs"><img src="<?php echo $this->config->item('base_url'); ?>images/12_manually_run_icon_sm.png">Scheduled Jobs</a></li>
 						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/stalled_exports"><img src="<?php echo $this->config->item('base_url'); ?>images/10_view_logs_icon_sm.png">Stalled Exports</a></li>
+						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/view_config"><img src="<?php echo $this->config->item('base_url'); ?>images/10_view_logs_icon_sm.png">Macaw Config</a></li>
 						<li class="last"><a href="<?php echo $this->config->item('base_url'); ?>virtual_items"><img src="<?php echo $this->config->item('base_url'); ?>images/12_manually_run_icon_sm.png">Virtual Items</a></li>
 					</ul>
 				</li>

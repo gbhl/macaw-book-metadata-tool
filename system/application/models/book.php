@@ -49,7 +49,13 @@ class Book extends Model {
 	public $needs_qa = '';
 	public $last_error = '';
 	public $org_name = '';
+  public $date_created = '';
+  public $date_scanning_start = '';
+  public $date_scanning_end = '';
+  public $date_review_start = '';
 	public $date_review_end = '';
+	public $date_export_start = '';
+	public $date_completed = '';
 	public $ia_ready_images = '';
 	public $page_progression = '';
 	public $total_mbytes = 0;
@@ -107,8 +113,15 @@ class Book extends Model {
 				$this->pages_found   = $row->pages_found;
 				$this->pages_scanned = $row->pages_scanned;
 				$this->scan_time     = $row->scan_time;
-				$this->date_review_end = $row->date_review_end;
-				
+
+        $this->date_created        = $row->date_created;
+        $this->date_scanning_start = $row->date_scanning_start;
+        $this->date_scanning_end   = $row->date_scanning_end;
+        $this->date_review_start   = $row->date_review_start;
+        $this->date_review_end     = $row->date_review_end;
+        $this->date_export_start   = $row->date_export_start;
+        $this->date_completed      = $row->date_completed;
+      
 				if ($row->needs_qa == 't' || $row->needs_qa == '1') { 
 					$this->needs_qa = true;
 				} else {
@@ -255,13 +268,20 @@ class Book extends Model {
 	 * Module name is not required, only the status. We figure out the name of the
 	 * calling module using debug_backtrace()
 	 */
-	function set_export_status($status = '', $override = false) {
+	function set_export_status($status = '', $override = false, $module_name = null) {
 		// Get the name of the php file that called us. That's the module name.
-		$d = debug_backtrace();
-		preg_match('/^\/.+\/(.*?)\.php$/', $d[0]['file'], $m);
-		$module_name = $m[1];
+		$d = debug_backtrace(2);
+		$m = [];
+    if (!$module_name) {
+  		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+  			preg_match('/^.+\\\(.*?)\.php$/', $d[0]['file'], $m);
+  		} else {
+  			preg_match('/^\/.+\/(.*?)\.php$/', $d[0]['file'], $m);
+  		}
+  		$module_name = $m[1];
+    }
 		// Can we continue?
-		if ($module_name != '' && $status != '') {
+		if ($module_name != '' && $status != '' && $status != 'DELETE') {
 			// See if we have a record for this module in the database already
 			$this->db->where('item_id', $this->id);
 			$this->db->where('export_module', $module_name);
@@ -293,8 +313,13 @@ class Book extends Model {
 				$this->set_status('completed', $override);
 			}
 			//echo $this->db->last_query()."\n";
-		}
-	}
+    } elseif ($module_name != '' && $status == 'DELETE') {
+      // Super simple, we don't do any other checking
+      $this->db->where('item_id', $this->id);
+      $this->db->where('export_module', $module_name);
+      $this->db->delete('item_export_status');
+    }
+  }
 
 	/**
 	 * Get the status of one export modules
@@ -314,6 +339,32 @@ class Book extends Model {
 			}
 		}
 		return null;
+	}
+
+  	/**
+	 * Get the status of all export modules
+	 *
+	 * Return allstatus of all export modules, including duplicates.
+	 *
+	 */
+	function get_all_export_status($module_name = '') {
+		// See if we have a record for this module in the database already
+		$this->db->where('item_id', $this->id);
+		$query = $this->db->get('item_export_status');
+    $ret = [];
+    $c = 0;
+    foreach ($query->result() as $r) {
+      $module = $r->export_module;
+      if (isset($ret[$module])) {
+        $c++;
+        $module .= " ($c)";
+      }
+      $ret[$module] = array(
+        'status_code' => $r->status_code,
+        'date' => $r->date
+      );
+    }
+    return $ret;
 	}
 
 	/**
@@ -452,15 +503,30 @@ class Book extends Model {
 		} else {
 			$this->db->where('item_id', $this->id);
 		}
-		if ($order) {
-			// Approximate a natural sort
-			$this->db->order_by("CAST(REGEXP_SUBSTR($order, '^\\\\d+') AS SIGNED)");
-			$this->db->order_by("REGEXP_SUBSTR($order, '\\\\D.+$')");
-		}
 		if ($limit) {$this->db->limit($limit);}
 		$this->db->order_by('sequence_number');
 		$query = $this->db->get('page');
 		$pages = $query->result();
+
+	  if ($order) { 
+      if (isset($pages[0]->$order)) { // Sanity check
+        $this->logging->log('book', 'info', 'Re-sort alphanumeric on '.$order, $this->barcode);
+        
+        $pages_sorted = [];
+        foreach ($pages as $p) {
+          $pages_sorted[$p->$order] = $p;
+        }
+        ksort($pages_sorted, SORT_NATURAL); // Sort by the keys
+        $newpages = [];
+        foreach ($pages_sorted as $ps) {
+          $newpages[] = $ps;
+        }
+        // Minor validation, just in case
+        if (count($newpages) == count($pages)) {
+          $pages = $newpages;
+        }
+      }
+    }
 
 		// Get the metadata for this item
 		$this->db->where('item_id', $this->id);
@@ -2360,9 +2426,12 @@ class Book extends Model {
 
 			// Insert the record
 			$counter++;
-			$this->db->query(
-				"INSERT INTO `metadata` (`item_id`, `page_id`, `fieldname`, `counter`, `value`) VALUES (?, NULL, ?, ?, ?);", 
-				array($this->id, $fieldname, $counter, $value)
+			$this->db->insert('metadata', array(
+				'item_id'   => $this->id,
+				'fieldname' => $fieldname,
+				'page_id'   => null,
+				'counter'   => $counter,
+				'value'     => $value)
 			);
 		}
 		return null;
