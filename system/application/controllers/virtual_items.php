@@ -58,6 +58,8 @@ class Virtual_Items extends Controller {
 			// Find and process the Virtual Item Sources
 			$data['sources'] = [];
 			$dir = new DirectoryIterator($vi_config->config_path);
+			$data['total_item_count'] = 0;
+			$data['total_page_count'] = 0;
 			foreach ($dir as $fileinfo) {
 				if ($fileinfo->isDot()) {
 					continue;
@@ -82,9 +84,16 @@ class Virtual_Items extends Controller {
 						$source['valid'] = $vi_config->check_config($vi, $fileinfo->getPathName());
 
 						// Count the items
-						$query = $this->db->query("select count(*) as total from custom_virtual_items where source = ".$this->db->escape($dirs[4]));
+						$query = $this->db->query("select count(*) as total_items from custom_virtual_items where source = ".$this->db->escape($dirs[4]));
 						$row = $query->result();					
-						$source['item_count'] = $row[0]->total;
+						$source['item_count'] = $row[0]->total_items;
+						$data['total_item_count'] += (int)$row[0]->total_items;
+
+						// Count the pages
+						$query = $this->db->query("select count(*) as total_pages from page where item_id in (select i.id from item i inner join custom_virtual_items cvi on i.barcode = cvi.barcode where cvi.source = ".$this->db->escape($dirs[4]).")");
+						$row = $query->result();					
+						$source['page_count'] = $row[0]->total_pages;
+						$data['total_page_count'] += (int)$row[0]->total_pages;
 					}
 					$data['sources'][] = $source;
 				}
