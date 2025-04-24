@@ -1319,11 +1319,19 @@ class Utils extends Controller {
 		// Indicate that we are done processing the PDF
 		// But we delete only one record just in case
 		// we are processing more than one PDF at a time
-		$this->db->query(
-			'delete from metadata
-			where item_id = '.$this->book->id.'
-			and page_id is null and fieldname = \'processing_pdf\' limit 1'
-		);
+		if ($this->db->dbdriver == 'mysql' || $this->db->dbdriver == 'mysqli') {
+			$this->db->query(
+				'delete from metadata
+				where item_id = '.$this->book->id.'
+				and page_id is null and fieldname = \'processing_pdf\' limit 1'
+			);
+		} elseif ($this->db->dbdriver == 'postgre') {
+			$this->db->query(
+				'delete from metadata where id = (select id from metadata where item_id = '.$this->book->id.'
+				and page_id is null and fieldname = \'processing_pdf\' limit 1)'
+			);
+		}
+
 		if ($this->book->status == 'new' || $this->book->status == 'scanning') {
 			$this->book->set_status('scanning');
 			$this->book->set_status('scanned');

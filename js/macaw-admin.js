@@ -25,7 +25,8 @@
 				{key:"log", label: "Logs"}
 			];
 
-			var myDataSource = new YAHOO.util.XHRDataSource(sBaseUrl+'/admin/get_log/');
+      var txtFilter = Dom.get('txtLogFilter').value;
+			var myDataSource = new YAHOO.util.XHRDataSource(sBaseUrl+'/admin/get_log/?filter='+txtFilter);
 			myDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
 			myDataSource.responseSchema = {
 				fields: ["log"]
@@ -334,5 +335,16 @@
 				}
 			});
 		}
-	}
+	};
+
+	SimpleTable = {
+		init: function() {
+      var myDataSource = new YAHOO.util.DataSource(YAHOO.util.Dom.get("simpleTable"));
+      myDataSource.responseType = YAHOO.util.DataSource.TYPE_HTMLTABLE;
+      myDataSource.responseSchema = {fields: [{ key: "Name" },{ key: "Value" }]};
+      var myColumnDefs = [{ key: "Name" },{ key: "Value" }];
+      var myDataTable = new YAHOO.widget.DataTable("SimpleTable", myColumnDefs, myDataSource);
+		}
+  }
+
 })();

@@ -788,7 +788,17 @@ class Scan extends Controller {
 		}
 
 		$this->book->load($this->session->userdata('barcode'));
-		$this->common->check_missing_metadata($this->book);
+    $data['item']['status_code'] = $this->book->status;
+    $data['item']['date_created'] = $this->book->date_created;
+    $data['item']['date_scanning_start'] = $this->book->date_scanning_start;
+    $data['item']['date_scanning_end'] = $this->book->date_scanning_end;
+    $data['item']['date_review_start'] = $this->book->date_review_start;
+    $data['item']['date_review_end'] = $this->book->date_review_end;
+    $data['item']['date_export_start'] = $this->book->date_export_start;
+    $data['item']['date_completed'] = $this->book->date_completed;
+    $data['item']['export_status'] = $this->book->get_all_export_status();
+
+    $this->common->check_missing_metadata($this->book);
 		$data['item_title'] = $this->session->userdata('title');
 		$data['log'] = $this->book->get_history();
 		$this->load->view('scan/history_view', $data);

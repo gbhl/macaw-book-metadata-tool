@@ -780,7 +780,11 @@ class Internet_archive extends Controller {
 				// Pause for 1 minute and to see if the bucket exists in IA. Then it's safe to continue...
 				echo "Sleeping while we wait for IA to create the bucket...";
 				$bucket_found = 0;
-				for ($i = 1; $i <= 15; $i++) {
+				$max_check = 15;
+				if ($this->CI->cfg['testing']) {
+					$max_check = 2;
+				}
+				for ($i = 1; $i <= $max_check; $i++) {
 					if ($this->_bucket_exists($id)) {
 						$bucket_found = 1;
 						break;
@@ -3349,7 +3353,7 @@ class Internet_archive extends Controller {
 		// print_r($commands);
 		if (count($commands) > 0) {
 			foreach ($commands as $command) {
-				if (strpos($command, $search) > 0 && strpos($command, $pid) == 0) {
+				if (strpos($command, $search) !== false && strpos($command, $pid) === false) {
 					$found++;
 				}
 			}

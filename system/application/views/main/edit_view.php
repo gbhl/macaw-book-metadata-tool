@@ -215,7 +215,7 @@
 					<?php if ($new) { ?>
 						<input type="text" name="identifier"  value="<?php echo($identifier) ?>">
 					<?php } else { ?>
-						<?php echo($identifier) ?>
+						<?php echo($identifier) ?>&nbsp;&nbsp;&nbsp;&nbsp;(<strong>Macaw ID:</strong> <?php echo($id) ?>)
 					<?php } ?>
 					</td>
 				</tr>

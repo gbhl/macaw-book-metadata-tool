@@ -583,6 +583,127 @@ class Main extends Controller {
 		redirect($this->config->item('base_url').'main/edit');	
 	}
 	
+  function admin_edit() {
+		$this->common->check_session();
+		$errormessages = [];
+
+    if (!$this->user->has_permission('admin')) {
+			$this->session->set_userdata('errormessage', 'Only admins can use the admin edit page!');
+			redirect($this->config->item('base_url').'main/edit');
+			return;		
+		}
+		// Get our book
+		$barcode = $this->session->userdata('barcode');
+		$this->book->load($barcode);
+
+    $data = [];
+    $data['identifier'] = $this->book->barcode;
+    $data['id'] = $this->book->id;
+    $data['status_code'] = $this->book->status;
+    $data['all_statuses'] = array(
+      'New' => 'new',
+      'Importing' => 'scanning',
+      'Imported' => 'scanned',
+      'In Progress' => 'reviewing',
+      'Awaiting Export' => 'reviewed',
+      'Exporting' => 'exporting',
+      'QA Ready' => 'qa-ready',
+      'QA Active' => 'qa-active',
+      'Completed' => 'completed',
+      'Error' => 'error'
+    );
+    $data['export_modules'] = [];
+
+    foreach ($this->cfg['export_modules'] as $m) {
+      if ($m == 'Internet_archive') {
+        $data['export_modules'][] = array(
+          'module_name' => $m,  
+          'statuses' => array (
+            '(empty)' => '',
+            'uploading' => 'uploading',
+            'uploaded' => 'uploaded',
+            'verified_upload' => 'verified_upload',
+            'verified_derive' => 'verified_derive',
+            'completed' => 'completed',
+            'error' => 'error',  
+          ),
+          'current' => $this->book->get_export_status($m)
+        );          
+      }
+      if ($m == 'Data_purge') {
+        $data['export_modules'][] = array(
+          'module_name' => $m,  
+          'statuses' => array (
+            '(empty)' => '',
+            'in_progress' => 'in_progress',
+            'completed' => 'completed',
+          ),
+          'current' => $this->book->get_export_status($m)
+        );  
+      }
+      if ($m == 'Isilon_archive') {
+        $data['export_modules'][] = array(
+          'module_name' => $m,  
+          'statuses' => array (
+            '(empty)' => '',
+            'in_progress' => 'in_progress',
+            'completed' => 'completed',
+          ),
+          'current' => $this->book->get_export_status($m)
+        );  
+      }
+    }
+    $this->load->view('main/admin_edit_view', $data);
+
+  }
+
+  function admin_edit_save() {
+		$this->common->check_session();
+    if (!$this->user->has_permission('admin')) {
+			$this->session->set_userdata('errormessage', 'Only admins can use the admin edit page!');
+			redirect($this->config->item('base_url').'main/edit');
+			return;		
+		}
+
+    // Check each item retuned, save only if it's different
+		$barcode = $this->session->userdata('barcode');
+		$this->book->load($barcode);
+
+    $changed = false;
+    $messages = [];
+
+    // print "<pre>";
+    // print_r($_REQUEST);
+    // die;
+
+    foreach ($this->cfg['export_modules'] as $m) {
+      if (!$_REQUEST['new_'.$m]) {
+        if ($this->book->get_export_status($m)) {
+          // Handle an empty field
+          $this->book->set_export_status('DELETE', true, $m);
+          $messages[] = 'Item status removed for '.$m.'!';
+        }
+      } elseif ($_REQUEST['new_'.$m] != $this->book->get_export_status($m)) {
+        $this->book->set_export_status($_REQUEST['new_'.$m], true, $m);
+        $messages[] = 'Item status saved for '.$m.'!';
+      }
+    }
+    // Do this last to override whatever might be happening in set_export_status
+    if ($_REQUEST['new_export_status'] != $this->book->status) {
+      $this->book->set_status($_REQUEST['new_export_status'], true);
+      $messages[] = 'Item status saved!';
+    }
+    if (count($messages)) {
+      $this->session->set_userdata('message', implode('<br>', $messages));
+    } else {
+      $this->session->set_userdata('warning', 'No changes were made.');
+    }
+    
+		//Changed redirect to review with new style and workflow
+		redirect($this->config->item('base_url').'main/admin_edit');	
+  }
+
+
 	/**
 	 * Confirm that we want to delete the item
 	 *
@@ -627,6 +748,11 @@ class Main extends Controller {
 		$count = $query->result();
 		$record_count = $record_count + $count[0]->thecount;	
 
+    if ($this->db->table_exists('custom_internet_archive')) {
+      $query = $this->db->query('select count(*) as thecount from custom_internet_archive where item_id = ?', array($id));
+      $count = $query->result();
+      $record_count = $record_count + $count[0]->thecount;	
+    }
 		// Get the amount of information that is about to deleted
 		$data['item_title'] = $this->session->userdata('title');
 		$data['database_rows'] = $record_count;
@@ -687,8 +813,15 @@ class Main extends Controller {
 		}
 		
 		$id = $this->book->id;
+    $barcode = $this->book->barcode;
 
 		// Delete the data
+    if ($this->db->table_exists('custom_internet_archive')) {
+      $query = $this->db->query('delete from custom_internet_archive where item_id = ?', array($id));
+    }
+    if ($this->db->table_exists('custom_virtual_items')) {
+      $query = $this->db->query('delete from custom_virtual_items where barcode = ?', array($barcode));      
+    }
 		$query = $this->db->query('delete from metadata where item_id = ?', array($id));
 		$query = $this->db->query('delete from page where item_id = ?', array($id));
 		$query = $this->db->query('delete from item_export_status where item_id = ?', array($id));
@@ -709,7 +842,7 @@ class Main extends Controller {
 		}
 
 		if ($path) {
-			$data['path'] = str_replace($this->cfg['base_directory'], '', $path);
+			$data['path'] = str_replace($this->cfg['data_directory'], '/books', $path); // This may not be entirely accurate
 			$data['filename'] = basename($path);
 			$this->load->view('main/delete_download_view', $data);						
 			
