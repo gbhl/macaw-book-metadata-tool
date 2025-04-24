@@ -18,8 +18,8 @@
 			if (VirtualListItems.displayMode == 'sources') {
         var myDataSource = new YAHOO.util.DataSource(YAHOO.util.Dom.get("viAllSources"));
         myDataSource.responseType = YAHOO.util.DataSource.TYPE_HTMLTABLE;
-        myDataSource.responseSchema = {fields: [{ key: "Name" },{ key: "Path" },{ key: "Count", parser:"number" },{ key: "Valid" }]};
-        var myColumnDefs = [{ key: "Name" },{ key: "Path" },{ key: "Count" },{ key: "Valid" }];         
+        myDataSource.responseSchema = {fields: [{ key: "Name" },{ key: "Path" },{ key: "Items", parser:"number" },{ key: "Pages", parser:"number" },{ key: "Valid" }]};
+        var myColumnDefs = [{ key: "Name" },{ key: "Path" },{ key: "Items" },{ key: "Pages" },{ key: "Valid" }];         
         var myDataTable = new YAHOO.widget.DataTable("VirtualItemSources", myColumnDefs, myDataSource);
 
 			} else if (VirtualListItems.displayMode == 'config') {
