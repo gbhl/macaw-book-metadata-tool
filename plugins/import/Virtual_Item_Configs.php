@@ -527,6 +527,11 @@ class Virtual_Item_Configs extends Controller {
 				
 				foreach ($this->id_types as $type) {
 					if (isset($author[$type['doi']])) {
+						if ($type['bhl'] == 'orcid') {
+							// for ORCID change http:// to https://
+							$author[$type['doi']] = preg_replace("/http:/", 'https:', (string)$author[$type['doi']]);
+						}
+
 						$a[$type['bhl']] = $author[$type['doi']];
 					}
 				}
