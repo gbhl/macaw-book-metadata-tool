@@ -79,7 +79,7 @@ class Virtual_Item_Configs extends Controller {
 		if (isset($args[0])) { $id = $args[0]; };
 		if (isset($args[1])) { $command = $args[1]; };		
 		$this->check_custom_table();
-		$this->CI->logging->log('access', 'info', "Virutal Items: Looking for new items");
+		$this->CI->logging->log('access', 'info', "Virtual Items: Looking for new items");
 
 		// Loop through the VI configs
 		$dir = new DirectoryIterator($this->config_path);
@@ -90,7 +90,7 @@ class Virtual_Item_Configs extends Controller {
 
 			if ($fileinfo->isDir()) {
 				if (file_exists($fileinfo->getPathName().'/config.php')) {
-					$this->CI->logging->log('access', 'info', "Virutal Items: Found Config ".$fileinfo->getPathName().'/config.php');
+					$this->CI->logging->log('access', 'info', "Virtual Items: Found Config ".$fileinfo->getPathName().'/config.php');
 					$vi = [];
 					require($fileinfo->getPathName().'/config.php');
 					$dirs = preg_split("/[\\/]/", $fileinfo->getPathName());
@@ -116,7 +116,7 @@ class Virtual_Item_Configs extends Controller {
 	function process_source($name, $config, $path, $single_id = null, $command = null) {
 		// Validate the configuration		
 		if (!$this->check_config($config, $path)) {
-			$this->CI->logging->log('access', 'error', "Virutal Items: Source: $name: Config file is not valid");
+			$this->CI->logging->log('access', 'error', "Virtual Items: Source: $name: Config file is not valid");
 			return false;
 		}
 		// if ($config['feed-type'] == 'oai_dc') {
@@ -146,7 +146,7 @@ class Virtual_Item_Configs extends Controller {
 	 */
 
 	function process_oai_mods($name, $path, $single_id = null, $command = null) {
-		$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Processing OAI Feed");
+		$this->CI->logging->log('access', 'info', "Virtual Items: Source: $name: Processing OAI Feed");
 		// Set up some working folders for efficiency
 		$this->vi_config['working-path'] = $path.'/working';
 		@mkdir($this->vi_config['working-path'], 0755, true);
@@ -162,7 +162,7 @@ class Virtual_Item_Configs extends Controller {
 		}
 		// Reminder: read_oai returns an array of XML fragments
 
-		$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Got ".count($records)." records: $name");
+		$this->CI->logging->log('access', 'info', "Virtual Items: Source: $name: Got ".count($records)." records: $name");
 		$new_items = [];
 		foreach ($records as $r) {
 			$r = new SimpleXMLElement($r);
@@ -362,7 +362,7 @@ class Virtual_Item_Configs extends Controller {
 
 				if (!$pdf_path) {
 					$this->CI->logging->log('book', 'error', "Could not get PDF for item. Aborting.", $info['barcode']);
-					$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Could not get PDF for item with barcode ".$info['barcode'].". Aborting.");
+					$this->CI->logging->log('access', 'info', "Virtual Items: Source: $name: Could not get PDF for item with barcode ".$info['barcode'].". Aborting.");
 				} else {
 					// Put the PDF in the incoming folder
 					$incoming_path = $this->CI->cfg['incoming_directory'].'/'.$info['barcode'];
@@ -385,7 +385,7 @@ class Virtual_Item_Configs extends Controller {
 							'created' => date("Y-m-d H:i:s")
 						)
 					);
-					$this->CI->logging->log('access', 'info', "Virutal Items: Source: $name: Added item with barcode ".$info['barcode']." with $page_count pages.");
+					$this->CI->logging->log('access', 'info', "Virtual Items: Source: $name: Added item with barcode ".$info['barcode']." with $page_count pages.");
 				}
 			}
 		}
@@ -527,6 +527,11 @@ class Virtual_Item_Configs extends Controller {
 				
 				foreach ($this->id_types as $type) {
 					if (isset($author[$type['doi']])) {
+						if ($type['bhl'] == 'orcid') {
+							// for ORCID change http:// to https://
+							$author[$type['doi']] = preg_replace("/http:/", 'https:', (string)$author[$type['doi']]);
+						}
+
 						$a[$type['bhl']] = $author[$type['doi']];
 					}
 				}
@@ -669,7 +674,7 @@ class Virtual_Item_Configs extends Controller {
 		$content = file_get_contents($url);
 		$xml = @simplexml_load_string($content);
 		if (!$xml) {
-			$this->CI->logging->log('access', 'info', "Virutal Items: Error getting records.");
+			$this->CI->logging->log('access', 'info', "Virtual Items: Error getting records.");
 			return [];
 		}
 		$xml->registerXPathNamespace('oai-dc', 'http://www.openarchives.org/OAI/2.0/oai_dc/');
@@ -683,19 +688,19 @@ class Virtual_Item_Configs extends Controller {
 			// Gather all the nodes
 			$xml_records = $xml->ListRecords;
 			if (!$xml_records) {
-				$this->CI->logging->log('access', 'info', "Virutal Items: No Records found for: $url");
+				$this->CI->logging->log('access', 'info', "Virtual Items: No Records found for: $url");
 				return [];
 			}
 			foreach ($xml_records->record as $xml_record) {
 				$records[] = $xml_record->asXML();
 			}
 			if ($xml_records->resumptionToken) {
-				$this->CI->logging->log('access', 'info', "Virutal Items: Found ".count($records)." records, continuing with token: ".$xml_records->resumptionToken[0]);
+				$this->CI->logging->log('access', 'info', "Virtual Items: Found ".count($records)." records, continuing with token: ".$xml_records->resumptionToken[0]);
 				unset($xml);
 				$content = file_get_contents($oai_host.'?verb=ListRecords&resumptionToken='.$xml_records->resumptionToken[0]);
 				$xml = @simplexml_load_string($content);
 				if (!$xml) {
-					$this->CI->logging->log('access', 'info', "Virutal Items: Error getting more records.");
+					$this->CI->logging->log('access', 'info', "Virtual Items: Error getting more records.");
 					return $records;
 				}
 				$xml->registerXPathNamespace('oai-dc', 'http://www.openarchives.org/OAI/2.0/oai_dc/');
