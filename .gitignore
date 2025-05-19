@@ -41,3 +41,5 @@ system/application/logs/books
 # VS CODE
 .vscode
 
+
+/vendor/

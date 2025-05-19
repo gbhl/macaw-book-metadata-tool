@@ -1,4 +1,7 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+
+use Jcupitt\Vips;
+
 /* ***********************************************************
  * Macaw Metadata Collection and Workflow System
  *
@@ -69,8 +72,6 @@ class Internet_archive extends Controller {
 	private $access = '';
 	private $secret = '';
 
-	private $send_orig_jp2 = "no"; // "yes", "no", or "both" This creates faster uploads when false (larger files/slower uploads when true)
-	private $timing = false; // This makes more noise about how long things are taking.
 	private $download_extensions = array('_djvu.xml', '_chocr.html.gz'); // What must be online after derivation? These indicate IA is finished deriving.
 	private $required_extensions = array('_jp2.zip', '_marc.xml', '_scandata.xml'); // What must be online after upload? These are things that we uploaded.
 
@@ -181,6 +182,7 @@ class Internet_archive extends Controller {
 
 		// Find those items that need to be uploaded or use the ID we were given
 		if ($sent_id) {
+      $this->CI->logging->log('access', 'info', "Internet Archive: Starting upload for item $sent_id...");
 			$books = $this->CI->book->search('barcode', $sent_id, 'date_review_end');
 			if (count($books) == 0) {
 				$books = $this->CI->book->search('id', $sent_id, 'date_review_end');
@@ -189,6 +191,7 @@ class Internet_archive extends Controller {
 			// Get those books that need to be uploaded by searching for those that are
 			// ready to be uploaded (item.status_code = 'reviewed') and have not yet been
 			// uploaded (item_export_status.status_code is blank).
+      $this->CI->logging->log('access', 'info', "Internet Archive: Starting upload...");
 			$books = $this->_get_books('NULL');
 		}
 
@@ -288,15 +291,8 @@ class Internet_archive extends Controller {
 
 				$fullpath = $basepath.'/Internet_archive/'.$id;
 				$scanspath = $this->cfg['data_directory'].'/'.$bc.'/scans';
-				if ($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') {
-					$jp2path_orig = $basepath.'/Internet_archive/'.$id.'/'.$id.'_orig_jp2';
-					$archive_file_orig = $fullpath.'/'.$id.'_orig_jp2.tar';
-				}
-
-				if ($this->send_orig_jp2 == 'no' || $this->send_orig_jp2 == 'both') {
-					$jp2path = $basepath.'/Internet_archive/'.$id.'/'.$id.'_jp2';
-					$archive_file = $fullpath.'/'.$id.'_jp2.zip';
-				}
+				$jp2path = $basepath.'/Internet_archive/'.$id.'/'.$id.'_jp2';
+				$archive_file = $fullpath.'/'.$id.'_jp2.zip';
 
 				// Create (if not exists) the /books/export/Internet_archive/ folder
 				if (!file_exists($basepath.'/Internet_archive')) {
@@ -311,17 +307,9 @@ class Internet_archive extends Controller {
 				}
 
 				// Create (if not exists) the /books/export/Internet_archive/IDENTIFIER/IDENTIFIER_orig_jp2 folder
-				if ($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') {
-					if (!file_exists($jp2path_orig)) {
-						mkdir($jp2path_orig, 0775);
-						$this->CI->logging->log('book', 'debug', 'Directory created: '.$jp2path_orig, $bc);
-					}
-				}
-				if ($this->send_orig_jp2 == 'no' || $this->send_orig_jp2 == 'both') {
-					if (!file_exists($jp2path)) {
-						mkdir($jp2path, 0775);
-						$this->CI->logging->log('book', 'debug', 'Directory created: '.$jp2path, $bc);
-					}
+				if (!file_exists($jp2path)) {
+					mkdir($jp2path, 0775);
+					$this->CI->logging->log('book', 'debug', 'Directory created: '.$jp2path, $bc);
 				}
 
 				// delete the existing ZIP, since we're about to create it
@@ -364,216 +352,82 @@ class Internet_archive extends Controller {
 				$filenames_orig = array();
 				$filenames = array();
 				echo "TOTAL PAGES: ".count($pages)."\n";
-				echo "JPEG-2000 Library: ".$this->imagick_jp2_library()."\n";
+				echo "JPEG-2000 Library: ".$this->jp2_library()."\n";
+        $this->CI->logging->log('book', 'debug', "TOTAL PAGES: ".count($pages), $bc);
+        $this->CI->logging->log('book', 'debug', "JPEG-2000 Library: ".$this->jp2_library(), $bc);
 				foreach ($pages as $p) {
 					// Reworked this to make a filename from scratch, ignoring anything that we may have seen before.
-					if ($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') {
-						$new_filebase_orig = $id.'_orig_'.sprintf("%04d", $page_count);
-					}
-					if ($this->send_orig_jp2 == 'no' || $this->send_orig_jp2 == 'both') {
-						$new_filebase = $id.'_'.sprintf("%04d", $page_count);
-					}
+					$new_filebase = $id.'_'.sprintf("%04d", $page_count);
 					$page_count++;
 
-					if ((($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') &&
-								(!file_exists($jp2path_orig.'/'.$new_filebase_orig.'.jp2') || filesize($jp2path_orig.'/'.$new_filebase_orig.'.jp2') == 0))
-						 || (($this->send_orig_jp2 == 'no' || $this->send_orig_jp2 == 'both') &&
-								(!file_exists($jp2path.'/'.$new_filebase.'.jp2') || filesize($jp2path.'/'.$new_filebase.'.jp2') == 0))) {
+          $dest_jp2 = $jp2path.'/'.$new_filebase.'.jp2';
+					if (!file_exists($dest_jp2) || filesize($dest_jp2) <= 77) {
 						$start_time = microtime(true);
 						// Convert to JP2
 						echo "SCAN ".urldecode($p->scan_filename)."...";
-						if ($this->timing) { echo "TIMING (start): 0.0000\n"; }
-						$preview = new Imagick($scanspath.'/'.urldecode($p->scan_filename));
-
-						if ($this->timing) { echo "TIMING (open image): ".round((microtime(true) - $start_time), 5)."\n"; }
-
-						// TIFFs can contain multiple images, we want the largest thing in there
-						$this->CI->common->get_largest_image($preview);
-						if ($this->timing) { echo "TIMING (find largest): ".round((microtime(true) - $start_time), 5)."\n"; }
-
-
-						// Make sure the color profiles are correct, more or less.
-						if ($this->timing) { echo "TIMING (add profile start): ".round((microtime(true) - $start_time), 5)."\n"; }
-
-						// If this is a color image, we need to handle some color profile and conversions.
-						$preview->stripImage();
-
-						if ($preview->getImageType() != Imagick::IMGTYPE_GRAYSCALE) {
-							// If not, then it's grayscale and we do nothing
-							$icc_rgb1 = file_get_contents($this->cfg['base_directory'].'/inc/icc/AdobeRGB1998.icc');
-							$preview->setImageProfile('icc', $icc_rgb1);
-							if ($this->timing) { echo "TIMING (add profile Adobe): ".round((microtime(true) - $start_time), 5)."\n"; }
-
-							$icc_rgb2 = file_get_contents($this->cfg['base_directory'].'/inc/icc/sRGB_IEC61966-2-1_black_scaled.icc');
-							$preview->profileImage('icc', $icc_rgb2);
-							if ($this->timing) { echo "TIMING (add profile sRGB): ".round((microtime(true) - $start_time), 5)."\n"; }
-						}
-
-						// Disable the alpha channel on the image. Internet Archive doesn't like it much at all.
-						$preview->setImageMatte(false);
-
-						// Embed Metadata into the JP2
-						// IPTC data is not valid for JP2 files, but maybe it'll get carried along if ImageMagick is smart.
-						// XMP (and others?) may be associated to the TIFF container, so we re-apply the profile, just to be safe
-						// when we have multiple images in the TIFF file.
-						$profiles = $preview->getImageProfiles('*', false); // get profiles
-						$has_xmp = (array_search('xmp', $profiles) !== false); // we're interested if ICC profile(s) exist
-
-						if ($has_xmp === true) {
-							echo "SKIPPING the xmp profile, one already exists\n";
-						} else {
-							$preview->setImageProfile('xmp', $this->CI->book->xmp_xml());
-							if ($this->timing) { echo "TIMING (add profile XMP): ".round((microtime(true) - $start_time), 5)."\n"; }
-						}
-
-						if ($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') {
-							$preview->setImageCompression(imagick::COMPRESSION_JPEG2000);
-							$preview->setImageCompressionQuality(50);
-							// Write the jp2 out to the local directory
-							echo " created $new_filebase_orig".".jp2";
-							$preview->setImageDepth(8);
-							$preview->writeImage($jp2path_orig.'/'.$new_filebase_orig.'.jp2');
-							if ($this->timing) { echo "TIMING (write): ".round((microtime(true) - $start_time), 5)."\n"; }
-						}
-						if ($this->send_orig_jp2 == 'no' || $this->send_orig_jp2 == 'both') {
-							// If the images are IA-ready, we don't recompress. 
-							if (!$this->CI->book->ia_ready_images || !preg_match("/\.jp[2f]$/", urldecode($p->scan_filename)) ) {
-								echo " (compressing) ";
-								$preview->setImageCompression(imagick::COMPRESSION_JPEG2000);
-								// If we got our images from a PDF, we use the highest quality we can
-								$quality = 37;
-								if ($this->imagick_jp2_library() == 'OpenJPEG') {
-									$quality = 30;
-								}
-
-								if ($this->CI->book->get_metadata('from_pdf') == 'yes') {
-									echo '(from PDF)';
-									if (isset($this->cfg['jpeg2000_quality_pdf']) && preg_match('/^[0-9]+$/', $this->cfg['jpeg2000_quality_pdf'])) {
-										$quality = $this->cfg['jpeg2000_quality_pdf'];
-									} else {
-										$quality = 50;
-										if ($this->imagick_jp2_library() == 'OpenJPEG') {
-											$quality = 32;
-										}
-									}
-								} else {
-									// Use the compression level from the config, if we have it
-									if (isset($this->cfg['jpeg2000_quality']) && preg_match('/^[0-9]+$/', $this->cfg['jpeg2000_quality'])) {
-										$quality = $this->cfg['jpeg2000_quality'];
-									} else {
-										$quality = 37;
-										if ($this->imagick_jp2_library() == 'OpenJPEG') {
-											$quality = 30;
-										}
-									}
-								}
-								// Allow an ultimate override from the item itself.
-								$tempq = $this->CI->book->get_metadata('jpeg2000_quality');
-								if ($tempq) {
-								$quality = (int)$tempq;
-								}
-								$preview->setCompressionQuality($quality);
-								$preview->setImageCompressionQuality($quality);
-								echo " creating $new_filebase".".jp2 (Q=$quality)";
-								$preview->setImageDepth(8);
-								$preview->setOption('jp2:tilewidth','256');
-								$preview->setOption('jp2:tileheight','256');
-								$preview->writeImage($jp2path.'/'.$new_filebase.'.jp2');
-
-								// If the image we just created is too small, we need to recompress it at a higher rate
-								$tqual = $quality;
-								$fs = filesize($jp2path.'/'.$new_filebase.'.jp2');
-								while ($fs < 102400) {
-									$tqual = $tqual + 2;
-									if ($tqual >= 100) {
-										break;
-									}
-									print " $fs is too small (Q=$tqual)";
-									unlink($jp2path.'/'.$new_filebase.'.jp2');
-									$preview->setCompressionQuality($tqual);
-									$preview->setImageCompressionQuality($tqual);
-									$preview->writeImage($jp2path.'/'.$new_filebase.'.jp2');
-									$fs = filesize($jp2path.'/'.$new_filebase.'.jp2');
-								}
-					
-								if ($this->timing) { echo "TIMING (write): ".round((microtime(true) - $start_time), 5)."\n"; }
-							} else {
-								// Write the jp2 out to the local directory
-								echo " copied $new_filebase".".jp2";
-								copy($scanspath.'/'.urldecode($p->scan_filename), $jp2path.'/'.$new_filebase.'.jp2');
-								if ($this->timing) { echo "TIMING (copy): ".round((microtime(true) - $start_time), 5)."\n"; }
-							}
-						}
-						if ($this->timing) { echo "TIMING (set compression): ".round((microtime(true) - $start_time), 5)."\n"; }
-
+            $this->CI->logging->log('book', 'debug', "SCAN ".urldecode($p->scan_filename)."...", $bc);
+            $quality = $this->_determine_jp2_quality();
+            $this->_create_jp2(
+              $scanspath.'/'.urldecode($p->scan_filename), 
+              $dest_jp2, 
+              $quality,
+              $this->CI->book->xmp_xml()
+            );
+			
+            $this->CI->logging->log('book', 'debug', "CREATED ".$new_filebase.'.jp2', $bc);
 
 						echo "(".round((microtime(true) - $start_time), 3)." secs)\n";
-					} // if ((($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') && ...
+					} // if (!file_exists($dest_jp2) ||  ...
 
 					// Accumulate the filenames we want, which will naturally exclude any other junk
 					// that might end up in the directory, such as OS X's .DS_Store files (ugh)
-					if ($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') {
-						array_push($filenames_orig, $id.'_orig_jp2/'.$new_filebase_orig.'.jp2');
-					}
-					if ($this->send_orig_jp2 == 'no' || $this->send_orig_jp2 == 'both') {
-						array_push($filenames, $id.'_jp2/'.$new_filebase.'.jp2');
-					}
+					array_push($filenames, $id.'_jp2/'.$new_filebase.'.jp2');
 				} // foreach ($pages as $p)
 
 				$this->CI->logging->log('book', 'debug', 'Exported JP2 files for Internet Archive.', $bc);
 
 				// Export the TAR and/or ZIP files.
 				if ($file == '' || $file == 'scans') {
-					if (($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') && (!file_exists($archive_file_orig) || !$id)) {
-						// Create the TAR file
-						$tar = new Archive_Tar($archive_file_orig); // name of archive
-						chdir($basepath.'/Internet_archive/'.$id.'/');
-						// We only add things that we are interested in, a list of space-separated filenames
-						$tar->create($id.'_orig_jp2/');
-						$this->CI->logging->log('book', 'debug', 'Created TAR file '.$id.'_orig_jp2.tar', $bc);
-					}
-					if (($this->send_orig_jp2 == 'no' || $this->send_orig_jp2 == 'both') && (!file_exists($archive_file) || !$id)) {
-						// Check for and prevent 0 or 77 byte files from getting to IA
-						foreach ($filenames as $fn) {
-							$longfn = $basepath.'/Internet_archive/'.$id.'/'.$fn;
-							if (filesize($longfn) < 100) {
-								$message = "File for JP2 is too small. Will continue processing later. \n\n".
-									"Identifier:    ".$bc."\n".
-									"IA Identifier: ".$id."\n".
-									"ZIP File: ".basename($archive_file)."\n".
-									"File: ".basename($fn)."\n".
-									"Size: ".filesize($longfn)."\n";
-								$this->CI->common->email_admin($message);
-								return;
-							}
-						}
-						// Create the ZIP object
-						$zip = new ZipArchive(); // name of archive
-						if ($zip->open($archive_file, ZIPARCHIVE::CREATE) !== TRUE) {
-							exit("cannot open <$archive_file>\n");
-						}
-						// Make sure we are in the right directory
-						chdir($basepath.'/Internet_archive/'.$id.'/');
-						// We only add things that we are interested in, in this case, the entire directory (files AND directory)
-						$zip->addEmptyDir($id.'_jp2');
-						foreach ($filenames as $fn) {
-							$zip->addFile($fn);
-						}
-						// Close and save
-						$zip->close();
-
-						// Send a warning if the file is more than about 4 GB
-						$size = filesize($archive_file);
-						if ($size > 4000000000) {
-							$message = "JP2 file is too large. This may cause trouble at IA. \n\n".
-								"Identifier:    ".$bc."\n\n".
-								"IA Identifier: ".$id."\n\n".
-								"Filename: ".$archive_file."\n\n".
-								"Size: ".$size."\n\n";
+					// Check for and prevent 0 or 77 byte files from getting to IA
+					foreach ($filenames as $fn) {
+						$longfn = $basepath.'/Internet_archive/'.$id.'/'.$fn;
+						if (filesize($longfn) < 100) {
+							$message = "File for JP2 is too small. Will continue processing later. \n\n".
+								"Identifier:    ".$bc."\n".
+								"IA Identifier: ".$id."\n".
+								"ZIP File: ".basename($archive_file)."\n".
+								"File: ".basename($fn)."\n".
+								"Size: ".filesize($longfn)."\n";
 							$this->CI->common->email_admin($message);
+							return;
 						}
-						$this->CI->logging->log('book', 'debug', 'Created ZIP file '.$id.'_jp2.zip', $bc);
 					}
+					// Create the ZIP object
+					$zip = new ZipArchive(); // name of archive
+					if ($zip->open($archive_file, ZIPARCHIVE::CREATE) !== TRUE) {
+						exit("cannot open <$archive_file>\n");
+					}
+					// Make sure we are in the right directory
+					chdir($basepath.'/Internet_archive/'.$id.'/');
+					// We only add things that we are interested in, in this case, the entire directory (files AND directory)
+					$zip->addEmptyDir($id.'_jp2');
+					foreach ($filenames as $fn) {
+						$zip->addFile($fn);
+					}
+					// Close and save
+					$zip->close();
+
+					// Send a warning if the file is more than about 4 GB
+					$size = filesize($archive_file);
+					if ($size > 4000000000) {
+						$message = "JP2 file is too large. This may cause trouble at IA. \n\n".
+							"Identifier:    ".$bc."\n\n".
+							"IA Identifier: ".$id."\n\n".
+							"Filename: ".$archive_file."\n\n".
+							"Size: ".$size."\n\n";
+						$this->CI->common->email_admin($message);
+					}
+					$this->CI->logging->log('book', 'debug', 'Created ZIP file '.$id.'_jp2.zip', $bc);
 				} // if ($file == '' || $file == 'scans')
 
 				if ($file == '' || $file == 'marc') {
@@ -894,99 +748,47 @@ class Internet_archive extends Controller {
 
 				if ($file == '' || $file == 'scans') {
 					// Upload the "processed" jp2 files first.
-					if ($this->send_orig_jp2 == 'no' || $this->send_orig_jp2 == 'both') {
-						$cmd = $this->cfg['curl_exe'];
-						$cmd .= ' --location';
-						$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
-						if ($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') {
-							$cmd .= ' --header "x-archive-queue-derive:0"';
-						} else {
-							$cmd .= ' --header "x-archive-queue-derive:1"';
+					$cmd = $this->cfg['curl_exe'];
+					$cmd .= ' --location';
+					$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
+					$cmd .= ' --header "x-archive-queue-derive:1"';
+					$cmd .= ' --header "x-archive-size-hint:'.sprintf("%u", filesize($fullpath.'/'.$id.'_jp2.zip')).'"';
+					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_jp2.zip" "https://s3.us.archive.org/'.$id.'/'.$id.'_jp2.zip" 2>&1';
+					echo "\n\n".$cmd."\n\n";
+
+					if (!$this->cfg['testing']) {
+						// execute the CURL command and echo back any responses
+						$output = array();
+						exec($cmd, $output, $ret);
+						if (count($output)) {
+							foreach ($output as $o) {
+								echo $o."\n";
+							}
 						}
-						$cmd .= ' --header "x-archive-size-hint:'.sprintf("%u", filesize($fullpath.'/'.$id.'_jp2.zip')).'"';
-						$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_jp2.zip" "https://s3.us.archive.org/'.$id.'/'.$id.'_jp2.zip" 2>&1';
-						echo "\n\n".$cmd."\n\n";
-
-						if (!$this->cfg['testing']) {
-							// execute the CURL command and echo back any responses
-							$output = array();
-							exec($cmd, $output, $ret);
-							if (count($output)) {
-								foreach ($output as $o) {
-									echo $o."\n";
-								}
+						if ($ret) {
+							echo "ERROR!!! Return code = $ret";
+							// If we had any sort of error from exec, we log what happened and set the status to error
+							$out = '';
+							foreach ($output as $o) {
+							$out .= $o."\n";
 							}
-							if ($ret) {
-								echo "ERROR!!! Return code = $ret";
-								// If we had any sort of error from exec, we log what happened and set the status to error
-								$out = '';
-								foreach ($output as $o) {
-								$out .= $o."\n";
-								}
-								$message = "Error processing export.\n\n".
-								"Identifier: {$bc}\n\n".
-								"File: {$id} - tar or ZIP\n\n".
-								"Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
-								$this->CI->common->email_error($message);
-								if ($ret == 56 || $ret == 52) {
-								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
-								return;
-								} else {
-								$this->CI->book->set_status('error');
-								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file. Output was:'."\n".$out, $bc);
-								return;
-								}
+							$message = "Error processing export.\n\n".
+							"Identifier: {$bc}\n\n".
+							"File: {$id} - tar or ZIP\n\n".
+							"Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
+							$this->CI->common->email_error($message);
+							if ($ret == 56 || $ret == 52) {
+							$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
+							return;
+							} else {
+							$this->CI->book->set_status('error');
+							$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file. Output was:'."\n".$out, $bc);
+							return;
 							}
-						} else {
-							echo "IN TEST MODE. NOT UPLOADING.\n\n";
-						} // if (!$this->cfg['testing'])
-					} // if ($this->send_orig_jp2 == 'no' || $this->send_orig_jp2 == 'both')
-
-					// Upload the "original" jp2 files last. Why? If we upload the orig first,
-					// IA might start creating the "processed" verisons
-					if ($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') {
-						$cmd = $this->cfg['curl_exe'];
-						$cmd .= ' --location';
-						$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
-						$cmd .= ' --header "x-archive-queue-derive:1"';
-						$cmd .= ' --header "x-archive-size-hint:'.sprintf("%u", filesize($fullpath.'/'.$id.'_orig_jp2.tar')).'"';
-						$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_orig_jp2.tar" "https://s3.us.archive.org/'.$id.'/'.$id.'_orig_jp2.tar" 2>&1';
-						echo "\n\n".$cmd."\n\n";
-
-						if (!$this->cfg['testing']) {
-							// execute the CURL command and echo back any responses
-							$output = array();
-							exec($cmd, $output, $ret);
-							if (count($output)) {
-								foreach ($output as $o) {
-									echo $o."\n";
-								}
-							}
-							if ($ret) {
-								echo "ERROR!!! Return code = $ret";
-								// If we had any sort of error from exec, we log what happened and set the status to error
-								$out = '';
-								foreach ($output as $o) {
-								$out .= $o."\n";
-								}
-								$message = "Error processing export.\n\n".
-								"Identifier: {$bc}\n\n".
-								"File: {$id} - tar or ZIP (2)\n\n".
-								"Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
-								$this->CI->common->email_error($message);
-								if ($ret == 56 || $ret == 52) {
-								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file (2). CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
-								return;
-								} else {
-								$this->CI->book->set_status('error');
-								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file (2). Output was:'."\n".$out, $bc);
-								return;
-								}
-							}
-						} else {
-							echo "IN TEST MODE. NOT UPLOADING.\n\n";
-						} // if (!$this->cfg['testing'])
-					} // if ($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both')
+						}
+					} else {
+						echo "IN TEST MODE. NOT UPLOADING.\n\n";
+					} // if (!$this->cfg['testing'])
 				} // if ($file == '' || $file == 'scans')
 				
 				// If we got this far, we were completely successful. Yay!
@@ -1009,6 +811,7 @@ class Internet_archive extends Controller {
 					"Stack Trace:\n\n".
 					$e->getTraceAsString();
 				$this->CI->common->email_error($message);
+        print_r($e);
         print "\n\nError Processing. Email sent to administrator.\n";
 			} // try-catch
 			
@@ -1033,6 +836,7 @@ class Internet_archive extends Controller {
 	 *            controller simply passes these in as the were received.
 	 * ---------------------------- */
 	function verify_uploaded($args) {
+		$this->CI->logging->log('access', 'info', "Internet Archive: Starting verify upload...");
 		$sent_id = (count($args) >= 1 ? $args[0] : null);
 
 		// Find those items that need to be verified or use the ID we were given
@@ -1135,11 +939,13 @@ class Internet_archive extends Controller {
 
 		// Find those items that need to be verified or use the ID we were given
 		if ($sent_id) {
+      $this->CI->logging->log('access', 'info', "Internet Archive: Starting verify derived for $sent_id...");
 			$books = $this->CI->book->search('barcode', $sent_id, 'date_review_end');
 			if (count($books) == 0) {
 				$books = $this->CI->book->search('id', $sent_id, 'date_review_end');
 			}
 		} else {
+      $this->CI->logging->log('access', 'info', "Internet Archive: Starting verify derived...");
 			$books = $this->_get_books('verified_upload');
 		}
 
@@ -1232,16 +1038,17 @@ class Internet_archive extends Controller {
 	 * we would be interested in.
 	 * ---------------------------- */
 	function harvest($args) {
-
 		$sent_id = (count($args) >= 1 ? $args[0] : null);
 
 		// Find those items that need to be harvested or use the ID we were given
 		if ($sent_id) {
+      $this->CI->logging->log('access', 'info', "Internet Archive: Starting harvest for item $sent_id ...");
 			$books = $this->CI->book->search('barcode', $sent_id, 'id');
 			if (count($books) == 0) {
 				$books = $this->CI->book->search('id', $sent_id, 'id');
 			}
 		} else {
+      $this->CI->logging->log('access', 'info', "Internet Archive: Starting harvest ...");
 			$books = $this->_get_books('verified_derive');
 		}
 
@@ -3274,23 +3081,40 @@ class Internet_archive extends Controller {
 		}
 	}
 
-	function imagick_jp2_library() {
-		$m = new Imagick();
-		$v = $m->getVersion();
-		preg_match('/ImageMagick (\d+\.\d+\.\d+-?\d+)/', $v['versionString'], $v);
-		if (count($v) == 0) {
-			$v = $m->getVersion();
-			preg_match('/ImageMagick (\d+\.\d+\.\d+)/', $v['versionString'], $v);
-		}
-		if(version_compare($v[1],'6.8.8-2') < 0){
-			return "JasPer";
-		} else {
-			return "OpenJPEG";
-		}
-	
-	}
+	/* ----------------------------
+	 * Function: jp2_library()
+	 *
+	 * Parameters: None
+	 *
+	 * Detemrine which JPEG-2000 library to use. VIPS is preferred
+   * over OpenJPEG. Jasper is not used as of 2019 or so but we 
+   * handle it here just in case.
+	 * ---------------------------- */
+  function jp2_library() {
 
-	function create_zip($files = array(), $destination = '', $working_dir = '', $overwrite = false) {
+    // return "OpenJPEG";
+    $extensions = get_loaded_extensions();
+    if (array_search('vips', $extensions)) {
+      return "vips";
+    } elseif (array_search('imagick', $extensions)) {
+      $m = new Imagick();
+      $v = $m->getVersion();
+      preg_match('/ImageMagick (\d+\.\d+\.\d+-?\d+)/', $v['versionString'], $v);
+      if (count($v) == 0) {
+        $v = $m->getVersion();
+        preg_match('/ImageMagick (\d+\.\d+\.\d+)/', $v['versionString'], $v);
+      }
+      if(version_compare($v[1],'6.8.8-2', '<=')){
+        return "JasPer";
+      } else {
+        return "OpenJPEG";
+      }
+    } else {
+      return null;
+    }
+  }
+
+  function create_zip($files = array(), $destination = '', $working_dir = '', $overwrite = false) {
 		// if the zip file already exists and overwrite is false, return false
 		if (file_exists($destination) && !$overwrite) {
 			return false;
@@ -3360,4 +3184,140 @@ class Internet_archive extends Controller {
 		}
 		return $found;
 	}
+
+  function _determine_jp2_quality() {
+		$quality = 37;
+		if ($this->jp2_library() == 'OpenJPEG') {
+			$quality = 30;
+		}
+
+		// If we got our images from a PDF, we use the highest quality we can
+		if ($this->CI->book->get_metadata('from_pdf') == 'yes') {
+			echo '(from PDF)';
+			if (isset($this->cfg['jpeg2000_quality_pdf']) && preg_match('/^[0-9]+$/', $this->cfg['jpeg2000_quality_pdf'])) {
+				$quality = $this->cfg['jpeg2000_quality_pdf'];
+			} else {
+				$quality = 50;
+				if ($this->jp2_library() == 'OpenJPEG') {
+					$quality = 32;
+				}
+			}
+		} else {
+			// Use the compression level from the config, if we have it
+			if (isset($this->cfg['jpeg2000_quality']) && preg_match('/^[0-9]+$/', $this->cfg['jpeg2000_quality'])) {
+				$quality = $this->cfg['jpeg2000_quality'];
+			} else {
+				$quality = 37;
+				if ($this->jp2_library() == 'OpenJPEG') {
+					$quality = 30;
+				}
+			}
+		}
+		// Allow an ultimate override from the item itself.
+		$tempq = $this->CI->book->get_metadata('jpeg2000_quality');
+		if ($tempq) {
+  		$quality = (int)$tempq;
+		}
+    return $quality;
+  }
+
+  function _create_jp2($src, $dest, $quality, $xmp) {
+
+    // TODO Add handling for VIPS over Imagick/OpenJPEG
+    if ($this->jp2_library() == 'vips') {
+
+      // load an image, get fields, process, save
+      $image = Vips\Image::newFromFile($src, ["access" => "sequential"]);
+      $image = $image->icc_transform("srgb");
+      // $image->writeToFile($dest);    
+      $image->jpegsave($dest, ['Q' => 90]); // Seem to be OK for 600 DPI
+      // $image->jpegsave($dest, ['Q' => $quality]);
+      // $image->set('icc-profile-data',);
+      // echo "Profile = ".@$image->get('icc-profile-data')."\n";
+
+      // // We don't ever want CMYK
+      // if ($image->interpretation == "cmyk") {
+      //     $image = $image->icc_transform("srgb");
+      // } else {
+      //     $image = $image->icc_transform("srgb");
+      //   // $icc = $this->cfg['base_directory'].'/inc/icc/sRGB_IEC61966-2-1_black_scaled.icc';
+      //   // $image = $image->icc_transform($icc, [
+      //   //     "intent" => "perceptual",
+      //   //     "input-profile" => $icc
+      //   // ]);        
+      // }
+      // $image->writeToFile($dest);    
+
+      return;
+    } else {
+    	// If the images are IA-ready, we don't recompress. 
+    	if ($this->CI->book->ia_ready_images || !preg_match("/\.jp[2f]$/", $src)) {
+        echo " (copying) ";
+    		// Write the jp2 out to the local directory
+    		copy($src, $dest);
+    	}
+
+    	echo " (compressing) ";
+
+      $preview = new Imagick($src);
+
+    	// TIFFs can contain multiple images, we want the largest thing in there
+    	$this->CI->common->get_largest_image($preview);
+
+    	// Make sure the color profiles are correct, more or less.
+    	// If this is a color image, we need to handle some color profile and conversions.
+    	$preview->stripImage();
+
+    	if ($preview->getImageType() != Imagick::IMGTYPE_GRAYSCALE) {
+    		// If not, then it's grayscale and we do nothing
+    		$icc_rgb1 = file_get_contents($this->cfg['base_directory'].'/inc/icc/AdobeRGB1998.icc');
+    		$preview->setImageProfile('icc', $icc_rgb1);
+
+    		$icc_rgb2 = file_get_contents($this->cfg['base_directory'].'/inc/icc/sRGB_IEC61966-2-1_black_scaled.icc');
+    		$preview->profileImage('icc', $icc_rgb2);
+    	}
+
+    	// Disable the alpha channel on the image. Internet Archive doesn't like it much at all.
+    	$preview->setImageMatte(false);
+
+    	// Embed Metadata into the JP2
+    	// IPTC data is not valid for JP2 files, but maybe it'll get carried along if ImageMagick is smart.
+    	// XMP (and others?) may be associated to the TIFF container, so we re-apply the profile, just to be safe
+    	// when we have multiple images in the TIFF file.
+    	$profiles = $preview->getImageProfiles('*', false); // get profiles
+    	$has_xmp = (array_search('xmp', $profiles) !== false); // we're interested if ICC profile(s) exist
+
+    	if ($has_xmp === true) {
+    		echo "SKIPPING the xmp profile, one already exists\n";
+    	} else {
+    		$preview->setImageProfile('xmp', $xmp);
+    	}
+
+      $preview->setImageCompression(imagick::COMPRESSION_JPEG2000);
+  		$preview->setCompressionQuality($quality);
+  		$preview->setImageCompressionQuality($quality);
+  		echo " creating ".basename($dest)." (Q=$quality)";
+  		$preview->setImageDepth(8);
+  		$preview->setOption('jp2:tilewidth','256');
+  		$preview->setOption('jp2:tileheight','256');
+  		$preview->writeImage($dest);
+
+  		// If the image we just created is too small, we need to recompress it at a higher rate
+  		$tqual = $quality;
+  		$fs = filesize($dest);
+  		while ($fs < 102400) {
+  			$tqual = $tqual + 2;
+  			if ($tqual >= 100) {
+  				break;
+  			}
+  			print " $fs is too small (Q=$tqual)";
+  			unlink($dest);
+  			$preview->setCompressionQuality($tqual);
+  			$preview->setImageCompressionQuality($tqual);
+  			$preview->writeImage($dest);
+  			$fs = filesize($dest);
+  		}
+      return $dest;
+    }
+  }
 }
