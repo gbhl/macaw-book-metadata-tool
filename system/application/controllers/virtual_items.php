@@ -70,9 +70,9 @@ class Virtual_Items extends Controller {
 
 					$dirs = preg_split("/[\\/]/", $source_path);
 					$source = array(
+						'name' => $dirs[4],
 						'url' => $this->config->item('base_url')."virtual_items/source/".$dirs[4],
 						'config_url' => $this->config->item('base_url')."virtual_items/view_config/".$dirs[4],
-						'name' => $dirs[4],
 						'path' => $source_path,
 						'item_count' => 0,
 						'valid' => false,
@@ -98,6 +98,10 @@ class Virtual_Items extends Controller {
 					$data['sources'][] = $source;
 				}
 			}
+			// Sort the results for prettiness
+			usort($data['sources'], function ($a,$b) {
+				return $a['name']>$b['name'];
+			});
 		}
 
 		$content = $this->load->view('virtual_items/sources', $data);
