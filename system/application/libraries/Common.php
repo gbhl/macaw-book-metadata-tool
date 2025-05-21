@@ -1072,7 +1072,29 @@ class Common extends Controller {
 		$pattern = preg_replace('/\%H/', date('H'), $pattern);
 		return $pattern;
 	}
-
+	function jp2_library() {
+		// return "OpenJPEG";
+		$extensions = get_loaded_extensions();
+		if (array_search('vips', $extensions)) {
+			return "vips";
+		} elseif (array_search('imagick', $extensions)) {
+			$m = new Imagick();
+			$v = $m->getVersion();
+			preg_match('/ImageMagick (\d+\.\d+\.\d+-?\d+)/', $v['versionString'], $v);
+			if (count($v) == 0) {
+				$v = $m->getVersion();
+				preg_match('/ImageMagick (\d+\.\d+\.\d+)/', $v['versionString'], $v);
+			}
+			if(version_compare($v[1],'6.8.8-2', '<=')){
+				return "JasPer";
+			} else {
+				return "OpenJPEG";
+			}
+		} else {
+			return null;
+		}
+		}
+	
 }
 
 
