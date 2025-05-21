@@ -1291,7 +1291,7 @@ class Internet_archive extends Controller {
 
 				// Load the book
 				$this->CI->book->load($b->barcode);
-				$path = $this->cfg['base_directory'].'/books/'.$b->barcode.'/';
+				$path = $this->cfg['data_directory'].'/'.$b->barcode.'/';
 
 				// Keep track of whether or not we had trouble downloading one or more of the files
 				$error = false;
@@ -2483,7 +2483,7 @@ class Internet_archive extends Controller {
 		$urls = $this->_get_derivative_urls($id);
 		// Load the book
 		$this->CI->book->load($b->barcode);
-		$path = $this->cfg['base_directory'].'/books/'.$b->barcode.'/';
+		$path = $this->cfg['data_directory'].'/'.$b->barcode.'/';
 		if (!file_exists($path)) {
 			$path = '/tmp/';
 			print "INFO: Saving meta file to /tmp/\n";
