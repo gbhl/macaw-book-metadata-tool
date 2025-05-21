@@ -351,30 +351,31 @@ class Internet_archive extends Controller {
 				$page_count = 1;
 				$filenames_orig = array();
 				$filenames = array();
+				$jp2_lib = $this->CI->common->jp2_library();
 				echo "TOTAL PAGES: ".count($pages)."\n";
-				echo "JPEG-2000 Library: ".$this->jp2_library()."\n";
-        $this->CI->logging->log('book', 'debug', "TOTAL PAGES: ".count($pages), $bc);
-        $this->CI->logging->log('book', 'debug', "JPEG-2000 Library: ".$this->jp2_library(), $bc);
+				echo "JPEG-2000 Library: $jp2_lib\n";
+				$this->CI->logging->log('book', 'debug', "TOTAL PAGES: ".count($pages), $bc);
+				$this->CI->logging->log('book', 'debug', "JPEG-2000 Library: $jp2_lib", $bc);
 				foreach ($pages as $p) {
 					// Reworked this to make a filename from scratch, ignoring anything that we may have seen before.
 					$new_filebase = $id.'_'.sprintf("%04d", $page_count);
 					$page_count++;
 
-          $dest_jp2 = $jp2path.'/'.$new_filebase.'.jp2';
+					$dest_jp2 = $jp2path.'/'.$new_filebase.'.jp2';
 					if (!file_exists($dest_jp2) || filesize($dest_jp2) <= 77) {
 						$start_time = microtime(true);
 						// Convert to JP2
 						echo "SCAN ".urldecode($p->scan_filename)."...";
-            $this->CI->logging->log('book', 'debug', "SCAN ".urldecode($p->scan_filename)."...", $bc);
-            $quality = $this->_determine_jp2_quality();
-            $this->_create_jp2(
-              $scanspath.'/'.urldecode($p->scan_filename), 
-              $dest_jp2, 
-              $quality,
-              $this->CI->book->xmp_xml()
-            );
-			
-            $this->CI->logging->log('book', 'debug', "CREATED ".$new_filebase.'.jp2', $bc);
+						$this->CI->logging->log('book', 'debug', "SCAN ".urldecode($p->scan_filename)."...", $bc);
+						$quality = $this->_determine_jp2_quality();
+						$this->_create_jp2(
+							$scanspath.'/'.urldecode($p->scan_filename), 
+							$dest_jp2, 
+							$quality,
+							$this->CI->book->xmp_xml()
+						);
+						
+						$this->CI->logging->log('book', 'debug', "CREATED ".$new_filebase.'.jp2', $bc);
 
 						echo "(".round((microtime(true) - $start_time), 3)." secs)\n";
 					} // if (!file_exists($dest_jp2) ||  ...
@@ -811,8 +812,7 @@ class Internet_archive extends Controller {
 					"Stack Trace:\n\n".
 					$e->getTraceAsString();
 				$this->CI->common->email_error($message);
-        print_r($e);
-        print "\n\nError Processing. Email sent to administrator.\n";
+		        print "\n\nError Processing. Email sent to administrator.\n";
 			} // try-catch
 			
 			// Clear the access and secret just so we don't accidentally upload things incorrectly.
@@ -3081,40 +3081,7 @@ class Internet_archive extends Controller {
 		}
 	}
 
-	/* ----------------------------
-	 * Function: jp2_library()
-	 *
-	 * Parameters: None
-	 *
-	 * Detemrine which JPEG-2000 library to use. VIPS is preferred
-   * over OpenJPEG. Jasper is not used as of 2019 or so but we 
-   * handle it here just in case.
-	 * ---------------------------- */
-  function jp2_library() {
-
-    // return "OpenJPEG";
-    $extensions = get_loaded_extensions();
-    if (array_search('vips', $extensions)) {
-      return "vips";
-    } elseif (array_search('imagick', $extensions)) {
-      $m = new Imagick();
-      $v = $m->getVersion();
-      preg_match('/ImageMagick (\d+\.\d+\.\d+-?\d+)/', $v['versionString'], $v);
-      if (count($v) == 0) {
-        $v = $m->getVersion();
-        preg_match('/ImageMagick (\d+\.\d+\.\d+)/', $v['versionString'], $v);
-      }
-      if(version_compare($v[1],'6.8.8-2', '<=')){
-        return "JasPer";
-      } else {
-        return "OpenJPEG";
-      }
-    } else {
-      return null;
-    }
-  }
-
-  function create_zip($files = array(), $destination = '', $working_dir = '', $overwrite = false) {
+	function create_zip($files = array(), $destination = '', $working_dir = '', $overwrite = false) {
 		// if the zip file already exists and overwrite is false, return false
 		if (file_exists($destination) && !$overwrite) {
 			return false;
@@ -3185,9 +3152,10 @@ class Internet_archive extends Controller {
 		return $found;
 	}
 
-  function _determine_jp2_quality() {
+  	function _determine_jp2_quality() {
 		$quality = 37;
-		if ($this->jp2_library() == 'OpenJPEG') {
+		$jp2_lib = $this->CI->common->jp2_library();
+		if ($jp2_lib== 'OpenJPEG') {
 			$quality = 30;
 		}
 
@@ -3198,7 +3166,7 @@ class Internet_archive extends Controller {
 				$quality = $this->cfg['jpeg2000_quality_pdf'];
 			} else {
 				$quality = 50;
-				if ($this->jp2_library() == 'OpenJPEG') {
+				if ($jp2_lib == 'OpenJPEG') {
 					$quality = 32;
 				}
 			}
@@ -3208,7 +3176,7 @@ class Internet_archive extends Controller {
 				$quality = $this->cfg['jpeg2000_quality'];
 			} else {
 				$quality = 37;
-				if ($this->jp2_library() == 'OpenJPEG') {
+				if ($jp2_lib == 'OpenJPEG') {
 					$quality = 30;
 				}
 			}
@@ -3216,108 +3184,94 @@ class Internet_archive extends Controller {
 		// Allow an ultimate override from the item itself.
 		$tempq = $this->CI->book->get_metadata('jpeg2000_quality');
 		if ($tempq) {
-  		$quality = (int)$tempq;
+			$quality = (int)$tempq;
 		}
-    return $quality;
-  }
+		return $quality;
+  	}
 
-  function _create_jp2($src, $dest, $quality, $xmp) {
+	function _create_jp2($src, $dest, $quality, $xmp) {
+		if ($this->CI->common->jp2_library() == 'vips') {
+			// load an image, get fields, process, save
+			$image = Vips\Image::newFromFile($src, ["access" => "sequential"]);
+			$image = $image->icc_transform("srgb");
+			// $image->writeToFile($dest);    
+			$image->jpegsave($dest, [
+				'Q' => 75, // Hardcoded to 75 for now
+				'optimize_coding' => true,
+				'trellis_quant' => true,
+				'overshoot_deringing' => true,
+				'quant_table' => 7, // This reduces the artifacts
+			]); 
+			return;
+		} else {
+			// If the images are IA-ready, we don't recompress. 
+			if ($this->CI->book->ia_ready_images || !preg_match("/\.jp[2f]$/", $src)) {
+			echo " (copying) ";
+				// Write the jp2 out to the local directory
+				copy($src, $dest);
+			}
 
-    // TODO Add handling for VIPS over Imagick/OpenJPEG
-    if ($this->jp2_library() == 'vips') {
+			echo " (compressing) ";
 
-      // load an image, get fields, process, save
-      $image = Vips\Image::newFromFile($src, ["access" => "sequential"]);
-      $image = $image->icc_transform("srgb");
-      // $image->writeToFile($dest);    
-      $image->jpegsave($dest, ['Q' => 90]); // Seem to be OK for 600 DPI
-      // $image->jpegsave($dest, ['Q' => $quality]);
-      // $image->set('icc-profile-data',);
-      // echo "Profile = ".@$image->get('icc-profile-data')."\n";
+			$preview = new Imagick($src);
 
-      // // We don't ever want CMYK
-      // if ($image->interpretation == "cmyk") {
-      //     $image = $image->icc_transform("srgb");
-      // } else {
-      //     $image = $image->icc_transform("srgb");
-      //   // $icc = $this->cfg['base_directory'].'/inc/icc/sRGB_IEC61966-2-1_black_scaled.icc';
-      //   // $image = $image->icc_transform($icc, [
-      //   //     "intent" => "perceptual",
-      //   //     "input-profile" => $icc
-      //   // ]);        
-      // }
-      // $image->writeToFile($dest);    
+			// TIFFs can contain multiple images, we want the largest thing in there
+			$this->CI->common->get_largest_image($preview);
 
-      return;
-    } else {
-    	// If the images are IA-ready, we don't recompress. 
-    	if ($this->CI->book->ia_ready_images || !preg_match("/\.jp[2f]$/", $src)) {
-        echo " (copying) ";
-    		// Write the jp2 out to the local directory
-    		copy($src, $dest);
-    	}
+			// Make sure the color profiles are correct, more or less.
+			// If this is a color image, we need to handle some color profile and conversions.
+			$preview->stripImage();
 
-    	echo " (compressing) ";
+			if ($preview->getImageType() != Imagick::IMGTYPE_GRAYSCALE) {
+				// If not, then it's grayscale and we do nothing
+				$icc_rgb1 = file_get_contents($this->cfg['base_directory'].'/inc/icc/AdobeRGB1998.icc');
+				$preview->setImageProfile('icc', $icc_rgb1);
 
-      $preview = new Imagick($src);
+				$icc_rgb2 = file_get_contents($this->cfg['base_directory'].'/inc/icc/sRGB_IEC61966-2-1_black_scaled.icc');
+				$preview->profileImage('icc', $icc_rgb2);
+			}
 
-    	// TIFFs can contain multiple images, we want the largest thing in there
-    	$this->CI->common->get_largest_image($preview);
+			// Disable the alpha channel on the image. Internet Archive doesn't like it much at all.
+			$preview->setImageMatte(false);
 
-    	// Make sure the color profiles are correct, more or less.
-    	// If this is a color image, we need to handle some color profile and conversions.
-    	$preview->stripImage();
+			// Embed Metadata into the JP2
+			// IPTC data is not valid for JP2 files, but maybe it'll get carried along if ImageMagick is smart.
+			// XMP (and others?) may be associated to the TIFF container, so we re-apply the profile, just to be safe
+			// when we have multiple images in the TIFF file.
+			$profiles = $preview->getImageProfiles('*', false); // get profiles
+			$has_xmp = (array_search('xmp', $profiles) !== false); // we're interested if ICC profile(s) exist
 
-    	if ($preview->getImageType() != Imagick::IMGTYPE_GRAYSCALE) {
-    		// If not, then it's grayscale and we do nothing
-    		$icc_rgb1 = file_get_contents($this->cfg['base_directory'].'/inc/icc/AdobeRGB1998.icc');
-    		$preview->setImageProfile('icc', $icc_rgb1);
+			if ($has_xmp === true) {
+				echo "SKIPPING the xmp profile, one already exists\n";
+			} else {
+				$preview->setImageProfile('xmp', $xmp);
+			}
 
-    		$icc_rgb2 = file_get_contents($this->cfg['base_directory'].'/inc/icc/sRGB_IEC61966-2-1_black_scaled.icc');
-    		$preview->profileImage('icc', $icc_rgb2);
-    	}
+			$preview->setImageCompression(imagick::COMPRESSION_JPEG2000);
+			$preview->setCompressionQuality($quality);
+			$preview->setImageCompressionQuality($quality);
+			echo " creating ".basename($dest)." (Q=$quality)";
+			$preview->setImageDepth(8);
+			$preview->setOption('jp2:tilewidth','256');
+			$preview->setOption('jp2:tileheight','256');
+			$preview->writeImage($dest);
 
-    	// Disable the alpha channel on the image. Internet Archive doesn't like it much at all.
-    	$preview->setImageMatte(false);
-
-    	// Embed Metadata into the JP2
-    	// IPTC data is not valid for JP2 files, but maybe it'll get carried along if ImageMagick is smart.
-    	// XMP (and others?) may be associated to the TIFF container, so we re-apply the profile, just to be safe
-    	// when we have multiple images in the TIFF file.
-    	$profiles = $preview->getImageProfiles('*', false); // get profiles
-    	$has_xmp = (array_search('xmp', $profiles) !== false); // we're interested if ICC profile(s) exist
-
-    	if ($has_xmp === true) {
-    		echo "SKIPPING the xmp profile, one already exists\n";
-    	} else {
-    		$preview->setImageProfile('xmp', $xmp);
-    	}
-
-      $preview->setImageCompression(imagick::COMPRESSION_JPEG2000);
-  		$preview->setCompressionQuality($quality);
-  		$preview->setImageCompressionQuality($quality);
-  		echo " creating ".basename($dest)." (Q=$quality)";
-  		$preview->setImageDepth(8);
-  		$preview->setOption('jp2:tilewidth','256');
-  		$preview->setOption('jp2:tileheight','256');
-  		$preview->writeImage($dest);
-
-  		// If the image we just created is too small, we need to recompress it at a higher rate
-  		$tqual = $quality;
-  		$fs = filesize($dest);
-  		while ($fs < 102400) {
-  			$tqual = $tqual + 2;
-  			if ($tqual >= 100) {
-  				break;
-  			}
-  			print " $fs is too small (Q=$tqual)";
-  			unlink($dest);
-  			$preview->setCompressionQuality($tqual);
-  			$preview->setImageCompressionQuality($tqual);
-  			$preview->writeImage($dest);
-  			$fs = filesize($dest);
-  		}
-      return $dest;
-    }
-  }
+			// If the image we just created is too small, we need to recompress it at a higher rate
+			$tqual = $quality;
+			$fs = filesize($dest);
+			while ($fs < 102400) {
+				$tqual = $tqual + 2;
+				if ($tqual >= 100) {
+					break;
+				}
+				print " $fs is too small (Q=$tqual)";
+				unlink($dest);
+				$preview->setCompressionQuality($tqual);
+				$preview->setImageCompressionQuality($tqual);
+				$preview->writeImage($dest);
+				$fs = filesize($dest);
+			}
+			return $dest;
+		}
+	}
 }
