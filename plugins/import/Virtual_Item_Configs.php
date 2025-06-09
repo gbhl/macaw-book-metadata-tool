@@ -324,10 +324,7 @@ class Virtual_Item_Configs extends Controller {
 				if ($pdf_path) {
 					if (isset($info['elocator'])) {
 						// Get these from the PDF
-						$pdf_image = new Imagick();
-						$pdf_image->pingImage($pdf_path);
-						$pp = $pdf_image->getNumberImages();
-	
+						$pp = $this->pdf_page_count($pdf_path);
 						$info['page_start'] = 1;
 						$info['page_end'] = $pp;
 						$info['page_range'] = "1-".$pp;
@@ -700,7 +697,7 @@ class Virtual_Item_Configs extends Controller {
 				$content = file_get_contents($oai_host.'?verb=ListRecords&resumptionToken='.$xml_records->resumptionToken[0]);
 				$xml = @simplexml_load_string($content);
 				if (!$xml) {
-					$this->CI->logging->log('access', 'info', "Virtual Items: Error getting more records.");
+					$this->CI->logging->log('access', 'info', "Virtual Items: Error getting more records. URL was: ".$oai_host.'?verb=ListRecords&resumptionToken='.$xml_records->resumptionToken[0]);
 					return $records;
 				}
 				$xml->registerXPathNamespace('oai-dc', 'http://www.openarchives.org/OAI/2.0/oai_dc/');
@@ -774,8 +771,8 @@ class Virtual_Item_Configs extends Controller {
 				$this->CI->db->query(
 					"create table custom_virtual_items (".
 					  "source varchar(128), ".
-						"batch_id int,".
-					  "title varchar(128), ".
+					  "batch_id int,".
+					  "title text, ".
 					  "barcode varchar(128), ".
 					  "created timestamp, ".
 					  "PRIMARY KEY(`barcode`)".
@@ -1020,4 +1017,11 @@ class Virtual_Item_Configs extends Controller {
 
 		return $s;
 	}
+
+	function pdf_page_count($pdf) {
+		$cmd = $this->CI->cfg['gs_exe'].' -q -dNOSAFER -dNODISPLAY -c "('.$pdf.') (r) file runpdfbegin pdfpagecount = quit"';
+		$count = shell_exec($cmd);
+		$count = (int)trim($count);
+		return $count;
+	}	
 }
