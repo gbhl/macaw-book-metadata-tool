@@ -350,8 +350,8 @@ class Virtual_Item_Configs extends Controller {
 				// Clean up some potentially messy data
 				$info['title'] = $this->clean_string($info['title']);
 				// Test for PDF-ness
-				$finfo = new finfo(FILEINFO_MIME);
-				$mime_type = finfo_file($finfo, $pdf_path);
+				$mime_type = mime_content_type($pdf_path);
+
 				if (!preg_match('/pdf/', $mime_type)) {
 					$this->CI->logging->log('book', 'error', "Did not get a valid PDF file. (Got: $mime_type)", $info['barcode']);
 					$pdf_path = null;
@@ -359,7 +359,7 @@ class Virtual_Item_Configs extends Controller {
 
 				if (!$pdf_path) {
 					$this->CI->logging->log('book', 'error', "Could not get PDF for item. Aborting.", $info['barcode']);
-					$this->CI->logging->log('access', 'info', "Virtual Items: Source: $name: Could not get PDF for item with barcode ".$info['barcode'].". Aborting.");
+					$this->CI->logging->log('access', 'info', "Virtual Items: Source: $name: Could not get PDF for item with barcode ".$info['barcode']." ($mime_type; ".$info['pdf_source']."). Aborting.");
 				} else {
 					// Put the PDF in the incoming folder
 					$incoming_path = $this->CI->cfg['incoming_directory'].'/'.$info['barcode'];
