@@ -737,6 +737,7 @@ class Book extends Model {
 
 		// Well, does it?
 		if ($this->db->count_all_results() == 0) {
+			$this->logging->log('book', 'info', 'Adding page '.$filename.'. '.$this->db->last_query(), $this->barcode);
 			// Get the largest sequence that's in the database
 			$max = $this->max_sequence();			
 			// Page doesn't exist, add it to the database
@@ -772,6 +773,7 @@ class Book extends Model {
 			$this->logging->log('book', 'info', 'Added page '.$filename.'.', $this->barcode);
 
 		} else {
+		$this->logging->log('book', 'info', 'Adding page '.$filename.'. '.$this->db->last_query(), $this->barcode);
 			// Entry exists, what do we do here? Update the bytes.
 			$data = array(
 				'bytes' => $bytes,

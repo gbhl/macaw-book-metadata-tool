@@ -1536,7 +1536,7 @@ class Utils extends Controller {
 	 * Usage:
 	 *   sudo -u apache php index.php utils set_password richardjm joelpassword214!
 	 */	
-	function set_password ($username, $password) {
+	function set_password ($username = null, $password = null) {
 		if (!$username) {
 			print "User is requried\nUSAGE: php index.php utils set_password USERNAME PASSWORD\n";
 			return;

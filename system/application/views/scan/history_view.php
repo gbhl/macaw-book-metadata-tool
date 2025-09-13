@@ -17,15 +17,18 @@
 			<div id="history">
         <textarea rows="35" cols="80" id="log_listing"><?php echo($log) ?></textarea>
         <div id="history_status">
+          <?php if ($ia_identifier) { ?>
+            <div style="margin:1em 0;font-weight:bold;font-size:110%"><a href="https://archive.org/details/<?php echo $ia_identifier; ?>" target="_blank">View at Internet Archive</a></div>
+          <?php } ?>
           <table>
             <tbody>
               <tr><td>Status</td><td><?php echo($item['status_code']) ?></td></tr>
-              <tr><td>Created</td><td><?php echo($item['date_created']) ?></td></tr>
-              <tr><td>Scan Start</td><td><?php echo($item['date_scanning_start']) ?></td></tr>
-              <tr><td>Scan End</td><td><?php echo($item['date_scanning_end']) ?></td></tr>
-              <tr><td>Review Start</td><td><?php echo($item['date_review_start']) ?></td></tr>
-              <tr><td>Review End</td><td><?php echo($item['date_review_end']) ?></td></tr>
-              <tr><td>Export Start</td><td><?php echo($item['date_export_start']) ?></td></tr>
+              <tr><td>New</td><td><?php echo($item['date_created']) ?></td></tr>
+              <tr><td>Importing</td><td><?php echo($item['date_scanning_start']) ?></td></tr>
+              <tr><td>Imported</td><td><?php echo($item['date_scanning_end']) ?></td></tr>
+              <tr><td>In Progress</td><td><?php echo($item['date_review_start']) ?></td></tr>
+              <tr><td>Awaiting Export</td><td><?php echo($item['date_review_end']) ?></td></tr>
+              <tr><td>Exporting</td><td><?php echo($item['date_export_start']) ?></td></tr>
               <tr><td>Completed</td><td><?php echo($item['date_completed']) ?></td></tr>
               <tr><td>Export Status</td><td></td></tr>
               <?php foreach ($item['export_status'] as $k => $v) { ?>
