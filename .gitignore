@@ -11,6 +11,11 @@ system/application/config/virtual_items/*
 !system/application/config/virtual_items/Sample-Source
 
 ########################################
+# COMPOSER
+# Definitely don't want this in source control
+vendor 
+
+########################################
 # PLUGINS
 # We ignore everything, then un-ignore those that we want in git
 
