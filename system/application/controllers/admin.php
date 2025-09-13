@@ -861,6 +861,7 @@ class Admin extends Controller {
 			return;
 		}
 
+		chdir($this->cfg['base_directory']);
 		// Try to identify the PHP executable on this system
 		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
 			$fname = $this->logging->log('cron', 'info', 'Cron job \''.$action.'\' manually initiated.');
