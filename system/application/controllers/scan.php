@@ -788,17 +788,24 @@ class Scan extends Controller {
 		}
 
 		$this->book->load($this->session->userdata('barcode'));
-    $data['item']['status_code'] = $this->book->status;
-    $data['item']['date_created'] = $this->book->date_created;
-    $data['item']['date_scanning_start'] = $this->book->date_scanning_start;
-    $data['item']['date_scanning_end'] = $this->book->date_scanning_end;
-    $data['item']['date_review_start'] = $this->book->date_review_start;
-    $data['item']['date_review_end'] = $this->book->date_review_end;
-    $data['item']['date_export_start'] = $this->book->date_export_start;
-    $data['item']['date_completed'] = $this->book->date_completed;
-    $data['item']['export_status'] = $this->book->get_all_export_status();
+		$data['ia_identifier'] = null;
+		$query = $this->db->query('select * from custom_internet_archive where item_id = ?', array($this->book->id));
+		$ia_id = $query->result();
+		if (count($ia_id) > 0) {
+			$data['ia_identifier'] = $ia_id[0]->identifier;
+		}
 
-    $this->common->check_missing_metadata($this->book);
+		$data['item']['status_code'] = $this->book->status;
+		$data['item']['date_created'] = $this->book->date_created;
+		$data['item']['date_scanning_start'] = $this->book->date_scanning_start;
+		$data['item']['date_scanning_end'] = $this->book->date_scanning_end;
+		$data['item']['date_review_start'] = $this->book->date_review_start;
+		$data['item']['date_review_end'] = $this->book->date_review_end;
+		$data['item']['date_export_start'] = $this->book->date_export_start;
+		$data['item']['date_completed'] = $this->book->date_completed;
+		$data['item']['export_status'] = $this->book->get_all_export_status();
+
+		$this->common->check_missing_metadata($this->book);
 		$data['item_title'] = $this->session->userdata('title');
 		$data['log'] = $this->book->get_history();
 		$this->load->view('scan/history_view', $data);
