@@ -72,7 +72,7 @@ class CI_Log {
 	 * @param	bool	whether the error is a native PHP error
 	 * @return	bool
 	 */		
-	function write_log($level = 'error', $msg = null, $php_error = FALSE)
+	function write_log($level = 'error', $msg, $php_error = FALSE)
 	{		
 		if ($this->_enabled === FALSE)
 		{
@@ -81,7 +81,7 @@ class CI_Log {
 	
 		$level = strtoupper($level);
 		
-		if ( ! isset($this->_levels[$level]) OR ($this->_levels[$level] != $this->_threshold))
+		if ( ! isset($this->_levels[$level]) OR ($this->_levels[$level] > $this->_threshold))
 		{
 			return FALSE;
 		}

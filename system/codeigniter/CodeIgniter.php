@@ -28,7 +28,7 @@
  */
 
 // CI Version
-define('CI_VERSION',	'1.7.1');
+define('CI_VERSION',	'1.7.2');
 
 /*
  * ------------------------------------------------------
@@ -57,7 +57,6 @@ require(APPPATH.'config/constants'.EXT);
  * ------------------------------------------------------
  */
 set_error_handler('_exception_handler');
-// set_magic_quotes_runtime(0); // Kill magic quotes
 
 /*
  * ------------------------------------------------------

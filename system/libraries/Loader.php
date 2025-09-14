@@ -31,7 +31,8 @@ class CI_Loader {
 	// All these are set automatically. Don't mess with them.
 	var $_ci_ob_level;
 	var $_ci_view_path		= '';
-	var $_ci_is_php5		= FALSE;
+	# 2022/12/23 JMR - PHP v8 Changes
+	var $_ci_is_php5		= TRUE; // We are always PHP 5 or greater
 	var $_ci_is_instance 	= FALSE; // Whether we should use $this or $CI =& get_instance()
 	var $_ci_cached_vars	= array();
 	var $_ci_classes		= array();
@@ -51,9 +52,6 @@ class CI_Loader {
 	 */
 	function __construct()
 	{	
-		# 2022/12/23 JMR - PHP v8 Changes
-		# $this->_ci_is_php5 = (floor(phpversion()) >= 5) ? TRUE : FALSE;
-		$this->_ci_is_php5 = TRUE;
 		$this->_ci_view_path = APPPATH.'views/';
 		$this->_ci_ob_level  = ob_get_level();
 				
@@ -870,12 +868,9 @@ class CI_Loader {
 			{
 				include_once(APPPATH.'config/'.strtolower($class).EXT);
 			}			
-			else
+			elseif (file_exists(APPPATH.'config/'.ucfirst(strtolower($class)).EXT))
 			{
-				if (file_exists(APPPATH.'config/'.ucfirst(strtolower($class)).EXT))
-				{
-					include_once(APPPATH.'config/'.ucfirst(strtolower($class)).EXT);
-				}			
+				include_once(APPPATH.'config/'.ucfirst(strtolower($class)).EXT);
 			}
 		}
 		

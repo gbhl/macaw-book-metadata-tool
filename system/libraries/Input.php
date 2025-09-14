@@ -215,7 +215,7 @@ class CI_Input {
 	*/
 	function _clean_input_keys($str)
 	{
-		if ( ! preg_match("/^[a-z0-9:%_\/-]+$/i", $str))
+		if ( ! preg_match("/^[a-z0-9:_\/-]+$/i", $str))
 		{
 			exit('Disallowed Key Characters.');
 		}
@@ -657,11 +657,11 @@ class CI_Input {
 		{
 			// Images have a tendency to have the PHP short opening and closing tags every so often
 			// so we skip those and only do the long opening tags.
-			$str = str_replace(array('<?php', '<?PHP'),  array('&lt;?php', '&lt;?PHP'), $str);
+			$str = preg_replace('/<\?(php)/i', "&lt;?\\1", $str);
 		}
 		else
 		{
-			$str = str_replace(array('<?php', '<?PHP', '<?', '?'.'>'),  array('&lt;?php', '&lt;?PHP', '&lt;?', '?&gt;'), $str);
+			$str = str_replace(array('<?', '?'.'>'),  array('&lt;?', '?&gt;'), $str);
 		}
 
 		/*

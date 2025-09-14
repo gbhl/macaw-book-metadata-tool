@@ -30,7 +30,7 @@ class CI_Upload {
 	var $max_width		= 0;
 	var $max_height		= 0;
 	var $max_filename	= 0;
-	var $allowed_types	= array();
+	var $allowed_types	= "";
 	var $file_temp		= "";
 	var $file_name		= "";
 	var $orig_name		= "";
@@ -927,7 +927,14 @@ class CI_Upload {
 				$filename .= '.'.$part;
 			}
 		}
-		
+
+		// file name override, since the exact name is provided, no need to
+		// run it through a $this->mimes check.
+		if ($this->file_name != '')
+		{
+			$filename = $this->file_name;
+		}
+
 		$filename .= '.'.$ext;
 		
 		return $filename;

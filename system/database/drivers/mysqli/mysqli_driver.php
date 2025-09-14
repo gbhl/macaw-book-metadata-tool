@@ -35,6 +35,10 @@ class CI_DB_mysqli_driver extends CI_DB {
 	// The character used for escaping
 	var $_escape_char = '`';
 
+	// clause and character used for LIKE escape sequences - not used in MySQL
+	var $_like_escape_str = '';
+	var $_like_escape_chr = '';
+
 	/**
 	 * The syntax to count rows is slightly different across different
 	 * database engines, so this string appears in each driver and is
@@ -84,6 +88,25 @@ class CI_DB_mysqli_driver extends CI_DB {
 		return $this->db_connect();
 	}
 	
+	// --------------------------------------------------------------------
+
+	/**
+	 * Reconnect
+	 *
+	 * Keep / reestablish the db connection if no queries have been
+	 * sent for a length of time exceeding the server's idle timeout
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	function reconnect()
+	{
+		if (mysqli_ping($this->conn_id) === FALSE)
+		{
+			$this->conn_id = FALSE;
+		}
+	}
+
 	// --------------------------------------------------------------------
 
 	/**
@@ -257,22 +280,41 @@ class CI_DB_mysqli_driver extends CI_DB {
 	 *
 	 * @access	public
 	 * @param	string
+	 * @param	bool	whether or not the string will be used in a LIKE condition
 	 * @return	string
 	 */
-	function escape_str($str)	
+	function escape_str($str, $like = FALSE)	
 	{
+		if (is_array($str))
+		{
+			foreach($str as $key => $val)
+	   		{
+				$str[$key] = $this->escape_str($val, $like);
+	   		}
+   		
+	   		return $str;
+	   	}
+
 		if (function_exists('mysqli_real_escape_string') AND is_object($this->conn_id))
 		{
-			return mysqli_real_escape_string($this->conn_id, $str);
+			$str = mysqli_real_escape_string($this->conn_id, $str);
 		}
 		elseif (function_exists('mysql_escape_string'))
 		{
-			return mysql_escape_string($str);
+			$str = mysql_escape_string($str);
 		}
 		else
 		{
-			return addslashes($str);
+			$str = addslashes($str);
 		}
+		
+		// escape LIKE condition wildcards
+		if ($like === TRUE)
+		{
+			$str = str_replace(array('%', '_'), array('\\%', '\\_'), $str);
+		}
+		
+		return $str;
 	}
 		
 	// --------------------------------------------------------------------
@@ -348,7 +390,7 @@ class CI_DB_mysqli_driver extends CI_DB {
 		
 		if ($prefix_limit !== FALSE AND $this->dbprefix != '')
 		{
-			$sql .= " LIKE '".$this->dbprefix."%'";
+			$sql .= " LIKE '".$this->escape_like_str($this->dbprefix)."%'";
 		}
 		
 		return $sql;
