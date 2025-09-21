@@ -10,6 +10,9 @@
 |
 */
 
+
+// TODO Validate what this is doing and if we still need it
+
 $hook['pre_system'][] = array(
 	'class'    => 'PHPFatalError',
 	'function' => 'setHandler',
@@ -23,6 +26,7 @@ $hook['pre_system'][] = array(
 //
 // THE ORDER OF THESE HOOKS IS EXTREMELY IMPORTANT!!
 //
+// TODO Remove this in favor of built-in CSRF
  
 // THIS HAS TO GO FIRST IN THE post_controller_constructor HOOK LIST.
 $hook['post_controller_constructor'][] = array( // Mind the "[]", this is not the only post_controller_constructor hook
