@@ -2,13 +2,23 @@
 # CONFIGURATION FILES
 # We never want to track these because they are created at install
 
-system/application/config/config.php
-system/application/config/database.php
-system/application/config/macaw.php
+application/config/config.php
+application/config/database.php
+application/config/macaw.php
 # system/application/config/virtual_items
-system/application/config/virtual_items/*
-!system/application/config/virtual_items/sample-config.php
-!system/application/config/virtual_items/Sample-Source
+application/config/virtual_items/*
+!application/config/virtual_items/sample-config.php
+!application/config/virtual_items/Sample-Source
+
+.DS_Store
+
+application/cache/*
+!application/cache/index.html
+!application/cache/.htaccess
+
+application/logs/*
+!application/logs/index.html
+!application/logs/.htaccess
 
 ########################################
 # COMPOSER
