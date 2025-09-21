@@ -1,4 +1,4 @@
-<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 /**
  * CodeIgniter
  *
@@ -10,14 +10,14 @@
  * @copyright		Copyright (c) 2014 - 2015, British Columbia Institute of Technology (http://bcit.ca/)
  * @license		http://codeigniter.com/user_guide/license.html
  * @link		http://codeigniter.com
- * @since		Version 1.0
+ * @since		Version 2.0.2
  * @filesource
  */
 
 // ------------------------------------------------------------------------
 
 /**
- * ODBC Database Adapter Class
+ * CUBRID Database Adapter Class
  *
  * Note: _DB is an extender class that the app controller
  * creates dynamically based on whether the active record
@@ -26,35 +26,31 @@
  * @package		CodeIgniter
  * @subpackage	Drivers
  * @category	Database
- * @author		EllisLab Dev Team
+ * @author		Esen Sagynov
  * @link		http://codeigniter.com/user_guide/database/
  */
-class CI_DB_odbc_driver extends CI_DB {
+class CI_DB_cubrid_driver extends CI_DB {
 
-	var $dbdriver = 'odbc';
+	// Default CUBRID Broker port. Will be used unless user
+	// explicitly specifies another one.
+	const DEFAULT_PORT = 33000;
 
-	// the character used to excape - not necessary for ODBC
-	var $_escape_char = '';
+	var $dbdriver = 'cubrid';
 
-	// clause and character used for LIKE escape sequences
-	var $_like_escape_str = " {escape '%s'} ";
-	var $_like_escape_chr = '!';
+	// The character used for escaping - no need in CUBRID
+	var	$_escape_char = '';
+
+	// clause and character used for LIKE escape sequences - not used in CUBRID
+	var $_like_escape_str = '';
+	var $_like_escape_chr = '';
 
 	/**
 	 * The syntax to count rows is slightly different across different
 	 * database engines, so this string appears in each driver and is
 	 * used for the count_all() and count_all_results() functions.
 	 */
-	var $_count_string = "SELECT COUNT(*) AS ";
-	var $_random_keyword;
-
-
-	function __construct($params)
-	{
-		parent::__construct($params);
-
-		$this->_random_keyword = ' RND('.time().')'; // database specific random keyword
-	}
+	var $_count_string = 'SELECT COUNT(*) AS ';
+	var $_random_keyword = ' RAND()'; // database specific random keyword
 
 	/**
 	 * Non-persistent database connection
@@ -64,20 +60,50 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function db_connect()
 	{
-		return @odbc_connect($this->hostname, $this->username, $this->password);
+		// If no port is defined by the user, use the default value
+		if ($this->port == '')
+		{
+			$this->port = self::DEFAULT_PORT;
+		}
+
+		$conn = cubrid_connect($this->hostname, $this->port, $this->database, $this->username, $this->password);
+
+		if ($conn)
+		{
+			// Check if a user wants to run queries in dry, i.e. run the
+			// queries but not commit them.
+			if (isset($this->auto_commit) && ! $this->auto_commit)
+			{
+				cubrid_set_autocommit($conn, CUBRID_AUTOCOMMIT_FALSE);
+			}
+			else
+			{
+				cubrid_set_autocommit($conn, CUBRID_AUTOCOMMIT_TRUE);
+				$this->auto_commit = TRUE;
+			}
+		}
+
+		return $conn;
 	}
 
 	// --------------------------------------------------------------------
 
 	/**
 	 * Persistent database connection
+	 * In CUBRID persistent DB connection is supported natively in CUBRID
+	 * engine which can be configured in the CUBRID Broker configuration
+	 * file by setting the CCI_PCONNECT parameter to ON. In that case, all
+	 * connections established between the client application and the
+	 * server will become persistent. This is calling the same
+	 * @cubrid_connect function will establish persisten connection
+	 * considering that the CCI_PCONNECT is ON.
 	 *
 	 * @access	private called by the base class
 	 * @return	resource
 	 */
 	function db_pconnect()
 	{
-		return @odbc_pconnect($this->hostname, $this->username, $this->password);
+		return $this->db_connect();
 	}
 
 	// --------------------------------------------------------------------
@@ -93,7 +119,10 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function reconnect()
 	{
-		// not implemented in odbc
+		if (cubrid_ping($this->conn_id) === FALSE)
+		{
+			$this->conn_id = FALSE;
+		}
 	}
 
 	// --------------------------------------------------------------------
@@ -106,8 +135,11 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function db_select()
 	{
-		// Not needed for ODBC
-		return TRUE;
+		// In CUBRID there is no need to select a database as the database
+		// is chosen at the connection time.
+		// So, to determine if the database is "selected", all we have to
+		// do is ping the server and return that value.
+		return cubrid_ping($this->conn_id);
 	}
 
 	// --------------------------------------------------------------------
@@ -122,7 +154,9 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function db_set_charset($charset, $collation)
 	{
-		// @todo - add support if needed
+		// In CUBRID, there is no need to set charset or collation.
+		// This is why returning true will allow the application continue
+		// its normal process.
 		return TRUE;
 	}
 
@@ -136,7 +170,12 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function _version()
 	{
-		return "SELECT version() AS ver";
+		// To obtain the CUBRID Server version, no need to run the SQL query.
+		// CUBRID PHP API provides a function to determin this value.
+		// This is why we also need to add 'cubrid' value to the list of
+		// $driver_version_exceptions array in DB_driver class in
+		// version() function.
+		return cubrid_get_server_info($this->conn_id);
 	}
 
 	// --------------------------------------------------------------------
@@ -151,7 +190,7 @@ class CI_DB_odbc_driver extends CI_DB {
 	function _execute($sql)
 	{
 		$sql = $this->_prep_query($sql);
-		return @odbc_exec($this->conn_id, $sql);
+		return @cubrid_query($sql, $this->conn_id);
 	}
 
 	// --------------------------------------------------------------------
@@ -167,6 +206,7 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function _prep_query($sql)
 	{
+		// No need to prepare
 		return $sql;
 	}
 
@@ -196,7 +236,12 @@ class CI_DB_odbc_driver extends CI_DB {
 		// even if the queries produce a successful result.
 		$this->_trans_failure = ($test_mode === TRUE) ? TRUE : FALSE;
 
-		return odbc_autocommit($this->conn_id, FALSE);
+		if (cubrid_get_autocommit($this->conn_id))
+		{
+			cubrid_set_autocommit($this->conn_id, CUBRID_AUTOCOMMIT_FALSE);
+		}
+
+		return TRUE;
 	}
 
 	// --------------------------------------------------------------------
@@ -220,9 +265,14 @@ class CI_DB_odbc_driver extends CI_DB {
 			return TRUE;
 		}
 
-		$ret = odbc_commit($this->conn_id);
-		odbc_autocommit($this->conn_id, TRUE);
-		return $ret;
+		cubrid_commit($this->conn_id);
+
+		if ($this->auto_commit && ! cubrid_get_autocommit($this->conn_id))
+		{
+			cubrid_set_autocommit($this->conn_id, CUBRID_AUTOCOMMIT_TRUE);
+		}
+
+		return TRUE;
 	}
 
 	// --------------------------------------------------------------------
@@ -246,9 +296,14 @@ class CI_DB_odbc_driver extends CI_DB {
 			return TRUE;
 		}
 
-		$ret = odbc_rollback($this->conn_id);
-		odbc_autocommit($this->conn_id, TRUE);
-		return $ret;
+		cubrid_rollback($this->conn_id);
+
+		if ($this->auto_commit && ! cubrid_get_autocommit($this->conn_id))
+		{
+			cubrid_set_autocommit($this->conn_id, CUBRID_AUTOCOMMIT_TRUE);
+		}
+
+		return TRUE;
 	}
 
 	// --------------------------------------------------------------------
@@ -273,15 +328,19 @@ class CI_DB_odbc_driver extends CI_DB {
 			return $str;
 		}
 
-		// ODBC doesn't require escaping
-		$str = remove_invisible_characters($str);
+		if (function_exists('cubrid_real_escape_string') AND is_resource($this->conn_id))
+		{
+			$str = cubrid_real_escape_string($str, $this->conn_id);
+		}
+		else
+		{
+			$str = addslashes($str);
+		}
 
 		// escape LIKE condition wildcards
 		if ($like === TRUE)
 		{
-			$str = str_replace(	array('%', '_', $this->_like_escape_chr),
-								array($this->_like_escape_chr.'%', $this->_like_escape_chr.'_', $this->_like_escape_chr.$this->_like_escape_chr),
-								$str);
+			$str = str_replace(array('%', '_'), array('\\%', '\\_'), $str);
 		}
 
 		return $str;
@@ -297,7 +356,7 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function affected_rows()
 	{
-		return @odbc_num_rows($this->conn_id);
+		return @cubrid_affected_rows($this->conn_id);
 	}
 
 	// --------------------------------------------------------------------
@@ -310,7 +369,7 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function insert_id()
 	{
-		return @odbc_insert_id($this->conn_id);
+		return @cubrid_insert_id($this->conn_id);
 	}
 
 	// --------------------------------------------------------------------
@@ -319,7 +378,7 @@ class CI_DB_odbc_driver extends CI_DB {
 	 * "Count All" query
 	 *
 	 * Generates a platform-specific query string that counts all records in
-	 * the specified database
+	 * the specified table
 	 *
 	 * @access	public
 	 * @param	string
@@ -331,7 +390,7 @@ class CI_DB_odbc_driver extends CI_DB {
 		{
 			return 0;
 		}
-
+		
 		$query = $this->query($this->_count_string . $this->_protect_identifiers('numrows') . " FROM " . $this->_protect_identifiers($table, TRUE, NULL, FALSE));
 
 		if ($query->num_rows() == 0)
@@ -347,7 +406,7 @@ class CI_DB_odbc_driver extends CI_DB {
 	// --------------------------------------------------------------------
 
 	/**
-	 * Show table query
+	 * List table query
 	 *
 	 * Generates a platform-specific query string so that the table names can be fetched
 	 *
@@ -357,12 +416,11 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function _list_tables($prefix_limit = FALSE)
 	{
-		$sql = "SHOW TABLES FROM `".$this->database."`";
+		$sql = "SHOW TABLES";
 
 		if ($prefix_limit !== FALSE AND $this->dbprefix != '')
 		{
-			//$sql .= " LIKE '".$this->escape_like_str($this->dbprefix)."%' ".sprintf($this->_like_escape_str, $this->_like_escape_chr);
-			return FALSE; // not currently supported
+			$sql .= " LIKE '".$this->escape_like_str($this->dbprefix)."%'";
 		}
 
 		return $sql;
@@ -381,7 +439,7 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function _list_columns($table = '')
 	{
-		return "SHOW COLUMNS FROM ".$table;
+		return "SHOW COLUMNS FROM ".$this->_protect_identifiers($table, TRUE, NULL, FALSE);
 	}
 
 	// --------------------------------------------------------------------
@@ -397,7 +455,7 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function _field_data($table)
 	{
-		return "SELECT TOP 1 FROM ".$table;
+		return "SELECT * FROM ".$table." LIMIT 1";
 	}
 
 	// --------------------------------------------------------------------
@@ -410,7 +468,7 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function _error_message()
 	{
-		return odbc_errormsg($this->conn_id);
+		return cubrid_error($this->conn_id);
 	}
 
 	// --------------------------------------------------------------------
@@ -423,7 +481,7 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function _error_number()
 	{
-		return odbc_error($this->conn_id);
+		return cubrid_errno($this->conn_id);
 	}
 
 	// --------------------------------------------------------------------
@@ -505,10 +563,48 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function _insert($table, $keys, $values)
 	{
-		return "INSERT INTO ".$table." (".implode(', ', $keys).") VALUES (".implode(', ', $values).")";
+		return "INSERT INTO ".$table." (\"".implode('", "', $keys)."\") VALUES (".implode(', ', $values).")";
 	}
 
 	// --------------------------------------------------------------------
+
+
+	/**
+	 * Replace statement
+	 *
+	 * Generates a platform-specific replace string from the supplied data
+	 *
+	 * @access	public
+	 * @param	string	the table name
+	 * @param	array	the insert keys
+	 * @param	array	the insert values
+	 * @return	string
+	 */
+	function _replace($table, $keys, $values)
+	{
+		return "REPLACE INTO ".$table." (\"".implode('", "', $keys)."\") VALUES (".implode(', ', $values).")";
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
+	 * Insert_batch statement
+	 *
+	 * Generates a platform-specific insert string from the supplied data
+	 *
+	 * @access	public
+	 * @param	string	the table name
+	 * @param	array	the insert keys
+	 * @param	array	the insert values
+	 * @return	string
+	 */
+	function _insert_batch($table, $keys, $values)
+	{
+		return "INSERT INTO ".$table." (\"".implode('", "', $keys)."\") VALUES ".implode(', ', $values);
+	}
+
+	// --------------------------------------------------------------------
+
 
 	/**
 	 * Update statement
@@ -527,7 +623,7 @@ class CI_DB_odbc_driver extends CI_DB {
 	{
 		foreach ($values as $key => $val)
 		{
-			$valstr[] = $key." = ".$val;
+			$valstr[] = sprintf('"%s" = %s', $key, $val);
 		}
 
 		$limit = ( ! $limit) ? '' : ' LIMIT '.$limit;
@@ -543,8 +639,61 @@ class CI_DB_odbc_driver extends CI_DB {
 		return $sql;
 	}
 
+	// --------------------------------------------------------------------
+
+
+	/**
+	 * Update_Batch statement
+	 *
+	 * Generates a platform-specific batch update string from the supplied data
+	 *
+	 * @access	public
+	 * @param	string	the table name
+	 * @param	array	the update data
+	 * @param	array	the where clause
+	 * @return	string
+	 */
+	function _update_batch($table, $values, $index, $where = NULL)
+	{
+		$ids = array();
+		$where = ($where != '' AND count($where) >=1) ? implode(" ", $where).' AND ' : '';
+
+		foreach ($values as $key => $val)
+		{
+			$ids[] = $val[$index];
+
+			foreach (array_keys($val) as $field)
+			{
+				if ($field != $index)
+				{
+					$final[$field][] = 'WHEN '.$index.' = '.$val[$index].' THEN '.$val[$field];
+				}
+			}
+		}
+
+		$sql = "UPDATE ".$table." SET ";
+		$cases = '';
+
+		foreach ($final as $k => $v)
+		{
+			$cases .= $k.' = CASE '."\n";
+			foreach ($v as $row)
+			{
+				$cases .= $row."\n";
+			}
+
+			$cases .= 'ELSE '.$k.' END, ';
+		}
+
+		$sql .= substr($cases, 0, -2);
+
+		$sql .= ' WHERE '.$where.$index.' IN ('.implode(',', $ids).')';
+
+		return $sql;
+	}
 
 	// --------------------------------------------------------------------
+
 
 	/**
 	 * Truncate statement
@@ -559,7 +708,7 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function _truncate($table)
 	{
-		return $this->_delete($table);
+		return "TRUNCATE ".$table;
 	}
 
 	// --------------------------------------------------------------------
@@ -611,8 +760,16 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function _limit($sql, $limit, $offset)
 	{
-		// Does ODBC doesn't use the LIMIT clause?
-		return $sql;
+		if ($offset == 0)
+		{
+			$offset = '';
+		}
+		else
+		{
+			$offset .= ", ";
+		}
+
+		return $sql."LIMIT ".$offset.$limit;
 	}
 
 	// --------------------------------------------------------------------
@@ -626,13 +783,11 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function _close($conn_id)
 	{
-		@odbc_close($conn_id);
+		@cubrid_close($conn_id);
 	}
-
 
 }
 
 
-
-/* End of file odbc_driver.php */
-/* Location: ./system/database/drivers/odbc/odbc_driver.php */
+/* End of file cubrid_driver.php */
+/* Location: ./system/database/drivers/cubrid/cubrid_driver.php */

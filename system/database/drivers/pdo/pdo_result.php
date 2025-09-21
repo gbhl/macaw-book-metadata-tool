@@ -10,14 +10,14 @@
  * @copyright		Copyright (c) 2014 - 2015, British Columbia Institute of Technology (http://bcit.ca/)
  * @license		http://codeigniter.com/user_guide/license.html
  * @link		http://codeigniter.com
- * @since		Version 1.0
+ * @since		Version 2.1.2
  * @filesource
  */
 
 // ------------------------------------------------------------------------
 
 /**
- * ODBC Result Class
+ * PDO Result Class
  *
  * This class extends the parent result class: CI_DB_result
  *
@@ -25,17 +25,29 @@
  * @author		EllisLab Dev Team
  * @link		http://codeigniter.com/user_guide/database/
  */
-class CI_DB_odbc_result extends CI_DB_result {
+class CI_DB_pdo_result extends CI_DB_result {
+
+	public $num_rows;
 
 	/**
 	 * Number of rows in the result set
 	 *
-	 * @access	public
-	 * @return	integer
+	 * @return	int
 	 */
-	function num_rows()
+	public function num_rows()
 	{
-		return @odbc_num_rows($this->result_id);
+		if (is_int($this->num_rows))
+		{
+			return $this->num_rows;
+		}
+		elseif (($this->num_rows = $this->result_id->rowCount()) > 0)
+		{
+			return $this->num_rows;
+		}
+
+		$this->num_rows = count($this->result_id->fetchAll());
+		$this->result_id->execute();
+		return $this->num_rows;
 	}
 
 	// --------------------------------------------------------------------
@@ -48,7 +60,7 @@ class CI_DB_odbc_result extends CI_DB_result {
 	 */
 	function num_fields()
 	{
-		return @odbc_num_fields($this->result_id);
+		return $this->result_id->columnCount();
 	}
 
 	// --------------------------------------------------------------------
@@ -63,13 +75,11 @@ class CI_DB_odbc_result extends CI_DB_result {
 	 */
 	function list_fields()
 	{
-		$field_names = array();
-		for ($i = 0; $i < $this->num_fields(); $i++)
+		if ($this->db->db_debug)
 		{
-			$field_names[]	= odbc_field_name($this->result_id, $i);
+			return $this->db->display_error('db_unsuported_feature');
 		}
-
-		return $field_names;
+		return FALSE;
 	}
 
 	// --------------------------------------------------------------------
@@ -84,20 +94,25 @@ class CI_DB_odbc_result extends CI_DB_result {
 	 */
 	function field_data()
 	{
-		$retval = array();
-		for ($i = 0; $i < $this->num_fields(); $i++)
+		$data = array();
+	
+		try
 		{
-			$F				= new stdClass();
-			$F->name		= odbc_field_name($this->result_id, $i);
-			$F->type		= odbc_field_type($this->result_id, $i);
-			$F->max_length	= odbc_field_len($this->result_id, $i);
-			$F->primary_key = 0;
-			$F->default		= '';
-
-			$retval[] = $F;
+			for($i = 0; $i < $this->num_fields(); $i++)
+			{
+				$data[] = $this->result_id->getColumnMeta($i);
+			}
+			
+			return $data;
 		}
-
-		return $retval;
+		catch (Exception $e)
+		{
+			if ($this->db->db_debug)
+			{
+				return $this->db->display_error('db_unsuported_feature');
+			}
+			return FALSE;
+		}
 	}
 
 	// --------------------------------------------------------------------
@@ -109,9 +124,8 @@ class CI_DB_odbc_result extends CI_DB_result {
 	 */
 	function free_result()
 	{
-		if (is_resource($this->result_id))
+		if (is_object($this->result_id))
 		{
-			odbc_free_result($this->result_id);
 			$this->result_id = FALSE;
 		}
 	}
@@ -145,14 +159,7 @@ class CI_DB_odbc_result extends CI_DB_result {
 	 */
 	function _fetch_assoc()
 	{
-		if (function_exists('odbc_fetch_object'))
-		{
-			return odbc_fetch_array($this->result_id);
-		}
-		else
-		{
-			return $this->_odbc_fetch_array($this->result_id);
-		}
+		return $this->result_id->fetch(PDO::FETCH_ASSOC);
 	}
 
 	// --------------------------------------------------------------------
@@ -166,64 +173,12 @@ class CI_DB_odbc_result extends CI_DB_result {
 	 * @return	object
 	 */
 	function _fetch_object()
-	{
-		if (function_exists('odbc_fetch_object'))
-		{
-			return odbc_fetch_object($this->result_id);
-		}
-		else
-		{
-			return $this->_odbc_fetch_object($this->result_id);
-		}
-	}
-
-
-	/**
-	 * Result - object
-	 *
-	 * subsititutes the odbc_fetch_object function when
-	 * not available (odbc_fetch_object requires unixODBC)
-	 *
-	 * @access	private
-	 * @return	object
-	 */
-	function _odbc_fetch_object(& $odbc_result) {
-		$rs = array();
-		$rs_obj = FALSE;
-		if (odbc_fetch_into($odbc_result, $rs)) {
-			foreach ($rs as $k=>$v) {
-				$field_name= odbc_field_name($odbc_result, $k+1);
-				$rs_obj->$field_name = $v;
-			}
-		}
-		return $rs_obj;
-	}
-
-
-	/**
-	 * Result - array
-	 *
-	 * subsititutes the odbc_fetch_array function when
-	 * not available (odbc_fetch_array requires unixODBC)
-	 *
-	 * @access	private
-	 * @return	array
-	 */
-	function _odbc_fetch_array(& $odbc_result) {
-		$rs = array();
-		$rs_assoc = FALSE;
-		if (odbc_fetch_into($odbc_result, $rs)) {
-			$rs_assoc=array();
-			foreach ($rs as $k=>$v) {
-				$field_name= odbc_field_name($odbc_result, $k+1);
-				$rs_assoc[$field_name] = $v;
-			}
-		}
-		return $rs_assoc;
+	{	
+		return $this->result_id->fetchObject();
 	}
 
 }
 
 
-/* End of file odbc_result.php */
-/* Location: ./system/database/drivers/odbc/odbc_result.php */
+/* End of file pdo_result.php */
+/* Location: ./system/database/drivers/pdo/pdo_result.php */

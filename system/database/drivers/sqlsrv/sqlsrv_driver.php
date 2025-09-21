@@ -17,7 +17,7 @@
 // ------------------------------------------------------------------------
 
 /**
- * ODBC Database Adapter Class
+ * SQLSRV Database Adapter Class
  *
  * Note: _DB is an extender class that the app controller
  * creates dynamically based on whether the active record
@@ -29,15 +29,15 @@
  * @author		EllisLab Dev Team
  * @link		http://codeigniter.com/user_guide/database/
  */
-class CI_DB_odbc_driver extends CI_DB {
+class CI_DB_sqlsrv_driver extends CI_DB {
 
-	var $dbdriver = 'odbc';
+	var $dbdriver = 'sqlsrv';
 
-	// the character used to excape - not necessary for ODBC
+	// The character used for escaping
 	var $_escape_char = '';
 
 	// clause and character used for LIKE escape sequences
-	var $_like_escape_str = " {escape '%s'} ";
+	var $_like_escape_str = " ESCAPE '%s' ";
 	var $_like_escape_chr = '!';
 
 	/**
@@ -46,15 +46,7 @@ class CI_DB_odbc_driver extends CI_DB {
 	 * used for the count_all() and count_all_results() functions.
 	 */
 	var $_count_string = "SELECT COUNT(*) AS ";
-	var $_random_keyword;
-
-
-	function __construct($params)
-	{
-		parent::__construct($params);
-
-		$this->_random_keyword = ' RND('.time().')'; // database specific random keyword
-	}
+	var $_random_keyword = ' ASC'; // not currently supported
 
 	/**
 	 * Non-persistent database connection
@@ -62,9 +54,27 @@ class CI_DB_odbc_driver extends CI_DB {
 	 * @access	private called by the base class
 	 * @return	resource
 	 */
-	function db_connect()
+	function db_connect($pooling = false)
 	{
-		return @odbc_connect($this->hostname, $this->username, $this->password);
+		// Check for a UTF-8 charset being passed as CI's default 'utf8'.
+		$character_set = (0 === strcasecmp('utf8', $this->char_set)) ? 'UTF-8' : $this->char_set;
+
+		$connection = array(
+			'UID'				=> empty($this->username) ? '' : $this->username,
+			'PWD'				=> empty($this->password) ? '' : $this->password,
+			'Database'			=> $this->database,
+			'ConnectionPooling' => $pooling ? 1 : 0,
+			'CharacterSet'		=> $character_set,
+			'ReturnDatesAsStrings' => 1
+		);
+
+		// If the username and password are both empty, assume this is a
+		// 'Windows Authentication Mode' connection.
+		if(empty($connection['UID']) && empty($connection['PWD'])) {
+			unset($connection['UID'], $connection['PWD']);
+		}
+
+		return sqlsrv_connect($this->hostname, $connection);
 	}
 
 	// --------------------------------------------------------------------
@@ -77,7 +87,7 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function db_pconnect()
 	{
-		return @odbc_pconnect($this->hostname, $this->username, $this->password);
+		$this->db_connect(TRUE);
 	}
 
 	// --------------------------------------------------------------------
@@ -93,7 +103,7 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function reconnect()
 	{
-		// not implemented in odbc
+		// not implemented in MSSQL
 	}
 
 	// --------------------------------------------------------------------
@@ -106,8 +116,7 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function db_select()
 	{
-		// Not needed for ODBC
-		return TRUE;
+		return $this->_execute('USE ' . $this->database);
 	}
 
 	// --------------------------------------------------------------------
@@ -129,19 +138,6 @@ class CI_DB_odbc_driver extends CI_DB {
 	// --------------------------------------------------------------------
 
 	/**
-	 * Version number query string
-	 *
-	 * @access	public
-	 * @return	string
-	 */
-	function _version()
-	{
-		return "SELECT version() AS ver";
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
 	 * Execute the query
 	 *
 	 * @access	private called by the base class
@@ -151,7 +147,10 @@ class CI_DB_odbc_driver extends CI_DB {
 	function _execute($sql)
 	{
 		$sql = $this->_prep_query($sql);
-		return @odbc_exec($this->conn_id, $sql);
+		return sqlsrv_query($this->conn_id, $sql, null, array(
+			'Scrollable'				=> SQLSRV_CURSOR_STATIC,
+			'SendStreamParamsAtExec'	=> true
+		));
 	}
 
 	// --------------------------------------------------------------------
@@ -196,7 +195,7 @@ class CI_DB_odbc_driver extends CI_DB {
 		// even if the queries produce a successful result.
 		$this->_trans_failure = ($test_mode === TRUE) ? TRUE : FALSE;
 
-		return odbc_autocommit($this->conn_id, FALSE);
+		return sqlsrv_begin_transaction($this->conn_id);
 	}
 
 	// --------------------------------------------------------------------
@@ -220,9 +219,7 @@ class CI_DB_odbc_driver extends CI_DB {
 			return TRUE;
 		}
 
-		$ret = odbc_commit($this->conn_id);
-		odbc_autocommit($this->conn_id, TRUE);
-		return $ret;
+		return sqlsrv_commit($this->conn_id);
 	}
 
 	// --------------------------------------------------------------------
@@ -246,9 +243,7 @@ class CI_DB_odbc_driver extends CI_DB {
 			return TRUE;
 		}
 
-		$ret = odbc_rollback($this->conn_id);
-		odbc_autocommit($this->conn_id, TRUE);
-		return $ret;
+		return sqlsrv_rollback($this->conn_id);
 	}
 
 	// --------------------------------------------------------------------
@@ -263,28 +258,8 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function escape_str($str, $like = FALSE)
 	{
-		if (is_array($str))
-		{
-			foreach ($str as $key => $val)
-			{
-				$str[$key] = $this->escape_str($val, $like);
-			}
-
-			return $str;
-		}
-
-		// ODBC doesn't require escaping
-		$str = remove_invisible_characters($str);
-
-		// escape LIKE condition wildcards
-		if ($like === TRUE)
-		{
-			$str = str_replace(	array('%', '_', $this->_like_escape_chr),
-								array($this->_like_escape_chr.'%', $this->_like_escape_chr.'_', $this->_like_escape_chr.$this->_like_escape_chr),
-								$str);
-		}
-
-		return $str;
+		// Escape single quotes
+		return str_replace("'", "''", $str);
 	}
 
 	// --------------------------------------------------------------------
@@ -297,20 +272,54 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function affected_rows()
 	{
-		return @odbc_num_rows($this->conn_id);
+		return @sqlrv_rows_affected($this->conn_id);
 	}
 
 	// --------------------------------------------------------------------
 
 	/**
-	 * Insert ID
-	 *
-	 * @access	public
-	 * @return	integer
-	 */
+	* Insert ID
+	*
+	* Returns the last id created in the Identity column.
+	*
+	* @access public
+	* @return integer
+	*/
 	function insert_id()
 	{
-		return @odbc_insert_id($this->conn_id);
+		return $this->query('select @@IDENTITY as insert_id')->row('insert_id');
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
+	* Parse major version
+	*
+	* Grabs the major version number from the
+	* database server version string passed in.
+	*
+	* @access private
+	* @param string $version
+	* @return int16 major version number
+	*/
+	function _parse_major_version($version)
+	{
+		preg_match('/([0-9]+)\.([0-9]+)\.([0-9]+)/', $version, $ver_info);
+		return $ver_info[1]; // return the major version b/c that's all we're interested in.
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
+	* Version number query string
+	*
+	* @access public
+	* @return string
+	*/
+	function _version()
+	{
+		$info = sqlsrv_server_info($this->conn_id);
+		return sprintf("select '%s' as ver", $info['SQLServerVersion']);
 	}
 
 	// --------------------------------------------------------------------
@@ -347,7 +356,7 @@ class CI_DB_odbc_driver extends CI_DB {
 	// --------------------------------------------------------------------
 
 	/**
-	 * Show table query
+	 * List table query
 	 *
 	 * Generates a platform-specific query string so that the table names can be fetched
 	 *
@@ -357,31 +366,23 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function _list_tables($prefix_limit = FALSE)
 	{
-		$sql = "SHOW TABLES FROM `".$this->database."`";
-
-		if ($prefix_limit !== FALSE AND $this->dbprefix != '')
-		{
-			//$sql .= " LIKE '".$this->escape_like_str($this->dbprefix)."%' ".sprintf($this->_like_escape_str, $this->_like_escape_chr);
-			return FALSE; // not currently supported
-		}
-
-		return $sql;
+		return "SELECT name FROM sysobjects WHERE type = 'U' ORDER BY name";
 	}
 
 	// --------------------------------------------------------------------
 
 	/**
-	 * Show column query
+	 * List column query
 	 *
 	 * Generates a platform-specific query string so that the column names can be fetched
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	string	the table name
 	 * @return	string
 	 */
 	function _list_columns($table = '')
 	{
-		return "SHOW COLUMNS FROM ".$table;
+		return "SELECT * FROM INFORMATION_SCHEMA.Columns WHERE TABLE_NAME = '".$this->_escape_table($table)."'";
 	}
 
 	// --------------------------------------------------------------------
@@ -397,7 +398,7 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function _field_data($table)
 	{
-		return "SELECT TOP 1 FROM ".$table;
+		return "SELECT TOP 1 * FROM " . $this->_escape_table($table);
 	}
 
 	// --------------------------------------------------------------------
@@ -410,7 +411,8 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function _error_message()
 	{
-		return odbc_errormsg($this->conn_id);
+		$error = array_shift(sqlsrv_errors());
+		return !empty($error['message']) ? $error['message'] : null;
 	}
 
 	// --------------------------------------------------------------------
@@ -423,10 +425,27 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function _error_number()
 	{
-		return odbc_error($this->conn_id);
+		$error = array_shift(sqlsrv_errors());
+		return isset($error['SQLSTATE']) ? $error['SQLSTATE'] : null;
 	}
 
 	// --------------------------------------------------------------------
+
+	/**
+	 * Escape Table Name
+	 *
+	 * This function adds backticks if the table name has a period
+	 * in it. Some DBs will get cranky unless periods are escaped
+	 *
+	 * @access	private
+	 * @param	string	the table name
+	 * @return	string
+	 */
+	function _escape_table($table)
+	{
+		return $table;
+	}
+
 
 	/**
 	 * Escape the SQL Identifiers
@@ -439,33 +458,7 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function _escape_identifiers($item)
 	{
-		if ($this->_escape_char == '')
-		{
-			return $item;
-		}
-
-		foreach ($this->_reserved_identifiers as $id)
-		{
-			if (strpos($item, '.'.$id) !== FALSE)
-			{
-				$str = $this->_escape_char. str_replace('.', $this->_escape_char.'.', $item);
-
-				// remove duplicates if the user already included the escape
-				return preg_replace('/['.$this->_escape_char.']+/', $this->_escape_char, $str);
-			}
-		}
-
-		if (strpos($item, '.') !== FALSE)
-		{
-			$str = $this->_escape_char.str_replace('.', $this->_escape_char.'.'.$this->_escape_char, $item).$this->_escape_char;
-		}
-		else
-		{
-			$str = $this->_escape_char.$item.$this->_escape_char;
-		}
-
-		// remove duplicates if the user already included the escape
-		return preg_replace('/['.$this->_escape_char.']+/', $this->_escape_char, $str);
+		return $item;
 	}
 
 	// --------------------------------------------------------------------
@@ -487,7 +480,7 @@ class CI_DB_odbc_driver extends CI_DB {
 			$tables = array($tables);
 		}
 
-		return '('.implode(', ', $tables).')';
+		return implode(', ', $tables);
 	}
 
 	// --------------------------------------------------------------------
@@ -505,7 +498,7 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function _insert($table, $keys, $values)
 	{
-		return "INSERT INTO ".$table." (".implode(', ', $keys).") VALUES (".implode(', ', $values).")";
+		return "INSERT INTO ".$this->_escape_table($table)." (".implode(', ', $keys).") VALUES (".implode(', ', $values).")";
 	}
 
 	// --------------------------------------------------------------------
@@ -523,26 +516,15 @@ class CI_DB_odbc_driver extends CI_DB {
 	 * @param	array	the limit clause
 	 * @return	string
 	 */
-	function _update($table, $values, $where, $orderby = array(), $limit = FALSE)
+	function _update($table, $values, $where)
 	{
-		foreach ($values as $key => $val)
+		foreach($values as $key => $val)
 		{
 			$valstr[] = $key." = ".$val;
 		}
 
-		$limit = ( ! $limit) ? '' : ' LIMIT '.$limit;
-
-		$orderby = (count($orderby) >= 1)?' ORDER BY '.implode(", ", $orderby):'';
-
-		$sql = "UPDATE ".$table." SET ".implode(', ', $valstr);
-
-		$sql .= ($where != '' AND count($where) >=1) ? " WHERE ".implode(" ", $where) : '';
-
-		$sql .= $orderby.$limit;
-
-		return $sql;
+		return "UPDATE ".$this->_escape_table($table)." SET ".implode(', ', $valstr)." WHERE ".implode(" ", $where);
 	}
-
 
 	// --------------------------------------------------------------------
 
@@ -559,7 +541,7 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function _truncate($table)
 	{
-		return $this->_delete($table);
+		return "TRUNCATE TABLE ".$table;
 	}
 
 	// --------------------------------------------------------------------
@@ -575,25 +557,9 @@ class CI_DB_odbc_driver extends CI_DB {
 	 * @param	string	the limit clause
 	 * @return	string
 	 */
-	function _delete($table, $where = array(), $like = array(), $limit = FALSE)
+	function _delete($table, $where)
 	{
-		$conditions = '';
-
-		if (count($where) > 0 OR count($like) > 0)
-		{
-			$conditions = "\nWHERE ";
-			$conditions .= implode("\n", $this->ar_where);
-
-			if (count($where) > 0 && count($like) > 0)
-			{
-				$conditions .= " AND ";
-			}
-			$conditions .= implode("\n", $like);
-		}
-
-		$limit = ( ! $limit) ? '' : ' LIMIT '.$limit;
-
-		return "DELETE FROM ".$table.$conditions.$limit;
+		return "DELETE FROM ".$this->_escape_table($table)." WHERE ".implode(" ", $where);
 	}
 
 	// --------------------------------------------------------------------
@@ -611,8 +577,9 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function _limit($sql, $limit, $offset)
 	{
-		// Does ODBC doesn't use the LIMIT clause?
-		return $sql;
+		$i = $limit + $offset;
+
+		return preg_replace('/(^\SELECT (DISTINCT)?)/i','\\1 TOP '.$i.' ', $sql);
 	}
 
 	// --------------------------------------------------------------------
@@ -626,13 +593,12 @@ class CI_DB_odbc_driver extends CI_DB {
 	 */
 	function _close($conn_id)
 	{
-		@odbc_close($conn_id);
+		@sqlsrv_close($conn_id);
 	}
-
 
 }
 
 
 
-/* End of file odbc_driver.php */
-/* Location: ./system/database/drivers/odbc/odbc_driver.php */
+/* End of file sqlsrv_driver.php */
+/* Location: ./system/database/drivers/sqlsrv/sqlsrv_driver.php */

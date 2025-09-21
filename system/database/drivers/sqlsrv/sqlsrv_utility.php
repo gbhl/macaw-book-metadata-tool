@@ -17,13 +17,13 @@
 // ------------------------------------------------------------------------
 
 /**
- * Oracle Utility Class
+ * SQLSRV Utility Class
  *
  * @category	Database
  * @author		EllisLab Dev Team
  * @link		http://codeigniter.com/user_guide/database/
  */
-class CI_DB_oci8_utility extends CI_DB_utility {
+class CI_DB_sqlsrv_utility extends CI_DB_utility {
 
 	/**
 	 * List databases
@@ -33,7 +33,7 @@ class CI_DB_oci8_utility extends CI_DB_utility {
 	 */
 	function _list_databases()
 	{
-		return FALSE;
+		return "EXEC sp_helpdb"; // Can also be: EXEC sp_databases
 	}
 
 	// --------------------------------------------------------------------
@@ -49,7 +49,7 @@ class CI_DB_oci8_utility extends CI_DB_utility {
 	 */
 	function _optimize_table($table)
 	{
-		return FALSE; // Is this supported in Oracle?
+		return FALSE; // Is this supported in MS SQL?
 	}
 
 	// --------------------------------------------------------------------
@@ -65,13 +65,13 @@ class CI_DB_oci8_utility extends CI_DB_utility {
 	 */
 	function _repair_table($table)
 	{
-		return FALSE; // Is this supported in Oracle?
+		return FALSE; // Is this supported in MS SQL?
 	}
 
 	// --------------------------------------------------------------------
 
 	/**
-	 * Oracle Export
+	 * MSSQL Export
 	 *
 	 * @access	private
 	 * @param	array	Preferences
@@ -82,7 +82,8 @@ class CI_DB_oci8_utility extends CI_DB_utility {
 		// Currently unsupported
 		return $this->db->display_error('db_unsuported_feature');
 	}
+
 }
 
-/* End of file oci8_utility.php */
-/* Location: ./system/database/drivers/oci8/oci8_utility.php */
+/* End of file mssql_utility.php */
+/* Location: ./system/database/drivers/mssql/mssql_utility.php */

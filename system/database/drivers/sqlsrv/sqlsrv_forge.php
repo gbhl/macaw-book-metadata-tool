@@ -17,24 +17,24 @@
 // ------------------------------------------------------------------------
 
 /**
- * Oracle Forge Class
+ * SQLSRV Forge Class
  *
  * @category	Database
  * @author		EllisLab Dev Team
  * @link		http://codeigniter.com/user_guide/database/
  */
-class CI_DB_oci8_forge extends CI_DB_forge {
+class CI_DB_sqlsrv_forge extends CI_DB_forge {
 
 	/**
 	 * Create database
 	 *
-	 * @access	public
+	 * @access	private
 	 * @param	string	the database name
 	 * @return	bool
 	 */
 	function _create_database($name)
 	{
-		return FALSE;
+		return "CREATE DATABASE ".$name;
 	}
 
 	// --------------------------------------------------------------------
@@ -48,7 +48,21 @@ class CI_DB_oci8_forge extends CI_DB_forge {
 	 */
 	function _drop_database($name)
 	{
-		return FALSE;
+		return "DROP DATABASE ".$name;
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
+	 * Drop Table
+	 *
+	 * @access	private
+	 * @return	bool
+	 */
+	function _drop_table($table)
+	{
+		return "IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = '"
+			.$table."')) DROP TABLE [dbo].[".$table."]";
 	}
 
 	// --------------------------------------------------------------------
@@ -66,14 +80,12 @@ class CI_DB_oci8_forge extends CI_DB_forge {
 	 */
 	function _create_table($table, $fields, $primary_keys, $keys, $if_not_exists)
 	{
-		$sql = 'CREATE TABLE ';
-
+		$sql = '';
 		if ($if_not_exists === TRUE)
 		{
-			$sql .= 'IF NOT EXISTS ';
+			$sql = "IF (NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND  TABLE_NAME = ";
 		}
-
-		$sql .= $this->db->_escape_identifiers($table)." (";
+		$sql .= $this->db->_escape_identifiers($table).")) CREATE TABLE ".$this->db->_escape_identifiers($table)." (";
 		$current_field_count = 0;
 
 		foreach ($fields as $field=>$attributes)
@@ -119,7 +131,7 @@ class CI_DB_oci8_forge extends CI_DB_forge {
 
 				if (array_key_exists('AUTO_INCREMENT', $attributes) && $attributes['AUTO_INCREMENT'] === TRUE)
 				{
-					$sql .= ' AUTO_INCREMENT';
+					$sql .= ' IDENTITY(1,1)';
 				}
 			}
 
@@ -149,26 +161,13 @@ class CI_DB_oci8_forge extends CI_DB_forge {
 					$key = array($this->db->_protect_identifiers($key));
 				}
 
-				$sql .= ",\n\tUNIQUE COLUMNS (" . implode(', ', $key) . ")";
+				$sql .= ",\n\tFOREIGN KEY (" . implode(', ', $key) . ")";
 			}
 		}
 
 		$sql .= "\n)";
 
 		return $sql;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Drop Table
-	 *
-	 * @access	private
-	 * @return	bool
-	 */
-	function _drop_table($table)
-	{
-		return FALSE;
 	}
 
 	// --------------------------------------------------------------------
@@ -238,12 +237,10 @@ class CI_DB_oci8_forge extends CI_DB_forge {
 	 */
 	function _rename_table($table_name, $new_table_name)
 	{
-		$sql = 'ALTER TABLE '.$this->db->_protect_identifiers($table_name)." RENAME TO ".$this->db->_protect_identifiers($new_table_name);
-		return $sql;
+		return 'EXEC sp_rename '.$this->db->_protect_identifiers($table_name).", ".$this->db->_protect_identifiers($new_table_name);
 	}
-
 
 }
 
-/* End of file oci8_forge.php */
-/* Location: ./system/database/drivers/oci8/oci8_forge.php */
+/* End of file sqlsrv_forge.php */
+/* Location: ./system/database/drivers/sqlsrv/sqlsrv_forge.php */
