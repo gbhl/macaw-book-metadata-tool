@@ -46,6 +46,30 @@ class CI_Config {
 	{
 		$this->config =& get_config();
 		log_message('debug', "Config Class Initialized");
+
+		// Set the base_url automatically if none was provided
+		if ($this->config['base_url'] == '')
+		{
+
+			if (isset($_SERVER['REQUEST_SCHEME']) && isset($_SERVER['HTTP_HOST']))
+			{
+				$base_url = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].'/';
+			}
+			elseif (isset($_SERVER['SERVER_NAME']))
+			{
+				$base_url = (empty($_SERVER['HTTPS']) OR strtolower($_SERVER['HTTPS']) === 'off') ? 'http' : 'https';
+				$base_url .= '://'.$_SERVER['SERVER_NAME'];
+				$base_url .= ($_SERVER['SERVER_PORT'] != 80 && $_SERVER['SERVER_PORT'] != 443) ? ':'.$_SERVER['SERVER_PORT'] : '';
+				$base_url .= substr($_SERVER['SCRIPT_NAME'], 0, strpos($_SERVER['SCRIPT_NAME'], basename($_SERVER['SCRIPT_FILENAME'])));
+			}
+			else
+			{
+				$base_url = 'http://localhost/';
+			}
+
+			$this->set_item('base_url', $base_url);
+		}
+
 	}
   	
 	// --------------------------------------------------------------------
