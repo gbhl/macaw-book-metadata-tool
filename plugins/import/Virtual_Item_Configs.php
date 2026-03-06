@@ -18,14 +18,14 @@
  * @version 1.0 admin.php created: 2010-09-20 last-modified: 2010-08-19
  **/
 
-class Virtual_Item_Configs extends Controller {
+class Virtual_Item_Configs extends CI_Controller {
 
 	private $CI;
 	private $cfg;
 	private $vi_config;
 	public $error;
-	public $config_path = 'system/application/config/virtual_items';
-	public $working_path = 'system/application/config/virtual_items';
+	public $config_path = 'application/config/virtual_items';
+	public $working_path = 'application/config/virtual_items';
 
 	private $id_types = array(
 		array('doi' => 'VIAF', 'mods' => 'viaf', 'bhl' => 'viaf'),

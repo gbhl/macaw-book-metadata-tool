@@ -20,7 +20,7 @@
 
  **/
 
-class BHL extends Controller {
+class BHL extends CI_Controller {
 
 	var $CI;
 	var $cfg;

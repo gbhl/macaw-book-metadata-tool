@@ -27,7 +27,7 @@ class LDAP
 //
 // 		//Check against user table
 // 		$this->CI->db->where('username', $username);
-// 		$query = $this->CI->db->getwhere($this->user_table);
+// 		$query = $this->CI->db->get_here($this->user_table);
 //
 //
 // 		if ($query->num_rows() > 0)

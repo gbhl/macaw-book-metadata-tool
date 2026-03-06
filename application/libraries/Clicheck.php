@@ -18,7 +18,7 @@
 
  **/
 
-class Clicheck extends Controller {
+class Clicheck extends CI_Controller {
 
 	var $CI;
 	var $cfg;

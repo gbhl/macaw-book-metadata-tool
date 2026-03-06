@@ -24,7 +24,7 @@
 
  **/
 
-class Authentication extends Controller {
+class Authentication extends CI_Controller {
 
 	var $CI;
 	var $cfg;

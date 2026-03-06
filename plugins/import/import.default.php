@@ -13,7 +13,7 @@
  * @version 1.0 admin.php created: 2010-09-20 last-modified: 2010-08-19
  **/
 
-class Import extends Controller {
+class Import extends CI_Controller {
 
 	var $CI;
 	var $cfg;

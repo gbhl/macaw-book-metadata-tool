@@ -13,7 +13,7 @@
  * @version 1.7 organization.php created: 2012-03-19 last-modified: 2012-03-19
  **/
 
-class Organization extends Model {
+class Organization extends CI_Model {
 
     public $id			= '';
     public $name		= '';

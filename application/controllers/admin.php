@@ -9,7 +9,7 @@
  *
  **/
 
-class Admin extends Controller {
+class Admin extends CI_Controller {
 
 	var $cfg;
 

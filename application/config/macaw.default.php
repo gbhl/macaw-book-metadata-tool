@@ -61,7 +61,7 @@ $config['macaw']['data_directory'] = $config['macaw']['base_directory']."/books"
 // The web server MUST have permissions to be able to read/write this location.
 //
 // No trailing slashes!
-$config['macaw']['logs_directory'] = $config['macaw']['base_directory']."/system/application/logs";
+$config['macaw']['logs_directory'] = $config['macaw']['base_directory']."/application/logs";
 
 // ------------------------------
 // DISK SPACE QUOTA SETTINGS
@@ -111,7 +111,7 @@ $config['macaw']['cron_log']     = 'macaw_cron.%Y%m%d.log';
 // other users is negotiable. (see the "incoming_directory_remote" setting below.)
 //
 // No trailing slashes!
-$config['macaw']['incoming_directory'] = '';
+$config['macaw']['incoming_directory'] = $config['macaw']['base_directory']."/incoming";
 
 // The "incoming_directory_remote" is a display-only value to indicate to the user
 // how to connect to the server to place scans onto the server.
@@ -366,6 +366,16 @@ $config['macaw']['item_metadata_groups'] = array(
 // organization will be purged nightly and replaced with a single test item. The name must match exactly 
 // to the name of the organization in the /admin/organization page.
 // $config['macaw']['demo_organization'] = '';
+
+// ------------------------------
+// EXPORT CONCURRENCY
+// ------------------------------
+// How many items can we export at one time? Currently this is only used
+// by the Interet_archive export module. If in doubt, leave it at 1. 
+// ** Linux will obey this setting. 
+// ** Windows ignores any value and will always use 1.
+// $config['macaw']['export_concurrency_limit'] = 1;
+
 
 // ------------------------------
 // TEST MODE?

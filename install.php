@@ -5,7 +5,7 @@
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
 	<title>Set Up Macaw</title>
 <?php
-	include_once('system/application/config/version.php');
+	include_once('application/config/version.php');
 ?>
 	<link rel="stylesheet" type="text/css" href="/css/yui-combo.css">
 	<link rel="stylesheet" type="text/css" href="/css/macaw.css" id="macaw_css" />
@@ -32,7 +32,7 @@
 	<script type="text/javascript" src="/js/macaw-import.js"></script>
 
 <?php
-	require_once('system/application/libraries/Authentication/phpass-0.1/PasswordHash.php');
+	require_once('application/libraries/Authentication/phpass-0.1/PasswordHash.php');
 
 	error_reporting(E_ALL & ~E_NOTICE); 
 	ini_set('display_errors', '1');
@@ -56,7 +56,7 @@
 	}
 	
 	# Sanity checks
-	$config_path = __DIR__.'/system/application/config';
+	$config_path = __DIR__.'/application/config';
 	
 	if (!is_writable(__DIR__) && $step < 6) {
 		$errors[] = "Permission denied to write to <b>".__DIR__."</b> for user ".get_current_user().". Please make sure that the web server user has read and write permissions.";
@@ -300,7 +300,7 @@
 				$config['macaw']['incoming_directory'] = $_POST['incoming_path'];
 				$config['macaw']['incoming_directory_remote'] = $_POST['incoming_path'];
 				$config['macaw']['data_directory']     = $_POST['base_path'].'/books';
-				$config['macaw']['logs_directory']     = $_POST['base_path'].'/system/application/logs';
+				$config['macaw']['logs_directory']     = $_POST['base_path'].'/application/logs';
 			}
 			if ($_POST['submit'] == 'Next >>' || $_POST['submit'] == 'Retry >>') {
 				// Verify access to the paths
@@ -742,7 +742,7 @@
 			$messages[] = 'Your database already exists, so there\'s nothing more that we need to do here.';
 		} else {
 			// The account table doesn't exist, so we go ahead and create the database
-			$fh = fopen(__DIR__.'/system/application/sql/macaw-mysql.sql', 'r');
+			$fh = fopen(__DIR__.'/application/sql/macaw-mysql.sql', 'r');
 			$query = '';
 
 			while ($line = fgets($fh, 1024000)) {
@@ -1089,7 +1089,7 @@ grant all on macaw.* to 'macaw'@'localhost';
 			<h1><a href="<?php echo($config['base_url']); ?>"><?php echo($config['base_url']); ?></a></h1>
 
 			<p>
-				Below is a summary of your settings. Other settings may be adjusted in the <strong>/system/application/config/macaw.php</strong> file.
+				Below is a summary of your settings. Other settings may be adjusted in the <strong>/application/config/macaw.php</strong> file.
 				<blockquote>
 					<h3>Administrator Information</h3>
 					<blockquote>

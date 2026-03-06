@@ -8,7 +8,7 @@
  *
  **/
  
-class Cleanup extends Controller {
+class Cleanup extends CI_Controller {
 
 	var $cfg;
 	var $version_dates = array(

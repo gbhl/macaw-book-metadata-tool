@@ -8,7 +8,7 @@
  *
  **/
  
-class Utils extends Controller {
+class Utils extends CI_Controller {
 
 	var $cfg;
 

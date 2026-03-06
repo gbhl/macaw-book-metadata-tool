@@ -9,7 +9,7 @@
  *
  **/
 
-class Dashboard extends Controller {
+class Dashboard extends CI_Controller {
 
 	function __construct() {
 		parent::__construct();

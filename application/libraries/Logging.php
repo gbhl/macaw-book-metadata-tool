@@ -19,7 +19,7 @@
 
  **/
 
-class Logging extends Controller {
+class Logging extends CI_Controller {
 
 	var $CI;
 	var $cfg;

@@ -33,7 +33,7 @@
 //
 // ***********************************************************
 
-class Export_Generic extends Controller {
+class Export_Generic extends CI_Controller {
 
 	// ----------------------------
 	// Configuration parameters

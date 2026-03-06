@@ -8,7 +8,7 @@
  *
  **/
 
-class Virtual_Items extends Controller {
+class Virtual_Items extends CI_Controller {
 
 	var $cfg;
 

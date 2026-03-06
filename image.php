@@ -6,7 +6,7 @@
 	   date_default_timezone_set('America/New_York');
 	}
 	error_reporting(E_ALL & ~E_DEPRECATED);
-	$system_folder = "system";	
+	$system_folder = "./";	# CI v2.0+ doesn't use system/application
 	$application_folder = "application";
 	
 	if (strpos($system_folder, '/') === FALSE) {

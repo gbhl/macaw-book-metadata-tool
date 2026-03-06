@@ -187,4 +187,4 @@ $config['strip_characters'] = array ('_', '-', '.html', '.php', '.htm');
 $config['strip_regexp'] = array ();
 
 /* End of file breadcrumb.php */
-/* Location: ./system/application/config/breadcrumb.php */
+/* Location: ./application/config/breadcrumb.php */

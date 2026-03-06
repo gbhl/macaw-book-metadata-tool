@@ -10,7 +10,7 @@
  *
  **/
 
-class Scan extends Controller {
+class Scan extends CI_Controller {
 
 	var $cfg;
 

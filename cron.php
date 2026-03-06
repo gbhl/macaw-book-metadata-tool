@@ -92,8 +92,8 @@
     }
     
     $config = array();
-    require_once('system/application/config/macaw.php');
-    if(!defined('CRON_LOG')) define('CRON_LOG', 'system/application/logs/'.macaw_strftime($config['macaw']['cron_log']));
+    require_once('application/config/macaw.php');
+    if(!defined('CRON_LOG')) define('CRON_LOG', 'application/logs/'.macaw_strftime($config['macaw']['cron_log']));
     
     if(!defined('CRON_TIME_LIMIT')) define('CRON_TIME_LIMIT', 0);
     if(!defined('CRON_FLUSH_BUFFERS')) define('CRON_FLUSH_BUFFERS', TRUE);

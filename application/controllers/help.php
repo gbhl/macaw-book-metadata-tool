@@ -8,7 +8,7 @@
  *
  **/
 
-class Help extends Controller {
+class Help extends CI_Controller {
 
 	var $cfg;
 

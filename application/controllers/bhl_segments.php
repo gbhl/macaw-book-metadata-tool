@@ -1,6 +1,6 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-class bhl_segments extends Controller {
+class bhl_segments extends CI_Controller {
     var $CI;
 
     function __construct() {

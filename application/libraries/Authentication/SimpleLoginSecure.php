@@ -1,6 +1,6 @@
 <?php if (!defined('BASEPATH')) exit('No direct script access allowed');
 
-require_once('system/application/libraries/Authentication/phpass-0.1/PasswordHash.php');
+require_once('application/libraries/Authentication/phpass-0.1/PasswordHash.php');
 // require_once('phpass-0.1/PasswordHash.php');
 
 if (!defined('PHPASS_HASH_STRENGTH')) {
@@ -62,7 +62,7 @@ class SimpleLoginSecure
 
 		//Check against user table
 		$this->CI->db->where('username', $username);
-		$query = $this->CI->db->getwhere($this->user_table);
+		$query = $this->CI->db->get_where($this->user_table);
 
 		if ($query->num_rows() > 0) //username already exists
 			return false;
@@ -114,7 +114,7 @@ class SimpleLoginSecure
 
 		//Check against user table
 		$this->CI->db->where('username', $username);
-		$query = $this->CI->db->getwhere($this->user_table);
+		$query = $this->CI->db->get_where($this->user_table);
 
 
 		if ($query->num_rows() > 0)

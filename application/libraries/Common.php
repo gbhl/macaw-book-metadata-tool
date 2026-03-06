@@ -21,8 +21,7 @@
 
  **/
 
-class Common extends Controller {
-
+class Common extends CI_Controller {
 	var $CI;
 	var $cfg;
 
@@ -602,7 +601,7 @@ class Common extends Controller {
 			// build the filename of queries
 			$db_base = 'mysql';
 			if ($this->CI->db->dbdriver == 'postgre') { $db_base = 'pgsql'; }
-			$filename = $this->cfg['base_directory'].sprintf('/system/application/sql/macaw-'.$db_base.'-%1.1f.sql', $next_version);
+			$filename = $this->cfg['base_directory'].sprintf('/application/sql/macaw-'.$db_base.'-%1.1f.sql', $next_version);
 
 			// If it exists, let's apply them
 			if (file_exists($filename)) {

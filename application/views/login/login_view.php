@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
         "http://www.w3.org/TR/html4/strict.dtd">
-        <?php	include_once('system/application/config/version.php');
+        <?php	include_once('application/config/version.php');
 	$cfg = $this->config->item('macaw');
 	if ($this->session->userdata('barcode')) {
 	$this->book->load($this->session->userdata('barcode'));

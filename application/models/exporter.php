@@ -23,7 +23,7 @@
  * 
  **/
 
-class Exporter extends Model {
+class Exporter extends CI_Model {
 
 	function __construct() {
 		// Call the Model constructor

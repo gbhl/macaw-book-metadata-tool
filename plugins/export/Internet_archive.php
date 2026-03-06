@@ -63,7 +63,7 @@ include ('Archive/Tar.php');
  * Or run the export for one file
  * 		sudo -u www php index.php cron export Internet_archive 123 scans force
  */
-class Internet_archive extends Controller {
+class Internet_archive extends CI_Controller {
 
 	// This info is from account at Internet Archive. Change one, change them all.
 	private $access = '';

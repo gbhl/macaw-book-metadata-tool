@@ -5,7 +5,7 @@
 application/config/config.php
 application/config/database.php
 application/config/macaw.php
-# system/application/config/virtual_items
+# application/config/virtual_items
 application/config/virtual_items/*
 !application/config/virtual_items/sample-config.php
 !application/config/virtual_items/Sample-Source
@@ -49,8 +49,8 @@ plugins/metadata/*
 books
 logs
 incoming
-system/application/logs
-system/application/logs/books
+application/logs
+application/logs/books
 
 ########################################
 # VS CODE

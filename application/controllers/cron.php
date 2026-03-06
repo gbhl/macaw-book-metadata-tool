@@ -26,7 +26,7 @@
  * 
  **/
 
-class Cron extends Controller {
+class Cron extends CI_Controller {
 
 	var $cfg;
 

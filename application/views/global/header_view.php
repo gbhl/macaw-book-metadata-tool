@@ -1,5 +1,5 @@
 <?php
-	include_once('system/application/config/version.php');
+	include_once('application/config/version.php');
 	$cfg = $this->config->item('macaw');
 	$is_admin = $this->user->has_permission('admin') || $this->user->has_permission('local_admin');	
 	$can_edit_item = false;

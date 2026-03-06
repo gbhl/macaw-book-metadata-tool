@@ -25,7 +25,7 @@
 
 require_once(APPPATH.'libraries/Image_IPTC.php');
 
-class Book extends Model {
+class Book extends CI_Model {
 
 	/** 
 	 * @var string [$id] the ID of the item record

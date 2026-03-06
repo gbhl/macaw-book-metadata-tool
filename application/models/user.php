@@ -19,7 +19,7 @@ if (!defined('PHPASS_HASH_PORTABLE')) {
  *
  **/
 
-class User extends Model {
+class User extends CI_Model {
 
     public $username = '';
     public $password = '';

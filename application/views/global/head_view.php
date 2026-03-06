@@ -1,4 +1,4 @@
-<?php include('system/application/config/version.php'); ?>
+<?php include('application/config/version.php'); ?>
 <!-- Combo-handled YUI CSS files: -->
 <link rel="stylesheet" type="text/css" href="<?php echo $this->config->item('base_url'); ?>css/yui-combo.css?v=<?php echo $version_rev; ?>">  
 <link rel="stylesheet" type="text/css" href="<?php echo $this->config->item('base_url'); ?>css/macaw.css?v=<?php echo $version_rev; ?>" id="macaw_css" />
