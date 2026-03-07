@@ -28,7 +28,7 @@ class Dashboard extends CI_Controller {
 		$this->common->check_session();
 		
 		$this->user->load($this->session->userdata('username'));
-		if ($this->user->terms_conditions == '0000-00-00 00:00:00') {
+		if ($this->user->terms_conditions == '0000-00-00 00:00:00' || !$this->user->terms_conditions) {
 	 		redirect($this->config->item('base_url').'main/terms');			
 		} else {
 			$data['user_widgets'] = $this->_user_widgets();

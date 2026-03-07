@@ -471,6 +471,19 @@ class Book extends CI_Model {
 		return false;
 	}
 
+	/**
+	 * Get the count of pages for this item
+	 *
+	 * @return int Number of pages
+	 */
+	function get_page_count() {
+		// Get the pages
+		$this->db->select('count(*) as page_count');
+		$this->db->where('item_id', $this->id);
+		$query = $this->db->get('page');
+		$result = $query->result();
+		return $result[0]->page_count;
+	}
 
 	/**
 	 * Get the pages in an item
@@ -737,7 +750,7 @@ class Book extends CI_Model {
 
 		// Well, does it?
 		if ($this->db->count_all_results() == 0) {
-			$this->logging->log('book', 'info', 'Adding page '.$filename.'. '.$this->db->last_query(), $this->barcode);
+			$this->logging->log('book', 'info', 'Adding page '.$filename, $this->barcode);
 			// Get the largest sequence that's in the database
 			$max = $this->max_sequence();			
 			// Page doesn't exist, add it to the database
@@ -773,7 +786,6 @@ class Book extends CI_Model {
 			$this->logging->log('book', 'info', 'Added page '.$filename.'.', $this->barcode);
 
 		} else {
-		$this->logging->log('book', 'info', 'Adding page '.$filename.'. '.$this->db->last_query(), $this->barcode);
 			// Entry exists, what do we do here? Update the bytes.
 			$data = array(
 				'bytes' => $bytes,
@@ -1407,11 +1419,14 @@ class Book extends CI_Model {
 	 * @since Version 1.3
 	 */
 	function update() {
+		// Use this to always save the latest number of pages
+		$page_count = $this->get_page_count();
+
 		// Update the ITEM table
 		if ($this->db->dbdriver == 'postgre') {
 			$data = array(
-				'pages_found' => $this->pages_found,
-				'pages_scanned' => $this->pages_scanned,
+				'pages_found' => $page_count,
+				'pages_scanned' => $page_count,
 				'scan_time' => $this->scan_time,
 				'needs_qa' => ($this->needs_qa ? 't' : 'f'),
 				'ia_ready_images' => ($this->ia_ready_images ? 't' : 'f'),
@@ -1420,8 +1435,8 @@ class Book extends CI_Model {
 			);
 		} elseif ($this->db->dbdriver == 'mysql' || $this->db->dbdriver == 'mysqli') {
 			$data = array(
-				'pages_found' => $this->pages_found,
-				'pages_scanned' => $this->pages_scanned,
+				'pages_found' => $page_count,
+				'pages_scanned' => $page_count,
 				'scan_time' => $this->scan_time,
 				'needs_qa' => ($this->needs_qa ? 1 : 0),
 				'ia_ready_images' => ($this->ia_ready_images ? 1 : 0),

@@ -687,6 +687,7 @@ class Main extends CI_Controller {
     // print_r($_REQUEST);
     // die;
 
+	$this->logging->log('book', 'info', 'Begin admin save status', $barcode);
     foreach ($this->cfg['export_modules'] as $m) {
       if (!$_REQUEST['new_'.$m]) {
         if ($this->book->get_export_status($m)) {
@@ -709,6 +710,7 @@ class Main extends CI_Controller {
     } else {
       $this->session->set_userdata('warning', 'No changes were made.');
     }
+	$this->logging->log('book', 'info', 'End admin save status', $barcode);
     
 		//Changed redirect to review with new style and workflow
 		redirect($this->config->item('base_url').'main/admin_edit');	

@@ -57,7 +57,7 @@
 				if (oRecord.getData('local_admin') == 1) {
 					html += '<img src="'+sBaseUrl+'/images/icons/building_wizard.png" height="16" width="16" alt="User is a local admin." title="User is a local admin.">&nbsp;';
 				}
-				if (oRecord.getData('admin') == 1) {
+				if (oRecord.getData('admin') >= 1) {
 					html += '<img src="'+sBaseUrl+'/images/icons/wizard_hat.png" height="16" width="16" alt="User is an admin." title="User is an admin.">&nbsp;';
 				}
 				elLiner.innerHTML = html;

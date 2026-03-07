@@ -1182,30 +1182,33 @@ class Admin extends CI_Controller {
 			return;
 		}
 
-		$sql = 'SELECT count(*) as items, max(o.name) as contributor, o.id, concat(monthname(date_completed), \' \', year(date_completed)) as month, sum(pages_found) as pages '.
-		       'FROM (select * from item where date_completed <> \'0000-00-00 00:00:00\') i '.
-		       'INNER JOIN organization o ON o.id = i.org_id '.
-		       'GROUP BY EXTRACT(YEAR_MONTH FROM date_completed), org_id '.
-		       'ORDER BY EXTRACT(YEAR_MONTH FROM date_completed) DESC, o.name';
+
+		$sql = 'SELECT count(*) as items, max(o.name) as contributor, i.org_id, '.
+			   'EXTRACT(YEAR_MONTH FROM date_completed) as month, sum(coalesce(0,pages_found)) as pages '.
+			   'FROM (select * from item where date_completed is not null) i '.
+			   'INNER JOIN organization o ON o.id = i.org_id '.
+			   'GROUP BY EXTRACT(YEAR_MONTH FROM date_completed), i.org_id '.
+			   'ORDER BY EXTRACT(YEAR_MONTH FROM date_completed) DESC, o.name';
 				
 		if ($this->user->has_permission('local_admin')) {
 			$this->user->load($this->session->userdata('username'));
 			$org_id = $this->user->org_id;
 
-			$sql = 'SELECT count(*) as items, max(o.name) as contributor, o.id, concat(monthname(date_completed), \' \', year(date_completed)) as month, sum(pages_found) as pages '.
-			       'FROM (select * from item where date_completed <> \'0000-00-00 00:00:00\' and org_id = '.$org_id.') i '.
-			       'INNER JOIN organization o ON o.id = i.org_id '.
-			       'GROUP BY EXTRACT(YEAR_MONTH FROM date_completed), org_id '.
-			       'ORDER BY EXTRACT(YEAR_MONTH FROM date_completed) DESC, o.name';
+			$sql = 'SELECT count(*) as items, max(o.name) as contributor, i.org_id, '.
+				   'EXTRACT(YEAR_MONTH FROM date_completed) as month, sum(coalesce(0,pages_found)) as pages '.
+				   'FROM (select * from item where date_completed is not null and org_id = '.$org_id.') i '.
+				   'INNER JOIN organization o ON o.id = i.org_id '.
+				   'GROUP BY EXTRACT(YEAR_MONTH FROM date_completed), i.org_id '.
+				   'ORDER BY EXTRACT(YEAR_MONTH FROM date_completed) DESC, o.name';
 		}
 
 		$query = $this->db->query($sql);
 		$data['results'] = array();
 		foreach ($query->result() as $row) {
 			$data['results'][] = array(
-				'month' => $row->month,
+				'month' => preg_replace('/^(\d\d\d\d)(\d\d)$/','$1-$2', $row->month),
 				'contributor' => $row->contributor,
-				'org_id' => $row->id,
+				'org_id' => $row->org_id,
 				'items' => $row->items,
 				'pages' => $row->pages
 			);
