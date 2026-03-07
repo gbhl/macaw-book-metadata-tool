@@ -316,6 +316,9 @@ class CI_Input {
 			return $this->ip_address;
 		}
 
+		$spoof = null;
+		if (!isset($_SERVER['REMOTE_ADDR'])) $_SERVER['REMOTE_ADDR'] = '';
+
 		$proxy_ips = config_item('proxy_ips');
 		if ( ! empty($proxy_ips))
 		{
