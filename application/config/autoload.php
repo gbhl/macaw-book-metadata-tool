@@ -1,4 +1,6 @@
-<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
 /*
 | -------------------------------------------------------------------
 | AUTO-LOADER
@@ -18,7 +20,7 @@
 |
 | These are the things you can load automatically:
 | Note: Plugins no longer exist.
-| 
+|
 | 1. Packages
 | 2. Libraries
 | 3. Helper files
@@ -65,7 +67,8 @@ $autoload['libraries'] = array('database', 'session', 'common', 'logging', 'clic
 |	$autoload['helper'] = array('url', 'file');
 */
 
-$autoload['helper'] = array('url', 'form','breadcrumb', 'file', 'directory', 'date');
+// $autoload['helper'] = array('url', 'form','breadcrumb', 'file', 'directory', 'date');
+$autoload['helper'] = array();
 
 
 /*
