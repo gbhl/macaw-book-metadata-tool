@@ -1,15 +1,5 @@
 <?php if (!defined('BASEPATH')) exit('No direct script access allowed');
 
-require_once('application/libraries/Authentication/phpass-0.1/PasswordHash.php');
-// require_once('phpass-0.1/PasswordHash.php');
-
-if (!defined('PHPASS_HASH_STRENGTH')) {
-	define('PHPASS_HASH_STRENGTH', 8);
-}
-if (!defined('PHPASS_HASH_PORTABLE')) {
-	define('PHPASS_HASH_PORTABLE', false);
-}
-
 /**
  * SimpleLoginSecure Class
  *
@@ -37,10 +27,8 @@ if (!defined('PHPASS_HASH_PORTABLE')) {
  * @license   http://www.gnu.org/licenses/gpl-3.0.txt
  * @link      http://dialect.ca/code/ci-simple-login-secure/
  */
-class SimpleLoginSecure
-{
+class SimpleLoginSecure {
 	var $CI;
-	var $user_table = 'account';
 
 	/**
 	 * Create a user account
@@ -51,8 +39,7 @@ class SimpleLoginSecure
 	 * @param	bool
 	 * @return	bool
 	 */
-	function create($username = '', $password = '', $auto_login = true)
-	{
+	function create($username = '', $password = '', $auto_login = true) {
 		$this->CI =& get_instance();
 
 		//Make sure account info was sent
@@ -62,15 +49,12 @@ class SimpleLoginSecure
 
 		//Check against user table
 		$this->CI->db->where('username', $username);
-		$query = $this->CI->db->get_where($this->user_table);
+		$query = $this->CI->db->get_where('account');
 
 		if ($query->num_rows() > 0) //username already exists
 			return false;
 
-		//Hash password using phpass
-		$hasher = new PasswordHash(PHPASS_HASH_STRENGTH, PHPASS_HASH_PORTABLE);
-		$password_hashed = $hasher->HashPassword($password);
-
+		$password_hashed = password_hash($password, PASSWORD_DEFAULT);
 		//Insert account into the database
 		date_default_timezone_set('America/New_York');
 		$data = array(
@@ -82,7 +66,7 @@ class SimpleLoginSecure
 
 		$this->CI->db->set($data);
 
-		if(!$this->CI->db->insert($this->user_table)) //There was a problem!
+		if(!$this->CI->db->insert('account')) //There was a problem!
 			return false;
 
 		if($auto_login)
@@ -99,40 +83,34 @@ class SimpleLoginSecure
 	 * @param	string
 	 * @return	bool
 	 */
-	function login($username = '', $password = '')
-	{
+	function login($username = '', $password = '') {
 		$this->CI =& get_instance();
 
 		if($username == '' OR $password == '')
 			return false;
 
-
 		//Check if already logged in
 		if($this->CI->session->userdata('username') == $username)
 			return true;
 
-
 		//Check against user table
-		$this->CI->db->where('username', $username);
-		$query = $this->CI->db->get_where($this->user_table);
+		$query = $this->CI->db->get_where('account', array('username' => $username));
 
-
-		if ($query->num_rows() > 0)
-		{
+		if ($query->num_rows() > 0) {
 			$user_data = $query->row_array();
 
-			$hasher = new PasswordHash(PHPASS_HASH_STRENGTH, PHPASS_HASH_PORTABLE);
-
-			if(!$hasher->CheckPassword($password, $user_data['password']))
+			// First we try with the modern way of doing things
+			if (!password_verify($password, $user_data['password'])) {
 				return false;
+			}
 
 			//Destroy old session
-			$this->CI->session->sess_destroy();
-
-			//Create a fresh, brand new session
-			$this->CI->session->sess_create();
-
-			$this->CI->db->simple_query('UPDATE ' . $this->user_table  . ' SET last_login = NOW() WHERE id = ' . $user_data['id']);
+			foreach ($_SESSION as $key=>$value) {
+				if (isset($_SESSION[$key])) {
+					unset($_SESSION[$key]);
+				}
+			}
+			$this->CI->db->query('UPDATE account SET last_login = NOW() WHERE id = '.$user_data['id']);
 
 			//Set session data
 			unset($user_data['password']);
@@ -142,8 +120,7 @@ class SimpleLoginSecure
 
 			return true;
 		}
-		else
-		{
+		else {
 			return false;
 		}
 
@@ -168,14 +145,13 @@ class SimpleLoginSecure
 	 * @param integer
 	 * @return	bool
 	 */
-	function delete($id)
-	{
+	function delete($id) {
 		$this->CI =& get_instance();
 
 		if(!is_numeric($id))
 			return false;
 
-		return $this->CI->db->delete($this->user_table, array('id' => $id));
+		return $this->CI->db->delete('account', array('id' => $id));
 	}
 
 }
