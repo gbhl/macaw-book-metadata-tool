@@ -103,11 +103,10 @@ CREATE TABLE permission (
 ) ENGINE=InnoDB CHARACTER SET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE session (
-    session_id varchar(40) DEFAULT '0',
-    ip_address varchar(16) DEFAULT '0',
-    user_agent varchar(120) NOT NULL,
-    last_activity bigint DEFAULT 0 NOT NULL,
-    user_data text
+    `id` varchar(128) NOT NULL,
+    `ip_address` varchar(45) NOT NULL,
+    `timestamp` int(10) unsigned DEFAULT 0 NOT NULL,
+    `data` blob NOT NULL,
 ) ENGINE=InnoDB CHARACTER SET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE settings (
@@ -126,11 +125,6 @@ INSERT INTO permission (username, permission) VALUES ('admin','admin'), ('admin'
 INSERT INTO settings (name, value) VALUES ('version','2.8');
 INSERT INTO settings (name, value) values ('installed', '1');
 
--- Redunant now
--- ALTER TABLE account ADD CONSTRAINT account_pkey PRIMARY KEY (id);
--- ALTER TABLE item ADD CONSTRAINT item_pkey PRIMARY KEY (id);
--- ALTER TABLE organization ADD CONSTRAINT organization_pkey PRIMARY KEY (id);
--- ALTER TABLE page ADD CONSTRAINT page_pkey PRIMARY KEY (id);
 ALTER TABLE settings ADD CONSTRAINT settings_name_key_unique UNIQUE (name);
 
 ALTER TABLE `account` ADD INDEX (username);
@@ -141,5 +135,6 @@ CREATE INDEX idx_metadata_fieldname_value ON metadata (fieldname, value(255));
 CREATE INDEX idx_metadata_fieldname_pageid ON metadata (fieldname, page_id);
 CREATE INDEX idx_metadata_item_page_field_counter ON metadata (item_id, page_id, fieldname, counter);
 CREATE INDEX idx_metadata_item_page ON metadata (item_id, page_id);
-create index idx_metadata_fieldname_value_pageid on metadata(fieldname, value(255), page_id);
+CREATE INDEX idx_metadata_fieldname_value_pageid on metadata(fieldname, value(255), page_id);
+CREATE INDEX idx_session_timestamp on session(timestamp);
 

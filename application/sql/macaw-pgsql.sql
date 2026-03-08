@@ -121,11 +121,10 @@ CREATE TABLE metadata (
 );
 
 CREATE TABLE session (
-    session_id character varying(40) DEFAULT '0'::character varying NOT NULL,
-    ip_address character varying(16) DEFAULT '0'::character varying NOT NULL,
-    user_agent character varying(120) NOT NULL,
-    last_activity bigint DEFAULT 0 NOT NULL,
-    user_data text
+    "id" varchar(128) NOT NULL,
+    "ip_address" varchar(45) NOT NULL,
+    "timestamp" bigint DEFAULT 0 NOT NULL,
+    "data" text DEFAULT '' NOT NULL
 );
 
 CREATE TABLE logging (
@@ -168,6 +167,7 @@ CREATE UNIQUE INDEX idx_permission_user_permission ON permission USING btree (us
 CREATE UNIQUE INDEX idx_metadata_all ON metadata USING btree (item_id, page_id, fieldname, counter);
 CREATE UNIQUE INDEX idx_logging_date_statistic ON logging USING btree (date, statistic);
 CREATE INDEX idx_metadata_fieldname ON metadata USING btree (fieldname);
+CREATE INDEX idx_session_timestamp ON session USING btree (timestamp);
 
 ALTER TABLE ONLY account ADD CONSTRAINT account_org_id_fkey FOREIGN KEY (org_id) REFERENCES organization(id);
 ALTER TABLE ONLY page ADD CONSTRAINT page_item_id_fkey FOREIGN KEY (item_id) REFERENCES item(id);

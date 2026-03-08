@@ -32,7 +32,6 @@
 	<script type="text/javascript" src="/js/macaw-import.js"></script>
 
 <?php
-	require_once('application/libraries/Authentication/phpass-0.1/PasswordHash.php');
 
 	error_reporting(E_ALL & ~E_NOTICE); 
 	ini_set('display_errors', '1');
@@ -104,7 +103,7 @@
 			}
 		}
 		if ($dbh) {
-			is_installed($dbh);	
+			is_installed($dbh, $db['default']['database']);	
 		}
 	}
 	
@@ -227,8 +226,7 @@
 					sleep(3);
 
 					// generate the new password hash
-					$hasher = new PasswordHash(8, false);
-					$pass_hash = $hasher->HashPassword($admin_info['password']);
+					$pass_hash = password_hash($admin_info['password'], PASSWORD_DEFAULT);
 
 					// Set up the organization?
 					create_organization(
@@ -665,11 +663,11 @@
 		return $pdo;
 	}
 
-	function is_installed($dbh) {
+	function is_installed($dbh, $dbname) {
 		global $errors;
 		global $messages;
 
-		$stmt = $dbh->query("SELECT count(*) as thecount FROM information_schema.tables WHERE table_schema = '$db';");
+		$stmt = $dbh->query("SELECT count(*) as thecount FROM information_schema.tables WHERE table_schema = '$dbname';");
 		$row = $stmt->fetch();
 		if ($row['thecount'] == 0) {
 			return;
