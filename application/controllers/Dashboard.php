@@ -11,7 +11,7 @@
 
 class Dashboard extends CI_Controller {
 
-	function __construct() {
+	public function __construct() {
 		parent::__construct();
 	}
 
@@ -24,7 +24,7 @@ class Dashboard extends CI_Controller {
 	 *
 	 * @return html The dashboard_view.php page.
 	 */
-	function index() {
+	public function index() {
 		$this->common->check_session();
 		
 		$this->user->load($this->session->userdata('username'));
@@ -48,7 +48,7 @@ class Dashboard extends CI_Controller {
 	 *
 	 * @todo Make this pull from the current user's settings
 	 */
-	function _user_widgets() {
+	public function _user_widgets() {
 		$this->user->load($this->session->userdata('username'));
 		return '{"widgets":'.$this->user->widgets.'}';
 	}
@@ -64,7 +64,7 @@ class Dashboard extends CI_Controller {
 	 * @return json The description and data of the named widget (echoed to browser)
 	 *
 	 */
-	function widget($name) {
+	public function widget($name) {
 		if (!$this->common->check_session(true)) {
 			return;
 		}
@@ -99,7 +99,7 @@ class Dashboard extends CI_Controller {
 	 *
 	 * @param json [$objects] An object describing the widgets for the current user.
 	 */
-	function save_widgets($widgets) {
+	public function save_widgets($widgets) {
 		$this->user->load($this->session->userdata('username'));
 		if ($widgets) {
 			$this->user->widgets = $widgets;
@@ -120,7 +120,7 @@ class Dashboard extends CI_Controller {
 	 * @return json The description and data of the named widget (echoed to browser)
 	 *
 	 */
-	function _get_summary_widget() {
+	public function _get_summary_widget() {
 		$data = array();
 
 		$row = $this->book->get_status_counts();
@@ -151,7 +151,7 @@ class Dashboard extends CI_Controller {
 	 * @return json The description and data of the named widget (echoed to browser)
 	 *
 	 */
-	function _get_disk_widget() {
+	public function _get_disk_widget() {
 		$q = null;
 		if ($this->db->dbdriver == 'postgre') {
 			$q = $this->db->query(
@@ -184,7 +184,7 @@ class Dashboard extends CI_Controller {
 	 * @return json The description and data of the named widget (echoed to browser)
 	 *
 	 */
-	function _get_pages_widget() {
+	public function _get_pages_widget() {
 		$q = null;
 		if ($this->db->dbdriver == 'postgre') {
 			$q = $this->db->query("select to_char(date,'fmmm/fmdd') as day, value as pages from logging where statistic = 'total-pages' and date >= now() - interval '10 days' order by date");
@@ -213,7 +213,7 @@ class Dashboard extends CI_Controller {
 	 * @return json The description and data of the named widget (echoed to browser)
 	 *
 	 */
-	function _get_perday_widget() {
+	public function _get_perday_widget() {
 		$q = null;
 		if ($this->db->dbdriver == 'postgre') {
 			$q = $this->db->query("select to_char(date,'fmmm/fmdd') as day, value as pages from logging where statistic = 'pages' and date >= now() - interval '10 days' order by date");

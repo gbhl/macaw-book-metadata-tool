@@ -883,7 +883,7 @@ class Book extends CI_Model {
 	 *
 	 */
 	function get_history() {
-		return read_file($this->cfg['logs_directory'].'/books/'.$this->barcode.'.log');
+		return file_get_contents($this->cfg['logs_directory'].'/books/'.$this->barcode.'.log');
 	}
 
 	/**

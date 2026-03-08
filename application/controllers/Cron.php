@@ -30,7 +30,7 @@ class Cron extends CI_Controller {
 
 	var $cfg;
 
-	function __construct() {
+	public function __construct() {
 		parent::__construct();
 		$this->cfg = $this->config->item('macaw');
 	}
@@ -46,7 +46,7 @@ class Cron extends CI_Controller {
 	 *
 	 * @since Version 1.5
 	 */
-	function _init($method) {
+	public function _init($method) {
 		// We exit only if we didn't get the override environment variable
 		// This variable is set in controllers/admin.php cron() function when
 		// making the system() call.
@@ -110,6 +110,8 @@ class Cron extends CI_Controller {
 			$barcodes = directory_map($this->cfg['incoming_directory'], TRUE);
 		}
 		
+		// TODO See what happens now that directory_map() adds a trailing slash for directories
+		
 		if (count($barcodes)) {
 			// Assume that any directory names are the barcodes for a book
 			foreach ($barcodes as $bc) {
@@ -143,7 +145,7 @@ class Cron extends CI_Controller {
 	 *
 	 * @since Version 1.5
 	 */
-	function export() {
+	public function export() {
 		if (!$this->_init('export')) { return; }
 
 		$args = func_get_args();
@@ -151,18 +153,18 @@ class Cron extends CI_Controller {
 		$this->exporter->export($args);
 	}
 
-	function statistics() {
+	public function statistics() {
 		if (!$this->_init('statistics')) { return; }
 		$this->common->run_statistics();
 	}
 
-	function index() {
+	public function index() {
 		echo "No command specified.\n";
 		echo "Usage:\n    php index.php cron (new_items|import_pages|export|statistics)\n";
 		echo "    php index.php cron export [export-specific-arguments]\n\n";
 	}
 
-	function already_running($action) {
+	public function already_running($action) {
 		// Get running processes.
 		$commands = array();
 		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
@@ -198,7 +200,7 @@ class Cron extends CI_Controller {
 		return false;
 	}
 
-	function clean_demo() {		
+	public function clean_demo() {		
 		if (!isset($this->cfg['demo_organization'])) {
 			return;
 		}
@@ -256,7 +258,7 @@ class Cron extends CI_Controller {
 		// TODO: Do the command to load the demo item
 	}
 
-  function calculate_sizes() {
+  public function calculate_sizes() {
     // Loop through the items in the books folder
     if ($h = opendir($this->cfg['data_directory'])) {
       while (false != ($f = readdir($h))) {

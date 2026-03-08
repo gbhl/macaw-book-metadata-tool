@@ -1,14 +1,5 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-require_once(APPPATH.'libraries/Authentication/phpass-0.1/PasswordHash.php');
-
-if (!defined('PHPASS_HASH_STRENGTH')) {
-	define('PHPASS_HASH_STRENGTH', 8);
-}
-if (!defined('PHPASS_HASH_PORTABLE')) {
-	define('PHPASS_HASH_PORTABLE', false);
-}
-
 /**
  * User Model
  *
@@ -136,8 +127,7 @@ class User extends CI_Model {
 		// password is accurate. Other places (javascript, our controller) make
 		// sure that the password and confirmation match.
 		if (isset($this->password) && $this->password != '') {
-			$hasher = new PasswordHash(PHPASS_HASH_STRENGTH, PHPASS_HASH_PORTABLE);
-			$pass_hash = $hasher->HashPassword($this->password);
+			$pass_hash = password_hash($this->password, PASSWORD_DEFAULT);
 			$data['password'] = $pass_hash;
 		}
 
@@ -182,8 +172,7 @@ class User extends CI_Model {
 				// that the password is accurate. Other places (javascript, our
 				// controller) make sure that the password and confirmation match.
 				if (isset($this->password)) {
-					$hasher = new PasswordHash(PHPASS_HASH_STRENGTH, PHPASS_HASH_PORTABLE);
-					$pass_hash = $hasher->HashPassword($this->password);
+					$pass_hash = password_hash($this->password, PASSWORD_DEFAULT);
 					$data['password'] = $pass_hash;
 				}
 

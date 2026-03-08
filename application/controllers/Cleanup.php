@@ -18,7 +18,7 @@ class Cleanup extends CI_Controller {
 	/**
 	 * Function: Constructor
 	 */
-	function __construct() {
+	public function __construct() {
 		parent::Controller();
 		$this->cfg = $this->config->item('macaw');
 	}
@@ -31,7 +31,7 @@ class Cleanup extends CI_Controller {
 	 * Go to the custom IA table and get the access keys for
 	 * uploading to IA. 
 	 */
-	 function _get_ia_keys($org_id) {
+	 public function _get_ia_keys($org_id) {
 		$query = $this->CI->db->query('select access_key, secret from custom_internet_archive_keys where org_id = '.$org_id);
 		foreach ($query->result() as $row) {
 			return array(
@@ -55,7 +55,7 @@ class Cleanup extends CI_Controller {
 	 * Usage: 
 	 *   sudo -u apache php index.php cleanup set_ia_macaw_versions
 	 */
-	function set_ia_macaw_versions() {
+	public function set_ia_macaw_versions() {
 			// Get all items and IA Identifiers
 			$books = $this->book->get_all_books();
 

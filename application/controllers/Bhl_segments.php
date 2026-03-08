@@ -3,7 +3,7 @@
 class bhl_segments extends CI_Controller {
     var $CI;
 
-    function __construct() {
+    public function __construct() {
         parent::__construct();
     }
 
@@ -12,7 +12,7 @@ class bhl_segments extends CI_Controller {
 	// Parameters:
 	//
 	// Saves the segment data to the database.
-    function save_segments() {
+    public public function save_segments() {
         if (!$this->common->check_session(true)) {
 					return;
         }
@@ -55,7 +55,7 @@ class bhl_segments extends CI_Controller {
         }
     }
     
-    function load_segments($itemID) {
+    public function load_segments($itemID) {
         if (!$this->common->check_session(true)) {
 			return;
         }
@@ -94,7 +94,7 @@ class bhl_segments extends CI_Controller {
 	//
 	// Makes sure that the CUSTOM_BHL_SEGMENTS table exists in the database.
 	// ----------------------------
-    function _check_custom_table() {
+    public function _check_custom_table() {
         if (!$this->db->table_exists('custom_bhl_segments')) {
             $this->load->dbforge();
             $this->dbforge->add_field([

@@ -15,7 +15,7 @@ class Utils extends CI_Controller {
 	/**
 	 * Function: Constructor
 	 */
-	function __construct() {
+	public function __construct() {
 		parent::__construct();
 		$this->cfg = $this->config->item('macaw');
 	}
@@ -32,7 +32,7 @@ class Utils extends CI_Controller {
 	 *
 	 * @since Version 1.1
 	 */
-	function image_sizes() {
+	public function image_sizes() {
 
 		// Get the books
 		$books = $this->book->get_all_books();
@@ -89,7 +89,7 @@ class Utils extends CI_Controller {
 	 *
 	 * @since Version 1.1
 	 */
-	function log() {
+	public function log() {
 		$data = json_decode($this->input->post('data'));
 
 		$this->logging->log(
@@ -116,7 +116,7 @@ class Utils extends CI_Controller {
 	 * 
 	 * @since Version 2.2
 	 */
-	function reset_item($barcode) {
+	public function reset_item($barcode) {
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
 			die;
@@ -516,7 +516,7 @@ class Utils extends CI_Controller {
 	 *
 	 * @since Version 2.8
 	 */
-	function reset_item_complete($barcode) {
+	public function reset_item_complete($barcode) {
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
 			die;
@@ -547,7 +547,7 @@ class Utils extends CI_Controller {
 	 *
 	 * @since Version 2.8
 	 */
-	function reset_item_cleanup($barcode) {
+	public function reset_item_cleanup($barcode) {
 
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
@@ -615,7 +615,7 @@ class Utils extends CI_Controller {
 	 *
 	 * @since Version 1.6
 	 */
-	function serialize($barcode) {
+	public function serialize($barcode) {
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
 			die;
@@ -710,7 +710,7 @@ class Utils extends CI_Controller {
 	 *
 	 * @since Version 1.6
 	 */
-	function unserialize() {
+	public function unserialize() {
 		$args = func_get_args();
 	
 		$fname = $args[count($args)-1];
@@ -767,7 +767,7 @@ class Utils extends CI_Controller {
 			system('mv -f '.$tmp.'/import_export/'.$barcode.'/scans/* '.$this->cfg['data_directory'].'/'.$barcode.'/scans/');
 		}
 
-		$item = unserialize(read_file($tmp.'/import_export/'.$barcode.'/item.dat'));
+		$item = unserialize(file_get_contents($tmp.'/import_export/'.$barcode.'/item.dat'));
 		if ($this->db->dbdriver == 'mysql' || $this->db->dbdriver == 'mysqli') {
 			if (!$item['needs_qa']) { $item['needs_qa'] = '0'; }
 			if ($item['needs_qa'] == 't') { $item['needs_qa'] = '1'; }
@@ -800,7 +800,7 @@ class Utils extends CI_Controller {
 			echo "Item record added! (id=".$new_item_id.")\n";
 		}
 		
-		$page = unserialize(read_file($tmp.'/import_export/'.$barcode.'/page.dat'));
+		$page = unserialize(file_get_contents($tmp.'/import_export/'.$barcode.'/page.dat'));
 		$page_map = array();
 		$this->db->trans_start();
 		for ($i = 0; $i < count($page); $i++) {
@@ -828,7 +828,7 @@ class Utils extends CI_Controller {
 		}
 		$this->db->trans_complete();
 
-		$metadata = unserialize(read_file($tmp.'/import_export/'.$barcode.'/metadata.dat'));
+		$metadata = unserialize(file_get_contents($tmp.'/import_export/'.$barcode.'/metadata.dat'));
 
 		// Verify we have new page numbers for all metadata items
 		for ($i = 0; $i < count($metadata); $i++) {	
@@ -891,7 +891,7 @@ class Utils extends CI_Controller {
 	 * 
 	 * @since Version 1.6
 	 */
-	function csvimport($filename, $filename2 = null, $username = 'admin') {
+	public function csvimport($filename, $filename2 = null, $username = 'admin') {
 		// Import the file
 		$errors = array();
 		
@@ -1101,7 +1101,7 @@ class Utils extends CI_Controller {
 	 * 
 	 * @since Version 2.1.14
 	 */
-	function _save_import_status($file = '', $value = 1, $message = '', $finished = 0) {
+	public function _save_import_status($file = '', $value = 1, $message = '', $finished = 0) {
 		if ($file != '') {
 			write_file($file.'.log', 
 				json_encode(array(
@@ -1125,7 +1125,7 @@ class Utils extends CI_Controller {
 	 *
 	 * @since Version 1.6
 	 */
-	function delete_item($barcode, $confirm = null) {
+	public function delete_item($barcode, $confirm = null) {
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
 			die;
@@ -1196,7 +1196,7 @@ class Utils extends CI_Controller {
 	 * below it. 
 	 *
 	 */
-	function _getFilesFromDir($dir) { 
+	public function _getFilesFromDir($dir) { 
 		$files = array(); 
 		if ($handle = opendir($dir)) { 
 			while (false !== ($file = readdir($handle))) { 
@@ -1218,7 +1218,7 @@ class Utils extends CI_Controller {
 	 * Flatten an array of arrays into one array
 	 * UTILITY/INTERNAL
 	 */ 
-	function _array_flat($array) { 
+	public function _array_flat($array) { 
 		$tmp = array();
 		foreach($array as $a) { 
 			if(is_array($a)) { 
@@ -1242,7 +1242,7 @@ class Utils extends CI_Controller {
 	 *
 	 * @since Version 2.1.20
 	 */	
-	function import_pdf($barcode = null, $filename = null) {
+	public function import_pdf($barcode = null, $filename = null) {
 		if (!$barcode) {
 			print "Barcode is requred!\n";
 			die;
@@ -1343,7 +1343,7 @@ class Utils extends CI_Controller {
 	 * 
 	 * INTERNAL/UTILITY: Used in import_pdf when splitting a PDF into PNGs. 
 	 */	
-	function _dedupe_files($files) {
+	public function _dedupe_files($files) {
 		$good_files = [];
 		foreach ($files as $fname => $data) {
 			$pi = pathinfo($fname);
@@ -1377,7 +1377,7 @@ class Utils extends CI_Controller {
 	 *
 	 * @since Version 2.7.0
 	 */	
-	function contributor_stats($hidekey = null) {
+	public function contributor_stats($hidekey = null) {
 		setlocale(LC_CTYPE, 'en_US');
 		$format = "%-50s %5s %6s %11s %-40s\n";
 		printf($format, 'CONTRIBUTOR', 'ITEMS', 'PAGES', 'LAST', 'IA EMAIL');
@@ -1457,7 +1457,7 @@ class Utils extends CI_Controller {
 	 *
 	 * @since Version 2.7.0
 	 */	
-	function check_all_marc() {
+	public function check_all_marc() {
 		$books = $this->book->get_all_books();
 		
 		// Loop through the books
@@ -1495,7 +1495,7 @@ class Utils extends CI_Controller {
 	 * 
 	 * INTERNAL/UTILITY: Used during reset_item to get the _orig_tiff.tar file over the network. 
 	 */	
-	function _get_ssh_file($filename) {
+	public function _get_ssh_file($filename) {
 		$ssh_user_and_host = '';
 		$ssh_path = '';
 
@@ -1518,7 +1518,7 @@ class Utils extends CI_Controller {
 	 * 
 	 * INTERNAL/UTILITY: Used during reset_item_cleanup. 
 	 */	
-	function _delete_all($p) {
+	public function _delete_all($p) {
 		if (is_file($p)) {
 			return unlink($p);
 		} elseif (is_dir($p)) {
@@ -1536,7 +1536,7 @@ class Utils extends CI_Controller {
 	 * Usage:
 	 *   sudo -u apache php index.php utils set_password richardjm joelpassword214!
 	 */	
-	function set_password ($username = null, $password = null) {
+	public function set_password ($username = null, $password = null) {
 		if (!$username) {
 			print "User is requried\nUSAGE: php index.php utils set_password USERNAME PASSWORD\n";
 			return;
@@ -1564,7 +1564,7 @@ class Utils extends CI_Controller {
 	 * 
 	 * @since Version 2.9.0
 	 */
-	function reload_marcxml($barcode) {
+	public function reload_marcxml($barcode) {
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
 			die;
@@ -1597,7 +1597,7 @@ class Utils extends CI_Controller {
 	 * 
 	 * @since Version 2.9.0
 	 */
-	function csv_reimport($filename, $username = 'admin') {
+	public function csv_reimport($filename, $username = 'admin') {
 		// Import the file
 		$errors = array();
 		

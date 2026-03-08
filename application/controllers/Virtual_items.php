@@ -12,7 +12,7 @@ class Virtual_Items extends CI_Controller {
 
 	var $cfg;
 
-	function __construct() {
+	public function __construct() {
 		parent::__construct();
 		$this->cfg = $this->config->item('macaw');
 	}
@@ -23,7 +23,7 @@ class Virtual_Items extends CI_Controller {
 	 * Simply makes sure the user is logged in and shows the admin main page.
 	 */
 	/* LOCAL ADMIN COMPLETED */
-	function index() {
+	public function index() {
 		$this->common->check_session();
 
 		// Permission Checking
@@ -37,7 +37,7 @@ class Virtual_Items extends CI_Controller {
 
 	}
 
-	function sources() {
+	public function sources() {
 		$this->common->check_session();
 
 		// Permission Checking
@@ -107,7 +107,7 @@ class Virtual_Items extends CI_Controller {
 		$content = $this->load->view('virtual_items/sources', $data);
 	}
 
-	function source($name, $id = null) {
+	public function source($name, $id = null) {
 		$this->common->check_session();
 
 		// Permission Checking
@@ -142,7 +142,7 @@ class Virtual_Items extends CI_Controller {
 
 	}
 
-	function source_spreadsheet($id = null) {
+	public function source_spreadsheet($id = null) {
 		$this->common->check_session();
 
 		// Permission Checking
@@ -169,7 +169,7 @@ class Virtual_Items extends CI_Controller {
 		}
 	}
 
-	function source_spreadsheet_list() {
+	public function source_spreadsheet_list() {
 		if (!$this->common->check_session(true)) {
 			return;
 		}
@@ -194,7 +194,7 @@ class Virtual_Items extends CI_Controller {
 
 	}
 
-	function source_itemlist($name, $id=null) {
+	public function source_itemlist($name, $id=null) {
 		if (!$this->common->check_session(true)) {
 			return;
 		}
@@ -224,7 +224,7 @@ class Virtual_Items extends CI_Controller {
 		echo json_encode(array('data' => $data));
 	}
 
-	function view_config($name) {
+	public function view_config($name) {
 		$this->common->check_session();
 
 		// Permission Checking

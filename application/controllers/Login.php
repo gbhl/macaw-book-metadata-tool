@@ -10,10 +10,6 @@
 
 class Login extends CI_Controller {
 
-	function __construct() {
-		parent::__construct();
-	}
-
 	/**
 	 * Show the login page.
 	 *
@@ -27,11 +23,12 @@ class Login extends CI_Controller {
 	 *  Tests:
 	 *
 	 */
-	function index() {
+	public function index() {
 		$data['username'] = '';
 
 		$this->common->check_upgrade();
-		
+		$this->load->helper('form');
+
 		if ($this->session->userdata('logged_in')) {
  			redirect($this->config->item('base_url').'dashboard');
 		} else {
@@ -52,7 +49,7 @@ class Login extends CI_Controller {
 	 * username and an "is_logged_in" flag. The activiy of this function is logged
 	 * so we know if/when someone is being bad.
 	 */
-	function checklogin() {
+	public function checklogin() {
 		$user = $_POST['username'];
 		$pass = $_POST['password'];
 
@@ -60,9 +57,6 @@ class Login extends CI_Controller {
 
 		if($this->authentication->auth($user, $pass)) {
 			$this->logging->log('access', 'info', 'User logged in.');
-			// Clear out any old sessions. This should be speedy.
-			$this->authentication->clear_sessions();
-			
 			redirect($this->config->item('base_url').'dashboard');
 		} else {
 			$this->session->set_userdata('errormessage', 'You entered an incorrect username or password. Please try again.');
@@ -81,7 +75,7 @@ class Login extends CI_Controller {
 	 *
 	 * This redirects to the login page when complete, too.
 	 */
-	function logout() {
+	public function logout() {
 		$this->load->library('Authentication');
 		$this->logging->log('access', 'info', 'User logged out.');
 

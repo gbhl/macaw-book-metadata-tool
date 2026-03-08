@@ -13,7 +13,7 @@ class Main extends CI_Controller {
 
 	var $cfg;
 
-	function __construct() {
+	public function __construct() {
 		parent::__construct();
 		$this->cfg = $this->config->item('macaw');
 	}
@@ -27,7 +27,7 @@ class Main extends CI_Controller {
 	 * SCS - Changed the logic due to new workflow.
 	 *  If no barcode, go to in Pro
 	 */
-	function index() {
+	public function index() {
 		$this->common->check_session();
 
 		// Get our book
@@ -56,12 +56,12 @@ class Main extends CI_Controller {
 		}
 	}
 
-	function terms() {
-		$data['terms'] = read_file($this->cfg['base_directory'].'/terms.txt');
+	public function terms() {
+		$data['terms'] = file_get_contents($this->cfg['base_directory'].'/terms.txt');
 		$this->load->view('main/terms_view', $data);	
 	}
 	
-	function terms_save() {
+	public function terms_save() {
 		$agree = false;
 		if (isset($_POST['agree'])) {
 			if ($_POST['agree'] == 1) {
@@ -88,7 +88,7 @@ class Main extends CI_Controller {
 	/**
 	 * Obselete function. Now we just redirect to main which handles redirecting to somewhere appropriate.
 	 **/
-	function manage() {
+	public function manage() {
 		redirect($this->config->item('base_url').'main');
 	}
 
@@ -102,7 +102,7 @@ class Main extends CI_Controller {
 	 * @param string [$barcode] The barcode that we received from the user
 	 *
 	 */
-	function barcode($value) {
+	public function barcode($value) {
 		if (!$this->common->check_session(true)) {
 			return;
 		}
@@ -184,7 +184,7 @@ class Main extends CI_Controller {
 	 * @param string [$barcode] The barcode that we received from the user
 	 *
 	 */
-	function managebarcode($barcode){
+	public function managebarcode($barcode){
 		if (!$this->common->check_session(true)) {
 			return;
 		}
@@ -276,7 +276,7 @@ class Main extends CI_Controller {
 	 * if ID is not provided.
 	 *
 	 */
-	function help() {
+	public function help() {
 		$this->common->check_session();
 		$this->load->view('main/help_view');
 	}
@@ -288,7 +288,7 @@ class Main extends CI_Controller {
 	 * if ID is not provided.
 	 *
 	 */
-	function js_config() {
+	public function js_config() {
         header("Content-Type:application/javascript");
         header("Cache-Control:max-age=290304000, public");
 
@@ -308,7 +308,7 @@ class Main extends CI_Controller {
 	 * needed.
 	 *
 	 */
-	function edit() {
+	public function edit() {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('scan')) {
@@ -409,7 +409,7 @@ class Main extends CI_Controller {
 	 * identifer is not needed.
 	 *
 	 */
-	function edit_save() {
+	public function edit_save() {
 		$this->common->check_session();
 		$errormessages = [];
 		
@@ -470,7 +470,7 @@ class Main extends CI_Controller {
 						// We didn't get a value, so let's see if we got a file upload
 						// Make sure the file exists, dummy!
 						if (file_exists($_FILES['new_value_'.$c.'_file']['tmp_name'])) {
-							$string = read_file($_FILES['new_value_'.$c.'_file']['tmp_name']);
+							$string = file_get_contents($_FILES['new_value_'.$c.'_file']['tmp_name']);
 							$this->book->set_metadata(trim($_REQUEST['new_fieldname_'.$c]), $string, false);
 						}
 					}
@@ -583,7 +583,7 @@ class Main extends CI_Controller {
 		redirect($this->config->item('base_url').'main/edit');	
 	}
 	
-  function admin_edit() {
+  public function admin_edit() {
 		$this->common->check_session();
 		$errormessages = [];
 
@@ -668,7 +668,7 @@ class Main extends CI_Controller {
 
   }
 
-  function admin_edit_save() {
+  public function admin_edit_save() {
 		$this->common->check_session();
     if (!$this->user->has_permission('admin')) {
 			$this->session->set_userdata('errormessage', 'Only admins can use the admin edit page!');
@@ -730,7 +730,7 @@ class Main extends CI_Controller {
 	 *
 	 * This is availble only to admins or local_admins.
 	 */
-	function delete_confirm() {
+	public function delete_confirm() {
 		$this->common->check_session();
 
 		// Get our book
@@ -790,7 +790,7 @@ class Main extends CI_Controller {
 	 *
 	 * This is availble only to admins or local_admins.
 	 */
-	function delete() {
+	public function delete() {
 		$this->common->check_session();
 		
 		if ($_REQUEST['action'] == 'cancel') {
@@ -872,7 +872,7 @@ class Main extends CI_Controller {
 	 * Displays a blank form for creating an item in Macaw. 
 	 *
 	 */
-	function add($barcode = '') {
+	public function add($barcode = '') {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('scan')) {
@@ -941,7 +941,7 @@ class Main extends CI_Controller {
 	 * (i.e. the user doesn't need to enter the barcode again)
 	 * 
 	 */
-	function add_save() {
+	public function add_save() {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('scan')) {
@@ -1011,7 +1011,7 @@ class Main extends CI_Controller {
 						}
 					} elseif ($_REQUEST['new_fieldname_'.$c] && array_key_exists('new_value_'.$c.'_file', $_FILES)) {
 						// We didn't get a value, so let's see if we got a file upload
-						$string = read_file($_FILES['new_value_'.$c.'_file']['tmp_name']);
+						$string = file_get_contents($_FILES['new_value_'.$c.'_file']['tmp_name']);
 						$this->book->set_metadata(trim($_REQUEST['new_fieldname_'.$c]), $string, false);
 					}
 				} else {
@@ -1058,7 +1058,7 @@ class Main extends CI_Controller {
 	 * This function simply displays the CSV import form.
 	 *
 	 */
-	function import() {
+	public function import() {
 		if (!$this->user->has_permission('scan')) {
 			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
 			redirect($this->config->item('base_url').'main');
@@ -1079,7 +1079,7 @@ class Main extends CI_Controller {
 	 * to monitor the progress of the import process. This is a 
 	 *
 	 */
-	function import_upload() {
+	public function import_upload() {
 		if (!$this->common->check_session(true)) {
 			return;
 		}
@@ -1163,7 +1163,7 @@ class Main extends CI_Controller {
 	 * is complete.
 	 *
 	 */
-	function import_status($filename) {
+	public function import_status($filename) {
 		if (!$this->common->check_session(true)) {
 			return;
 		}
@@ -1172,7 +1172,7 @@ class Main extends CI_Controller {
 		$fname = $dir.'/'.$filename.'.log';
 
 		// Get the progress of the file
-		$string = read_file($fname); 
+		$string = file_get_contents($fname); 
 		if ($string) {
 			$data = json_decode($string);
 	
@@ -1201,7 +1201,7 @@ class Main extends CI_Controller {
 	 * @param string [$status] Which statuses to show. (What the heck does this do?)
 	 * @since Version 1.0
 	 */
-	function listitems() {
+	public function listitems() {
 		$data['filter'] = array('All', 'New', 'In Progress', 'In QA', 'Awaiting Export');
 		$this->load->view('main/queue_view', $data);
 	}
@@ -1214,7 +1214,7 @@ class Main extends CI_Controller {
 	 * below it. 
 	 *
 	 */
-	function _getFilesFromDir($dir) { 
+	public function _getFilesFromDir($dir) { 
 		$files = array(); 
 		if (file_exists($dir)) {
 			if ($handle = opendir($dir)) { 
@@ -1237,7 +1237,7 @@ class Main extends CI_Controller {
 	/** 
 	 * Flatten an array of arrays into one array 
 	 **/	
-	function _array_flat($array) { 
+	public function _array_flat($array) { 
 		$tmp = array();
 		foreach($array as $a) { 
 			if(is_array($a)) { 

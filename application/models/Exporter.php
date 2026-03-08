@@ -55,7 +55,7 @@ class Exporter extends CI_Model {
 			// Decide if the first argument is a export module name, if it is, we call just that module
 			// with the remainder of the arguments.
 			if (in_array($args[0], $export_modules)) {
-				require_once($config['plugins_directory'].'/export/'.$args[0].EXT);
+				require_once($config['plugins_directory'].'/export/'.$args[0].'.php');
 				eval('$obj = new '.$args[0].'();');
 				array_shift($args);
 				$obj->export($args);
@@ -67,7 +67,7 @@ class Exporter extends CI_Model {
 
 		// Loop through the list, calling the share() function on each object
 		foreach ($export_modules as $p) {
- 			require_once($config['plugins_directory'].'/export/'.$p.EXT);
+ 			require_once($config['plugins_directory'].'/export/'.$p.'.php');
  			eval('$obj = new '.$p.'();');
  			$obj->export($args);
 		}

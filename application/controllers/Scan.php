@@ -17,7 +17,7 @@ class Scan extends CI_Controller {
 	/**
 	 * Function: Constructor
 	 */
-	function __construct() {
+	public function __construct() {
 		parent::__construct();
 		$this->cfg = $this->config->item('macaw');
 	}
@@ -31,7 +31,7 @@ class Scan extends CI_Controller {
 	 *
 	 * @since Version 1.0
 	 */
-	function index() {
+	public function index() {
 		redirect($this->config->item('base_url').'main');
 	}
 
@@ -47,7 +47,7 @@ class Scan extends CI_Controller {
 	 *
 	 * @since Version 1.0
 	 */
-	function monitor() {
+	public function monitor() {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('scan')) {
@@ -101,7 +101,7 @@ class Scan extends CI_Controller {
 	 *
 	 * @since Version 1.0
 	 */
-	function start_import() {
+	public function start_import() {
 		if (!$this->user->has_permission('scan')) {
 			$this->common->ajax_headers();
 			echo json_encode(array('errormessage' => 'You do not have permission to access that page.'));
@@ -147,7 +147,7 @@ class Scan extends CI_Controller {
 	 *
 	 * @since Version 1.0
 	 */
-	function progress() {
+	public function progress() {
 		if (!$this->common->check_session(true)) {
 			return;
 		}
@@ -207,7 +207,7 @@ class Scan extends CI_Controller {
 	 *
 	 * @since Version 1.0
 	 */
-	function end_scan() {
+	public function end_scan() {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('scan')) {
@@ -240,7 +240,7 @@ class Scan extends CI_Controller {
 	 *
 	 * @since Version 1.5
 	 */
-	function skip_scan() {
+	public function skip_scan() {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('scan')) {
@@ -275,7 +275,7 @@ class Scan extends CI_Controller {
 	 *
 	 * @since Version 1.0
 	 */
-	function end_missing_scan() {
+	public function end_missing_scan() {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('scan')) {
@@ -311,7 +311,7 @@ class Scan extends CI_Controller {
 	 *
 	 * @since Version 1.0
 	 */
-	function review() {
+	public function review() {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('scan')) {
@@ -376,7 +376,7 @@ class Scan extends CI_Controller {
 	 *
 	 * @since Version 1.0
 	 */
-	function get_thumbnails($filter = null) {
+	public function get_thumbnails($filter = null) {
 
 		if (!$this->common->check_session(true)) {
 			return;
@@ -422,7 +422,7 @@ class Scan extends CI_Controller {
 	 *
 	 * @since Version 1.0
 	 */
-	function save_pages() {
+	public function save_pages() {
 		if (!$this->common->check_session(true)) {
 			return;
 		}
@@ -501,7 +501,7 @@ class Scan extends CI_Controller {
 	 *
 	 * @since Version 1.0
 	 */
-	function end_review() {
+	public function end_review() {
 		if (!$this->common->check_session(true)) {
 			return;
 		}
@@ -655,7 +655,7 @@ class Scan extends CI_Controller {
 	 *
 	 * @since Version 1.4
 	 */
-	function _notify_qa($org_id = -1) {
+	public function _notify_qa($org_id = -1) {
 		
 		// Get a list of all QA users and their email addresses
 		$qa_users = array();
@@ -732,7 +732,7 @@ class Scan extends CI_Controller {
 	 *
 	 * @since Version 2.2.0
 	 */
-	function reorder_all() {
+	public function reorder_all() {
 		$this->common->check_session();
 
 		// Permission Checking
@@ -765,7 +765,7 @@ class Scan extends CI_Controller {
 	 *
 	 * @since Version 1.???
 	 */
-	function archive() {
+	public function archive() {
 
 	}
 
@@ -777,7 +777,7 @@ class Scan extends CI_Controller {
 	 *
 	 * @since Version 1.0
 	 */
-	function history() {
+	public function history() {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('scan')) {
@@ -834,7 +834,7 @@ class Scan extends CI_Controller {
 	 *
 	 * @since Version 1.1
 	 */
-	function missing($arg) {
+	public function missing($arg) {
 		if ($arg == 'start') {
 
 			try {
@@ -914,7 +914,7 @@ class Scan extends CI_Controller {
 	 *
 	 * @since Version 2.2
 	 */
-	function upload(){
+	public function upload(){
 		if (!$this->user->has_permission('scan')) {
 			$this->common->ajax_headers();
 			echo json_encode(array('errormessage' => 'You do not have permission to access that page.'));
@@ -1083,7 +1083,7 @@ class Scan extends CI_Controller {
 		}
 	}
 	
-	function _get_existing_files($dir, $barcode) {
+	public function _get_existing_files($dir, $barcode) {
 		$upload_path_url = base_url().'books/'.$barcode.'/scans/';
 		$upload_thumb_url = base_url().'books/'.$barcode.'/thumbs/';
 		$existingFiles = get_dir_file_info($dir);

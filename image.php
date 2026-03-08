@@ -17,7 +17,6 @@
 		$system_folder = str_replace("\\", "/", $system_folder);
 	}
 	
-	define('EXT', '.'.pathinfo(__FILE__, PATHINFO_EXTENSION));
 	define('FCPATH', __FILE__);
 	define('SELF', pathinfo(__FILE__, PATHINFO_BASENAME));
 	define('BASEPATH', $system_folder.'/');

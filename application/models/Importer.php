@@ -50,7 +50,7 @@ class Importer extends CI_Model {
 			// Decide if the first argument is the name of an Import module, if it is, we call just that module
 			// with the remainder of the arguments.
 			if (in_array($args[0], $import_modules)) {
-				require_once($config['plugins_directory'].'/import/'.$args[0].EXT);
+				require_once($config['plugins_directory'].'/import/'.$args[0].'.php');
 				eval('$obj = new '.$args[0].'();');
 				// Ensure we have an argument
 				$arg = null;
@@ -69,7 +69,7 @@ class Importer extends CI_Model {
 
 			// Loop through the list, calling the share() function on each object
 			foreach ($import_modules as $p) {
-				require_once($config['plugins_directory'].'/import/'.$p.EXT);
+				require_once($config['plugins_directory'].'/import/'.$p.'.php');
 				eval('$obj = new '.$p.'();');
 				$this->_import($obj->get_new_items($args), $p);
 			}

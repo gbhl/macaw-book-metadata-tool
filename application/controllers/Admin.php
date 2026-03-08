@@ -14,7 +14,7 @@ class Admin extends CI_Controller {
 	var $cfg;
 
 	/* LOCAL ADMIN COMPLETED */
-	function __construct() {
+	public function __construct() {
 		parent::__construct();
 		$this->cfg = $this->config->item('macaw');
 	}
@@ -25,7 +25,7 @@ class Admin extends CI_Controller {
 	 * Simply makes sure the user is logged in and shows the admin main page.
 	 */
 	/* LOCAL ADMIN COMPLETED */
-	function index() {
+	public function index() {
 		$this->common->check_session();
 
 		// Permission Checking
@@ -51,7 +51,7 @@ class Admin extends CI_Controller {
 	 * @param string [$status] Which statuses to show. (What the heck does this do?)
 	 * @since Version 1.0
 	 */
-	function queues() {
+	public function queues() {
 		$this->common->check_session();
 
 		// Permission Checking
@@ -76,7 +76,7 @@ class Admin extends CI_Controller {
 	 * @access public
 	 * @since Version 1.2
 	 */
-	function queue_data($completed = false) {
+	public function queue_data($completed = false) {
 		if (!$this->common->check_session(true)) {
 			return;
 		}
@@ -168,7 +168,7 @@ class Admin extends CI_Controller {
 	 * @access public
 	 * @since Version 1.2
 	 */
-	function user_queue_data() {
+	public function user_queue_data() {
 		if (!$this->common->check_session(true)) {
 			return;
 		}
@@ -223,7 +223,7 @@ class Admin extends CI_Controller {
 	 *
 	 * AJAX: Returns an array containing: exporting books for an organization
 	 **/
-	function user_export_data(){
+	public function user_export_data(){
 		if (!$this->common->check_session(TRUE)){
 			return;
 		}
@@ -243,7 +243,7 @@ class Admin extends CI_Controller {
 	 *
 	 * AJAX: Returns an array containing: exporting books
 	 **/
-	function export_audit_data(){
+	public function export_audit_data(){
 		if (!$this->common->check_session(TRUE)){
 			return;
 		}
@@ -263,7 +263,7 @@ class Admin extends CI_Controller {
 	 * Show the manual functions
 	 **/
 	/* LOCAL ADMIN COMPLETED */
-	function scheduled_jobs() {
+	public function scheduled_jobs() {
 		$this->common->check_session();
 
 		// Permission Checking
@@ -293,7 +293,7 @@ class Admin extends CI_Controller {
 	 * @since Version 1.0
 	 */
 	/* LOCAL ADMIN COMPLETED */
-	function logs($filename = '') {
+	public function logs($filename = '') {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('admin')) {
@@ -324,17 +324,19 @@ class Admin extends CI_Controller {
 	 * @param string [$barcode] Barcode of a book. Required if type=book, optional otherwise.
 	 * @since Version 1.0
 	 */
-	function get_log($name = '') {
+	public function get_log($name = '') {
 		// Make sure we are logged in and stuff
 		if (!$this->common->check_session(true)) {
 			return;
 		}
 
 		if ($name == '') {
+			// TODO See what happens now that directory_map() adds a trailing slash for directories
 			$books = directory_map($this->cfg['logs_directory'].'/books', true);
 			
 			$files = array();
 			// Get a list of the log files in the main log directory
+			// TODO See what happens now that directory_map() adds a trailing slash for directories
 			$logs = directory_map($this->cfg['logs_directory'], true);
       
       $filter = '';
@@ -384,7 +386,7 @@ class Admin extends CI_Controller {
 			$name = preg_replace('/books_/', 'books/', $name);
 
 			// Read the file, convert it to an array
-			$file = read_file($this->cfg['logs_directory'].'/'.$name);
+			$file = file_get_contents($this->cfg['logs_directory'].'/'.$name);
 
 			$data = preg_split('/[\n\r]+/', $file);
 			// Convert to the final layout that we need
@@ -434,7 +436,7 @@ class Admin extends CI_Controller {
 	 * @since Version 1.0
 	 */
 	/* LOCAL ADMIN COMPLETED */
-	function account() {
+	public function account() {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('admin') && !$this->user->has_permission('local_admin')) {
@@ -456,7 +458,7 @@ class Admin extends CI_Controller {
 	 * @since Version 1.0
 	 */
 	/* LOCAL ADMIN COMPLETED */
-	function account_list() {
+	public function account_list() {
 		// Make sure we are logged in and stuff
 		if (!$this->common->check_session(true)) {
 			return;
@@ -482,7 +484,7 @@ class Admin extends CI_Controller {
 	 * @since Version 1.0
 	 */
 	/* LOCAL ADMIN COMPLETED */
-	function account_edit($username = '') {
+	public function account_edit($username = '') {
 		// Make sure we are logged in and stuff
 		if (!$this->common->check_session(true)) {
 			return;
@@ -563,7 +565,7 @@ class Admin extends CI_Controller {
 	 * @since Version 1.2
 	 */
 	/* LOCAL ADMIN COMPLETED */
-	function account_add() {
+	public function account_add() {
 		// Make sure we are logged in and stuff
 		if (!$this->common->check_session(true)) {
 			return;
@@ -615,7 +617,7 @@ class Admin extends CI_Controller {
 	 * @since Version 1.0
 	 */
 	/* LOCAL ADMIN COMPLETED */
-	function account_save() {
+	public function account_save() {
 		// Make sure we are logged in and stuff
 		if (!$this->common->check_session(true)) {
 			return;
@@ -748,7 +750,7 @@ class Admin extends CI_Controller {
 	 * @since Version 1.2
 	 */
 	/* LOCAL ADMIN COMPLETED */
-	function account_delete($username = null) {
+	public function account_delete($username = null) {
 		$target_user = new User;
 		$target_user->load($username);
 
@@ -791,7 +793,7 @@ class Admin extends CI_Controller {
 	 * @since Version 1.1
 	 */
 	/* LOCAL ADMIN COMPLETED */
-	function _can_edit_account($user, $target) {
+	public function _can_edit_account($user, $target) {
 		$target_user = new User;
 		$target_user->load($target);
 
@@ -810,7 +812,7 @@ class Admin extends CI_Controller {
 		return false;
 	}
 	
-	function view_config() {
+	public function view_config() {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('admin')) {
@@ -852,7 +854,7 @@ class Admin extends CI_Controller {
 	 * @param string [$action] Which cron entry should be run. Must correspond to a method on the cron crontroller.
 	 */
 	/* LOCAL ADMIN COMPLETED */
-	function cron($action) {
+	public function cron($action) {
 		$this->common->ajax_headers();
 
 		if (!$this->user->has_permission('admin')) {
@@ -886,7 +888,7 @@ class Admin extends CI_Controller {
 	 * @since Version 1.7
 	 */
 	/* LOCAL ADMIN COMPLETED */
-	function organization() {
+	public function organization() {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('admin')) {
@@ -905,7 +907,7 @@ class Admin extends CI_Controller {
 	 * @since Version 1.7
 	 */
 	/* LOCAL ADMIN COMPLETED */
-	function organization_list() {
+	public function organization_list() {
 		// Make sure we are logged in and stuff
 		if (!$this->common->check_session(true)) {
 			return;
@@ -928,7 +930,7 @@ class Admin extends CI_Controller {
 	 * @since Version 1.7
 	 */
 	/* LOCAL ADMIN COMPLETED */
-	function organization_edit($id = 0) {
+	public function organization_edit($id = 0) {
 		// Make sure we are logged in and stuff
 		if (!$this->common->check_session(true)) {
 			return;
@@ -995,7 +997,7 @@ class Admin extends CI_Controller {
 	 * @since Version 1.7
 	 */
 	/* LOCAL ADMIN COMPLETED */
-	function organization_add() {
+	public function organization_add() {
 		// Make sure we are logged in and stuff
 		if (!$this->common->check_session(true)) {
 			return;
@@ -1044,7 +1046,7 @@ class Admin extends CI_Controller {
 	 * @since Version 1.7
 	 */
 	/* LOCAL ADMIN COMPLETED */
-	function organization_save() {
+	public function organization_save() {
 		// Make sure we are logged in and stuff
 		if (!$this->common->check_session(true)) {
 			return;
@@ -1140,7 +1142,7 @@ class Admin extends CI_Controller {
 	 * @since Version 1.2
 	 */
 	/* LOCAL ADMIN COMPLETED */
-	function organization_delete($id) {
+	public function organization_delete($id) {
 		if (!$this->user->has_permission('admin')) {
 			$this->common->ajax_headers();
 			echo json_encode(array('error' => 'Permission denied.'));
@@ -1174,7 +1176,7 @@ class Admin extends CI_Controller {
 	 *
 	 * @since Version 2.2
 	 */
-	function monthly_report() {
+	public function monthly_report() {
 		if (!$this->user->has_permission('admin') && !$this->user->has_permission('local_admin')) {
 			$data['results'] = array();
 			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
@@ -1217,7 +1219,7 @@ class Admin extends CI_Controller {
 		$content = $this->load->view('admin/monthly_report', $data);
 	}
 
-	function stalled_exports(){
+	public function stalled_exports(){
 		$content = $this->load->view('admin/stalled_exports');
 	}
 

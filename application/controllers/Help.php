@@ -12,7 +12,7 @@ class Help extends CI_Controller {
 
 	var $cfg;
 
-	function __construct() {
+	public function __construct() {
 		parent::__construct();
 		$this->cfg = $this->config->item('macaw');
 	}
@@ -24,43 +24,43 @@ class Help extends CI_Controller {
 	 * current book.
 	 *
 	 */
-	function index() {
+	public function index() {
 		$this->load->view('help/help_view');
 	}
 
-	function overview() {
+	public function overview() {
 		$this->load->view('help/overview_view');
 	}
 
-	function quickstart() {
+	public function quickstart() {
 		$this->load->view('help/quickstart_view');
 	}
 
-	function scanning() {
+	public function scanning() {
 		$this->load->view('help/scanning_view');
 	}
 
-	function reviewing() {
+	public function reviewing() {
 		$this->load->view('help/reviewing_view');
 	}
 
-	function missing() {
+	public function missing() {
 		$this->load->view('help/missing_view');
 	}
 
-	function network() {
+	public function network() {
 		$this->load->view('help/network_view');
 	}
 
-	function export() {
+	public function export() {
 		$this->load->view('help/export_view');
 	}
 
-	function misc() {
+	public function misc() {
 		$this->load->view('help/misc_view');
 	}
 
-	function help_index() {
+	public function help_index() {
 		$this->load->view('help/help_index_view');
 	}
 

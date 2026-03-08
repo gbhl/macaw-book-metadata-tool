@@ -21,11 +21,11 @@
 
  **/
 
-class Common extends CI_Controller {
+class Common {
 	var $CI;
 	var $cfg;
 
-	function __construct() {
+	public function __construct() {
 		$this->CI = get_instance();
 		$this->CI->load->library('session');
 		$this->cfg = $this->CI->config->item('macaw');
@@ -49,7 +49,7 @@ class Common extends CI_Controller {
 	 * @return boolean Whether or not the user is logged in.
 	 *
 	 */
-	function check_session($ajax = false) {
+	public function check_session($ajax = false) {
 		if (!$this->CI->session->userdata('logged_in')) {
 			$this->CI->session->set_userdata('errormessage', 'Your session has expired. Please login again.');
 			if ($ajax) {
@@ -71,7 +71,7 @@ class Common extends CI_Controller {
 	 *
 	 * @access public
 	 */
-	function get_book_info($notags = false) {
+	public function get_book_info($notags = false) {
 		$title = $this->CI->session->userdata('title').'';
 		$author = $this->CI->session->userdata('author').'';
 		
@@ -97,7 +97,7 @@ class Common extends CI_Controller {
 	 *
 	 * @todo See if we can make this work for windows. We'd need to know we are windows, first. Ugh.
 	 */
-	function _get_host($ip) {
+	public function _get_host($ip) {
 		//Make sure the input is not going to do anything unexpected
 		//IPs must be in the form x.x.x.x with each x as a number
 		if (preg_match('/^(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:[.](?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}$/', $ip)) {
@@ -120,7 +120,7 @@ class Common extends CI_Controller {
 	 * @access public
 	 * @throws Causes web-page error to be displayed.
 	 */
-	function validate_config() {
+	public function validate_config() {
 
 		// Clean all paths in the config to eliminate trailing slashes
 		$this->cfg['base_directory'] = preg_replace('/\/+$/', '', $this->cfg['base_directory']);
@@ -161,8 +161,8 @@ class Common extends CI_Controller {
 		} else {
 			$modules = $this->cfg['import_modules'];
 			foreach ($modules as $p) {
-				if (!file_exists($this->cfg['plugins_directory'].'/import/'.$p.EXT)) {
-					show_error('The import module "'.$p.EXT.'" is configured but could not be found: '.$this->cfg['plugins_directory'].'/import/'.$p.EXT);
+				if (!file_exists($this->cfg['plugins_directory'].'/import/'.$p.'.php')) {
+					show_error('The import module "'.$p.'.php'.'" is configured but could not be found: '.$this->cfg['plugins_directory'].'/import/'.$p.'.php');
 				}
 			}
 		}
@@ -174,8 +174,8 @@ class Common extends CI_Controller {
 		} else {
 			$modules = $this->cfg['export_modules'];
 			foreach ($modules as $p) {
-				if (!file_exists($this->cfg['plugins_directory'].'/export/'.$p.EXT)) {
-					show_error('The export module "'.$p.EXT.'" is configured but could not be found: '.$this->cfg['plugins_directory'].'/export/'.$p.EXT);
+				if (!file_exists($this->cfg['plugins_directory'].'/export/'.$p.'.php')) {
+					show_error('The export module "'.$p.'.php'.'" is configured but could not be found: '.$this->cfg['plugins_directory'].'/export/'.$p.'.php');
 				}
 			}
 		}
@@ -198,7 +198,7 @@ class Common extends CI_Controller {
 	 * @access public
 	 * @throws Causes web-page error to be displayed.
 	 */
-	function validate_log_config($barcode = '') {
+	public function validate_log_config($barcode = '') {
 	  // Make sure the log directories and files can be written to
 		$path = $this->cfg['logs_directory'];
 		if (!$this->path_is_writable($path.'/')) {
@@ -273,11 +273,11 @@ class Common extends CI_Controller {
 	 *
 	 * @access public
 	 */
-	function ajax_headers() {
+	public function ajax_headers() {
         header("Content-Type: application/json; charset=utf-8");
         header("Pragma: no-cache");
         header("Cache-Control: no-cache");
-        header("Expires: ".standard_date('DATE_RFC822', time()));
+        header("Expires: ".date(DATE_RFC822, now()));
 	}
 
 	/**
@@ -291,7 +291,7 @@ class Common extends CI_Controller {
 	 *
 	 * @access public
 	 */
-	function is_global_page($page, $subpage = null) {
+	public function is_global_page($page, $subpage = null) {
 		if ($page == 'dashboard' || $page == 'admin') {
 		    return true;
 		} elseif ($page == 'main' && $subpage == null) {
@@ -300,7 +300,7 @@ class Common extends CI_Controller {
 		return false;
 	}
 
-	function get_largest_image($img) {
+	public function get_largest_image($img) {
 		$img->setLastIterator();
 
 		$largest = 0;
@@ -341,7 +341,7 @@ class Common extends CI_Controller {
 	 * @param int [$timeout] Number of seconds before we give up.
 	 * @since Version 1.0
 	 */
-	function is_file_stable($fname, $stability = 5, $timeout = 60) {
+	public function is_file_stable($fname, $stability = 5, $timeout = 60) {
 		if (file_exists($fname)) {
 			$count = $timeout;
 			$ok_count = 0;
@@ -384,7 +384,7 @@ class Common extends CI_Controller {
 	 *
 	 * @param string [$text] The MARC XML to be checked
 	 */
-	function clean_marc($marc){
+	public function clean_marc($marc){
 		// Do we have a marc namespace on the tags? If yes, we're ok.
 		if (!preg_match("/\<marc:/", $marc)) {
 			// Do we have plain <collection> and <record> tags?
@@ -427,7 +427,7 @@ class Common extends CI_Controller {
 	 *
 	 * @param string [$text] The MARC XML to be checked
 	 */
-	function validate_marc($marc){
+	public function validate_marc($marc){
 		
 		// Is this an OAI MARC file?
 		if (preg_match("/oai-marc/", $marc)) {
@@ -533,7 +533,7 @@ class Common extends CI_Controller {
 	 *
 	 * @param string [$text] The MARC XML to be converted
 	 */
-	function marc_to_mods($text) {
+	public function marc_to_mods($text) {
 		$xml = new DOMDocument;
 		$xsl = new DOMDocument;
 		$proc = new XSLTProcessor;
@@ -563,7 +563,7 @@ class Common extends CI_Controller {
 	 *
 	 * No Parameters.
 	 */
-	function check_upgrade() {
+	public function check_upgrade() {
 		// Check to see if we have the settings table
 		if ($this->CI->db->dbdriver == 'postgre') {
 			$q = $this->CI->db->query("select * from pg_tables where tablename = 'settings';");
@@ -634,7 +634,7 @@ class Common extends CI_Controller {
 	 *
 	 * @param Book [$book] The book object we want to check
 	 */
-	function check_missing_metadata($book) {
+	public function check_missing_metadata($book) {
 		if ($this->CI->uri->segment(1) == 'scan' || $this->CI->uri->segment(1) == 'main') { 
 			$missing_metadata =  $book->get_missing_metadata(true);
 			$msg = '';
@@ -655,7 +655,7 @@ class Common extends CI_Controller {
 	 *
 	 * @param string [$barcode] The barcode of the item we want to export
 	 */
-	function serialize($barcode) {
+	public function serialize($barcode) {
 		if (!$barcode) {
 			throw new Exception("Please supply a barcode.");
 		}
@@ -742,11 +742,11 @@ class Common extends CI_Controller {
 	 *
 	 * @param string [$message] The message of the email. 
 	 */
-	function email_error($message) {
+	public function email_error($message) {
 		$this->email_admin($message, 'Error Notification', true);
 	}
 	
-	function email_admin($message = '', $subject = 'Notification', $error = false) {
+	public function email_admin($message = '', $subject = 'Notification', $error = false) {
 		if ($message != '') {
 			$this->CI->load->library('email');
 	
@@ -778,7 +778,7 @@ class Common extends CI_Controller {
 	 * This is called from multiple places, so it abstracted here.
 	 * Calcualtes the number of pages scanned, pages per day and disk space used.
 	 */
-	function run_statistics() {
+	public function run_statistics() {
 
 		if ($this->CI->db->dbdriver == 'postgre') {
 			// Has this statistic already been generated
@@ -953,14 +953,14 @@ class Common extends CI_Controller {
 	}
 	
 
-	function trim_utf8_bom($data){ 
+	public function trim_utf8_bom($data){ 
 		if(substr($data, 0, 3) == pack('CCC', 239, 187, 191)) {
 			return substr($data, 3);
 		}
 		return $data;
 	}
 
-	function trim_utf16_bom($data){ 
+	public function trim_utf16_bom($data){ 
 		$bom = pack("CCC", 0xef, 0xbb, 0xbf);
 		if (0 === strncmp($data, $bom, 3)) {
 				$return = substr($data, 3);
@@ -968,14 +968,14 @@ class Common extends CI_Controller {
 		return $data;
 	}
 
-	function trim_bom($data){ 
+	public function trim_bom($data){ 
 		if (ord(substr($data,0)) == 255 && ord(substr($data,1)) == 254) {
 				$data = substr($data, 2);
 		}
 		return $data;
 	}
 
-	function is_utf16($str) {
+	public function is_utf16($str) {
 		if (strlen($str) > 2) {
 			$c0 = ord($str[0]);
 			$c1 = ord($str[1]);
@@ -990,7 +990,7 @@ class Common extends CI_Controller {
 	}
 	
 	
-	function utf16_to_utf8($str) {
+	public function utf16_to_utf8($str) {
 		if (strlen($str) > 2) {
 			$c0 = ord($str[0]);
 			$c1 = ord($str[1]);
@@ -1032,7 +1032,7 @@ class Common extends CI_Controller {
 	 * Original From https://core.wp-a2z.org/oik_api/win_is_writable/
 	 * Modified to work with both Linux and Windows
 	 */
-	function path_is_writable( $path ) {
+	public function path_is_writable( $path ) {
 		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
 		
 			if ( '/' === $path[ strlen( $path ) - 1 ] ) {
@@ -1059,7 +1059,7 @@ class Common extends CI_Controller {
 		}
 	}
 
-	function macaw_strftime($pattern) {
+	public function macaw_strftime($pattern) {
 		// %Y - Four-digit year
 		// %m - Month number (01-12)
 		// %d - Day of the month (01-31)
