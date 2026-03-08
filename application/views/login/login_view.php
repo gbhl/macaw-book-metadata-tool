@@ -35,24 +35,16 @@
 		<?php $this->load->view('global/error_messages_view') ?>	
 		
 		<div id="logincontent">
-			<p>If you can see this, ensure that <em>mod_rewrite</em> is enabled and <em>AllowOverride All</em> is set and the base URL is correct..</p>
+			<p>If you can see this, ensure that <em>mod_rewrite</em> is enabled, <em>AllowOverride All</em> is set, and the base URL is correct..</p>
 		</div>
 		
 		<div id="logincontenttemplate" style="display:none;visibility:hidden">
 		
 			<?php echo form_open($this->config->item('base_url').'login/checklogin', array('id' => 'loginform')) ?>
-			
-			
-						<span class="loginlabel">
-						<?php echo form_label('User Name:','username') ?></span>
-						<span class="loginfield"><?php echo form_input(array('name' => 'username', 'id' => 'username', 'size' => '20', 'maxlength' => '32', 'tabindex' => '1'), $username) ?></span>
-					<span class="loginlabel">
-						<?php echo form_label('Password:','password') ?></span>
-						<span class="loginfield"><?php echo form_password(array('name' => 'password', 'id' => 'password', 'size' => '20', 'maxlength' => '32', 'tabindex' => '2')) ?></span>
-					
-				</table>
-				
-				
+				<span class="loginlabel"><?php echo form_label('User Name:','username') ?></span>
+				<span class="loginfield"><?php echo form_input(array('name' => 'username', 'id' => 'username', 'size' => '20', 'maxlength' => '32', 'tabindex' => '1'), $username) ?></span>
+				<span class="loginlabel"><?php echo form_label('Password:','password') ?></span>
+				<span class="loginfield"><?php echo form_password(array('name' => 'password', 'id' => 'password', 'size' => '20', 'maxlength' => '32', 'tabindex' => '2')) ?></span>
 			<?php echo form_close() ?>
 		</div>
 	

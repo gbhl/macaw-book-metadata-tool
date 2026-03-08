@@ -7,7 +7,13 @@
 	<title>Admin | Accounts | Macaw</title>
 			<link rel="stylesheet" type="text/css" href="/css/yui-combo.css"> 
 	<?php $this->load->view('global/head_view') ?>
-	<script type="text/javascript">YAHOO.util.Event.onDOMReady(User.initList);</script>
+	<script type="text/javascript">
+		function init() {
+			MessageBox.init();
+			User.initList();
+		}
+		YAHOO.util.Event.onDOMReady(init);
+	</script>
 </head>
 <body class="yui-skin-sam">
 	<?php $this->load->view('global/header_view') ?>
@@ -25,7 +31,6 @@
 		</div>
 		<div id="wrapper"><button id="btnAddAccount">Add Account</button></div>
 	</div>
-	<div id="dlgEdit" class="yui-pe-content"></div>
 	<?php $this->load->view('global/footer_view') ?>
 </body>
 </html>

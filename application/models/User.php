@@ -24,6 +24,8 @@ class User extends CI_Model {
     public $org_name = '';
     public $permissions = '';
     public $terms_conditions = '';
+    public $totp_secret = null;
+    public $totp_enabled = false;
 
     private $all_permissions = array('scan', 'qa_required', 'qa', 'local_admin', 'admin');
 
@@ -74,6 +76,8 @@ class User extends CI_Model {
 				$this->org_id						= $row->org_id;
 				$this->org_name					= $row->org_name;
 				$this->terms_conditions	= $row->terms_conditions;
+				$this->totp_enabled     = isset($row->totp_enabled) ? (bool)$row->totp_enabled : false;
+				$this->totp_secret      = isset($row->totp_secret)  ? $row->totp_secret : null;
 			}
 		}
 		// else, we've created a new, blank object WITHOUT a username
@@ -99,6 +103,8 @@ class User extends CI_Model {
 		$this->org_id						= '';
 	  $this->permissions			= '';
 	  $this->terms_conditions = '';
+	  $this->totp_enabled     = false;
+	  $this->totp_secret      = null;
  	}
 
 	/**

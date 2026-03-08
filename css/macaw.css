@@ -1725,6 +1725,9 @@ textarea, input {
 #edit td {
 	white-space: nowrap;
 }
+#edit .qr-svg.qrcode {
+	width: 350px;
+}
 /* ****************************** */
 /* IMPORT CSV PAGE                */
 /* ****************************** */

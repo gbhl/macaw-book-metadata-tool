@@ -55,13 +55,71 @@ class Login extends CI_Controller {
 
 		$this->load->library('Authentication');
 
-		if($this->authentication->auth($user, $pass)) {
-			$this->logging->log('access', 'info', 'User logged in.');
-			redirect($this->config->item('base_url').'dashboard');
+		if ($this->authentication->auth($user, $pass)) {
+			// Check whether this account requires TOTP
+			$account = $this->db->get_where('account', array('username' => $user))->row();
+			if ($account && $account->totp_enabled && !empty($account->totp_secret)) {
+				// Password OK but TOTP still needed — keep session data but mark as not fully logged in
+				$this->session->set_userdata('logged_in', false);
+				$this->session->set_userdata('totp_pending', true);
+				$this->logging->log('access', 'info', 'User '.$user.' passed password, awaiting TOTP.');
+				redirect($this->config->item('base_url').'login/totp');
+			} else {
+				$this->logging->log('access', 'info', 'User logged in.');
+				redirect($this->config->item('base_url').'dashboard');
+			}
 		} else {
 			$this->session->set_userdata('errormessage', 'You entered an incorrect username or password. Please try again.');
-			$this->logging->log('access', 'info', 'User '.$user.' failed to logged in.');
+			$this->logging->log('access', 'info', 'User '.$user.' failed to log in.');
 			$this->index();
+		}
+	}
+
+	/**
+	 * Show the TOTP verification page.
+	 *
+	 * Only accessible when a password-authenticated session is pending TOTP.
+	 */
+	public function totp() {
+		if (!$this->session->userdata('totp_pending')) {
+			redirect($this->config->item('base_url').'login');
+			return;
+		}
+		$this->load->view('login/totp_view');
+	}
+
+	/**
+	 * Verify the submitted TOTP code and complete the login.
+	 */
+	public function checktotp() {
+		if (!$this->session->userdata('totp_pending')) {
+			redirect($this->config->item('base_url').'login');
+			return;
+		}
+
+		$username = $this->session->userdata('username');
+		$code     = $this->input->post('totp_code');
+
+		$account = $this->db->get_where('account', array('username' => $username))->row();
+
+		if (empty($account->totp_enabled) || empty($account->totp_secret)) {
+			// TOTP no longer required — just complete the login
+			$this->session->set_userdata('logged_in', true);
+			$this->session->unset_userdata('totp_pending');
+			redirect($this->config->item('base_url').'dashboard');
+			return;
+		}
+
+		$this->load->library('Totp');
+		if ($this->totp->verify($account->totp_secret, $code)) {
+			$this->session->set_userdata('logged_in', true);
+			$this->session->unset_userdata('totp_pending');
+			$this->logging->log('access', 'info', 'User '.$username.' completed TOTP verification.');
+			redirect($this->config->item('base_url').'dashboard');
+		} else {
+			$this->session->set_userdata('errormessage', 'Invalid verification code. Please try again.');
+			$this->logging->log('access', 'info', 'User '.$username.' failed TOTP verification.');
+			$this->totp();
 		}
 	}
 

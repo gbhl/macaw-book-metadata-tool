@@ -51,6 +51,10 @@ class Common {
 	 */
 	public function check_session($ajax = false) {
 		if (!$this->CI->session->userdata('logged_in')) {
+			// If a TOTP verification is in progress, route back to the TOTP page
+			if (!$ajax && $this->CI->session->userdata('totp_pending')) {
+				redirect($this->CI->config->item('base_url').'login/totp');
+			}
 			$this->CI->session->set_userdata('errormessage', 'Your session has expired. Please login again.');
 			if ($ajax) {
 				$this->ajax_headers();
