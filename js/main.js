@@ -26,7 +26,7 @@ $(function () {
       sequentialUploads: false,
       limitConcurrentUploads: 3,
       autoUpload: false,
-      maxFileSize: 536870912
+      maxFileSize: 1073741824
     });
 
     // Enable iframe cross-domain access via redirect option:
