@@ -2461,7 +2461,7 @@ class Internet_archive extends Controller {
 					// Fallback, take the first number we can find.
 					$height = $matches[1];
 				}
-				if ($height == 0) {
+				if ((int)$height == 0) {
 					return 300;
 				}
 

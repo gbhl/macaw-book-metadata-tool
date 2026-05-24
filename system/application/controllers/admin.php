@@ -810,7 +810,7 @@ class Admin extends Controller {
 		return false;
 	}
 	
-	function view_config() {
+	function view_config($all = '') {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('admin')) {
@@ -841,7 +841,29 @@ class Admin extends Controller {
 				);
 			}
 		}
-	$this->load->view('admin/config_view', $data);
+		$data['all'] = ($all == 'all');
+		$data['phpinfo'] = $this->_phpinfo_array();
+		unset($data['phpinfo']['General']['Configure Command']);
+		unset($data['phpinfo']['PHP Variables']);
+		$this->load->view('admin/config_view', $data);
+	}
+
+	function _phpinfo_array() {
+		ob_start();
+		phpinfo();
+		$info_arr = array();
+		$info_lines = explode("\n", strip_tags(ob_get_clean(), "<tr><td><h2>"));
+		$cat = "General";
+		foreach($info_lines as $line) {
+			// new cat?
+			preg_match("~<h2>(.*)</h2>~", $line, $title) ? $cat = $title[1] : null;
+			if(preg_match("~<tr><td[^>]+>([^<]*)</td><td[^>]+>([^<]*)</td></tr>~", $line, $val)) {
+				$info_arr[trim($cat)][trim($val[1])] = $val[2];
+			} elseif(preg_match("~<tr><td[^>]+>([^<]*)</td><td[^>]+>([^<]*)</td><td[^>]+>([^<]*)</td></tr>~", $line, $val)) {
+				$info_arr[trim($cat)][trim($val[1])] = array("local" => $val[2], "master" => $val[3]);
+			}
+		}
+		return $info_arr;
 	}
 
 	/* 

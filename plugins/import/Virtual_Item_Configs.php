@@ -350,7 +350,10 @@ class Virtual_Item_Configs extends Controller {
 				// Clean up some potentially messy data
 				$info['title'] = $this->clean_string($info['title']);
 				// Test for PDF-ness
-				$mime_type = mime_content_type($pdf_path);
+				$mime_type = null;
+				if ($pdf_path) {
+					$mime_type = mime_content_type($pdf_path);
+				}
 
 				if (!preg_match('/pdf/', $mime_type)) {
 					$this->CI->logging->log('book', 'error', "Did not get a valid PDF file. (Got: $mime_type)", $info['barcode']);
@@ -359,7 +362,10 @@ class Virtual_Item_Configs extends Controller {
 
 				if (!$pdf_path) {
 					$this->CI->logging->log('book', 'error', "Could not get PDF for item. Aborting.", $info['barcode']);
-					$this->CI->logging->log('access', 'info', "Virtual Items: Source: $name: Could not get PDF for item with barcode ".$info['barcode']." ($mime_type; ".$info['pdf_source']."). Aborting.");
+					$this->CI->logging->log('access', 'info', 
+						"Virtual Items: Source: $name: Could not get PDF for item with barcode ".
+						$info['barcode']." ($mime_type; ".(isset($info['pdf_source']) ? $info['pdf_source'] : '(No pdf_source)')."). Aborting."
+					);
 				} else {
 					// Put the PDF in the incoming folder
 					$incoming_path = $this->CI->cfg['incoming_directory'].'/'.$info['barcode'];
@@ -1019,9 +1025,12 @@ class Virtual_Item_Configs extends Controller {
 	}
 
 	function pdf_page_count($pdf) {
-		$cmd = $this->CI->cfg['gs_exe'].' -q -dNOSAFER -dNODISPLAY -c "('.$pdf.') (r) file runpdfbegin pdfpagecount = quit"';
-		$count = shell_exec($cmd);
-		$count = (int)trim($count);
-		return $count;
+		$count = null;
+		if ($pdf) {
+			$cmd = $this->CI->cfg['gs_exe'].' -q -dNOSAFER -dNODISPLAY -c "('.$pdf.') (r) file runpdfbegin pdfpagecount = quit"';
+			$count = shell_exec($cmd);
+			$count = (int)trim($count);
+		}
+		return $count;				
 	}	
 }
