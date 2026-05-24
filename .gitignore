@@ -24,6 +24,7 @@ application/logs/*
 # COMPOSER
 # Definitely don't want this in source control
 vendor 
+composer.lock
 
 ########################################
 # PLUGINS
