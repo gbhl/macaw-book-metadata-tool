@@ -30,6 +30,7 @@ CREATE SEQUENCE page_id_seq
     CACHE 1;
 
 CREATE SEQUENCE metadata_id_seq
+    AS bigint
     START WITH 1
     INCREMENT BY 1
     NO MAXVALUE
@@ -73,7 +74,7 @@ CREATE TABLE permission (
 
 CREATE TABLE item (
     id integer NOT NULL,
-    barcode character varying(32),
+    barcode character varying(128),
     status_code character varying(32),
     missing_pages boolean,
     pages_found integer,
@@ -111,7 +112,7 @@ CREATE TABLE page (
 );
 
 CREATE TABLE metadata (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     item_id int NOT NULL,
     page_id integer,
     fieldname character varying(32),
@@ -198,7 +199,7 @@ INSERT INTO account VALUES (1, 'admin', null, 1, null, now());
 
 INSERT INTO permission VALUES ('admin', 'admin');
 INSERT INTO permission VALUES ('admin', 'scan');
-INSERT INTO settings VALUES ('version', '2.8');
+INSERT INTO settings VALUES ('version', '3.1');
 INSERT INTO settings values ('installed', '1');
 
 SELECT pg_catalog.setval('account_id_seq', 1, true);
