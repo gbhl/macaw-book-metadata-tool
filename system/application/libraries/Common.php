@@ -608,7 +608,7 @@ class Common extends Controller {
 			if (file_exists($filename)) {
 				$queries = file_get_contents($filename);
 				foreach (explode(';', $queries) as $q) {
-					if (preg_match('/[^\s\r\n]+/', $q)) {
+					if (preg_match('/[^\s\r\n]+/', $q) && !preg_match('/^\s*?\-\-+/', $q)) { // skip blanks and comments
 						$result = $this->CI->db->query($q);
 					}
 				}

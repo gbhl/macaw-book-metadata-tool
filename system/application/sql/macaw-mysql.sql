@@ -18,7 +18,7 @@ CREATE TABLE account (
 
 CREATE TABLE item (
     id int(11) auto_increment NOT NULL,
-    barcode varchar(32),
+    barcode varchar(128),
     status_code varchar(32),
     missing_pages bool,
     pages_found int(11),
@@ -57,12 +57,14 @@ CREATE TABLE logging (
 ) ENGINE=InnoDB CHARACTER SET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE metadata (
+    id bigint auto_increment NOT NULL,
     item_id bigint NOT NULL,
     page_id int(11),
     fieldname varchar(32),
     counter int(11) DEFAULT 1,
     value varchar(1024),
     value_large text
+, PRIMARY KEY(`id`)
 ) ENGINE=InnoDB CHARACTER SET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE organization (
@@ -123,7 +125,7 @@ INSERT INTO organization (id, name, person, email, phone, address, address2, cit
 
 INSERT INTO permission (username, permission) VALUES ('admin','admin'), ('admin','scan');
 
-INSERT INTO settings (name, value) VALUES ('version','2.8');
+INSERT INTO settings (name, value) VALUES ('version','3.1');
 INSERT INTO settings (name, value) values ('installed', '1');
 
 -- Redunant now

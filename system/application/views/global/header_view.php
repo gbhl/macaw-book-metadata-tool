@@ -56,23 +56,26 @@
 				<li class="top"><a href="#manage">Current Item</a>
 					<ul>					
 						<?php if ($can_edit_item) { ?>
-						<li><a href="<?php echo $this->config->item('base_url'); ?>main/edit"><img src="<?php echo $this->config->item('base_url'); ?>images/07_edit_items_icon_sm.png">Edit Item</a></li>						
-            <?php if ($is_admin) { ?>
-              <li><a href="<?php echo $this->config->item('base_url'); ?>main/admin_edit"><img src="<?php echo $this->config->item('base_url'); ?>images/07_edit_items_icon_sm.png">Edit Item (Admin)</a></li>						
-            <?php } ?>
-            <li><a href="<?php echo $this->config->item('base_url'); ?>scan/upload/"><img src="<?php echo $this->config->item('base_url'); ?>images/icon-upload-small.png">Upload Pages</a></li>
-						<li><a href="<?php echo $this->config->item('base_url'); ?>scan/review"><img src="<?php echo $this->config->item('base_url'); ?>images/04_review_pages_icon_sm.png">Edit Page Metadata</a></li>
-						<li><a href="<?php echo $this->config->item('base_url'); ?>scan/missing/insert"><img src="<?php echo $this->config->item('base_url'); ?>images/05_insert_missing_pages_icon_sm.png">Insert Missing Pages</a></li>
+							<li><a href="<?php echo $this->config->item('base_url'); ?>main/edit"><img src="<?php echo $this->config->item('base_url'); ?>images/07_edit_items_icon_sm.png">Edit Item</a></li>						
+							<?php if ($is_admin) { ?>
+              					<li><a href="<?php echo $this->config->item('base_url'); ?>main/admin_edit"><img src="<?php echo $this->config->item('base_url'); ?>images/07_edit_items_icon_sm.png">Edit Item (Admin)</a></li>						
+            				<?php } ?>
+            				<li><a href="<?php echo $this->config->item('base_url'); ?>scan/upload/"><img src="<?php echo $this->config->item('base_url'); ?>images/icon-upload-small.png">Upload Pages</a></li>
+							<li><a href="<?php echo $this->config->item('base_url'); ?>scan/review"><img src="<?php echo $this->config->item('base_url'); ?>images/04_review_pages_icon_sm.png">Edit Page Metadata</a></li>
+							<li><a href="<?php echo $this->config->item('base_url'); ?>scan/missing/insert"><img src="<?php echo $this->config->item('base_url'); ?>images/05_insert_missing_pages_icon_sm.png">Insert Missing Pages</a></li>
 						<?php } else { ?>
-						<li class="disabled"><a href="#"><img src="<?php echo $this->config->item('base_url'); ?>images/07_edit_items_icon_sm.png">Edit Item</a></li>						
-						<li class="disabled"><a href="#"><img src="<?php echo $this->config->item('base_url'); ?>images/03_import_pages_icon_sm.png">Upload Pages</a></li>
-						<li class="disabled"><a href="#"><img src="<?php echo $this->config->item('base_url'); ?>images/04_review_pages_icon_sm.png">Edit Page Metadata</a></li>
-						<li class="disabled"><a href="#"><img src="<?php echo $this->config->item('base_url'); ?>images/05_insert_missing_pages_icon_sm.png">Insert Missing Pages</a></li>
+							<li class="disabled"><a href="#"><img src="<?php echo $this->config->item('base_url'); ?>images/07_edit_items_icon_sm.png">Edit Item</a></li>						
+							<?php if ($is_admin && $barcode) { ?>
+								<li><a href="<?php echo $this->config->item('base_url'); ?>main/admin_edit"><img src="<?php echo $this->config->item('base_url'); ?>images/07_edit_items_icon_sm.png">Edit Item (Admin)</a></li>						
+							<?php } ?>
+							<li class="disabled"><a href="#"><img src="<?php echo $this->config->item('base_url'); ?>images/03_import_pages_icon_sm.png">Upload Pages</a></li>
+							<li class="disabled"><a href="#"><img src="<?php echo $this->config->item('base_url'); ?>images/04_review_pages_icon_sm.png">Edit Page Metadata</a></li>
+							<li class="disabled"><a href="#"><img src="<?php echo $this->config->item('base_url'); ?>images/05_insert_missing_pages_icon_sm.png">Insert Missing Pages</a></li>
 						<?php } ?>
-						<?php if ($can_edit_item) { ?>
-						<li class="last"><a href="<?php echo $this->config->item('base_url'); ?>scan/history"><img src="<?php echo $this->config->item('base_url'); ?>images/06_view_history_icon_sm.png">View History</a></li>
+						<?php if ($barcode) { ?>
+							<li class="last"><a href="<?php echo $this->config->item('base_url'); ?>scan/history"><img src="<?php echo $this->config->item('base_url'); ?>images/06_view_history_icon_sm.png">View History</a></li>
 						<?php } else { ?>
-						<li class="last disabled"><a href="#"><img src="<?php echo $this->config->item('base_url'); ?>images/06_view_history_icon_sm.png">View History</a></li>
+							<li class="last disabled"><a href="#"><img src="<?php echo $this->config->item('base_url'); ?>images/06_view_history_icon_sm.png">View History</a></li>
 						<?php } ?>
 					</ul>
 				</li>
