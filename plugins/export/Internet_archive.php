@@ -3360,4 +3360,127 @@ class Internet_archive extends Controller {
 		}
 		return $found;
 	}
+
+	function _determine_jp2_quality() {
+		$quality = 37;
+		$jp2_lib = $this->CI->common->jp2_library();
+		if ($jp2_lib== 'OpenJPEG') {
+			$quality = 30;
+		}
+
+		// If we got our images from a PDF, we use the highest quality we can
+		if ($this->CI->book->get_metadata('from_pdf') == 'yes') {
+			echo '(from PDF)';
+			if (isset($this->cfg['jpeg2000_quality_pdf']) && preg_match('/^[0-9]+$/', $this->cfg['jpeg2000_quality_pdf'])) {
+				$quality = $this->cfg['jpeg2000_quality_pdf'];
+			} else {
+				$quality = 50;
+				if ($jp2_lib == 'OpenJPEG') {
+					$quality = 32;
+				}
+			}
+		} else {
+			// Use the compression level from the config, if we have it
+			if (isset($this->cfg['jpeg2000_quality']) && preg_match('/^[0-9]+$/', $this->cfg['jpeg2000_quality'])) {
+				$quality = $this->cfg['jpeg2000_quality'];
+			} else {
+				$quality = 37;
+				if ($jp2_lib == 'OpenJPEG') {
+					$quality = 30;
+				}
+			}
+		}
+		// Allow an ultimate override from the item itself.
+		$tempq = $this->CI->book->get_metadata('jpeg2000_quality');
+		if ($tempq) {
+			$quality = (int)$tempq;
+		}
+		return $quality;
+  	}
+
+	function _create_jp2($src, $dest, $quality, $xmp) {
+		if ($this->CI->common->jp2_library() == 'vips') {
+			// load an image, get fields, process, save
+			$image = Vips\Image::newFromFile($src, ["access" => "sequential"]);
+			$image = $image->icc_transform("srgb");
+			// $image->writeToFile($dest);    
+			$image->jp2ksave($dest, [
+				'Q' => $quality, // Hardcoded to 75 for now
+				'optimize_coding' => true,
+				'trellis_quant' => true,
+				'overshoot_deringing' => true,
+				'quant_table' => 7, // This reduces the artifacts
+			]); 
+			return;
+		} else {
+			// If the images are IA-ready, we don't recompress. 
+			if ($this->CI->book->ia_ready_images || !preg_match("/\.jp[2f]$/", $src)) {
+			echo " (copying) ";
+				// Write the jp2 out to the local directory
+				copy($src, $dest);
+			}
+
+			echo " (compressing) ";
+
+			$preview = new Imagick($src);
+
+			// TIFFs can contain multiple images, we want the largest thing in there
+			$this->CI->common->get_largest_image($preview);
+
+			// Make sure the color profiles are correct, more or less.
+			// If this is a color image, we need to handle some color profile and conversions.
+			$preview->stripImage();
+
+			if ($preview->getImageType() != Imagick::IMGTYPE_GRAYSCALE) {
+				// If not, then it's grayscale and we do nothing
+				$icc_rgb1 = file_get_contents($this->cfg['base_directory'].'/inc/icc/AdobeRGB1998.icc');
+				$preview->setImageProfile('icc', $icc_rgb1);
+
+				$icc_rgb2 = file_get_contents($this->cfg['base_directory'].'/inc/icc/sRGB_IEC61966-2-1_black_scaled.icc');
+				$preview->profileImage('icc', $icc_rgb2);
+			}
+
+			// Disable the alpha channel on the image. Internet Archive doesn't like it much at all.
+			$preview->setImageMatte(false);
+
+			// Embed Metadata into the JP2
+			// IPTC data is not valid for JP2 files, but maybe it'll get carried along if ImageMagick is smart.
+			// XMP (and others?) may be associated to the TIFF container, so we re-apply the profile, just to be safe
+			// when we have multiple images in the TIFF file.
+			$profiles = $preview->getImageProfiles('*', false); // get profiles
+			$has_xmp = (array_search('xmp', $profiles) !== false); // we're interested if ICC profile(s) exist
+
+			if ($has_xmp === true) {
+				echo "SKIPPING the xmp profile, one already exists\n";
+			} else {
+				$preview->setImageProfile('xmp', $xmp);
+			}
+
+			$preview->setImageCompression(imagick::COMPRESSION_JPEG2000);
+			$preview->setCompressionQuality($quality);
+			$preview->setImageCompressionQuality($quality);
+			echo " creating ".basename($dest)." (Q=$quality)";
+			$preview->setImageDepth(8);
+			$preview->setOption('jp2:tilewidth','256');
+			$preview->setOption('jp2:tileheight','256');
+			$preview->writeImage($dest);
+
+			// If the image we just created is too small, we need to recompress it at a higher rate
+			$tqual = $quality;
+			$fs = filesize($dest);
+			while ($fs < 102400) {
+				$tqual = $tqual + 2;
+				if ($tqual >= 100) {
+					break;
+				}
+				print " $fs is too small (Q=$tqual)";
+				unlink($dest);
+				$preview->setCompressionQuality($tqual);
+				$preview->setImageCompressionQuality($tqual);
+				$preview->writeImage($dest);
+				$fs = filesize($dest);
+			}
+			return $dest;
+		}
+	}
 }

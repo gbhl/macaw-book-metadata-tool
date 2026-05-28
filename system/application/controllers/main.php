@@ -594,6 +594,17 @@ class Main extends Controller {
 		}
 		// Get our book
 		$barcode = $this->session->userdata('barcode');
+		if (!$barcode) {
+			$data['identifier'] = 'NO ITEM SELECTED';
+			$data['id'] = 0;
+			$data['status_code'] = 'error';
+			$data['all_statuses'] = array(
+				'Error' => 'error'
+			);
+			$data['export_modules'] = [];
+	    	$this->load->view('main/admin_edit_view', $data);
+			return;
+		} 
 		$this->book->load($barcode);
 
     $data = [];

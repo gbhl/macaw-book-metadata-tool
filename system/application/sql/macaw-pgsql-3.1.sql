@@ -1,2 +1,2 @@
-alter table item alter barcode varchar(128);
+alter table item alter column barcode type varchar(128);
 
