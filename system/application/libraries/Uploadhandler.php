@@ -162,6 +162,10 @@ class Uploadhandler extends Controller {
                 mkdir($upload_dir, $this->options['mkdir_mode'], true);
             }
             $file_path = $this->get_upload_path($file->name);
+            if ($content_range[1] == 0) {
+                // Don't append to an existing, possibly partial, file
+                unlink($file_path);
+            }
             $append_file = $content_range && is_file($file_path) && $file->size > $this->get_file_size($file_path);
             if ($uploaded_file && is_uploaded_file($uploaded_file)) {
                 // multipart/formdata uploads (POST method uploads)
