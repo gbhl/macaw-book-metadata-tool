@@ -162,7 +162,7 @@ class Uploadhandler extends Controller {
                 mkdir($upload_dir, $this->options['mkdir_mode'], true);
             }
             $file_path = $this->get_upload_path($file->name);
-            if ($content_range[1] == 0) {
+            if ($content_range[1] == 0 && file_exists($file_path)) {
                 // Don't append to an existing, possibly partial, file
                 unlink($file_path);
             }
