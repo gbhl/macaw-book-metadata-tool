@@ -1019,7 +1019,7 @@ class Scan extends Controller {
 						// We got a PDF, we need to split it
 						$output = '';
 						if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-							$exec = 'START "'.PHP_BINDIR.DIRECTORY_SEPARATOR.'php" "'.$this->cfg['base_directory'].DIRECTORY_SEPARATOR.'index.php" utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file->name).'> NUL 2> NUL < NUL';
+							$exec = 'START /b "" "'.PHP_BINDIR.DIRECTORY_SEPARATOR.'php" "'.$this->cfg['base_directory'].DIRECTORY_SEPARATOR.'index.php" utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file->name).'> NUL 2> NUL < NUL';
 							$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->book->barcode);
 							pclose(popen($exec,"r"));
 							$logoutput='';
