@@ -1,3 +1,4 @@
+<?php include('system/application/config/version.php'); ?>
 <html lang="en">
 <head>
 	<meta charset="utf-8">
@@ -232,7 +233,7 @@
 	<!-- The File Upload user interface plugin -->
 	<script src="/js/jquery.fileupload-ui.js"></script>
 	<!-- The main application script -->
-	<script src="/js/main.js"></script>
+	<script src="/js/main.js?v=<?php echo $version_rev; ?>"></script>
 	<script>
 		 var hasMissingPages = <?php echo ($book_has_missing_pages ? 'true' : 'false'); ?>;
 		 var loadingPDF = false;
