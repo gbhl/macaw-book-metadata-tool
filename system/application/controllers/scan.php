@@ -987,6 +987,9 @@ class Scan extends Controller {
 			$foundFiles = $this->_get_existing_files($scans_dir, $barcode);
 
 			header("Content-Type: application/json; charset=utf-8");
+			header('Cache-Control: no-cache, must-revalidate');
+			header('Pragma: no-cache');
+			header('Expires: 0');
 			if ($this->book->direct_get_metadata('processing_pdf')) {
 				$total = count($foundFiles);
 				$count = count($this->book->get_pages());

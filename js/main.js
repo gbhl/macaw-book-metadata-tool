@@ -20,9 +20,11 @@ $(function () {
 
     // Initialize the jQuery File Upload widget:
     $('#fileupload').fileupload({
-        // Uncomment the following to send cross-domain cookies:
-        //xhrFields: {withCredentials: true},
-      url: '/scan/do_upload/',
+      // Uncomment the following to send cross-domain cookies:
+      // xhrFields: {withCredentials: true},
+      // Uncomment the following to avoid caches, and comment out the other
+      url: '/scan/do_upload/' + Date.now(),
+      // url: '/scan/do_upload/',
       sequentialUploads: false,
       limitConcurrentUploads: 3,
       autoUpload: false,
