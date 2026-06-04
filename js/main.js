@@ -28,8 +28,8 @@ $(function () {
       sequentialUploads: false,
       limitConcurrentUploads: 3,
       autoUpload: false,
-	//   maxChunkSize: 1024000,
-	//   multipart: true,
+	  maxChunkSize: 10485760,
+	  multipart: true,
       maxFileSize: 1073741824
     });
 
