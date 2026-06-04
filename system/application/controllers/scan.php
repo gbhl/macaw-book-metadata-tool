@@ -788,13 +788,14 @@ class Scan extends Controller {
 		}
 
 		$this->book->load($this->session->userdata('barcode'));
-		$data['ia_identifier'] = null;
-		$query = $this->db->query('select * from custom_internet_archive where item_id = ?', array($this->book->id));
-		$ia_id = $query->result();
-		if (count($ia_id) > 0) {
-			$data['ia_identifier'] = $ia_id[0]->identifier;
+		if ($this->db->table_exists('custom_internet_archive')) {
+			$data['ia_identifier'] = null;
+			$query = $this->db->query('select * from custom_internet_archive where item_id = ?', array($this->book->id));
+			$ia_id = $query->result();
+			if (count($ia_id) > 0) {
+				$data['ia_identifier'] = $ia_id[0]->identifier;
+			}
 		}
-
 		$data['item']['status_code'] = $this->book->status;
 		$data['item']['date_created'] = $this->book->date_created;
 		$data['item']['date_scanning_start'] = $this->book->date_scanning_start;
@@ -1022,7 +1023,7 @@ class Scan extends Controller {
 						// We got a PDF, we need to split it
 						$output = '';
 						if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-							$exec = 'START /b "" "'.PHP_BINDIR.DIRECTORY_SEPARATOR.'php" "'.$this->cfg['base_directory'].DIRECTORY_SEPARATOR.'index.php" utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file->name).'> NUL 2> NUL < NUL';
+							$exec = 'START /b "" "'.PHP_BINDIR.DIRECTORY_SEPARATOR.'php" "'.$this->cfg['base_directory'].DIRECTORY_SEPARATOR.'index.php" utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file->name).' *> '.$this->cfg['logs_directory'].'\background.log & ';
 							$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->book->barcode);
 							pclose(popen($exec,"r"));
 							$logoutput='';
