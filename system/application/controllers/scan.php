@@ -788,8 +788,8 @@ class Scan extends Controller {
 		}
 
 		$this->book->load($this->session->userdata('barcode'));
+		$data['ia_identifier'] = null;
 		if ($this->db->table_exists('custom_internet_archive')) {
-			$data['ia_identifier'] = null;
 			$query = $this->db->query('select * from custom_internet_archive where item_id = ?', array($this->book->id));
 			$ia_id = $query->result();
 			if (count($ia_id) > 0) {

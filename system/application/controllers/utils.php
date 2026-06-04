@@ -1268,7 +1268,9 @@ class Utils extends Controller {
 			print "File not found: $scans_dir$filename\n";
 			die;
 		}
-		
+
+		print date('Y-m-d H:i:s').": Importng $filename to $barcode\n";
+
 		// Mark that we are processing the PDF, but don't use built-in functions
 		// We might get a race condition, and this will create multiple records
 		// for each pdf that is processing (if there are more than one uploaded 
