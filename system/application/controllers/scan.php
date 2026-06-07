@@ -128,7 +128,13 @@ class Scan extends Controller {
 			echo json_encode(array('message' => ''));
 
 			// Now we can spawn the cron process.
-			system('MACAW_OVERRIDE=1 "'.PHP_BINDIR.DIRECTORY_SEPARATOR.'php" "'.$this->cfg['base_directory'].'/index.php" cron import_pages \''.$this->book->barcode.'\' > /dev/null 2> /dev/null < /dev/null &');
+			if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+				$php_exe = $this->common->get_php_exe();
+				$cmd = 'START /b "" "'.$php_exe.'" "'.$this->cfg['base_directory'].'/index.php" "cron" "import_pages" "'.$this->book->barcode.'" *> '.$this->cfg['logs_directory'].'\background.log & ';
+				pclose(popen($cmd,"r"));
+			} else {
+				system('MACAW_OVERRIDE=1 "'.PHP_BINDIR.DIRECTORY_SEPARATOR.'php" "'.$this->cfg['base_directory'].'/index.php" cron import_pages \''.$this->book->barcode.'\' > /dev/null 2> /dev/null < /dev/null &');
+			}
 			
 		} catch (Exception $e) {
 			$this->common->ajax_headers();
@@ -1023,7 +1029,8 @@ class Scan extends Controller {
 						// We got a PDF, we need to split it
 						$output = '';
 						if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-							$exec = 'START /b "" "'.PHP_BINDIR.DIRECTORY_SEPARATOR.'php" "'.$this->cfg['base_directory'].DIRECTORY_SEPARATOR.'index.php" utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file->name).' *> '.$this->cfg['logs_directory'].'\background.log & ';
+							$php_exe = $this->common->get_php_exe();
+							$exec = 'START /b "" "'.$php_exe.'" "'.$this->cfg['base_directory'].DIRECTORY_SEPARATOR.'index.php" utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file->name).' *> '.$this->cfg['logs_directory'].'\background.log & ';
 							$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->book->barcode);
 							pclose(popen($exec,"r"));
 							$logoutput='';

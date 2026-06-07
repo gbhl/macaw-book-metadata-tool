@@ -903,7 +903,8 @@ class Admin extends Controller {
 			$fname = $this->logging->log('cron', 'info', 'Cron job \''.$action.'\' manually initiated.');
 			// SCS Changed the spawn process for windows compatability
 			// Assumes php.exe is in the path somewhere.
-			$exec = 'START "'.PHP_BINDIR.DIRECTORY_SEPARATOR.'php" "'.$this->cfg['base_directory'].DIRECTORY_SEPARATOR.'index.php" cron '.$action;
+			$php_exe = $this->common->get_php_exe();
+			$exec = 'START /b "" "'.$php_exe.'" "'.$this->cfg['base_directory'].DIRECTORY_SEPARATOR.'index.php" cron '.$action.' *> '.$this->cfg['logs_directory'].'\background.log & ' ;
 		} else {
 			$fname = $this->logging->log('cron', 'info', 'Cron job \''.$action.'\' manually initiated.');
 
