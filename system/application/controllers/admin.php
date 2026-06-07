@@ -843,9 +843,23 @@ class Admin extends Controller {
 		}
 		$data['all'] = ($all == 'all');
 		$data['phpinfo'] = $this->_phpinfo_array();
+		$data['phpvars'] = $this->_php_vars();
 		unset($data['phpinfo']['General']['Configure Command']);
 		unset($data['phpinfo']['PHP Variables']);
 		$this->load->view('admin/config_view', $data);
+	}
+
+	function _php_vars() {
+		$vars = array();
+		$vars['PHP_VERSION'] = PHP_VERSION;
+		$vars['PHP_OS'] = PHP_OS;
+		$vars['PHP_OS_FAMILY'] = PHP_OS_FAMILY;
+		$vars['PHP_BINARY'] = PHP_BINARY;
+		$vars['PHP_PREFIX'] = PHP_PREFIX;
+		$vars['PHP_BINDIR'] = PHP_BINDIR;
+		$vars['PHP_LIBDIR'] = PHP_LIBDIR;
+		$vars['FOUND_PHP_EXE'] = $this->common->get_php_exe();
+		return $vars;
 	}
 
 	function _phpinfo_array() {

@@ -1073,6 +1073,46 @@ class Common extends Controller {
 		return $pattern;
 	}
 
+	function get_php_exe() {
+		$is_win = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+
+		// Low hanging fruit, if it's defined.
+		if (defined(PHP_BINARY)) {
+			return PHP_BINARY;
+		}
+
+		// Look to the "Loaded Configuration File" path (may work for windows)
+		if (php_ini_loaded_file()) {
+			$f = pathinfo(php_ini_loaded_file(), PATHINFO_DIRNAME).DIRECTORY_SEPARATOR.'\php';
+			if ($is_win) { $f .= '.exe'; }
+			if (file_exists($f)) {
+				return $f;
+			}		
+		}
+
+		// Scan all of the PATH locations (linux and Windows)
+		$paths = [];
+		if ($is_win) {
+			$paths = explode(';', getenv('PATH'));
+		} else {
+			$paths = explode(':', getenv('PATH'));
+		}
+		foreach ($paths as $p) {
+			$f = $p.DIRECTORY_SEPARATOR.'php';
+			if ($is_win) { $f .= '.exe'; }
+			if (file_exists($f)) {
+				return $f;
+			}
+		}
+
+		// use PHP_BINDIR + "php" (or "PHP.EXE")
+		$f = PHP_BINDIR.DIRECTORY_SEPARATOR.'php';
+		if ($is_win) { $f .= '.exe'; }
+		if (file_exists($f)) {
+			return $f;
+		}
+		return "";
+	}
 }
 
 

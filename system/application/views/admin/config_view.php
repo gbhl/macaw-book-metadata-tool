@@ -52,10 +52,21 @@
         }
         if ($all) {
           echo "<tr>";
-          echo "<td><strong>PHP Configuration</strong></td>";
-          echo "<td>##############################################################</td>";
-        echo "</tr>";
-      foreach (array_keys($phpinfo) as $section) {
+            echo "<td><strong>PHP Variables</strong></td>";
+            echo "<td>##############################################################</td>";
+          echo "</tr>";
+          foreach ($phpvars as $v => $val) {
+            echo "<tr>";
+              echo "<td>&nbsp;&nbsp;&nbsp;&nbsp;".$v."</td>";
+              echo "<td>".$val."</td>";
+            echo "</tr>";
+          }
+
+          echo "<tr>";
+            echo "<td><strong>PHP Configuration</strong></td>";
+            echo "<td>##############################################################</td>";
+          echo "</tr>";
+          foreach (array_keys($phpinfo) as $section) {
             echo "<tr>";
               echo "<td><strong>".$section."</strong></td>";
               echo "<td>##############################################################</td>";
