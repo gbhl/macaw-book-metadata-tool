@@ -273,7 +273,7 @@ class Book extends Model {
 		$d = debug_backtrace(2);
 		$m = [];
     if (!$module_name) {
-  		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+  		if (PHP_OS_FAMILY == 'Windows') {
   			preg_match('/^.+\\\(.*?)\.php$/', $d[0]['file'], $m);
   		} else {
   			preg_match('/^\/.+\/(.*?)\.php$/', $d[0]['file'], $m);
@@ -972,7 +972,7 @@ class Book extends Model {
 	}
 
 	function _dir_size($f) {
-		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+		if (PHP_OS_FAMILY == 'Windows') {
 			$size = 0;
 			$size = $this->_rec_dir_size($f);
 			//Convert to MB
@@ -1962,7 +1962,7 @@ class Book extends Model {
 			// Move the PDF so we don't see it again
 			rename($scans_dir.$filename, $book_dir.$filename);
 			// Build the pattern for the PNGs to create
-			if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+			if (PHP_OS_FAMILY == 'Windows') {
 				// SCS Note - escapeshellarg in windows just removes %. need a multistage approach./
 				$outname = $scans_dir.preg_replace('/^(.+)\.(.*?)$/', '$1', $filename).'_^^04d.png';
 				$outname = escapeshellarg($outname);

@@ -1130,7 +1130,7 @@ class Main extends Controller {
 			$username = $this->session->userdata('username');
 			// Spawn the import process (php index.php utils csv_import FILENAME.CSV)
 			chdir($this->cfg['base_directory']);
-			if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+			if (PHP_OS_FAMILY == 'Windows') {
 				$php_exe = $this->common->get_php_exe();
 				$cmd = 'START /b "" "'.$php_exe.'" "'.$this->cfg['base_directory'].DIRECTORY_SEPARATOR.'index.php" utils csvimport "'.$fname.'" "'.$fname2.'" "'.$username.'" '.' *> '.$this->cfg['logs_directory'].'\background.log & ';
 				$this->logging->log('access', 'info', 'Importing CSV file(s): '.$fname.' and '.$fname2);

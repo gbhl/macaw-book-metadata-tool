@@ -899,7 +899,7 @@ class Admin extends Controller {
 
 		chdir($this->cfg['base_directory']);
 		// Try to identify the PHP executable on this system
-		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+		if (PHP_OS_FAMILY == 'Windows') {
 			$fname = $this->logging->log('cron', 'info', 'Cron job \''.$action.'\' manually initiated.');
 			// SCS Changed the spawn process for windows compatability
 			// Assumes php.exe is in the path somewhere.

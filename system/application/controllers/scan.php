@@ -128,7 +128,7 @@ class Scan extends Controller {
 			echo json_encode(array('message' => ''));
 
 			// Now we can spawn the cron process.
-			if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+			if (PHP_OS_FAMILY == 'Windows') {
 				$php_exe = $this->common->get_php_exe();
 				$cmd = 'START /b "" "'.$php_exe.'" "'.$this->cfg['base_directory'].'/index.php" "cron" "import_pages" "'.$this->book->barcode.'" *> '.$this->cfg['logs_directory'].'\background.log & ';
 				pclose(popen($cmd,"r"));
@@ -1028,7 +1028,7 @@ class Scan extends Controller {
 					if (preg_match("/\.pdf$/i", $file->name)) {
 						// We got a PDF, we need to split it
 						$output = '';
-						if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+						if (PHP_OS_FAMILY == 'Windows') {
 							$php_exe = $this->common->get_php_exe();
 							$exec = 'START /b "" "'.$php_exe.'" "'.$this->cfg['base_directory'].DIRECTORY_SEPARATOR.'index.php" utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file->name).' *> '.$this->cfg['logs_directory'].'\background.log & ';
 							$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->book->barcode);

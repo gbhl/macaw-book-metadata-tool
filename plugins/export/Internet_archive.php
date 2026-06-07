@@ -3132,7 +3132,7 @@ class Internet_archive extends Controller {
 		curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($this->curl, CURLOPT_HTTPGET, true);
 		curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, true);
-		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+		if (PHP_OS_FAMILY == 'Windows') {
 			// TODO Why is this here? Why does windows seem to want it?
 			curl_setopt($this->curl, CURLOPT_SSL_VERIFYPEER, 0);
 		} 
@@ -3343,7 +3343,7 @@ class Internet_archive extends Controller {
 			$search = "export ".basename(__FILE__, '.php'); 
 		}
 
-		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+		if (PHP_OS_FAMILY == 'Windows') {
 			// Windows will be always be limited to 1.
 			exec("tasklist | FIND \"php\"", $commands);
 			$search = "php.exe";

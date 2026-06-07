@@ -827,7 +827,7 @@ class Common extends Controller {
 			}
 			if (!$found) {
 				// 3. Get the number of bytes used in the /books/ directory
-				if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+				if (PHP_OS_FAMILY == 'Windows') {
 					$df_e = disk_free_space("E:");
 					$ds = disk_total_space("E:");
 					$dup = 0;
@@ -938,7 +938,7 @@ class Common extends Controller {
 			}
 
 		}
-		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+		if (PHP_OS_FAMILY == 'Windows') {
 			/* SCS Comment out Disk usage reporting for the moment */
 		} else {
 			$matches = array();
@@ -1034,9 +1034,9 @@ class Common extends Controller {
 	 * Modified to work with both Linux and Windows
 	 */
 	function path_is_writable( $path ) {
-		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+		if (PHP_OS_FAMILY == 'Windows') {
 		
-			if ( '/' === $path[ strlen( $path ) - 1 ] ) {
+		if ( '/' === $path[ strlen( $path ) - 1 ] ) {
 		    // If it looks like a directory, check a random file within the directory.
 		    return $this->path_is_writable( $path . uniqid( mt_rand() ) . '.tmp' );
 		  } elseif ( is_dir( $path ) ) {
@@ -1074,7 +1074,7 @@ class Common extends Controller {
 	}
 
 	function get_php_exe() {
-		$is_win = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+		$is_win = PHP_OS_FAMILY == 'Windows';
 
 		// Low hanging fruit, if it's defined.
 		if (defined(PHP_BINARY)) {
