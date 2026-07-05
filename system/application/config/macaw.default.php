@@ -89,6 +89,9 @@ $config['macaw']['activity_log'] = 'macaw_activity.%Y%m%d.log';
 $config['macaw']['error_log']    = 'macaw_error.%Y%m%d.log';
 $config['macaw']['cron_log']     = 'macaw_cron.%Y%m%d.log';
 
+# How many past days of log files to keep
+$config['macaw']['keep_log_days'] = 30;
+
 // ------------------------------
 // INCOMING FILES PATHS
 // ------------------------------
@@ -157,17 +160,6 @@ $config['macaw']['preview_format'] = 'jpg';
 // ------------------------------
 // LOG SETTINGS
 // ------------------------------
-// How long (days) do we wait before moving things into cool storage? And where
-// is cool storage anyway? This process will be contingent upon validation that
-// the harvest back from Internet Archive was successful. Also see the
-// "purge_directory" setting to learn where things are placed after archiving.
-
-// $config['macaw']['archive_wait']       = "30 days";
-// $config['macaw']['archive_server']     = "172.120.234.34";
-// $config['macaw']['archive_username']   = "bob";
-// $config['macaw']['archive_password']   = "dot_matrix";
-// $config['macaw']['archive_path']       = "/foobar/";
-
 // Log level. How much do we want to see in the access logs?
 //    debug – more information, could be spammy.
 //    info  - high-level information (default)
@@ -366,6 +358,15 @@ $config['macaw']['item_metadata_groups'] = array(
 // organization will be purged nightly and replaced with a single test item. The name must match exactly 
 // to the name of the organization in the /admin/organization page.
 // $config['macaw']['demo_organization'] = '';
+
+// ------------------------------
+// EXPORT CONCURRENCY
+// ------------------------------
+// How many items can we export at one time? Currently this is only used
+// by the Interet_archive export module. If in doubt, leave it at 1. 
+// ** Linux will obey this setting. 
+// ** Windows ignores any value and will always use 1.
+$config['macaw']['export_concurrency_limit'] = 1;
 
 // ------------------------------
 // TEST MODE?
