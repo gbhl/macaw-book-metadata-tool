@@ -89,6 +89,8 @@ class Internet_archive extends Controller {
 	function __construct() {
 		$this->CI = get_instance();
 		$this->cfg = $this->CI->config->item('macaw');
+		include_once('system/application/config/version.php');
+		$this->macaw_version = $version_rev;
 
 		// Get our connection params if they exist in the configuration
 		if (array_key_exists('internet_archive_access_key', $this->cfg)) {
@@ -268,8 +270,8 @@ class Internet_archive extends Controller {
 				}
 
 				$this->CI->logging->log('book', 'debug', 'Identifier is '.$id.'.', $bc);
-        
-        // Mark that this is being uploaded to keep it our of other lists.
+
+				// Mark that this is being uploaded to keep it our of other lists.
 				$this->CI->book->set_export_status('uploading', $force); 
 
 				$archive_file_orig = '';
@@ -2562,6 +2564,11 @@ class Internet_archive extends Controller {
 		// This is easy, hardcoded
 		$metadata['x-archive-meta-mediatype'] = 'texts';
 
+		// Identify ourselves with the Macaw Tag
+		if ($this->cfg['interet_archive_tag']) {
+			$metadata['x-archive-meta-bhl-macaw'] = $this->cfg['interet_archive_tag'].' / '.$this->macaw_version;
+		}
+		
 		// Contributor: Prefer the entered metadata, then the item's organization, then the hardcoded organization
 		$metadata['x-archive-meta-contributor'] = $this->CI->book->get_contributor();
 		// Really ensure we don't have more than one contributor
@@ -2648,8 +2655,8 @@ class Internet_archive extends Controller {
 
 		// BHL Copyright guidelines: https://bhl.wikispaces.com/copyright
 		// Handle copyright - Not in Copyright
-    $copyright = $this->CI->book->get_metadata('copyright', false);
-    if (is_array($copyright)) { $copyright = $copyright[0]; }
+		$copyright = $this->CI->book->get_metadata('copyright', false);
+		if (is_array($copyright)) { $copyright = $copyright[0]; }
 		if ($copyright == '0' || strtoupper($copyright) == 'F' ) {
 			if ($bhl == 1) {
 				$metadata['x-archive-meta-possible-copyright-status'] = "Public domain. The BHL considers that this work is no longer under copyright protection.";
