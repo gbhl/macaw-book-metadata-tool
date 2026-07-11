@@ -4,7 +4,8 @@ define('ENVIRONMENT', 'production');
 
 require_once('application/config/database.php');
 
-$message = '';
+$messages = [];
+$continue = true;
 if ($db['default']['dbdriver'] == 'mysqli') {
     # Connect
     $dbh = new mysqli(
@@ -35,9 +36,9 @@ if ($db['default']['dbdriver'] == 'mysqli') {
         $dbh->query("ALTER TABLE session DROP COLUMN `user_agent`;");
 
         $dbh->query("CREATE INDEX idx_session_timestamp on session(timestamp);");
-        $message = "Session table updated.";
+        $messages[] = "Session table updated.";
     } else {
-        $message = "Session table did not need any changes.";
+        $messages[] = "Session table did not need any changes.";
     }
 } elseif ($db['default']['dbdriver'] == 'postgre') {
     # Connect
@@ -73,10 +74,59 @@ if ($db['default']['dbdriver'] == 'mysqli') {
         $dbh->query('ALTER TABLE session DROP COLUMN `user_agent`;');
 
         $dbh->query('CREATE INDEX idx_session_timestamp on session(timestamp);');
-        $message = "Session table updated.";
+        $messages[] = "Session table updated.";
     } else {
-        $message = "Session table did not need any changes.";
+        $messages[] = "Session table did not need any changes.";
     }
+}
+
+# Check the configs
+$errors = [];
+require_once('application/config/config.php');
+require_once('application/config/macaw.php');
+if (!isset($config['sess_driver']) || $config['sess_driver'] != 'database') { 
+    $errors[] = "config.php value <code>sess_driver</code> should be <code>database</code>";
+}
+if (!isset($config['sess_cookie_name']) || $config['sess_cookie_name'] != 'macaw_session') { 
+    $errors[] = "config.php value <code>sess_cookie_name</code> should be <code>macaw_session</code>";
+}
+if (!isset($config['sess_samesite'])) { 
+    $errors[] = "config.php value <code>sess_samesite</code> should be <code>Strict</code> or <code>Lax</code>";
+}
+if (!isset($config['sess_expiration'])) { 
+    $errors[] = "config.php value <code>sess_expiration</code> is not set.";
+}
+if (!isset($config['sess_save_path']) || $config['sess_save_path'] != 'session') { 
+    $errors[] = "config.php value <code>sess_save_path</code> should be <code>session</code>";
+}
+if (!isset($config['sess_match_ip']) || !$config['sess_match_ip']) { 
+    $errors[] = "config.php value <code>sess_match_ip</code> should be <code>TRUE</code>";
+}
+if (!isset($config['sess_time_to_update'])) { 
+    $errors[] = "config.php value <code>sess_time_to_update</code> is not set.";
+}
+if (!isset($config['sess_regenerate_destroy'])) { 
+    $errors[] = "config.php value <code>sess_regenerate_destroy</code> is not set.";
+}
+if (!isset($config['cookie_secure'])) { 
+    $errors[] = "config.php value <code>cookie_secure</code> is not set.";
+}
+if (!isset($config['cookie_httponly'])) { 
+    $errors[] = "config.php value <code>cookie_httponly</code> is not set.";
+}
+if (!isset($config['cookie_samesite']) || $config['cookie_samesite'] != 'Strict') { 
+    $errors[] = "config.php value <code>cookie_samesite</code> should be <code>Strict</code>";
+}
+
+
+if (preg_match('/system\//', $config['macaw']['logs_directory'])) {
+    $errors[] = "macaw.php value <code>logs_directory</code> should be not contain <code>system/</code>";
+}
+if (!isset($config['macaw']['export_concurrency_limit'])) { 
+    $errors[] = "config.php value <code>export_concurrency_limit</code> is missing.";
+}
+if (!isset($config['macaw']['interet_archive_tag'])) { 
+    $errors[] = "config.php value <code>interet_archive_tag</code> is missing.";
 }
 ?>
 
@@ -91,27 +141,34 @@ if ($db['default']['dbdriver'] == 'mysqli') {
     <link rel="stylesheet" type="text/css" href="css/yui-combo.css?v=2.10.0">  
     <link rel="stylesheet" type="text/css" href="css/macaw.css?v=2.10.0" id="macaw_css" />
     <link rel="stylesheet" type="text/css" href="inc/magnifier/assets/image-magnifier.css?v=2.10.0" />
-
+    <style>
+        #logincontainerborder {width: 700px;}
+        #logincontainer {width: 698px;}
+        #logincontent {color: black; text-align: left; font-size: 110%;}
+        code {font-weight: bold;}
+    </style>
 </head>
 <body class="yui-skin-sam">
 	<div id="logincontainerborder">
         <div id="logincontainer">
             <div id="loginheader">
-                <img id="hero" width="318" height="483" alt="Rosellas" src="images/rosellas_macaw_login.png">
                 <h1>Macaw</h1>
-                <h2>Metadata Collection and Workflow System</h2>
-                <hr>
-                    <h3>Upgrade Results</h3>
+                <h2>Upgrade Results</h2>
             </div>	
-            <div id="logincontent"  style="color: black; font-size:125%">
-                <p><strong><?php print $message; ?></strong></p>
-                <p><a href="/">Continue to Login</a></p>
+            <div id="logincontent">
+                <?php foreach ($messages as $m) { ?>
+                    <p><?php print $m; ?></p>
+                <?php } ?>
+                <?php foreach ($errors as $m) { ?>
+                    <p><?php print $m; ?></p>
+                <?php } ?>
+                <?php if (count($errors)) { ?>
+                    <p>Fix these errors and reload.</p>
+                <?php } else { ?>
+                    <p><a href="/">Continue to Login</a></p>
+                <?php } ?>
             </div>          
         </div>
-	</div>
-	<div id="credit">
-		 Based on the Paginator originally created<br>
-		 at the Missouri Botanical Garden.
 	</div>
     <div class="clear"><!-- --></div>
 </body>
