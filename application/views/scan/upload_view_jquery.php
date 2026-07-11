@@ -1,4 +1,4 @@
-<?php include('system/application/config/version.php'); ?>
+<?php include('application/config/version.php'); ?>
 <html lang="en">
 <head>
 	<meta charset="utf-8">
