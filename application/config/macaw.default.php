@@ -89,6 +89,9 @@ $config['macaw']['activity_log'] = 'macaw_activity.%Y%m%d.log';
 $config['macaw']['error_log']    = 'macaw_error.%Y%m%d.log';
 $config['macaw']['cron_log']     = 'macaw_cron.%Y%m%d.log';
 
+# How many past days of log files to keep
+$config['macaw']['keep_log_days'] = 30;
+
 // ------------------------------
 // INCOMING FILES PATHS
 // ------------------------------
@@ -157,17 +160,6 @@ $config['macaw']['preview_format'] = 'jpg';
 // ------------------------------
 // LOG SETTINGS
 // ------------------------------
-// How long (days) do we wait before moving things into cool storage? And where
-// is cool storage anyway? This process will be contingent upon validation that
-// the harvest back from Internet Archive was successful. Also see the
-// "purge_directory" setting to learn where things are placed after archiving.
-
-// $config['macaw']['archive_wait']       = "30 days";
-// $config['macaw']['archive_server']     = "172.120.234.34";
-// $config['macaw']['archive_username']   = "bob";
-// $config['macaw']['archive_password']   = "dot_matrix";
-// $config['macaw']['archive_path']       = "/foobar/";
-
 // Log level. How much do we want to see in the access logs?
 //    debug – more information, could be spammy.
 //    info  - high-level information (default)
@@ -374,8 +366,18 @@ $config['macaw']['item_metadata_groups'] = array(
 // by the Interet_archive export module. If in doubt, leave it at 1. 
 // ** Linux will obey this setting. 
 // ** Windows ignores any value and will always use 1.
-// $config['macaw']['export_concurrency_limit'] = 1;
+$config['macaw']['export_concurrency_limit'] = 1;
 
+// ------------------------------
+// INTERNET ARCHIVE TAG
+// ------------------------------
+// If this is filled in, Macaw will add a "bhl_macaw" Metadata field 
+// at the Internet Archive with this tag and the current version of 
+// Macaw. Use a brief identifier such as "Smithsonian", "BHL AU", 
+// or "Univ of City".
+//
+// Example: "New-Macaw / 2.10.5"
+$config['macaw']['interet_archive_tag'] = 'New-Macaw';
 
 // ------------------------------
 // TEST MODE?

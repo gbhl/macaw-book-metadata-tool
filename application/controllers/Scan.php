@@ -128,7 +128,13 @@ class Scan extends CI_Controller {
 			echo json_encode(array('message' => ''));
 
 			// Now we can spawn the cron process.
-			system('MACAW_OVERRIDE=1 "'.PHP_BINDIR.DIRECTORY_SEPARATOR.'php" "'.$this->cfg['base_directory'].'/index.php" cron import_pages \''.$this->book->barcode.'\' > /dev/null 2> /dev/null < /dev/null &');
+			if (PHP_OS_FAMILY == 'Windows') {
+				$php_exe = $this->common->get_php_exe();
+				$cmd = 'START /b "" "'.$php_exe.'" "'.$this->cfg['base_directory'].'/index.php" "cron" "import_pages" "'.$this->book->barcode.'" *> '.$this->cfg['logs_directory'].'\background.log & ';
+				pclose(popen($cmd,"r"));
+			} else {
+				system('MACAW_OVERRIDE=1 "'.PHP_BINDIR.DIRECTORY_SEPARATOR.'php" "'.$this->cfg['base_directory'].'/index.php" cron import_pages \''.$this->book->barcode.'\' > /dev/null 2> /dev/null < /dev/null &');
+			}
 			
 		} catch (Exception $e) {
 			$this->common->ajax_headers();
@@ -789,12 +795,13 @@ class Scan extends CI_Controller {
 
 		$this->book->load($this->session->userdata('barcode'));
 		$data['ia_identifier'] = null;
-		$query = $this->db->query('select * from custom_internet_archive where item_id = ?', array($this->book->id));
-		$ia_id = $query->result();
-		if (count($ia_id) > 0) {
-			$data['ia_identifier'] = $ia_id[0]->identifier;
+		if ($this->db->table_exists('custom_internet_archive')) {
+			$query = $this->db->query('select * from custom_internet_archive where item_id = ?', array($this->book->id));
+			$ia_id = $query->result();
+			if (count($ia_id) > 0) {
+				$data['ia_identifier'] = $ia_id[0]->identifier;
+			}
 		}
-
 		$data['item']['status_code'] = $this->book->status;
 		$data['item']['date_created'] = $this->book->date_created;
 		$data['item']['date_scanning_start'] = $this->book->date_scanning_start;
@@ -975,89 +982,95 @@ class Scan extends CI_Controller {
 		$this->book->load($barcode);
 		$scans_dir = $this->cfg['data_directory'].'/'.$barcode.'/scans/';
 		$upload_path_url = base_url().'books/'.$barcode.'/scans/';
-		$upload_thumb_url = base_url().'books/'.$barcode.'/thumbs/';
 		
 		// Make sure the path exists
 		if (!file_exists($scans_dir)) {
 			mkdir($scans_dir,0777, true);
-			chmod($scans_dir,0777);
 			$this->logging->log('book', 'info', 'Created directory: '.$scans_dir, $barcode);
 		}
 		
-		$config['max_width']    = '30000';
-		$config['max_height']   = '30000';
-		$config['allowed_types'] = 'tif|tiff|jpg|jpeg|jp2|jpf|gif|png|bmp';
-
 		if (!count($_FILES)) {
 			//Load the list of existing files in the upload directory
 			$foundFiles = $this->_get_existing_files($scans_dir, $barcode);
 
 			header("Content-Type: application/json; charset=utf-8");
+			header('Cache-Control: no-cache, must-revalidate');
+			header('Pragma: no-cache');
+			header('Expires: 0');
 			if ($this->book->direct_get_metadata('processing_pdf')) {
 				$total = count($foundFiles);
 				$count = count($this->book->get_pages());
 				echo json_encode(array('files' => $foundFiles, 'reload' => 'true', 'message' => 'Processing PDF pages ('.$count.'/'.$total.')...', 'dir' => $scans_dir));
 			} else {
-				echo json_encode(array('files' => $foundFiles));			
+				echo json_encode(array('files' => $foundFiles));
 			}
 		} else {
+			$this->load->library('Uploadhandler');
+			$this->uploadhandler->set('upload_dir', $scans_dir);
+			$files = $this->uploadhandler->init();
 
-			$data = array();
-
-			$missing = false;
-			$pgs = $this->book->get_pages();
-			if (count($pgs) > 0) {
-				// If yes, then the imported images are "missing".
-				$missing = true;
+			$all_done = true;
+			foreach ($files as $f) {
+				if (!$f->finished) { $all_done = false; }
 			}
-			$this->logging->log('book', 'info', "Starting Import Missing is $missing Page count is ".count($pgs), $barcode);
+			$data = array();
+			if ($all_done) {
 
-			foreach ($_FILES as $fieldName => $file) {
-				if (preg_match("/\.pdf$/i", $file['name'][0])) {
-					// We got a PDF, we need to split it
-					move_uploaded_file($file['tmp_name'][0], $scans_dir.strip_tags(basename($file['name'][0])));
-					
-					$output = '';
-
-					if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-						$exec = 'START "'.PHP_BINDIR.DIRECTORY_SEPARATOR.'php" "'.$this->cfg['base_directory'].DIRECTORY_SEPARATOR.'index.php" utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file['name'][0]).'> NUL 2> NUL < NUL';
-						$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->book->barcode);
-						//exec($exec, $output);
-						pclose(popen($exec,"r"));
-						$logoutput='';
-						if (is_array($output)){
-							$logoutput = implode(",",$output);
-						}else{
-							$logoutput = $output;
-						}
-						$this->logging->log('book', 'info', 'EXEC Output: '.$logoutput, $this->book->barcode);		
-					} else {
-						$exec = 'MACAW_OVERRIDE=1 "'.PHP_BINDIR.'/php" "'.$this->cfg['base_directory'].'/index.php" utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file['name'][0]).'> /dev/null 2> /dev/null < /dev/null &';
-						$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->book->barcode);
-						exec($exec, $output);
-
-					}
-					
-					$foundFiles = $this->_get_existing_files($scans_dir, $barcode);
-					header("Content-Type: application/json; charset=utf-8");
-					echo json_encode(array('files' => $foundFiles, 'reload' => 'true', 'message' => 'Processing PDF pages...'));
-
-					return;
-				} else {
-					$sequence = $_POST['sequence'];
-					if (!$sequence) {$sequence = 0;}
-
-					$counter = $_POST['counter'][0];
-					if (!$counter) {$counter = 1;}
-					
-					// We assume we only get one file. Our JS upload config is set this way. So we use the coutner variable to keep things in order.
-					move_uploaded_file($file['tmp_name'][0], $scans_dir.strip_tags(basename($file['name'][0])));
-					$this->book->import_one_image($file['name'][0], $counter + $sequence, $missing);
-					$data['file_name'] = $file['name'][0]; 
-					$data['file_type'] = $file['type'][0];
-					$data['file_size'] = $file['size'][0];
+				$missing = false;
+				$pgs = $this->book->get_pages();
+				if (count($pgs) > 0) {
+					// If yes, then the imported images are "missing".
+					$missing = true;
 				}
- 			}
+				$this->logging->log('book', 'info', "Starting Import Missing is $missing Page count is ".count($pgs), $barcode);
+
+				foreach ($files as $fieldName => $file) {
+					if (preg_match("/\.pdf$/i", $file->name)) {
+						// We got a PDF, we need to split it
+						$output = '';
+						if (PHP_OS_FAMILY == 'Windows') {
+							$php_exe = $this->common->get_php_exe();
+							$exec = 'START /b "" "'.$php_exe.'" "'.$this->cfg['base_directory'].DIRECTORY_SEPARATOR.'index.php" utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file->name).' *> '.$this->cfg['logs_directory'].'\background.log & ';
+							$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->book->barcode);
+							pclose(popen($exec,"r"));
+							$logoutput='';
+							if (is_array($output)){
+								$logoutput = implode(",",$output);
+							}else{
+								$logoutput = $output;
+							}
+							$this->logging->log('book', 'info', 'EXEC Output: '.$logoutput, $this->book->barcode);		
+						} else {
+							$exec = 'MACAW_OVERRIDE=1 "'.PHP_BINDIR.'/php" "'.$this->cfg['base_directory'].'/index.php" utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file->name).'> /dev/null 2> /dev/null < /dev/null &';
+							$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->book->barcode);
+							exec($exec, $output);
+
+						}
+						
+						$foundFiles = $this->_get_existing_files($scans_dir, $barcode);
+						header("Content-Type: application/json; charset=utf-8");
+						echo json_encode(array('files' => $foundFiles, 'reload' => 'true', 'message' => 'Processing PDF pages...'));
+
+						return;
+					} else {
+						$sequence = $_POST['sequence'];
+						if (!$sequence) {$sequence = 0;}
+
+						$counter = $_POST['counter'][0];
+						if (!$counter) {$counter = 1;}
+						
+						// We assume we only get one file. Our JS upload config is set this way. So we use the coutner variable to keep things in order.
+						$this->book->import_one_image($file->name, $counter + $sequence, $missing);
+						$data['file_name'] = $file->name; 
+						$data['file_type'] = $file->type;
+						$data['file_size'] = $file->size;
+					}
+				}
+			} else {
+				$data['file_name'] = "EMPTY_NAME"; 
+				$data['file_type'] = "EMPTY_TYPE"; 
+				$data['file_size'] = 0; 
+			}
 
 			//set the data for the json array
 			$info = new StdClass;
@@ -1087,6 +1100,7 @@ class Scan extends CI_Controller {
 		$upload_path_url = base_url().'books/'.$barcode.'/scans/';
 		$upload_thumb_url = base_url().'books/'.$barcode.'/thumbs/';
 		$existingFiles = get_dir_file_info($dir);
+		ksort($existingFiles);
 		$foundFiles = array();
 		$f = 0;
 		foreach ($existingFiles as $fileName => $info) {

@@ -127,7 +127,7 @@ class Export_Generic extends CI_Controller {
 		$found = 0;
     $search = "export ".basename(__FILE__, '.php'); 
 
-    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+    if (PHP_OS_FAMILY == 'Windows') {
       // Windows will be always be limited to 1.
 			exec("tasklist | FIND \"php\"",$commands);
 			$search = "php.exe";

@@ -20,13 +20,17 @@ $(function () {
 
     // Initialize the jQuery File Upload widget:
     $('#fileupload').fileupload({
-        // Uncomment the following to send cross-domain cookies:
-        //xhrFields: {withCredentials: true},
-      url: '/scan/do_upload/',
+      // Uncomment the following to send cross-domain cookies:
+      // xhrFields: {withCredentials: true},
+      // Uncomment the following to avoid caches, and comment out the other
+      url: '/scan/do_upload/' + Date.now(),
+      // url: '/scan/do_upload/',
       sequentialUploads: false,
       limitConcurrentUploads: 3,
       autoUpload: false,
-      maxFileSize: 536870912
+	  maxChunkSize: 10485760,
+	  multipart: true,
+      maxFileSize: 1073741824
     });
 
     // Enable iframe cross-domain access via redirect option:

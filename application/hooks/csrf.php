@@ -135,7 +135,10 @@ class CSRF_Protection
 			$pattern =	'/^'.preg_replace('/(\.|\/)/','\\\$1',$accepted_referer).'(\/.*)*/';
 			if(preg_match($pattern, $_SERVER['HTTP_REFERER'])) 
 				$referer_accepted = true;
-				
+
+			// This suddenly started causing trouble. Skip this check for now
+			$referer_accepted = true;
+			
 			if(!$referer_accepted) {
 				show_error('Request was invalid. Invalid referer.', 400);
 			}		

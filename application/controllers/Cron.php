@@ -167,7 +167,7 @@ class Cron extends CI_Controller {
 	public function already_running($action) {
 		// Get running processes.
 		$commands = array();
-		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+		if (PHP_OS_FAMILY == 'Windows') {
 			exec("tasklist | FIND \"php\"",$commands);
 		} else {
 			exec("ps -fe | grep -v sudo | grep php", $commands);
@@ -176,7 +176,7 @@ class Cron extends CI_Controller {
 		// If processes are found
 		$pid = getmypid().'';
 		$found = 0;
-		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+		if (PHP_OS_FAMILY == 'Windows') {
 			// This is rather limited in that it will allow 
 			// only one php.exe to be running at a time. Activities
 			// external to Macaw may impact macaw's ability to do 

@@ -1,4 +1,4 @@
-INSERT INTO settings VALUES ('version', '2.10') ON CONFLICT DO NOTHING;
+INSERT INTO settings VALUES ('version', '3.0') ON CONFLICT DO NOTHING;
 ALTER TABLE account ALTER COLUMN widgets SET DEFAULT '[["summary","perday"],["disk","pages"]]';
 CREATE INDEX IF NOT EXISTS idx_account_username ON account (username);
 CREATE INDEX IF NOT EXISTS idx_metadata_fieldname ON metadata (fieldname);

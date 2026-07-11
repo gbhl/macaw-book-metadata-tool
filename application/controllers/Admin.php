@@ -522,7 +522,35 @@ class Admin extends CI_Controller {
 			}
 		}
 	}
-	public function view_config() {
+
+	/**
+	 * Do we have permission to edit a user
+	 *
+	 * Admin can edit anyone and anyone can edit themselves. Otherwise, fuggedaboutit!
+	 *
+	 * @since Version 1.1
+	 */
+	/* LOCAL ADMIN COMPLETED */
+	function _can_edit_account($user, $target) {
+		$target_user = new User;
+		$target_user->load($target);
+
+		$this->user->load($this->session->userdata('username'));
+
+		if ($user == 'admin' || 
+		    $user == $target || 
+		    $this->user->has_permission('admin') || 
+		    ($this->user->has_permission('local_admin') && 
+		     $this->user->org_id == $target_user->org_id && 
+		     $target != 'admin'
+		    )
+		   ) {
+			return true;
+		}
+		return false;
+	}
+	
+	function view_config($all = '') {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('admin')) {
@@ -553,7 +581,43 @@ class Admin extends CI_Controller {
 				);
 			}
 		}
-	$this->load->view('admin/config_view', $data);
+		$data['all'] = ($all == 'all');
+		$data['phpinfo'] = $this->_phpinfo_array();
+		$data['phpvars'] = $this->_php_vars();
+		unset($data['phpinfo']['General']['Configure Command']);
+		unset($data['phpinfo']['PHP Variables']);
+		$this->load->view('admin/config_view', $data);
+	}
+
+	function _php_vars() {
+		$vars = array();
+		$vars['PHP_VERSION'] = PHP_VERSION;
+		$vars['PHP_OS'] = PHP_OS;
+		$vars['PHP_OS_FAMILY'] = PHP_OS_FAMILY;
+		$vars['PHP_BINARY'] = PHP_BINARY;
+		$vars['PHP_PREFIX'] = PHP_PREFIX;
+		$vars['PHP_BINDIR'] = PHP_BINDIR;
+		$vars['PHP_LIBDIR'] = PHP_LIBDIR;
+		$vars['FOUND_PHP_EXE'] = $this->common->get_php_exe();
+		return $vars;
+	}
+
+	function _phpinfo_array() {
+		ob_start();
+		phpinfo();
+		$info_arr = array();
+		$info_lines = explode("\n", strip_tags(ob_get_clean(), "<tr><td><h2>"));
+		$cat = "General";
+		foreach($info_lines as $line) {
+			// new cat?
+			preg_match("~<h2>(.*)</h2>~", $line, $title) ? $cat = $title[1] : null;
+			if(preg_match("~<tr><td[^>]+>([^<]*)</td><td[^>]+>([^<]*)</td></tr>~", $line, $val)) {
+				$info_arr[trim($cat)][trim($val[1])] = $val[2];
+			} elseif(preg_match("~<tr><td[^>]+>([^<]*)</td><td[^>]+>([^<]*)</td><td[^>]+>([^<]*)</td></tr>~", $line, $val)) {
+				$info_arr[trim($cat)][trim($val[1])] = array("local" => $val[2], "master" => $val[3]);
+			}
+		}
+		return $info_arr;
 	}
 
 	/* 
@@ -575,11 +639,12 @@ class Admin extends CI_Controller {
 
 		chdir($this->cfg['base_directory']);
 		// Try to identify the PHP executable on this system
-		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+		if (PHP_OS_FAMILY == 'Windows') {
 			$fname = $this->logging->log('cron', 'info', 'Cron job \''.$action.'\' manually initiated.');
 			// SCS Changed the spawn process for windows compatability
 			// Assumes php.exe is in the path somewhere.
-			$exec = 'START "'.PHP_BINDIR.DIRECTORY_SEPARATOR.'php" "'.$this->cfg['base_directory'].DIRECTORY_SEPARATOR.'index.php" cron '.$action;
+			$php_exe = $this->common->get_php_exe();
+			$exec = 'START /b "" "'.$php_exe.'" "'.$this->cfg['base_directory'].DIRECTORY_SEPARATOR.'index.php" cron '.$action.' *> '.$this->cfg['logs_directory'].'\background.log & ' ;
 		} else {
 			$fname = $this->logging->log('cron', 'info', 'Cron job \''.$action.'\' manually initiated.');
 

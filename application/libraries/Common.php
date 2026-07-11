@@ -830,7 +830,7 @@ class Common {
 			}
 			if (!$found) {
 				// 3. Get the number of bytes used in the /books/ directory
-				if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+				if (PHP_OS_FAMILY == 'Windows') {
 					$df_e = disk_free_space("E:");
 					$ds = disk_total_space("E:");
 					$dup = 0;
@@ -941,7 +941,7 @@ class Common {
 			}
 
 		}
-		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+		if (PHP_OS_FAMILY == 'Windows') {
 			/* SCS Comment out Disk usage reporting for the moment */
 		} else {
 			$matches = array();
@@ -1036,10 +1036,10 @@ class Common {
 	 * Original From https://core.wp-a2z.org/oik_api/win_is_writable/
 	 * Modified to work with both Linux and Windows
 	 */
-	public function path_is_writable( $path ) {
-		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+	function path_is_writable( $path ) {
+		if (PHP_OS_FAMILY == 'Windows') {
 		
-			if ( '/' === $path[ strlen( $path ) - 1 ] ) {
+		if ( '/' === $path[ strlen( $path ) - 1 ] ) {
 		    // If it looks like a directory, check a random file within the directory.
 		    return $this->path_is_writable( $path . uniqid( mt_rand() ) . '.tmp' );
 		  } elseif ( is_dir( $path ) ) {
@@ -1076,6 +1076,46 @@ class Common {
 		return $pattern;
 	}
 
+	function get_php_exe() {
+		$is_win = PHP_OS_FAMILY == 'Windows';
+
+		// Low hanging fruit, if it's defined.
+		if (defined(PHP_BINARY)) {
+			return PHP_BINARY;
+		}
+
+		// Look to the "Loaded Configuration File" path (may work for windows)
+		if (php_ini_loaded_file()) {
+			$f = pathinfo(php_ini_loaded_file(), PATHINFO_DIRNAME).DIRECTORY_SEPARATOR.'\php';
+			if ($is_win) { $f .= '.exe'; }
+			if (file_exists($f)) {
+				return $f;
+			}		
+		}
+
+		// Scan all of the PATH locations (linux and Windows)
+		$paths = [];
+		if ($is_win) {
+			$paths = explode(';', getenv('PATH'));
+		} else {
+			$paths = explode(':', getenv('PATH'));
+		}
+		foreach ($paths as $p) {
+			$f = $p.DIRECTORY_SEPARATOR.'php';
+			if ($is_win) { $f .= '.exe'; }
+			if (file_exists($f)) {
+				return $f;
+			}
+		}
+
+		// use PHP_BINDIR + "php" (or "PHP.EXE")
+		$f = PHP_BINDIR.DIRECTORY_SEPARATOR.'php';
+		if ($is_win) { $f .= '.exe'; }
+		if (file_exists($f)) {
+			return $f;
+		}
+		return "";
+	}
 }
 
 
