@@ -51,6 +51,16 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * @author		EllisLab Dev Team
  * @link		https://codeigniter.com/userguide3/database/
  */
+
+/** 
+ * Allow dynamic properties for this class
+ * 
+ * CI doesn't know which properties will be loaded.
+ * Added for backwards compatibility in newer versions
+ * of PHP.
+ */
+#[AllowDynamicProperties]
+
 abstract class CI_DB_driver {
 
 	/**

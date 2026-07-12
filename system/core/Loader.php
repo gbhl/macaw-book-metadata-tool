@@ -49,6 +49,16 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * @author		EllisLab Dev Team
  * @link		https://codeigniter.com/userguide3/libraries/loader.html
  */
+
+/** 
+ * Allow dynamic properties for this class
+ * 
+ * CI doesn't know which properties will be loaded.
+ * Added for backwards compatibility in newer versions
+ * of PHP.
+ */
+#[AllowDynamicProperties]
+
 class CI_Loader {
 
 	// All these are set automatically. Don't mess with them.

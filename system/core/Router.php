@@ -112,6 +112,13 @@ class CI_Router {
 	 */
 	public $enable_query_strings = FALSE;
 
+	/**
+	 * URI
+	 *
+	 * @var	object
+	 */
+	public $uri;
+
 	// --------------------------------------------------------------------
 
 	/**

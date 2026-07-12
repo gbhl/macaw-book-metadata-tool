@@ -39,6 +39,7 @@ class Book extends CI_Model {
 	 * @var string [$page_progression]
 	 * @internal string [$cfg] The Macaw configuration object
 	 */
+	private $CI;	
 	public $id = '';
 	public $org_id = '';
 	public $barcode = '';
@@ -59,7 +60,6 @@ class Book extends CI_Model {
 	public $ia_ready_images = '';
 	public $page_progression = '';
 	public $total_mbytes = 0;
-	
 	var $metadata_array = array();
 
 	public $cfg;

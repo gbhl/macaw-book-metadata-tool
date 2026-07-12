@@ -21,6 +21,8 @@
 
 class Importer extends CI_Model {
 
+	private $cfg;
+
 	function __construct() {
 		// Call the Model constructor
 		parent::__construct();
