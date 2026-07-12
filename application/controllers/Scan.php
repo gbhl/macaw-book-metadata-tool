@@ -434,7 +434,7 @@ class Scan extends CI_Controller {
 		}
 		$this->common->ajax_headers();
 		// Get our book
-        $this->book->load($this->session->userdata('barcode'));
+		$this->book->load($this->session->userdata('barcode'));
 
 		// Embedded ampersands in the data cause trouble.
 		$data = preg_replace('/\&/i', '&amp;', $this->input->post('data'));
@@ -674,8 +674,8 @@ class Scan extends CI_Controller {
 
 		// If we didn't get any QA users, let's send to the local admin users
 		if (count($qa_users) == 0) {
-      $this->db->where('username in (select username from permission where lower(permission) = \'local_admin\' and org_id = '.$org_id.');');
-      $this->db->select('email');
+		$this->db->where('username in (select username from permission where lower(permission) = \'local_admin\' and org_id = '.$org_id.');');
+		$this->db->select('email');
 			$query = $this->db->get('account');
 			foreach ($query->result() as $row) {
 				array_push($qa_users, $row->email);

@@ -13,7 +13,6 @@ class Admin extends CI_Controller {
 
 	var $cfg;
 
-	/* LOCAL ADMIN COMPLETED */
 	public function __construct() {
 		parent::__construct();
 		$this->cfg = $this->config->item('macaw');
@@ -24,7 +23,6 @@ class Admin extends CI_Controller {
 	 *
 	 * Simply makes sure the user is logged in and shows the admin main page.
 	 */
-	/* LOCAL ADMIN COMPLETED */
 	public function index() {
 		$this->common->check_session();
 
@@ -175,10 +173,10 @@ class Admin extends CI_Controller {
 
 		// Create an array of subarrays to subdivide the data
 		$data = array(
-		  'all_items' => array(),
-		  'in_progress' => array(),
-		  'qa' => array(),
-		  'export_ready' => array()
+			'all_items' => array(),
+			'in_progress' => array(),
+			'qa' => array(),
+			'export_ready' => array()
 		);
 
 		// Get all books in the system along with their data
@@ -186,11 +184,11 @@ class Admin extends CI_Controller {
 
 		// Sort our records into the subarrays
 		foreach ($books as $b) {
-      if ($this->user->has_permission('admin')) {
-        array_push($data['all_items'], $b);
-      } elseif ($this->user->org_id == $b->org_id) {
-        array_push($data['all_items'], $b);
-      }				
+			if ($this->user->has_permission('admin')) {
+				array_push($data['all_items'], $b);
+			} elseif ($this->user->org_id == $b->org_id) {
+				array_push($data['all_items'], $b);
+			}				
 
 			if (in_array($b->status_code, array('new', 'scanning', 'scanned', 'reviewing'))) {
 				if ($this->user->has_permission('admin')) {
@@ -262,7 +260,6 @@ class Admin extends CI_Controller {
 	/**
 	 * Show the manual functions
 	 **/
-	/* LOCAL ADMIN COMPLETED */
 	public function scheduled_jobs() {
 		$this->common->check_session();
 
@@ -292,7 +289,6 @@ class Admin extends CI_Controller {
 	 * @access public
 	 * @since Version 1.0
 	 */
-	/* LOCAL ADMIN COMPLETED */
 	public function logs($filename = '') {
 		$this->common->check_session();
 		// Permission Checking
@@ -331,45 +327,43 @@ class Admin extends CI_Controller {
 		}
 
 		if ($name == '') {
-			// TODO See what happens now that directory_map() adds a trailing slash for directories
 			$books = directory_map($this->cfg['logs_directory'].'/books', true);
 			
 			$files = array();
 			// Get a list of the log files in the main log directory
-			// TODO See what happens now that directory_map() adds a trailing slash for directories
 			$logs = directory_map($this->cfg['logs_directory'], true);
-      
-      $filter = '';
-      if (isset($_REQUEST['filter'])) {
-        $filter = $_REQUEST['filter'];
-        // $filter = preg_replace('/[^A-Za-z0-9]+/', '', $filter);
-      }
-      for ($i=0; $i < count($logs); $i++) {
+			
+			$filter = '';
+			if (isset($_REQUEST['filter'])) {
+				$filter = $_REQUEST['filter'];
+				// $filter = preg_replace('/[^A-Za-z0-9]+/', '', $filter);
+			}
+			for ($i=0; $i < count($logs); $i++) {
 				if ($logs[$i] != 'books') {
-          if ($filter) {
-            if (@preg_match('|'.$filter.'|i', $logs[$i])) {
-  					  // Add them to our array of files
-  					  array_push($files, array('log' => $logs[$i]));
-            }
-          } else {
-  					// Add them to our array of files
-  					array_push($files, array('log' => $logs[$i]));
-          }
+					if ($filter) {
+						if (@preg_match('|'.$filter.'|i', $logs[$i])) {
+							// Add them to our array of files
+							array_push($files, array('log' => $logs[$i]));
+						}
+					} else {
+						// Add them to our array of files
+						array_push($files, array('log' => $logs[$i]));
+					}
 				}
 			}
 		
 			// Get a list of the log files in the books directory
 			for ($i=0; $i < count($books); $i++) {
 				// Add them to our array of files
-        if ($filter) {
-          if (@preg_match('|'.$filter.'|i', $books[$i])) {
-            array_push($files, array('log' => 'books/'.$books[$i]));
-          }
-        } else {
-          array_push($files, array('log' => 'books/'.$books[$i]));
-        }
+				if ($filter) {
+					if (@preg_match('|'.$filter.'|i', $books[$i])) {
+						array_push($files, array('log' => 'books/'.$books[$i]));
+					}
+				} else {
+					array_push($files, array('log' => 'books/'.$books[$i]));
+				}
 			}
-		  array_multisort($files);
+			array_multisort($files);
 
 			// Send the data back to the browser
 			$this->common->ajax_headers();
@@ -377,10 +371,6 @@ class Admin extends CI_Controller {
 			echo json_encode($files);
 
 		} else {
-			// TODO: This is inefficient for large files, we should
-			// just echo out as we read the file. This uses lots of memory
-			// for large files!!
-
 			// Cleanse the name. It could be hacky.
 			$name = preg_replace('/^.+\//', '$1', $name);
 			$name = preg_replace('/books_/', 'books/', $name);
@@ -401,10 +391,10 @@ class Admin extends CI_Controller {
 						'date' => $fields[1],
 						'time' => $fields[2],
 						'datetime' => $fields[1].'&nbsp;'.$fields[2],
-						'ip' =>  $fields[3],
-						'user' =>  $fields[4],
-						'action' =>  $fields[5],
-						'message' =>  $fields[6]
+						'ip' => $fields[3],
+						'user' => $fields[4],
+						'action' => $fields[5],
+						'message' => $fields[6]
 					));
 				} else {
 					array_push($lines, array(
@@ -415,7 +405,7 @@ class Admin extends CI_Controller {
 						'ip' => '',
 						'user' => '',
 						'action' => '',
-						'message' =>  $data[$i]
+						'message' => $data[$i]
 					));
 				}
 			}
@@ -435,7 +425,6 @@ class Admin extends CI_Controller {
 	 * @param string [$username] The name of the user to edit.
 	 * @since Version 1.0
 	 */
-	/* LOCAL ADMIN COMPLETED */
 	public function account() {
 		$this->common->check_session();
 		// Permission Checking
@@ -457,7 +446,6 @@ class Admin extends CI_Controller {
 	 * @param string [$username] The name of the user to edit.
 	 * @since Version 1.0
 	 */
-	/* LOCAL ADMIN COMPLETED */
 	public function account_list() {
 		// Make sure we are logged in and stuff
 		if (!$this->common->check_session(true)) {
@@ -487,7 +475,6 @@ class Admin extends CI_Controller {
 	 *
 	 * @since Version 1.2
 	 */
-	/* LOCAL ADMIN COMPLETED */
 	public function account_delete($username = null) {
 		$target_user = new User;
 		$target_user->load($username);
@@ -530,7 +517,6 @@ class Admin extends CI_Controller {
 	 *
 	 * @since Version 1.1
 	 */
-	/* LOCAL ADMIN COMPLETED */
 	function _can_edit_account($user, $target) {
 		$target_user = new User;
 		$target_user->load($target);
@@ -538,13 +524,12 @@ class Admin extends CI_Controller {
 		$this->user->load($this->session->userdata('username'));
 
 		if ($user == 'admin' || 
-		    $user == $target || 
-		    $this->user->has_permission('admin') || 
-		    ($this->user->has_permission('local_admin') && 
-		     $this->user->org_id == $target_user->org_id && 
-		     $target != 'admin'
-		    )
-		   ) {
+			$user == $target || 
+			$this->user->has_permission('admin') || 
+			($this->user->has_permission('local_admin') && 
+				$this->user->org_id == $target_user->org_id && 
+				$target != 'admin'
+			)) {
 			return true;
 		}
 		return false;
@@ -627,7 +612,6 @@ class Admin extends CI_Controller {
 	 * 
 	 * @param string [$action] Which cron entry should be run. Must correspond to a method on the cron crontroller.
 	 */
-	/* LOCAL ADMIN COMPLETED */
 	public function cron($action) {
 		$this->common->ajax_headers();
 
@@ -662,7 +646,6 @@ class Admin extends CI_Controller {
 	 *
 	 * @since Version 1.7
 	 */
-	/* LOCAL ADMIN COMPLETED */
 	public function organization() {
 		$this->common->check_session();
 		// Permission Checking
@@ -681,7 +664,6 @@ class Admin extends CI_Controller {
 	 *
 	 * @since Version 1.7
 	 */
-	/* LOCAL ADMIN COMPLETED */
 	public function organization_list() {
 		// Make sure we are logged in and stuff
 		if (!$this->common->check_session(true)) {
@@ -704,7 +686,6 @@ class Admin extends CI_Controller {
 	 * @param string [$id] The name of the organization to edit.
 	 * @since Version 1.7
 	 */
-	/* LOCAL ADMIN COMPLETED */
 	public function organization_edit($id = 0) {
 		// Make sure we are logged in and stuff
 		if (!$this->common->check_session(true)) {
@@ -771,7 +752,6 @@ class Admin extends CI_Controller {
 	 *
 	 * @since Version 1.7
 	 */
-	/* LOCAL ADMIN COMPLETED */
 	public function organization_add() {
 		// Make sure we are logged in and stuff
 		if (!$this->common->check_session(true)) {
@@ -820,7 +800,6 @@ class Admin extends CI_Controller {
 	 *
 	 * @since Version 1.7
 	 */
-	/* LOCAL ADMIN COMPLETED */
 	public function organization_save() {
 		// Make sure we are logged in and stuff
 		if (!$this->common->check_session(true)) {
@@ -916,7 +895,6 @@ class Admin extends CI_Controller {
 	 *
 	 * @since Version 1.2
 	 */
-	/* LOCAL ADMIN COMPLETED */
 	public function organization_delete($id) {
 		if (!$this->user->has_permission('admin')) {
 			$this->common->ajax_headers();
@@ -961,22 +939,22 @@ class Admin extends CI_Controller {
 
 
 		$sql = 'SELECT count(*) as items, max(o.name) as contributor, i.org_id, '.
-			   'EXTRACT(YEAR_MONTH FROM date_completed) as month, sum(coalesce(0,pages_found)) as pages '.
-			   'FROM (select * from item where date_completed is not null) i '.
-			   'INNER JOIN organization o ON o.id = i.org_id '.
-			   'GROUP BY EXTRACT(YEAR_MONTH FROM date_completed), i.org_id '.
-			   'ORDER BY EXTRACT(YEAR_MONTH FROM date_completed) DESC, o.name';
+				 'EXTRACT(YEAR_MONTH FROM date_completed) as month, sum(coalesce(0,pages_found)) as pages '.
+				 'FROM (select * from item where date_completed is not null) i '.
+				 'INNER JOIN organization o ON o.id = i.org_id '.
+				 'GROUP BY EXTRACT(YEAR_MONTH FROM date_completed), i.org_id '.
+				 'ORDER BY EXTRACT(YEAR_MONTH FROM date_completed) DESC, o.name';
 				
 		if ($this->user->has_permission('local_admin')) {
 			$this->user->load($this->session->userdata('username'));
 			$org_id = $this->user->org_id;
 
 			$sql = 'SELECT count(*) as items, max(o.name) as contributor, i.org_id, '.
-				   'EXTRACT(YEAR_MONTH FROM date_completed) as month, sum(coalesce(0,pages_found)) as pages '.
-				   'FROM (select * from item where date_completed is not null and org_id = '.$org_id.') i '.
-				   'INNER JOIN organization o ON o.id = i.org_id '.
-				   'GROUP BY EXTRACT(YEAR_MONTH FROM date_completed), i.org_id '.
-				   'ORDER BY EXTRACT(YEAR_MONTH FROM date_completed) DESC, o.name';
+					 'EXTRACT(YEAR_MONTH FROM date_completed) as month, sum(coalesce(0,pages_found)) as pages '.
+					 'FROM (select * from item where date_completed is not null and org_id = '.$org_id.') i '.
+					 'INNER JOIN organization o ON o.id = i.org_id '.
+					 'GROUP BY EXTRACT(YEAR_MONTH FROM date_completed), i.org_id '.
+					 'ORDER BY EXTRACT(YEAR_MONTH FROM date_completed) DESC, o.name';
 		}
 
 		$query = $this->db->query($sql);

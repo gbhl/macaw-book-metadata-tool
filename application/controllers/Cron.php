@@ -52,11 +52,11 @@ class Cron extends CI_Controller {
 		// making the system() call.
 		if ($this->already_running($method)) {
 			if (!getenv("MACAW_OVERRIDE")) {
-        // Allow multiple exports, but the export needs
-        // to be aware of other exports of the same type.
-        if ($method != 'export') {
-          return false;
-        }
+		// Allow multiple exports, but the export needs
+		// to be aware of other exports of the same type.
+		if ($method != 'export') {
+		  return false;
+		}
 			} else {
 				$this->logging->log('access', 'info', "Cron command $method is already running, but we continue anyway due to override.");
 			}
@@ -109,9 +109,7 @@ class Cron extends CI_Controller {
 		} else {			
 			$barcodes = directory_map($this->cfg['incoming_directory'], TRUE);
 		}
-		
-		// TODO See what happens now that directory_map() adds a trailing slash for directories
-		
+				
 		if (count($barcodes)) {
 			// Assume that any directory names are the barcodes for a book
 			foreach ($barcodes as $bc) {
@@ -160,8 +158,8 @@ class Cron extends CI_Controller {
 
 	public function index() {
 		echo "No command specified.\n";
-		echo "Usage:\n    php index.php cron (new_items|import_pages|export|statistics)\n";
-		echo "    php index.php cron export [export-specific-arguments]\n\n";
+		echo "Usage:\n	php index.php cron (new_items|import_pages|export|statistics)\n";
+		echo "	php index.php cron export [export-specific-arguments]\n\n";
 	}
 
 	public function already_running($action) {
@@ -258,25 +256,25 @@ class Cron extends CI_Controller {
 		// TODO: Do the command to load the demo item
 	}
 
-  public function calculate_sizes() {
-    // Loop through the items in the books folder
-    if ($h = opendir($this->cfg['data_directory'])) {
-      while (false != ($f = readdir($h))) {
-        try {
-          if ($f != '.' && $f != '..' && $f != 'import_export' && $f != 'archive') {
-            if (!is_file($f) && !preg_match('/_delete/', $f)) {
-              // Count the size
-              $this->book->load($f);
-              $this->book->total_mbytes = $this->book->_dir_size($this->cfg['data_directory'].'/'.$f);
-              // Save the size to the book
-              $this->book->update();
-            }
-          }
-        } catch (Exception $e) {
-          // Nothing
-        }
-      }
-    }
-  }
+	public function calculate_sizes() {
+		// Loop through the items in the books folder
+		if ($h = opendir($this->cfg['data_directory'])) {
+			while (false != ($f = readdir($h))) {
+			try {
+				if ($f != '.' && $f != '..' && $f != 'import_export' && $f != 'archive') {
+				if (!is_file($f) && !preg_match('/_delete/', $f)) {
+					// Count the size
+					$this->book->load($f);
+					$this->book->total_mbytes = $this->book->_dir_size($this->cfg['data_directory'].'/'.$f);
+					// Save the size to the book
+					$this->book->update();
+				}
+				}
+			} catch (Exception $e) {
+				// Nothing
+			}
+			}
+		}
+	}
 
 }

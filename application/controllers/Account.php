@@ -42,7 +42,7 @@ class Account extends CI_Controller {
 		$current_user = $this->session->userdata('username');
 
 		// Capture current user's permissions before any user object reloads
-		$is_admin       = $this->user->has_permission('admin');
+		$is_admin = $this->user->has_permission('admin');
 		$is_local_admin = $this->user->has_permission('local_admin');
 
 		$new = ($username === 'new');
@@ -59,28 +59,28 @@ class Account extends CI_Controller {
 
 			// Load a blank user object for the permissions list
 			$this->user->load();
-			$data['new']        = true;
-			$data['is_self']    = false;
-			$data['username']   = '';
-			$data['full_name']  = '';
-			$data['email']      = '';
-			$data['created']    = '';
-			$data['modified']   = '';
+			$data['new'] = true;
+			$data['is_self'] = false;
+			$data['username'] = '';
+			$data['full_name'] = '';
+			$data['email'] = '';
+			$data['created'] = '';
+			$data['modified'] = '';
 			$data['last_login'] = '';
 			$data['permissions'] = $this->user->get_permissions();
 
 			if ($is_admin) {
 				$data['locked_org_id'] = false;
 				$data['organizations'] = $this->organization->get_list();
-				$data['org_name']      = '';
-				$data['org_id']        = -1;
+				$data['org_name'] = '';
+				$data['org_id'] = -1;
 			} else {
 				// local_admin: lock new user to their own org
 				$this->user->load($current_user);
 				$data['locked_org_id'] = true;
 				$data['organizations'] = array();
-				$data['org_name']      = $this->user->org_name;
-				$data['org_id']        = $this->user->org_id;
+				$data['org_name'] = $this->user->org_name;
+				$data['org_id'] = $this->user->org_id;
 			}
 
 		} else {
@@ -96,23 +96,23 @@ class Account extends CI_Controller {
 			}
 
 			// _can_edit() reloads $this->user with current user — re-read permissions
-			$is_admin       = $this->user->has_permission('admin');
+			$is_admin = $this->user->has_permission('admin');
 			$is_local_admin = $this->user->has_permission('local_admin');
 
 			// Now load the target user
 			$this->user->load($username);
 
-			$data['new']        = false;
-			$data['is_self']    = ($username === $current_user);
-			$data['username']   = $username;
-			$data['full_name']  = $this->user->full_name;
-			$data['email']      = $this->user->email;
-			$data['created']    = date($datestring, strtotime($this->user->created));
-			$data['modified']   = date($datestring, strtotime($this->user->modified));
+			$data['new'] = false;
+			$data['is_self'] = ($username === $current_user);
+			$data['username'] = $username;
+			$data['full_name'] = $this->user->full_name;
+			$data['email'] = $this->user->email;
+			$data['created'] = date($datestring, strtotime($this->user->created));
+			$data['modified'] = date($datestring, strtotime($this->user->modified));
 			$data['last_login'] = date($datestring, strtotime($this->user->last_login));
 			$data['permissions'] = $this->user->get_permissions();
-			$data['org_name']   = $this->user->org_name;
-			$data['org_id']     = $this->user->org_id;
+			$data['org_name'] = $this->user->org_name;
+			$data['org_id'] = $this->user->org_id;
 
 			if ($is_admin) {
 				$data['locked_org_id'] = false;
@@ -123,10 +123,10 @@ class Account extends CI_Controller {
 			}
 		}
 
-		$data['token']          = $this->session->userdata('li_token');
-		$data['is_admin']       = $is_admin;
+		$data['token'] = $this->session->userdata('li_token');
+		$data['is_admin'] = $is_admin;
 		$data['is_local_admin'] = $is_local_admin;
-		$data['totp_enabled']   = (!$new && $data['is_self']) ? $this->user->totp_enabled : false;
+		$data['totp_enabled'] = (!$new && $data['is_self']) ? $this->user->totp_enabled : false;
 
 		$this->load->view('account/settings_view', $data);
 	}
@@ -151,10 +151,10 @@ class Account extends CI_Controller {
 		$this->session->set_userdata('totp_pending_secret', $secret);
 
 		$username = $this->session->userdata('username');
-		$otpauth  = $this->totp->get_otpauth_url($secret, $username);
-		$data['qr_svg']  = QrCode::svg($otpauth, 4, 1); // code, cell size, margin
-		$data['secret']  = $secret;
-		$data['token']   = $this->session->userdata('li_token');
+		$otpauth = $this->totp->get_otpauth_url($secret, $username);
+		$data['qr_svg'] = QrCode::svg($otpauth, 4, 1); // code, cell size, margin
+		$data['secret'] = $secret;
+		$data['token'] = $this->session->userdata('li_token');
 
 		$this->load->view('account/totp_setup_view', $data);
 	}
@@ -228,13 +228,13 @@ class Account extends CI_Controller {
 			return;
 		}
 
-		$current_user   = $this->session->userdata('username');
-		$is_admin       = $this->user->has_permission('admin');
+		$current_user = $this->session->userdata('username');
+		$is_admin = $this->user->has_permission('admin');
 		$is_local_admin = $this->user->has_permission('local_admin');
 
-		$full_name  = $this->input->post('full_name');
-		$email      = $this->input->post('email');
-		$password   = $this->input->post('password');
+		$full_name = $this->input->post('full_name');
+		$email = $this->input->post('email');
+		$password = $this->input->post('password');
 		$password_c = $this->input->post('password_c');
 
 		if (!$full_name || !$email) {
@@ -266,9 +266,9 @@ class Account extends CI_Controller {
 
 			$this->user->load();
 			$this->user->full_name = $full_name;
-			$this->user->email     = $email;
-			$this->user->org_id    = $this->input->post('org_id');
-			$this->user->password  = $password;
+			$this->user->email = $email;
+			$this->user->org_id = $this->input->post('org_id');
+			$this->user->password = $password;
 
 			try {
 				$this->user->add($new_username);
@@ -309,15 +309,15 @@ class Account extends CI_Controller {
 			}
 
 			// _can_edit() reloads $this->user with current user — re-read permissions
-			$is_admin       = $this->user->has_permission('admin');
+			$is_admin = $this->user->has_permission('admin');
 			$is_local_admin = $this->user->has_permission('local_admin');
 
 			try {
 				$this->user->load($username);
 				$this->user->full_name = $full_name;
-				$this->user->email     = $email;
-				$this->user->org_id    = $this->input->post('org_id');
-				$this->user->password  = $password;
+				$this->user->email = $email;
+				$this->user->org_id = $this->input->post('org_id');
+				$this->user->password = $password;
 				$this->user->update();
 
 				if ($is_admin || $is_local_admin) {
@@ -361,7 +361,7 @@ class Account extends CI_Controller {
 	 *
 	 * @param string $user   The logged-in username.
 	 * @param string $target The username to be edited.
-	 * @return bool
+	 * @return bool Whether the person may edit the account or not
 	 */
 	private function _can_edit($user, $target) {
 		$target_user = new User;

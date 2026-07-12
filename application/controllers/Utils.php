@@ -123,10 +123,10 @@ class Utils extends CI_Controller {
 		}
 		function reset_usage() {
 			print "USAGE: sudo -u WWW_USER php index.php utils reset_item IDENTIFIER\n";
-			print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER PATH\n";
-			print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER SFTP://SERVER/PATH/TO/FILE\n";
-			print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER internet_archive_pdf\n";
-			print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER internet_archive\n";
+			print "	   sudo -u WWW_USER php index.php utils reset_item IDENTIFIER PATH\n";
+			print "	   sudo -u WWW_USER php index.php utils reset_item IDENTIFIER SFTP://SERVER/PATH/TO/FILE\n";
+			print "	   sudo -u WWW_USER php index.php utils reset_item IDENTIFIER internet_archive_pdf\n";
+			print "	   sudo -u WWW_USER php index.php utils reset_item IDENTIFIER internet_archive\n";
 			print "\n";
 			print "IDENTIFIER is a Macaw Identifier, not Intenet Archive.\n";
 			print "FILENAME can be a ZIP file or TAR archive of sequentially numbered files.\n";
@@ -252,7 +252,7 @@ class Utils extends CI_Controller {
 							copy("zip://{$zipfile}#{$filename}", "{$pth}/scans/{$fileinfo['basename']}");
 						}
 					}
-					$zip->close();                  
+					$zip->close();
 				}
 				$restored_images = true;
 
@@ -273,21 +273,21 @@ class Utils extends CI_Controller {
 			}
 			// If there is more than one, throw an error or ask for which one to use
 			if (count($pdfs) > 1) {
-        foreach ($pdfs as $p) {
-          $url = "https://archive.org/download/$identifier/".$p;
-          $dest = $pth.'/'.$p;
-          if (!file_exists($dest)) {
-            file_put_contents($dest, file_get_contents($url));
-          }  
-        }
+				foreach ($pdfs as $p) {
+					$url = "https://archive.org/download/$identifier/".$p;
+					$dest = $pth.'/'.$p;
+					if (!file_exists($dest)) {
+					file_put_contents($dest, file_get_contents($url));
+					}  
+				}
 				print "More than one PDF was found. Please address this manually.\n";
-        print "Files are located in: $pth\n";
-        die;
+				print "Files are located in: $pth\n";
+				die;
 			} elseif (count($pdfs) == 0) {
 				print "No PDF was found for $barcode. Cannot continue.\n";
-        die;
-      } else {
-				// Download the PDF(s) from the internet archive: IDENTIFIER_orig_pdf.zip or IDENTIFIER_orig_pdf_##.zip
+				die;
+			} else {
+						// Download the PDF(s) from the internet archive: IDENTIFIER_orig_pdf.zip or IDENTIFIER_orig_pdf_##.zip
 				$url = "https://archive.org/download/$identifier/".$pdfs[0];
 				$dest = $pth.DIRECTORY_SEPARATOR.$pdfs[0];
 				$fileext = 'png';
@@ -299,7 +299,7 @@ class Utils extends CI_Controller {
 				$zip = new ZipArchive;
 				$x = $zip->open($dest);
 				$zip->extractTo($pth);
-				$zip->close();                  
+				$zip->close();
 				// Making an assumption here about the name of the PDF
 				$dest = $pth.'/'.$identifier.'_orig.pdf';
 
@@ -315,7 +315,7 @@ class Utils extends CI_Controller {
 											escapeshellarg($dest);
 					exec($exec);
 				}
-				print chr(13)."Extracting images...Done!        \n";
+				print chr(13)."Extracting images...Done!\n";
 				$restored_images = true;
 			}
 
@@ -390,7 +390,7 @@ class Utils extends CI_Controller {
 						print '.';
 					}
 					$zip->close();
-					print "Done!\n";               
+					print "Done!\n";
 					$restored_images = true;
 				} elseif (substr($filename, -3, 3) == 'tar') {
 					// It's a the Tar file
@@ -411,7 +411,7 @@ class Utils extends CI_Controller {
 						$numfiles++;
 						print chr(13)."Extracting images from a TAR file (".$numfiles."/".count($files).")";
 					}				
-					print chr(13)."Extracting images from a TAR file...Done!       \n";
+					print chr(13)."Extracting images from a TAR file...Done!\n";
 					$restored_images = true;
 				}
 			}
@@ -489,7 +489,7 @@ class Utils extends CI_Controller {
 				$data[] = $p->id;
 				$query = $this->db->query('update page set filebase = ?, bytes = ?, extension = ?, width = ?, height = ? where item_id = ? and id = ?', $data);
 			}
-			print chr(13)."Creating thumbs/previews and updating database...Done!      \n";
+			print chr(13)."Creating thumbs/previews and updating database...Done!\n";
 			$this->logging->log('book', 'info', 'Item images restored successfully.', $barcode);
 		}
 		// Give command to start re-uploading the item
@@ -962,10 +962,10 @@ class Utils extends CI_Controller {
 			// Parse the CSV file
 			include APPPATH . 'classes/ParseCSV.php';
 			$csv = new parseCSV();		
-	    $csv->delimiter = ",";
-	    $csv->allow_duplicate_headers = true;
+			$csv->delimiter = ",";
+			$csv->allow_duplicate_headers = true;
 			if ($ext == 'txt') {
-		    $csv->delimiter = "\t";
+				$csv->delimiter = "\t";
 			}			
 			$csv->encoding($encoding, 'UTF-8');
 			$csv->parse($fname);
@@ -1274,9 +1274,9 @@ class Utils extends CI_Controller {
 		// for each pdf that is processing (if there are more than one uploaded 
 		// at the same time)
 		$this->db->insert('metadata', array(
-			'item_id'   => $this->book->id,
+			'item_id' => $this->book->id,
 			'fieldname' => 'processing_pdf',
-			'counter'   => 1,
+			'counter' => 1,
 			'value' => 'yes'
 		));
 
@@ -1664,8 +1664,8 @@ class Utils extends CI_Controller {
 			// Parse the CSV file
 			include APPPATH . 'classes/ParseCSV.php';
 			$csv = new parseCSV();		
-		    $csv->delimiter = ",";
-		    $csv->allow_duplicate_headers = true;
+			$csv->delimiter = ",";
+			$csv->allow_duplicate_headers = true;
 			if ($ext == 'txt') { $csv->delimiter = "\t"; }
 			$csv->encoding($encoding, 'UTF-8');
 			$csv->parse($fname);

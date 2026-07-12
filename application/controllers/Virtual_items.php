@@ -22,7 +22,6 @@ class Virtual_Items extends CI_Controller {
 	 *
 	 * Simply makes sure the user is logged in and shows the admin main page.
 	 */
-	/* LOCAL ADMIN COMPLETED */
 	public function index() {
 		$this->common->check_session();
 
@@ -129,7 +128,7 @@ class Virtual_Items extends CI_Controller {
 		$data['name'] = $name;
 
 		$sql = "select count(*) as thecount, status_code from ".
-		  "custom_virtual_items vi inner join item i on vi.barcode = i.barcode ".
+			"custom_virtual_items vi inner join item i on vi.barcode = i.barcode ".
 			"where vi.source = ".$this->db->escape($data['name'])." group by status_code order by status_code;";
 		$query = $this->db->query($sql);
 		$rows = $query->result_array();

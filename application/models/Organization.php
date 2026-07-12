@@ -15,27 +15,27 @@
 
 class Organization extends CI_Model {
 
-    public $id			= '';
-    public $name		= '';
-    public $person		= '';
-    public $email		= '';
-    public $phone		= '';
-    public $address		= '';
-    public $address2	= '';
-    public $city		= '';
-    public $state		= '';
-    public $postal		= '';
-    public $country		= '';
-    public $created		= '';
-    public $modified	= '';
-    public $ia_api_key = '';
-    public $ia_secret_key = '';
+	public $id			= '';
+	public $name		= '';
+	public $person		= '';
+	public $email		= '';
+	public $phone		= '';
+	public $address		= '';
+	public $address2	= '';
+	public $city		= '';
+	public $state		= '';
+	public $postal		= '';
+	public $country		= '';
+	public $created		= '';
+	public $modified	= '';
+	public $ia_api_key = '';
+	public $ia_secret_key = '';
 
-    function __construct()
-    {
-        // Call the Model constructor
-        parent::__construct();
-    }
+	function __construct()
+	{
+		// Call the Model constructor
+		parent::__construct();
+	}
 
 	/**
 	 * Load the info for a organization
@@ -151,8 +151,8 @@ class Organization extends CI_Model {
 			// Do keys exist? Yes, update them
 			if ($keys->num_rows() > 0) {
 				$data = array(
-					'access_key'		=> $this->ia_api_key,
-					'secret'	      => $this->ia_secret_key
+					'access_key'	=> $this->ia_api_key,
+					'secret'		=> $this->ia_secret_key
 				);
 		
 				// Save to the database.
@@ -162,8 +162,8 @@ class Organization extends CI_Model {
 			} else {
 				$data = array(
 					'org_id'		=> $this->id,
-					'access_key'		=> $this->ia_api_key,
-					'secret'	=> $this->ia_secret_key
+					'access_key'	=> $this->ia_api_key,
+					'secret'		=> $this->ia_secret_key
 				);
 		
 				// Save to the database.

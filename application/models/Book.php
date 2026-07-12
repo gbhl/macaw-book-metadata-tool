@@ -50,10 +50,10 @@ class Book extends CI_Model {
 	public $needs_qa = '';
 	public $last_error = '';
 	public $org_name = '';
-  public $date_created = '';
-  public $date_scanning_start = '';
-  public $date_scanning_end = '';
-  public $date_review_start = '';
+	public $date_created = '';
+	public $date_scanning_start = '';
+	public $date_scanning_end = '';
+	public $date_review_start = '';
 	public $date_review_end = '';
 	public $date_export_start = '';
 	public $date_completed = '';
@@ -114,14 +114,14 @@ class Book extends CI_Model {
 				$this->pages_scanned = $row->pages_scanned;
 				$this->scan_time     = $row->scan_time;
 
-        $this->date_created        = $row->date_created;
-        $this->date_scanning_start = $row->date_scanning_start;
-        $this->date_scanning_end   = $row->date_scanning_end;
-        $this->date_review_start   = $row->date_review_start;
-        $this->date_review_end     = $row->date_review_end;
-        $this->date_export_start   = $row->date_export_start;
-        $this->date_completed      = $row->date_completed;
-      
+				$this->date_created        = $row->date_created;
+				$this->date_scanning_start = $row->date_scanning_start;
+				$this->date_scanning_end   = $row->date_scanning_end;
+				$this->date_review_start   = $row->date_review_start;
+				$this->date_review_end     = $row->date_review_end;
+				$this->date_export_start   = $row->date_export_start;
+				$this->date_completed      = $row->date_completed;
+			
 				if ($row->needs_qa == 't' || $row->needs_qa == '1') { 
 					$this->needs_qa = true;
 				} else {
@@ -272,14 +272,14 @@ class Book extends CI_Model {
 		// Get the name of the php file that called us. That's the module name.
 		$d = debug_backtrace(2);
 		$m = [];
-    if (!$module_name) {
-  		if (PHP_OS_FAMILY == 'Windows') {
-  			preg_match('/^.+\\\(.*?)\.php$/', $d[0]['file'], $m);
-  		} else {
-  			preg_match('/^\/.+\/(.*?)\.php$/', $d[0]['file'], $m);
-  		}
-  		$module_name = $m[1];
-    }
+		if (!$module_name) {
+			if (PHP_OS_FAMILY == 'Windows') {
+				preg_match('/^.+\\\(.*?)\.php$/', $d[0]['file'], $m);
+			} else {
+				preg_match('/^\/.+\/(.*?)\.php$/', $d[0]['file'], $m);
+			}
+			$module_name = $m[1];
+		}
 		// Can we continue?
 		if ($module_name != '' && $status != '' && $status != 'DELETE') {
 			// See if we have a record for this module in the database already
@@ -298,7 +298,7 @@ class Book extends CI_Model {
 					'item_id'		=> $this->id,
 					'status_code'	=> $status,
 					'export_module'	=> $module_name,
-					'date'		    => date('Y-m-d H:i:s.u')
+					'date'			=> date('Y-m-d H:i:s.u')
 				);
 				$this->db->insert('item_export_status', $data);
 				$this->set_status('exporting', $override);
@@ -313,13 +313,13 @@ class Book extends CI_Model {
 				$this->set_status('completed', $override);
 			}
 			//echo $this->db->last_query()."\n";
-    } elseif ($module_name != '' && $status == 'DELETE') {
-      // Super simple, we don't do any other checking
-      $this->db->where('item_id', $this->id);
-      $this->db->where('export_module', $module_name);
-      $this->db->delete('item_export_status');
-    }
-  }
+		} elseif ($module_name != '' && $status == 'DELETE') {
+			// Super simple, we don't do any other checking
+			$this->db->where('item_id', $this->id);
+			$this->db->where('export_module', $module_name);
+			$this->db->delete('item_export_status');
+		}
+	}
 
 	/**
 	 * Get the status of one export modules
@@ -341,7 +341,7 @@ class Book extends CI_Model {
 		return null;
 	}
 
-  	/**
+	/**
 	 * Get the status of all export modules
 	 *
 	 * Return allstatus of all export modules, including duplicates.
@@ -351,20 +351,20 @@ class Book extends CI_Model {
 		// See if we have a record for this module in the database already
 		$this->db->where('item_id', $this->id);
 		$query = $this->db->get('item_export_status');
-    $ret = [];
-    $c = 0;
-    foreach ($query->result() as $r) {
-      $module = $r->export_module;
-      if (isset($ret[$module])) {
-        $c++;
-        $module .= " ($c)";
-      }
-      $ret[$module] = array(
-        'status_code' => $r->status_code,
-        'date' => $r->date
-      );
-    }
-    return $ret;
+		$ret = [];
+		$c = 0;
+		foreach ($query->result() as $r) {
+			$module = $r->export_module;
+			if (isset($ret[$module])) {
+				$c++;
+				$module .= " ($c)";
+			}
+			$ret[$module] = array(
+				'status_code' => $r->status_code,
+				'date' => $r->date
+			);
+		}
+		return $ret;
 	}
 
 	/**
@@ -457,10 +457,10 @@ class Book extends CI_Model {
 	 */
 	function _is_valid_status($type = 'book', $s = '') {
 		if ($type == 'book') {
-			if ($s == 'new'      || $s == 'scanning'  || $s == 'scanned'  ||
-			    $s == 'reviewing' ||  $s == 'reviewed' || $s == 'exporting' ||
-			    $s == 'qa-ready' ||  $s == 'qa-active' ||
-			    $s == 'completed' || $s == 'archived' || $s == 'error') {
+			if ($s == 'new' || $s == 'scanning' || $s == 'scanned' ||
+					$s == 'reviewing' || $s == 'reviewed' || $s == 'exporting' ||
+					$s == 'qa-ready' || $s == 'qa-active' ||
+					$s == 'completed' || $s == 'archived' || $s == 'error') {
 				return true;
 			}
 		} elseif ($type == 'page') {
@@ -521,25 +521,25 @@ class Book extends CI_Model {
 		$query = $this->db->get('page');
 		$pages = $query->result();
 
-	  if ($order) { 
-      if (isset($pages[0]->$order)) { // Sanity check
-        $this->logging->log('book', 'info', 'Re-sort alphanumeric on '.$order, $this->barcode);
-        
-        $pages_sorted = [];
-        foreach ($pages as $p) {
-          $pages_sorted[$p->$order] = $p;
-        }
-        ksort($pages_sorted, SORT_NATURAL); // Sort by the keys
-        $newpages = [];
-        foreach ($pages_sorted as $ps) {
-          $newpages[] = $ps;
-        }
-        // Minor validation, just in case
-        if (count($newpages) == count($pages)) {
-          $pages = $newpages;
-        }
-      }
-    }
+		if ($order) { 
+			if (isset($pages[0]->$order)) { // Sanity check
+				$this->logging->log('book', 'info', 'Re-sort alphanumeric on '.$order, $this->barcode);
+				
+				$pages_sorted = [];
+				foreach ($pages as $p) {
+					$pages_sorted[$p->$order] = $p;
+				}
+				ksort($pages_sorted, SORT_NATURAL); // Sort by the keys
+				$newpages = [];
+				foreach ($pages_sorted as $ps) {
+					$newpages[] = $ps;
+				}
+				// Minor validation, just in case
+				if (count($newpages) == count($pages)) {
+					$pages = $newpages;
+				}
+			}
+		}
 
 		// Get the metadata for this item
 		$this->db->where('item_id', $this->id);
@@ -560,10 +560,10 @@ class Book extends CI_Model {
 			}
 			// Make a more human readable of "250 K" or "1.5 MB"
 			$p->size = ($p->bytes < 1048576
-			            ? number_format($p->bytes/1024, 0).' K'
-			            : number_format($p->bytes/(1024*1024), 1).' M');
+						? number_format($p->bytes/1024, 0).' K'
+						: number_format($p->bytes/(1024*1024), 1).' M');
 
-      $pieces = [];
+			$pieces = [];
 			foreach ($metadata as $row) {
 				// TODO: This can't be using names of fields!!
 				// It needs to be smarter and make arrays when necessary
@@ -582,27 +582,27 @@ class Book extends CI_Model {
 					} else {
 						$p->{$row['fieldname']} = $row['value'].'';
 					}
-          // Since we changed from piece/piece_text
-          // accumulate the data so we can compress it down.
-          if ($row['fieldname'] == 'piece' || $row['fieldname'] == 'piece_text') {
-            $pieces[] = $row['value'].'';
-          }
-        }
+					// Since we changed from piece/piece_text
+					// accumulate the data so we can compress it down.
+					if ($row['fieldname'] == 'piece' || $row['fieldname'] == 'piece_text') {
+						$pieces[] = $row['value'].'';
+					}
+				}
 			}
 			$p->is_missing = ($p->is_missing ? $p->is_missing == 't' : false);
 
-      // Since we changed from piece/piece_text
-      // we need to convert existing data to a 
-      // single piece_text value.
-      if (count($pieces)) {
-        if (isset($p->{'piece'})) {
-          unset($p->{'piece'});
-        }
-        $p->{'piece_text'} = implode(' ', $pieces);
-      }
-    }
+			// Since we changed from piece/piece_text
+			// we need to convert existing data to a 
+			// single piece_text value.
+			if (count($pieces)) {
+				if (isset($p->{'piece'})) {
+					unset($p->{'piece'});
+				}
+				$p->{'piece_text'} = implode(' ', $pieces);
+			}
+		}
 
-    return $pages;
+		return $pages;
 	}
 
 	/**
@@ -653,11 +653,11 @@ class Book extends CI_Model {
 	function set_page_metadata($page, $name, $value, $counter = 1) {
 		if (isset($value) && $value != '') {
 			$data = array(
-				'item_id'   => $this->id,
-				'page_id'   => $page,
-				'fieldname' => strtolower($name),
-				'counter'   => $counter,
-				'value'     => $value
+				'item_id'	=> $this->id,
+				'page_id'	=> $page,
+				'fieldname'	=> strtolower($name),
+				'counter'	=> $counter,
+				'value'		=> $value
 			);
 
 			$this->db->insert('metadata', $data);
@@ -936,9 +936,9 @@ class Book extends CI_Model {
 				$select .= ', max(m'.$count.'.value) as '.$m;
 				$this->db->join(
 					'(select item_id, coalesce(value, value_large) as value
-					   from metadata
-					   where fieldname = \''.$m.'\'
-					   and page_id is null) m'.$count,
+						from metadata
+						where fieldname = \''.$m.'\'
+						and page_id is null) m'.$count,
 					'item.id = m'.$count.'.item_id',
 					'left outer');
 				$count++;
@@ -963,13 +963,13 @@ class Book extends CI_Model {
 			
 			$res = $query->result();
 			if ($get_size) {
-        for ($i = 0; $i < count($res); $i++) {
-          if (!$res[$i]->total_mbytes) {
-            $res[$i]->bytes = intval($this->_dir_size($this->cfg['data_directory'].'/'.$res[$i]->barcode))*1024;
-          } else {
-            $res[$i]->bytes = intval($res[$i]->total_mbytes)*1024;
-          }
-        }
+				for ($i = 0; $i < count($res); $i++) {
+					if (!$res[$i]->total_mbytes) {
+						$res[$i]->bytes = intval($this->_dir_size($this->cfg['data_directory'].'/'.$res[$i]->barcode))*1024;
+					} else {
+						$res[$i]->bytes = intval($res[$i]->total_mbytes)*1024;
+					}
+				}
 			} else {
 				for ($i = 0; $i < count($res); $i++) {
 					$res[$i]->bytes = 0;
@@ -1060,7 +1060,7 @@ class Book extends CI_Model {
 	 *       array('fieldname' => 'author',     'value' => 'Darwin, Charles')
 	 *       array('fieldname' => 'collection', 'value' => 'My Fancy Library')
 	 *       array('fieldname' => 'collection', 'value' => 'Biodiversity Heritage Library')
-     *    );
+	 *    );
 	 * 
 	 * At a minimum, "barcode" must found in the array.
 	 *
@@ -1243,17 +1243,17 @@ class Book extends CI_Model {
 								$c = 1;
 								foreach ($info[$i] as $m) {
 									$this->db->insert('metadata', array(
-										'item_id'   => $item_id,
-										'fieldname' => $i,
-										'counter'   => $c++,
+										'item_id'	=> $item_id,
+										'fieldname'	=> $i,
+										'counter'	=> $c++,
 										((strlen($m) > 1000) ? 'value_large' : 'value') => ($m.'')
 									));									
 								}
 							} else {
 								$this->db->insert('metadata', array(
-									'item_id'   => $item_id,
-									'fieldname' => $i,
-									'counter'   => 1,
+									'item_id'	=> $item_id,
+									'fieldname'	=> $i,
+									'counter'	=> 1,
 									((strlen($info[$i]) > 1000) ? 'value_large' : 'value') => ($info[$i].'')
 								));
 							}
@@ -1275,9 +1275,9 @@ class Book extends CI_Model {
 					$x = $this->_generate_marc($marc, $info['barcode']);
 					if ($x) {
 						$this->db->insert('metadata', array(
-							'item_id'   => $item_id,
-							'fieldname' => 'marc_xml',
-							'counter'   => 1,
+							'item_id'	=> $item_id,
+							'fieldname'	=> 'marc_xml',
+							'counter'	=> 1,
 							'value_large' => $x['marc']
 						));
 						$marc_data = $x['marc'];
@@ -1413,8 +1413,8 @@ class Book extends CI_Model {
 	 *
 	 * Saves the data for one item (book). It's assumed that we have already passed the
 	 * permission checking and we can save the data. BARCODE is NOT changed through this
-     * When saving metadata, the existing metadata is deleted and the new is re-added. 
-     * This means that data will be lost if fields are deleted via the set_metadata() 
+	 *  * When saving metadata, the existing metadata is deleted and the new is re-added. 
+	 * This means that data will be lost if fields are deleted via the set_metadata() 
 	 *
 	 * @since Version 1.3
 	 */
@@ -1475,9 +1475,9 @@ class Book extends CI_Model {
 			}
 
 			$this->db->insert('metadata', array(
-				'item_id'   => $this->id,
-				'fieldname' => $i['fieldname'],
-				'counter'   => $array_counts[$i['fieldname']],
+				'item_id'	=> $this->id,
+				'fieldname'	=> $i['fieldname'],
+				'counter'	=> $array_counts[$i['fieldname']],
 				((strlen($i['value']) > 1000) ? 'value_large' : 'value') => $i['value'].''
 			));
 		}
@@ -1535,11 +1535,11 @@ class Book extends CI_Model {
 			} elseif (count($results) == 1) {
 				return $results[0];
 			} else {
-			  if ($allow_array) {
-			    return $results;
-			  } else {
-			    return $results[0];
-			  }
+				if ($allow_array) {
+					return $results;
+				} else {
+					return $results[0];
+				}
 			}			
 		} else {
 			return $this->metadata_array;
@@ -1571,7 +1571,7 @@ class Book extends CI_Model {
 	 * its value will be updated to the new VALUE. If OVERWRITE is false, then a
 	 * new metadata entry will be created.
 	 * 
-     * This does not save the data to the database. Use the
+	 * This does not save the data to the database. Use the
 	 * update() method for that.
 	 *
 	 * @param string [$key] The name of the metadata field
@@ -1714,21 +1714,21 @@ class Book extends CI_Model {
 	function xmp_xml() {
 
 		$xml = '<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core 4.4.0">'.
-				  '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">'.
-				    '<rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/">'.
-				      '<dc:title>'.$this->get_metadata('title', false).'</dc:title>'.
-				      '<dc:identifier>'.$this->barcode.'</dc:identifier>'.
-				      '<dc:rights>'.($this->get_metadata('copyright', false) ? "This image is protected by copyright." : "This image is in the public domain.").'</dc:rights>'.
-				      '<dc:source>'.$this->get_metadata('xmp_source', false).'</dc:source>'.
-				      '<dc:creator>'.
-				        '<rdf:Seq>'.
-				          ($this->get_metadata('author', false) ? '<rdf:li>'.$this->get_metadata('author', false).'</rdf:li>' : '').
-				          '<rdf:li>'.$this->get_contributor().'</rdf:li>'.
-				        '</rdf:Seq>'.
-				      '</dc:creator>'.
-				      '<dc:date>'.$this->get_metadata('year', false).'</dc:date>'.
-				    '</rdf:Description>'.
-				  '</rdf:RDF>'.
+				'<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">'.
+					'<rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/">'.
+						'<dc:title>'.$this->get_metadata('title', false).'</dc:title>'.
+						'<dc:identifier>'.$this->barcode.'</dc:identifier>'.
+						'<dc:rights>'.($this->get_metadata('copyright', false) ? "This image is protected by copyright." : "This image is in the public domain.").'</dc:rights>'.
+						'<dc:source>'.$this->get_metadata('xmp_source', false).'</dc:source>'.
+						'<dc:creator>'.
+							'<rdf:Seq>'.
+							($this->get_metadata('author', false) ? '<rdf:li>'.$this->get_metadata('author', false).'</rdf:li>' : '').
+							'<rdf:li>'.$this->get_contributor().'</rdf:li>'.
+							'</rdf:Seq>'.
+						'</dc:creator>'.
+						'<dc:date>'.$this->get_metadata('year', false).'</dc:date>'.
+					'</rdf:Description>'.
+				'</rdf:RDF>'.
 				'</x:xmpmeta>';
 		return $xml;
 	}
@@ -2179,13 +2179,13 @@ class Book extends CI_Model {
 	// Since Version 1.6
 
 	function get_contributor() {
-    $c = $this->get_metadata('contributor');
+		$c = $this->get_metadata('contributor');
 		if ($c) {
-      if (is_array($c)) { 
-        return $c[0];
-      } else {
-        return $c;
-      }
+			if (is_array($c)) { 
+				return $c[0];
+			} else {
+				return $c;
+			}
 
 		} elseif ($this->org_name != 'Default') {
 			return $this->org_name;
@@ -2209,7 +2209,7 @@ class Book extends CI_Model {
 			"select lower(fieldname) as fieldname, coalesce(value, value_large) as val
 			from metadata
 			where item_id = ".$this->id."
-			  and page_id is null"
+				and page_id is null"
 		);
 		$results = array();
 		foreach ($c->result() as $row) {
@@ -2237,9 +2237,9 @@ class Book extends CI_Model {
 				'INNER JOIN organization o ON o.id = i.org_id '.
 				'LEFT OUTER JOIN ( '.
 				'	SELECT sum(p.bytes) AS bytes, max(i.id) as id, max(i.status_code) AS status_code, max(i.org_id) as org_id, count(*) as pages '.
-				'	FROM page p  '.
-				'	INNER JOIN item i ON p.item_id = i.id  '.
-				'	WHERE i.status_code NOT IN (\'completed\', \'exporting\')  '.
+				'	FROM page p '.
+				'	INNER JOIN item i ON p.item_id = i.id '.
+				'	WHERE i.status_code NOT IN (\'completed\', \'exporting\') '.
 				'	GROUP BY i.org_id '.
 				') b ON o.id = b.org_id '.
 				'LEFT JOIN metadata m ON m.item_id = i.id AND lower(m.fieldname) = \'title\' '.
@@ -2254,9 +2254,9 @@ class Book extends CI_Model {
 				'INNER JOIN organization o ON o.id = i.org_id '.
 				'LEFT OUTER JOIN ( '.
 				'	SELECT sum(p.bytes) AS bytes, max(i.id) as id, max(i.status_code) AS status_code, max(i.org_id) as org_id, count(*) as pages '.
-				'	FROM page p  '.
-				'	INNER JOIN item i ON p.item_id = i.id  '.
-				'	WHERE i.status_code NOT IN (\'completed\', \'exporting\')  '.
+				'	FROM page p '.
+				'	INNER JOIN item i ON p.item_id = i.id '.
+				'	WHERE i.status_code NOT IN (\'completed\', \'exporting\') '.
 				'	GROUP BY i.org_id '.
 				') b ON o.id = b.org_id '.
 				'LEFT JOIN metadata m ON m.item_id = i.id AND lower(m.fieldname) = \'title\' '.
@@ -2306,10 +2306,10 @@ class Book extends CI_Model {
 		} else {
 			// No, Add it
 			$this->db->insert('metadata', array(
-				'item_id'   => $this->id,
+				'item_id'	=> $this->id,
 				'fieldname' => 'title',
-				'counter'   => 1,
-				'value'     => implode(' ', $titles)
+				'counter'	=> 1,
+				'value'		=> implode(' ', $titles)
 			));	
 		}
 	}
@@ -2353,10 +2353,10 @@ class Book extends CI_Model {
 				$author = trim(preg_replace('/[,.;:\/ ]+$/', '', (string)$author[0]));
 				$this->logging->log('book', 'log', 'Found Author '.$author, $this->barcode);
 				$this->db->insert('metadata', array(
-					'item_id'   => $this->id,
-					'fieldname' => 'author',
-					'counter'   => 1,
-					'value'     => $author)
+					'item_id'	=> $this->id,
+					'fieldname'	=> 'author',
+					'counter'	=> 1,
+					'value'		=> $author)
 				);
 				break;
 			}
@@ -2368,7 +2368,7 @@ class Book extends CI_Model {
 	 */	
 	function get_all_collections(){
 		$collections = array();
-		    
+
 		$this->db->distinct();
 		$this->db->select('value');
 		$this->db->where('fieldname', 'collection');
@@ -2444,11 +2444,11 @@ class Book extends CI_Model {
 			// Insert the record
 			$counter++;
 			$this->db->insert('metadata', array(
-				'item_id'   => $this->id,
-				'fieldname' => $fieldname,
-				'page_id'   => null,
-				'counter'   => $counter,
-				'value'     => $value)
+				'item_id'	=> $this->id,
+				'fieldname'	=> $fieldname,
+				'page_id'	=> null,
+				'counter'	=> $counter,
+				'value'		=> $value)
 			);
 		}
 		return null;

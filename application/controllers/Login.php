@@ -17,11 +17,6 @@ class Login extends CI_Controller {
 	 * informative message at the top of the page should one exist in the
 	 * session. the <Enter> key can be used to submit the form, but may not work
 	 * in all browsers.
-	 *
-	 * @todo Make sure enter works in all browsers. Hah!
-	 * 
-	 *  Tests:
-	 *
 	 */
 	public function index() {
 		$data['username'] = '';
@@ -98,7 +93,7 @@ class Login extends CI_Controller {
 		}
 
 		$username = $this->session->userdata('username');
-		$code     = $this->input->post('totp_code');
+		$code = $this->input->post('totp_code');
 
 		$account = $this->db->get_where('account', array('username' => $username))->row();
 

@@ -22,7 +22,7 @@ class Dashboard extends CI_Controller {
 	 * from the user's preferences. Includes a list of available widgets that
 	 * aren't already in the user's preferences.
 	 *
-	 * @return html The dashboard_view.php page.
+	 * @return string (HTML) The dashboard_view.php page.
 	 */
 	public function index() {
 		$this->common->check_session();
@@ -44,13 +44,13 @@ class Dashboard extends CI_Controller {
 	 * lower array are the widgets in order for each column
 	 *
 	 * @access public
-	 * @return json The list of widgets and which columns they belong in
+	 * @return string (JSON) The list of widgets and which columns they belong in
 	 *
-	 * @todo Make this pull from the current user's settings
 	 */
 	public function _user_widgets() {
 		$this->user->load($this->session->userdata('username'));
-		return '{"widgets":'.$this->user->widgets.'}';
+		// Note: These are hardcoded. 
+		return '{"widgets":[["summary","perday"],["disk","pages"]]}';
 	}
 
 	/**
@@ -61,7 +61,7 @@ class Dashboard extends CI_Controller {
 	 *
 	 * @access public
 	 * @param string [$name] The name(s) of the widget to get (comma-separated)
-	 * @return json The description and data of the named widget (echoed to browser)
+	 * @return string (JSON) The description and data of the named widget (echoed to browser)
 	 *
 	 */
 	public function widget($name) {
@@ -117,7 +117,7 @@ class Dashboard extends CI_Controller {
 	 * for the Summary widget
 	 *
 	 * @access internal
-	 * @return json The description and data of the named widget (echoed to browser)
+	 * @return string (JSON) The description and data of the named widget (echoed to browser)
 	 *
 	 */
 	public function _get_summary_widget() {
@@ -130,13 +130,13 @@ class Dashboard extends CI_Controller {
 		$data = array();
 		$data['title'] = 'Summary';
 		$data['html'] = '<div id="summary-widget">'.$row->new.' new item'.($row->new > 1 || $row->new == 0 ? 's' : '').'.<br>'.
-		               $reviewing.' item'.($reviewing > 1 || $reviewing == 0 ? 's' : '').' in progress.<br>'.
-		               $qa.' item'.($qa > 1 || $qa == 0 ? 's' : '').' in QA.<br>'.
-		               $row->reviewed.' item'.($row->reviewed > 1 || $row->reviewed == 0 ? 's' : '').' ready to export.<br>'.
-		               $row->exporting.' item'.($row->exporting > 1 || $row->exporting == 0 ? 's' : '').' being exported.<br>'.
-		               $row->completed.' item'.($row->completed > 1 || $row->completed == 0 ? 's' : '').' completed.<br>'.
-		               $row->error.' item'.($row->error > 1 || $row->error == 0 ? 's' : '').' have errors.<br><br>'.
-		               $row->pages.' pages scanned total.<br>';
+						$reviewing.' item'.($reviewing > 1 || $reviewing == 0 ? 's' : '').' in progress.<br>'.
+						$qa.' item'.($qa > 1 || $qa == 0 ? 's' : '').' in QA.<br>'.
+						$row->reviewed.' item'.($row->reviewed > 1 || $row->reviewed == 0 ? 's' : '').' ready to export.<br>'.
+						$row->exporting.' item'.($row->exporting > 1 || $row->exporting == 0 ? 's' : '').' being exported.<br>'.
+						$row->completed.' item'.($row->completed > 1 || $row->completed == 0 ? 's' : '').' completed.<br>'.
+						$row->error.' item'.($row->error > 1 || $row->error == 0 ? 's' : '').' have errors.<br><br>'.
+						$row->pages.' pages scanned total.<br>';
 		$data['column'] = '1';
 		return $data;
 	}
@@ -148,7 +148,7 @@ class Dashboard extends CI_Controller {
 	 * for the Disk Usage widget
 	 *
 	 * @access internal
-	 * @return json The description and data of the named widget (echoed to browser)
+	 * @return string (JSON) The description and data of the named widget (echoed to browser)
 	 *
 	 */
 	public function _get_disk_widget() {
@@ -181,7 +181,7 @@ class Dashboard extends CI_Controller {
 	 * for the Total Pages Scanned widget
 	 *
 	 * @access internal
-	 * @return json The description and data of the named widget (echoed to browser)
+	 * @return string (JSON) The description and data of the named widget (echoed to browser)
 	 *
 	 */
 	public function _get_pages_widget() {
@@ -210,7 +210,7 @@ class Dashboard extends CI_Controller {
 	 * for the Pages Per Day widget
 	 *
 	 * @access internal
-	 * @return json The description and data of the named widget (echoed to browser)
+	 * @return string (JSON) The description and data of the named widget (echoed to browser)
 	 *
 	 */
 	public function _get_perday_widget() {
