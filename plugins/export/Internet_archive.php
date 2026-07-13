@@ -101,6 +101,91 @@ class Internet_archive extends Controller {
 		}
 	}
 
+	private function _execute_curl_request($barcode, $url, $file_path, $headers, $access_key = null, $secret = null, $testing = 1) {
+		$curl = curl_init();
+
+		if ($testing) {
+			print "TESTING: NOT UPLOADING. ";
+		}
+		print "Calling CURL to $url";
+		if ($file_path) { print " with file $file_path"; }
+		print "\n";
+
+		if (!$testing) {
+			curl_setopt($curl, CURLOPT_URL, $url);
+			curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+			curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($curl, CURLOPT_BINARYTRANSFER, true);
+			curl_setopt($curl, CURLOPT_TIMEOUT, 600);
+
+			$filename = basename($file_path);
+			$header_array = array();
+			if ($access_key && $secret) {
+				$header_array[] = "authorization: LOW {$access_key}:{$secret}";
+			}
+
+			foreach ($headers as $key => $value) {
+				$header_array[] = "{$key}: {$value}";
+			}
+
+			curl_setopt($curl, CURLOPT_HTTPHEADER, $header_array);
+
+			if ($file_path && file_exists($file_path)) {
+				$file_handle = fopen($file_path, 'r');
+				curl_setopt($curl, CURLOPT_PUT, true);
+				curl_setopt($curl, CURLOPT_INFILE, $file_handle);
+				curl_setopt($curl, CURLOPT_INFILESIZE, filesize($file_path));
+			}
+
+			$this->CI->logging->log('book', 'info', 'CURL uploading '.$filename."\n", $barcode);
+			$response = curl_exec($curl);
+			$http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+			$curl_errno = curl_errno($curl);
+			$curl_error = curl_error($curl);
+
+			if (isset($file_handle)) {
+				fclose($file_handle);
+			}
+			curl_close($curl);
+
+			$out = "($http_code) $response (Error: ($curl_errno) $curl_error";
+			print $out."\n";
+
+			if ($curl_errno || $http_code >= 400) {
+				$message = "Error processing export.\n\n".
+					"Identifier: {$barcode}\n\n".
+					"File: $filename\n\n".
+					"Error Message:\nCall to CURL returned error.\nOutput was:\n\n{$out}\n\n";
+				$this->CI->common->email_error($message);
+				if ($http_code == 56 || $http_code == 52) {
+					$this->CI->logging->log('book', 'error', 'CURL error for '.$filename.'. Will try again. Output was:'."\n".$out, $barcode);
+					return;
+				} else {
+					$this->CI->book->set_status('error');
+					$this->CI->logging->log('book', 'error', 'CURL error for '.$filename.'. Output was:'."\n".$out, $barcode);
+					return;
+				}
+			}
+			
+			return array(
+				'status' => $http_code,
+				'response' => $response,
+				'errno' => $curl_errno,
+				'error' => $curl_error
+			);
+		} else {
+
+			return array(
+				'status' => "000",
+				'response' => "TESTING. NOT UPLOADED.",
+				'errno' => 0,
+				'error' => ''
+			);
+
+		}
+
+	}
+
 	/* ----------------------------
 	 * Function: export()
 	 *
@@ -524,7 +609,7 @@ class Internet_archive extends Controller {
 
 				$this->CI->logging->log('book', 'debug', 'Exported JP2 files for Internet Archive.', $bc);
 
-				// Export the TAR and/or ZIP files.
+				// Create the TAR and/or ZIP files.
 				if ($file == '' || $file == 'scans') {
 					if (($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') && (!file_exists($archive_file_orig) || !$id)) {
 						// Create the TAR file
@@ -576,11 +661,11 @@ class Internet_archive extends Controller {
 						}
 						$this->CI->logging->log('book', 'debug', 'Created ZIP file '.$id.'_jp2.zip', $bc);
 					}
-				} // if ($file == '' || $file == 'scans')
+				} // if (file == '' || file == 'scans')
 
+				// Create the MARC XML file
 				if ($file == '' || $file == 'marc') {
 					// Clean up leftover files that are now in the tar file
-					// create the IDENTIFIER_marc.xml file
 					$marc_data = $this->_create_marc_xml();
 					if ($marc_data) {
 						write_file($fullpath.'/'.$id.'_marc.xml', $marc_data);
@@ -589,21 +674,22 @@ class Internet_archive extends Controller {
 						// Virtual Items have no MARC XML
 						$this->CI->logging->log('book', 'debug', 'No MARC XML to create _marc.xml file.', $bc);
 					}
-				} // if ($file == '' || $file == 'marc')
+				} // if (file == '' || file == 'marc')
 
+				// Create the SCANDATA.XML file
 				if ($file == '' || $file == 'scandata') {
-					// create the IDENTIFIER_scandata.xml file
 					write_file($fullpath.'/'.$id.'_scandata.xml', $this->_create_scandata_xml($id, $this->CI->book, $pages));
 					$this->CI->logging->log('book', 'debug', 'Created '.$id.'_scandata.xml', $bc);
-				}
+				} // if (file == '' || file == 'scandata')
 
+				// Create the BHLCREATORS.XML file
 				if ($file == '' || $file == 'creators') {
-					// create the IDENTIFIER_bhlcreators.xml file
 					write_file($fullpath.'/'.$id.'_bhlcreators.xml', $this->_create_creators_xml($id, $this->CI->book));
 					$this->CI->logging->log('book', 'debug', 'Created '.$id.'_bhlcreators.xml', $bc);
-				}
+				} // if (file == '' || file == 'creators')
 
-				// upload the files to internet archive
+				// Upload update META.XML from IA, getting existing metadata first
+				// Assumes the item at IA already exists.
 				if ($file == 'meta') {
 					$old_metadata = $this->_get_ia_meta_xml($b, $id);
 					// Fill in any blanks from the old metadata
@@ -616,97 +702,77 @@ class Internet_archive extends Controller {
 							$metadata[$k] = $old_metadata[$k];
 						}
 					}
-					$cmd = $this->cfg['curl_exe'];
-					$cmd .= ' --location';
-					$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
-					$cmd .= ' --header "x-archive-ignore-preexisting-bucket:1"';
+
+					$headers = array();
+					$headers['x-archive-ignore-preexisting-bucket'] = '1';
 					foreach (array_keys($metadata) as $k) {
 						if ($k != 'x-archive-meta-identifier') {
-							$cmd .= ' --header "'.$k.':'.$metadata[$k].'"';
+							$headers[$k] = $metadata[$k];
 						}
 					}
-					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_scandata.xml" "https://s3.us.archive.org/'.$id.'/'.$id.'_scandata.xml" 2>&1';
-					echo "\n\n".$cmd."\n\n";
 
-					// execute the CURL command and echo back any responses
-					if (!$this->cfg['testing']) {
-						$output = array();
-						exec($cmd, $output, $ret);
-						if (count($output)) {
-							foreach ($output as $o) {
-								echo $o."\n";
-							}
-						}
-						if ($ret) {
-							echo "ERROR!!! Return code = $ret";
-							// If we had any sort of error from exec, we log what happened and set the status to error
-							$out = '';
-							foreach ($output as $o) {
-								$out .= $o."\n";
-							}
-							$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for uploading metadata. Output was:'."\n".$out, $bc);
+					$result = $this->_execute_curl_request(
+						$bc,
+						"https://s3.us.archive.org/{$id}/{$id}_scandata.xml",
+						"{$fullpath}/{$id}_scandata.xml",
+						$headers,
+						$this->access,
+						$this->secret,
+						$this->cfg['testing']
+					);
 
-							$message = "Error processing export.\n\n".
-								"Identifier: {$bc}\n\n".
-								"File: (metadata)\n\n".
-								"Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
-							$this->CI->common->email_error($message);
+				} // if (file == 'meta')
 
-							return;
-						} // if ($ret)
-					} else {
-						echo "IN TEST MODE. NOT UPLOADING.\n\n";
-					} // if (!$this->cfg['testing'])
-				} // if ($file == 'meta')
-
+				// Upload the SCANDATA.XML
 				if ($file == '' || $file == 'scandata') {
-					$cmd = $this->cfg['curl_exe'];
-					$cmd .= ' --location';
-					$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
-					$cmd .= ' --header "x-archive-auto-make-bucket:1"';
-					$cmd .= ' --header "x-archive-size-hint:'.sprintf("%u", filesize($fullpath.'/'.$id.'_scandata.xml')).'"';
-					$cmd .= ' --header "x-archive-queue-derive:0"';
+					$headers = array();
+					$headers['x-archive-auto-make-bucket'] = '1';
+					$headers['x-archive-size-hint'] = sprintf("%u", filesize($fullpath.'/'.$id.'_scandata.xml'));
+					$headers['x-archive-queue-derive'] = '0';
 					foreach (array_keys($metadata) as $k) {
-						$cmd .= ' --header "'.$k.':'.$metadata[$k].'"';
+						$headers[$k] = $metadata[$k];
 					}
-					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_scandata.xml" "https://s3.us.archive.org/'.$id.'/'.$id.'_scandata.xml" 2>&1';
-					echo "\n\n".$cmd."\n\n";
 
-					// execute the CURL command and echo back any responses
-					if (!$this->cfg['testing']) {
-						$output = array();
-						exec($cmd, $output, $ret);
-						if (count($output)) {
-							foreach ($output as $o) {
-								echo $o."\n";
-							}
-						}
-						if ($ret) {
-							echo "ERROR!!! Return code = $ret";
-							// If we had any sort of error from exec, we log what happened and set the status to error
-							$out = '';
-							foreach ($output as $o) {
-								$out .= $o."\n";
-							}
-							$message = "Error processing export.\n\n".
-								"Identifier: {$bc}\n\n".
-								"File: {$id}_scandata.xml\n\n".
-								"Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
-							$this->CI->common->email_error($message);
-							if ($ret == 56 || $ret == 52) {
-								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for scandata.xml. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
-								return;
-							} else {
-								$this->CI->book->set_status('error');
-								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for scandata.xml. Output was:'."\n".$out, $bc);
-								return;
-							}
-						} // if ($ret)
+					$result = $this->_execute_curl_request(
+						$bc,
+						"https://s3.us.archive.org/{$id}/{$id}_scandata.xml",
+						"{$fullpath}/{$id}_scandata.xml",
+						$headers,
+						$this->access,
+						$this->secret,
+						$this->cfg['testing']
+					);
+
+				} // if (file == '' || file == 'scandata')
+
+				// Pause for 1 minute and to see if the bucket exists in IA. Then it's safe to continue...
+				echo "Sleeping while we wait for IA to create the bucket...";
+				$bucket_found = 0;
+				$max_check = 15;
+				if ($this->CI->cfg['testing']) {
+					$max_check = 2;
+				}
+				for ($i = 1; $i <= $max_check; $i++) {
+					if ($this->_bucket_exists($id)) {
+						$bucket_found = 1;
+						break;
 					} else {
-						echo "IN TEST MODE. NOT UPLOADING.\n\n";
-					} // if (!$this->cfg['testing'])
-				} // if ($file == '' || $file == 'scandata')
+						sleep(60);
+						echo "$i of 15 minutes...";
+					}
+				} // for ($i = 1; $i <= 15; $i++)
+				if (!$bucket_found) {
+					$this->CI->logging->log('book', 'error', 'Bucket at Internet Archive not created after 15 minutes. Will try again later.', $bc);
+					$message = "Error processing export.\n\n".
+						"Identifier:    ".$bc."\n\n".
+						"IA Identifier: ".$id."\n\n".
+						"Error Message: Bucket at Internet Archive not created after 15 minutes. Will try again later.\n";
+					$this->CI->common->email_error($message);
+					continue;
+				}
+				echo "\n";
 
+				// Upload the PDFs
 				if ($file == '' || $file == 'pdf') {
 					// Gets the names of any PDF files that were used to upload pages.
 					$pdf = $this->CI->book->get_metadata('pdf_source');
@@ -735,265 +801,99 @@ class Internet_archive extends Controller {
 
 						// Uses cURL to upload to the Internet Archive.
 						foreach ($files as $pdf) {
-							$cmd = $this->cfg['curl_exe'];
-							$cmd .= ' --location';
-							$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
-							$cmd .= ' --header "x-archive-queue-derive:0"';
-							$cmd .= ' --upload-file "'.$fullpath.'/'.$pdf.'" "https://s3.us.archive.org/'.$id.'/'.$pdf.'" 2>&1';
-							echo "\n\n".$cmd."\n\n";
+							$headers = array();
+							$headers['x-archive-queue-derive'] = '0';
 
-							if (!$this->cfg['testing']) {
-								// execute the CURL command and echo back any responses
-								$output = array();
-								exec($cmd, $output, $ret);
-								if (count($output)) {
-									foreach ($output as $o) {
-										echo $o."\n";
-									}
-								}
-								if ($ret) {
-									echo "ERROR!!! Return code = $ret";
-									// If we had any sort of error from exec, we log what happened and set the status to error
-									$out = '';
-									foreach ($output as $o) {
-										$out .= $o."\n";
-									}
-									$message = "Error processing export.\n\n".
-										"Identifier: {$bc}\n\n".
-										"File: {$pdf}\n\n".
-										"Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
-									$this->CI->common->email_error($message);
-									if ($ret == 56 || $ret == 52) {
-										$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for '.$pdf.'. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
-										return;
-									} else {
-										$this->CI->book->set_status('error');
-										$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for '.$pdf.'. Output was:'."\n".$out, $bc);
-										return;
-									}
-								}
-							} else {
-								echo "IN TEST MODE. NOT UPLOADING.\n\n";
-							} // if (!$this->cfg['testing'])
+							$result = $this->_execute_curl_request(
+								$bc,
+								"https://s3.us.archive.org/{$id}/{$pdf}",
+								"{$fullpath}/{$pdf}",
+								$headers,
+								$this->access,
+								$this->secret,
+								$this->cfg['testing']
+							);
 						} // foreach ($files as $pdf)
 					} // if ($pdf)
-				} // if ($file == '' || $file == 'pdf')
+				} // if (file == '' || file == 'pdf')
 				
-				// Pause for 1 minute and to see if the bucket exists in IA. Then it's safe to continue...
-				echo "Sleeping while we wait for IA to create the bucket...";
-				$bucket_found = 0;
-				$max_check = 15;
-				if ($this->CI->cfg['testing']) {
-					$max_check = 2;
-				}
-				for ($i = 1; $i <= $max_check; $i++) {
-					if ($this->_bucket_exists($id)) {
-						$bucket_found = 1;
-						break;
-					} else {
-						sleep(60);
-						echo "$i of 15 minutes...";
-					}
-				} // for ($i = 1; $i <= 15; $i++)
-				if (!$bucket_found) {
-					$this->CI->logging->log('book', 'error', 'Bucket at Internet Archive not created after 15 minutes. Will try again later.', $bc);
-					$message = "Error processing export.\n\n".
-						"Identifier:    ".$bc."\n\n".
-						"IA Identifier: ".$id."\n\n".
-						"Error Message: Bucket at Internet Archive not created after 15 minutes. Will try again later.\n".
-						"Command: \n\n".$cmd."\n\n";
-					$this->CI->common->email_error($message);
-					continue;
-				}
-				echo "\n";
-
+				// Upload the MARC XML
 				// Virtual Items have no MARC XML
 				if (($file == '' || $file == 'marc') && file_exists($fullpath.'/'.$id.'_marc.xml'))  {
-					$cmd = $this->cfg['curl_exe'];
-					$cmd .= ' --location';
-					$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
-					$cmd .= ' --header "x-archive-queue-derive:0"';
-					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_marc.xml" "https://s3.us.archive.org/'.$id.'/'.$id.'_marc.xml" 2>&1';
-					echo "\n\n".$cmd."\n\n";
+					$headers = array();
+					$headers['x-archive-queue-derive'] = '0';
 
-					if (!$this->cfg['testing']) {
-						// execute the CURL command and echo back any responses
-						$output = array();
-						exec($cmd, $output, $ret);
-						if (count($output)) {
-							foreach ($output as $o) {
-								echo $o."\n";
-							}
-						}
-						if ($ret) {
-							echo "ERROR!!! Return code = $ret";
-							// If we had any sort of error from exec, we log what happened and set the status to error
-							$out = '';
-							foreach ($output as $o) {
-								$out .= $o."\n";
-							}
-							$message = "Error processing export.\n\n".
-								"Identifier: {$bc}\n\n".
-								"File: {$id}_marc.xml\n\n".
-								"Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
-							$this->CI->common->email_error($message);
-							if ($ret == 56 || $ret == 52) {
-								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for marc.xml. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
-								return;
-							} else {
-								$this->CI->book->set_status('error');
-								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for marc.xml. Output was:'."\n".$out, $bc);
-								return;
-							}
-						}
-					} else {
-						echo "IN TEST MODE. NOT UPLOADING.\n\n";
-					} // if (!$this->cfg['testing'])
-				} //if ($file == '' || $file == 'marc')
+					$result = $this->_execute_curl_request(
+						$bc,
+						"https://s3.us.archive.org/{$id}/{$id}_marc.xml",
+						"{$fullpath}/{$id}_marc.xml",
+						$headers,
+						$this->access,
+						$this->secret,
+						$this->cfg['testing']
+					);
+				} // if (file == '' || file == 'marc')
 
+				// Upload the BHL Creators 
 				if ($file == '' || $file == 'creators')  {
-					$cmd = $this->cfg['curl_exe'];
-					$cmd .= ' --location';
-					$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
-					$cmd .= ' --header "x-archive-queue-derive:0"';
-					$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_bhlcreators.xml" "https://s3.us.archive.org/'.$id.'/'.$id.'_bhlcreators.xml" 2>&1';
-					echo "\n\n".$cmd."\n\n";
+					$headers = array();
+					$headers['x-archive-queue-derive'] = '0';
 
-					if (!$this->cfg['testing']) {
-						// execute the CURL command and echo back any responses
-						$output = array();
-						exec($cmd, $output, $ret);
-						if (count($output)) {
-							foreach ($output as $o) {
-								echo $o."\n";
-							}
-						}
-						if ($ret) {
-							echo "ERROR!!! Return code = $ret";
-							// If we had any sort of error from exec, we log what happened and set the status to error
-							$out = '';
-							foreach ($output as $o) {
-								$out .= $o."\n";
-							}
-							$message = "Error processing export.\n\n".
-								"Identifier: {$bc}\n\n".
-								"File: {$id}_bhlcreators.xml\n\n".
-								"Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
-							$this->CI->common->email_error($message);
-							if ($ret == 56 || $ret == 52) {
-								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for creators.xml. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
-								return;
-							} else {
-								$this->CI->book->set_status('error');
-								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for creators.xml. Output was:'."\n".$out, $bc);
-								return;
-							}
-						}
-					} else {
-						echo "IN TEST MODE. NOT UPLOADING.\n\n";
-					} // if (!$this->cfg['testing'])
-				} //if ($file == '' || $file == 'creators')
+					$result = $this->_execute_curl_request(
+						$bc,
+						"https://s3.us.archive.org/{$id}/{$id}_bhlcreators.xml",
+						"{$fullpath}/{$id}_bhlcreators.xml",
+						$headers,
+						$this->access,
+						$this->secret,
+						$this->cfg['testing']
+					);
+				} // if (file == '' || file == 'creators')
 
+				// Upload the JP2 or Orig JP2
 				if ($file == '' || $file == 'scans') {
 					// Upload the "processed" jp2 files first.
 					if ($this->send_orig_jp2 == 'no' || $this->send_orig_jp2 == 'both') {
-						$cmd = $this->cfg['curl_exe'];
-						$cmd .= ' --location';
-						$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
+						$headers = array();
 						if ($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') {
-							$cmd .= ' --header "x-archive-queue-derive:0"';
+							$headers['x-archive-queue-derive'] = '0';
 						} else {
-							$cmd .= ' --header "x-archive-queue-derive:1"';
+							$headers['x-archive-queue-derive'] = '1';
 						}
-						$cmd .= ' --header "x-archive-size-hint:'.sprintf("%u", filesize($fullpath.'/'.$id.'_jp2.zip')).'"';
-						$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_jp2.zip" "https://s3.us.archive.org/'.$id.'/'.$id.'_jp2.zip" 2>&1';
-						echo "\n\n".$cmd."\n\n";
+						$headers['x-archive-size-hint'] = sprintf("%u", filesize($fullpath.'/'.$id.'_jp2.zip'));
 
-						if (!$this->cfg['testing']) {
-							// execute the CURL command and echo back any responses
-							$output = array();
-							exec($cmd, $output, $ret);
-							if (count($output)) {
-								foreach ($output as $o) {
-									echo $o."\n";
-								}
-							}
-							if ($ret) {
-								echo "ERROR!!! Return code = $ret";
-								// If we had any sort of error from exec, we log what happened and set the status to error
-								$out = '';
-								foreach ($output as $o) {
-								$out .= $o."\n";
-								}
-								$message = "Error processing export.\n\n".
-								"Identifier: {$bc}\n\n".
-								"File: {$id} - tar or ZIP\n\n".
-								"Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
-								$this->CI->common->email_error($message);
-								if ($ret == 56 || $ret == 52) {
-								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file. CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
-								return;
-								} else {
-								$this->CI->book->set_status('error');
-								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file. Output was:'."\n".$out, $bc);
-								return;
-								}
-							}
-						} else {
-							echo "IN TEST MODE. NOT UPLOADING.\n\n";
-						} // if (!$this->cfg['testing'])
+						$result = $this->_execute_curl_request(
+							$bc,
+							"https://s3.us.archive.org/{$id}/{$id}_jp2.zip",
+							"{$fullpath}/{$id}_jp2.zip",
+							$headers,
+							$this->access,
+							$this->secret,
+							$this->cfg['testing']
+						);
 					} // if ($this->send_orig_jp2 == 'no' || $this->send_orig_jp2 == 'both')
 
 					// Upload the "original" jp2 files last. Why? If we upload the orig first,
 					// IA might start creating the "processed" verisons
 					if ($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both') {
-						$cmd = $this->cfg['curl_exe'];
-						$cmd .= ' --location';
-						$cmd .= ' --header "authorization: LOW '.$this->access.':'.$this->secret.'"';
-						$cmd .= ' --header "x-archive-queue-derive:1"';
-						$cmd .= ' --header "x-archive-size-hint:'.sprintf("%u", filesize($fullpath.'/'.$id.'_orig_jp2.tar')).'"';
-						$cmd .= ' --upload-file "'.$fullpath.'/'.$id.'_orig_jp2.tar" "https://s3.us.archive.org/'.$id.'/'.$id.'_orig_jp2.tar" 2>&1';
-						echo "\n\n".$cmd."\n\n";
+						$headers = array();
+						$headers['x-archive-queue-derive'] = '1';
+						$headers['x-archive-size-hint'] = sprintf("%u", filesize($fullpath.'/'.$id.'_orig_jp2.tar'));
 
-						if (!$this->cfg['testing']) {
-							// execute the CURL command and echo back any responses
-							$output = array();
-							exec($cmd, $output, $ret);
-							if (count($output)) {
-								foreach ($output as $o) {
-									echo $o."\n";
-								}
-							}
-							if ($ret) {
-								echo "ERROR!!! Return code = $ret";
-								// If we had any sort of error from exec, we log what happened and set the status to error
-								$out = '';
-								foreach ($output as $o) {
-								$out .= $o."\n";
-								}
-								$message = "Error processing export.\n\n".
-								"Identifier: {$bc}\n\n".
-								"File: {$id} - tar or ZIP (2)\n\n".
-								"Error Message:\nCall to CURL returned non-zero value ({$ret}).\nOutput was:\n\n{$out}\n\n";
-								$this->CI->common->email_error($message);
-								if ($ret == 56 || $ret == 52) {
-								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file (2). CONTINUING UPLOAD. Output was:'."\n".$out, $bc);
-								return;
-								} else {
-								$this->CI->book->set_status('error');
-								$this->CI->logging->log('book', 'error', 'Call to CURL returned non-zero value (' & $ret & ') for tar or ZIP file (2). Output was:'."\n".$out, $bc);
-								return;
-								}
-							}
-						} else {
-							echo "IN TEST MODE. NOT UPLOADING.\n\n";
-						} // if (!$this->cfg['testing'])
+						$result = $this->_execute_curl_request(
+							$bc,
+							"https://s3.us.archive.org/{$id}/{$id}_orig_jp2.tar",
+							"{$fullpath}/{$id}_orig_jp2.tar",
+							$headers,
+							$this->access,
+							$this->secret,
+							$this->cfg['testing']
+						);
 					} // if ($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both')
-				} // if ($file == '' || $file == 'scans')
+				} // if (file == '' || file == 'scans')
 				
 				// If we got this far, we were completely successful. Yay!
 
-				// TODO Update uploaded date field in the item table
 				$this->CI->book->set_export_status('uploaded', $force);
 				$this->CI->logging->log('book', 'info', 'Item successfully uploaded to internet archive.', $bc);
 				$this->CI->logging->log('access', 'info', 'Item with barcode '.$bc.' uploaded to internet archive.');
@@ -1011,7 +911,7 @@ class Internet_archive extends Controller {
 					"Stack Trace:\n\n".
 					$e->getTraceAsString();
 				$this->CI->common->email_error($message);
-        print "\n\nError Processing. Email sent to administrator.\n";
+				print "\n\nError Processing. Email sent to administrator.\n";
 			} // try-catch
 			
 			// Clear the access and secret just so we don't accidentally upload things incorrectly.
