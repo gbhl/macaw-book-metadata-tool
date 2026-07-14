@@ -103,14 +103,13 @@ class Internet_archive extends Controller {
 
 	private function _execute_curl_request($barcode, $url, $file_path, $headers, $access_key = null, $secret = null, $testing = 1) {
 		$curl = curl_init();
+		$filename = basename($file_path);
+		$message = ($testing ? '(TESTING) ' :'').
+		           "Uploading".($file_path ? $filename : '')." to $url";
+		print "$message\n";
 
-		if ($testing) {
-			print "TESTING: NOT UPLOADING. ";
-		}
-		print "Calling CURL to $url";
-		if ($file_path) { print " with file $file_path"; }
-		print "\n";
-
+		$this->CI->logging->log('book', 'error', $message, $barcode);
+	
 		if (!$testing) {
 			curl_setopt($curl, CURLOPT_URL, $url);
 			curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
@@ -118,7 +117,6 @@ class Internet_archive extends Controller {
 			curl_setopt($curl, CURLOPT_BINARYTRANSFER, true);
 			curl_setopt($curl, CURLOPT_TIMEOUT, 600);
 
-			$filename = basename($file_path);
 			$header_array = array();
 			if ($access_key && $secret) {
 				$header_array[] = "authorization: LOW {$access_key}:{$secret}";
@@ -137,7 +135,6 @@ class Internet_archive extends Controller {
 				curl_setopt($curl, CURLOPT_INFILESIZE, filesize($file_path));
 			}
 
-			$this->CI->logging->log('book', 'info', 'CURL uploading '.$filename."\n", $barcode);
 			$response = curl_exec($curl);
 			$http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 			$curl_errno = curl_errno($curl);
@@ -146,10 +143,9 @@ class Internet_archive extends Controller {
 			if (isset($file_handle)) {
 				fclose($file_handle);
 			}
-			curl_close($curl);
 
-			$out = "($http_code) $response (Error: ($curl_errno) $curl_error";
-			print $out."\n";
+			$out = "($http_code) $response".($curl_errno ? " (Internal Error: [$curl_errno] $curl_error)" : '');
+			print "Upload result: $out\n";
 
 			if ($curl_errno || $http_code >= 400) {
 				$message = "Error processing export.\n\n".
@@ -158,13 +154,13 @@ class Internet_archive extends Controller {
 					"Error Message:\nCall to CURL returned error.\nOutput was:\n\n{$out}\n\n";
 				$this->CI->common->email_error($message);
 				if ($http_code == 56 || $http_code == 52) {
-					$this->CI->logging->log('book', 'error', 'CURL error for '.$filename.'. Will try again. Output was:'."\n".$out, $barcode);
-					return;
+					$this->CI->logging->log('book', 'error', 'Error uploading '.$filename.'. Will try again. Output was:'."\n".$out, $barcode);
 				} else {
 					$this->CI->book->set_status('error');
-					$this->CI->logging->log('book', 'error', 'CURL error for '.$filename.'. Output was:'."\n".$out, $barcode);
-					return;
+					$this->CI->logging->log('book', 'error', 'Error uploading '.$filename.'. Output was:'."\n".$out, $barcode);
 				}
+			} else {
+				$this->CI->logging->log('book', 'info', 'Uploaded '.$filename, $barcode);
 			}
 			
 			return array(
@@ -174,6 +170,7 @@ class Internet_archive extends Controller {
 				'error' => $curl_error
 			);
 		} else {
+			$this->CI->logging->log('book', 'error', "(TESTING) Did not upload ".$filename, $barcode);
 
 			return array(
 				'status' => "000",
@@ -305,7 +302,7 @@ class Internet_archive extends Controller {
 				}
 				
 				// If we were given a specific ID, we only upload the book if it's been reviewed or it's already uploaded.
-				// TODO: Remove this, we will unconditionall upload if an ID is provided.
+				// TODO: Remove this, we will unconditionally upload if an ID is provided.
 				if ($sent_id) {
 					if ($this->CI->book->status != 'reviewed' && $this->CI->book->status != 'exporting' && !$file) {
 						echo '(export) The item with id #'.$sent_id.' is not marked as reviewed or exporting and cannot be uploaded. (status is '.$this->CI->book->status.')'."\n";
@@ -721,6 +718,12 @@ class Internet_archive extends Controller {
 						$this->cfg['testing']
 					);
 
+					// TODO: If there is an error, reset status back to not-uploading
+					if ($result['error'] || $result['status'] >= 400) {
+						$this->CI->book->set_export_status('DELETE', $force); 
+						return;
+					}
+
 				} // if (file == 'meta')
 
 				// Upload the SCANDATA.XML
@@ -743,6 +746,11 @@ class Internet_archive extends Controller {
 						$this->cfg['testing']
 					);
 
+					// If there is an error, reset status back to not-uploading
+					if ($result['error'] || $result['status'] >= 400) {
+						$this->CI->book->set_export_status('DELETE', $force); 
+						return;
+					}					
 				} // if (file == '' || file == 'scandata')
 
 				// Pause for 1 minute and to see if the bucket exists in IA. Then it's safe to continue...
@@ -813,12 +821,17 @@ class Internet_archive extends Controller {
 								$this->secret,
 								$this->cfg['testing']
 							);
+
+							// If there is an error, reset status back to not-uploading
+							if ($result['error'] || $result['status'] >= 400) {
+								$this->CI->book->set_export_status('DELETE', $force); 
+								return;
+							}					
 						} // foreach ($files as $pdf)
 					} // if ($pdf)
 				} // if (file == '' || file == 'pdf')
 				
-				// Upload the MARC XML
-				// Virtual Items have no MARC XML
+				// Upload the MARC XML. Virtual Items have no MARC XML
 				if (($file == '' || $file == 'marc') && file_exists($fullpath.'/'.$id.'_marc.xml'))  {
 					$headers = array();
 					$headers['x-archive-queue-derive'] = '0';
@@ -832,6 +845,12 @@ class Internet_archive extends Controller {
 						$this->secret,
 						$this->cfg['testing']
 					);
+
+					// If there is an error, reset status back to not-uploading
+					if ($result['error'] || $result['status'] >= 400) {
+						$this->CI->book->set_export_status('DELETE', $force); 
+						return;
+					}					
 				} // if (file == '' || file == 'marc')
 
 				// Upload the BHL Creators 
@@ -848,6 +867,12 @@ class Internet_archive extends Controller {
 						$this->secret,
 						$this->cfg['testing']
 					);
+
+					// If there is an error, reset status back to not-uploading
+					if ($result['error'] || $result['status'] >= 400) {
+						$this->CI->book->set_export_status('DELETE', $force); 
+						return;
+					}					
 				} // if (file == '' || file == 'creators')
 
 				// Upload the JP2 or Orig JP2
@@ -871,6 +896,12 @@ class Internet_archive extends Controller {
 							$this->secret,
 							$this->cfg['testing']
 						);
+
+						// If there is an error, reset status back to not-uploading
+						if ($result['error'] || $result['status'] >= 400) {
+							$this->CI->book->set_export_status('DELETE', $force); 
+							return;
+						}					
 					} // if ($this->send_orig_jp2 == 'no' || $this->send_orig_jp2 == 'both')
 
 					// Upload the "original" jp2 files last. Why? If we upload the orig first,
@@ -889,6 +920,12 @@ class Internet_archive extends Controller {
 							$this->secret,
 							$this->cfg['testing']
 						);
+
+						// If there is an error, reset status back to not-uploading
+						if ($result['error'] || $result['status'] >= 400) {
+							$this->CI->book->set_export_status('DELETE', $force); 
+							return;
+						}					
 					} // if ($this->send_orig_jp2 == 'yes' || $this->send_orig_jp2 == 'both')
 				} // if (file == '' || file == 'scans')
 				
@@ -1267,24 +1304,6 @@ class Internet_archive extends Controller {
 
 	}
 
-	/* ----------------------------
-	 * Function: missing()
-	 *
-	 * Parameters:
-	 *    NONE
-	 *
-	 * Submits missing pages for export. If the export module doesn't accept
-	 * missing pages, then this function should do nothing but return true.
-	 * ----------------------------  */
-	function missing() {
-		// 7.	Update the Export Upload procedure to:
-		// a.	If the item's date uploaded field has a value then we need to send up only the changed pages.
-		//      This will be different for each export module.
-		// b.	Update the system to have a method of saving a persistent data for every export module and
-		//      independent of each. The form of the table would be similar to that of the metadata table and
-		//      would be loaded and made available automatically to the Export Module.
-		// TODO: This really needs to be addressed better.
-	}
 	
 	/* ----------------------------
 	 * Function: _create_segments_xml()
@@ -2465,7 +2484,7 @@ class Internet_archive extends Controller {
 		$metadata['x-archive-meta-mediatype'] = 'texts';
 
 		// Identify ourselves with the Macaw Tag
-		if ($this->cfg['interet_archive_tag']) {
+		if (isset($this->cfg['interet_archive_tag']) && $this->cfg['interet_archive_tag']) {
 			$metadata['x-archive-meta-bhl-macaw'] = $this->cfg['interet_archive_tag'].' / '.$this->macaw_version;
 		}
 		
