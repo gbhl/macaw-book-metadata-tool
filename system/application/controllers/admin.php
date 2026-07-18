@@ -4,8 +4,8 @@
  *
  * MACAW Metadata Collection and Workflow System
  *
- * Governs administrative activities such as viewing logs, and editing a
- * user's information.
+ * Governs administrative activities such editing users and contributros, 
+ * maintenance, export queues.
  *
  **/
 
@@ -664,145 +664,6 @@ class Admin extends Controller {
 	}
 
 	/**
-	 * View an log files
-	 *
-	 * Shows the page to view the log files in the system.
-	 *
-	 * @access public
-	 * @since Version 1.0
-	 */
-	/* LOCAL ADMIN COMPLETED */
-	function logs($filename = '') {
-		$this->common->check_session();
-		// Permission Checking
-		if (!$this->user->has_permission('admin')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
-			redirect($this->config->item('base_url').'main/listitems');
-			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
-		}
-		$data['filename'] = $filename;
-		$data['admin'] = ($this->session->userdata('username') == 'admin');
-		$this->load->view('admin/log_view', $data);
-	}
-
-	/**
-	 * Get a list of log files
-	 *
-	 * AJAX: In order to view the details of one log file, we need to get a
-	 * list of all of them. This function does that, returning a javascript
-	 * array of filenames.
-	 *
-	 * If the $name is passedin, then we return the contents of that log file
-	 * in a JS Array, one array element for each line of the file.
-	 * Since we take filename as a parameter, we make sure that we use only the
-	 * end of the filename, stripping out anything before any slashes that
-	 * might be in the string given. Don't want to create any security holes here.
-	 *
-	 * @access public
-	 * @param string [$type] Which log file to view (access|error|book)
-	 * @param string [$barcode] Barcode of a book. Required if type=book, optional otherwise.
-	 * @since Version 1.0
-	 */
-	function get_log($name = '') {
-		// Make sure we are logged in and stuff
-		if (!$this->common->check_session(true)) {
-			return;
-		}
-
-		if ($name == '') {
-			$books = directory_map($this->cfg['logs_directory'].'/books', true);
-			
-			$files = array();
-			// Get a list of the log files in the main log directory
-			$logs = directory_map($this->cfg['logs_directory'], true);
-      
-      $filter = '';
-      if (isset($_REQUEST['filter'])) {
-        $filter = $_REQUEST['filter'];
-        // $filter = preg_replace('/[^A-Za-z0-9]+/', '', $filter);
-      }
-      for ($i=0; $i < count($logs); $i++) {
-				if ($logs[$i] != 'books') {
-          if ($filter) {
-            if (@preg_match('|'.$filter.'|i', $logs[$i])) {
-  					  // Add them to our array of files
-  					  array_push($files, array('log' => $logs[$i]));
-            }
-          } else {
-  					// Add them to our array of files
-  					array_push($files, array('log' => $logs[$i]));
-          }
-				}
-			}
-		
-			// Get a list of the log files in the books directory
-			for ($i=0; $i < count($books); $i++) {
-				// Add them to our array of files
-        if ($filter) {
-          if (@preg_match('|'.$filter.'|i', $books[$i])) {
-            array_push($files, array('log' => 'books/'.$books[$i]));
-          }
-        } else {
-          array_push($files, array('log' => 'books/'.$books[$i]));
-        }
-			}
-		  array_multisort($files);
-
-			// Send the data back to the browser
-			$this->common->ajax_headers();
-			 
-			echo json_encode($files);
-
-		} else {
-			// TODO: This is inefficient for large files, we should
-			// just echo out as we read the file. This uses lots of memory
-			// for large files!!
-
-			// Cleanse the name. It could be hacky.
-			$name = preg_replace('/^.+\//', '$1', $name);
-			$name = preg_replace('/books_/', 'books/', $name);
-
-			// Read the file, convert it to an array
-			$file = read_file($this->cfg['logs_directory'].'/'.$name);
-
-			$data = preg_split('/[\n\r]+/', $file);
-			// Convert to the final layout that we need
-			$lines = array();
-			for ($i=0; $i < count($data); $i++) {
-				// EXAMPLE LOG ENTRY: [2010-09-01 14:28:24] 172.17.199.164 system INFO: "User admin failed to logged in."
-				preg_match('/^\[([\d-]+) ([\d:]+)] ([^ ]+) ([^ ]+) ([^ ]+): "(.+)"$/', $data[$i], $fields);
-
-				if (count($fields) > 5) {
-					array_push($lines, array(
-						'entry' => $data[$i],
-						'date' => $fields[1],
-						'time' => $fields[2],
-						'datetime' => $fields[1].'&nbsp;'.$fields[2],
-						'ip' =>  $fields[3],
-						'user' =>  $fields[4],
-						'action' =>  $fields[5],
-						'message' =>  $fields[6]
-					));
-				} else {
-					array_push($lines, array(
-						'entry' => $data[$i],
-						'date' => '',
-						'time' => '',
-						'datetime' => '',
-						'ip' => '',
-						'user' => '',
-						'action' => '',
-						'message' =>  $data[$i]
-					));
-				}
-			}
-			// Send the data back to the browser
-			$this->common->ajax_headers();
-			echo json_encode($lines);
-		}
-	}
-
-	/**
 	 * List all user accounts
 	 *
 	 * Accessible only to the admin, this lists all of the user accounts in the
@@ -1257,43 +1118,6 @@ class Admin extends Controller {
 			}
 		}
 		return $info_arr;
-	}
-
-	/* 
-	 * Spawn a cron activity 
-	 * 
-	 * Allows the admin to initiate a cron activity from the UI
-	 * 
-	 * @param string [$action] Which cron entry should be run. Must correspond to a method on the cron crontroller.
-	 */
-	/* LOCAL ADMIN COMPLETED */
-	function cron($action) {
-		$this->common->ajax_headers();
-
-		if (!$this->user->has_permission('admin')) {
-			echo json_encode(array('error' => 'Permission denied.'));
-			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
-			return;
-		}
-
-		chdir($this->cfg['base_directory']);
-		// Try to identify the PHP executable on this system
-		if (PHP_OS_FAMILY == 'Windows') {
-			$fname = $this->logging->log('cron', 'info', 'Cron job \''.$action.'\' manually initiated.');
-			// SCS Changed the spawn process for windows compatability
-			// Assumes php.exe is in the path somewhere.
-			$php_exe = $this->common->get_php_exe();
-			$exec = 'START /b "" "'.$php_exe.'" "'.$this->cfg['base_directory'].DIRECTORY_SEPARATOR.'index.php" cron '.$action.' *> '.$this->cfg['logs_directory'].'\background.log & ' ;
-		} else {
-			$fname = $this->logging->log('cron', 'info', 'Cron job \''.$action.'\' manually initiated.');
-
-			// Now we can spawn the cron process.
-			$exec = 'cd "'.$this->cfg['base_directory'].'" && MACAW_OVERRIDE=1 "'.PHP_BINDIR.'/php" "'.$this->cfg['base_directory'].'/index.php" cron '.$action.' >> "'.$fname.'" 2>&1';
-		}
-		$this->logging->log('cron', 'info', "EXEC: $exec");
-		system($exec);
-
-		echo json_encode(array('redirect' => $this->config->item('base_url').'admin/logs/'.basename($fname)));
 	}
 
 	/**
