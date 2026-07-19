@@ -52,11 +52,11 @@ class Cron extends Controller {
 		// making the system() call.
 		if ($this->already_running($method)) {
 			if (!getenv("MACAW_OVERRIDE")) {
-        // Allow multiple exports, but the export needs
-        // to be aware of other exports of the same type.
-        if ($method != 'export') {
-          return false;
-        }
+				// Allow multiple exports, but the export needs
+				// to be aware of other exports of the same type.
+				if ($method != 'export') {
+					return false;
+				}
 			} else {
 				$this->logging->log('access', 'info', "Cron command $method is already running, but we continue anyway due to override.");
 			}
@@ -151,6 +151,14 @@ class Cron extends Controller {
 		$this->exporter->export($args);
 	}
 
+	function daily() {
+
+		if ($this->_init('daily')) { 
+			$this->common->clean_logs();
+			$this->common->run_statistics();
+		}
+
+	}
 	function statistics() {
 		if (!$this->_init('statistics')) { return; }
 		$this->common->run_statistics();

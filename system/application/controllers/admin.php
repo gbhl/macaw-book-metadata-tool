@@ -311,7 +311,7 @@ class Admin extends Controller {
 
 		// Get completed items for cleanup checks
 		$this->load->model('book');
-		$completed_books = $this->book->get_all_books(false, 0, array('completed'));
+		$completed_books = $this->book->get_all_books(true, 0, array('completed'));
 		$data['completed_items'] = $completed_books;
 
 		// Check for unused directories
@@ -353,18 +353,23 @@ class Admin extends Controller {
 				}
 
 				$file_path = $logs_dir . '/' . $file;
+				$is_macaw = false;
 
 				if (strpos($file, 'macaw_access') === 0) {
 					$summary['macaw_access']++;
+					$is_macaw = true;
 				} elseif (strpos($file, 'macaw_activity') === 0) {
 					$summary['macaw_activity']++;
+					$is_macaw = true;
 				} elseif (strpos($file, 'macaw_cron') === 0) {
 					$summary['macaw_cron']++;
+					$is_macaw = true;
 				} elseif (strpos($file, 'macaw_error') === 0) {
 					$summary['macaw_error']++;
+					$is_macaw = true;
 				}
 
-				if (filemtime($file_path) < $cutoff_time) {
+				if ($is_macaw && filemtime($file_path) < $cutoff_time) {
 					$summary['old_files']++;
 				}
 			}
@@ -518,27 +523,7 @@ class Admin extends Controller {
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 			return;
 		}
-
-		$keep_days = $this->cfg['keep_log_days'];
-		$cutoff_time = time() - ($keep_days * 24 * 60 * 60);
-		$deleted_count = 0;
-		$logs_dir = $this->cfg['logs_directory'];
-
-		// Delete logs from main directory only (not from books subdirectory)
-		if (is_dir($logs_dir)) {
-			$files = scandir($logs_dir);
-			foreach ($files as $file) {
-				if ($file == '.' || $file == '..' || is_dir($logs_dir . '/' . $file)) {
-					continue;
-				}
-
-				$file_path = $logs_dir . '/' . $file;
-				if (filemtime($file_path) < $cutoff_time) {
-					unlink($file_path);
-					$deleted_count++;
-				}
-			}
-		}
+		$deleted_count = $this->common->clean_logs();
 
 		$this->logging->log('activity', 'info', 'Deleted '.$deleted_count.' old log files');
 		echo json_encode(array('success' => true, 'deleted' => $deleted_count));
@@ -571,9 +556,9 @@ class Admin extends Controller {
 		foreach ($barcodes as $barcode) {
 			$dir_path = $data_dir . '/' . $barcode;
 			if (is_dir($dir_path)) {
-				delete_files($dir_path, true);
+				delete_files($dir_path, true, 1);
 				$deleted_count++;
-				$this->logging->log('activity', 'info', 'Deleted directory for completed item: '.$barcode);
+				$this->logging->log('access', 'info', 'Deleted directory for completed item: '.$barcode);
 			}
 		}
 
@@ -625,42 +610,49 @@ class Admin extends Controller {
 	 */
 	function test_email() {
 		$this->common->ajax_headers();
-
-		if (!$this->user->has_permission('admin')) {
-			echo json_encode(array('error' => 'Permission denied.'));
-			return;
-		}
-
-		$this->load->library('email');
-
-		$config = array(
-			'protocol' => 'smtp',
-			'smtp_host' => $this->cfg['email_smtp_host'],
-			'smtp_port' => $this->cfg['email_smtp_port'],
-			'smtp_user' => $this->cfg['email_smtp_user'],
-			'smtp_pass' => $this->cfg['email_smtp_pass'],
-			'mailtype' => 'html',
-			'charset' => 'utf-8'
-		);
-
-		$this->email->initialize($config);
-
 		$to = $this->cfg['admin_email'];
 		$subject = 'Macaw Email Test';
-		$message = 'This is a test email from Macaw Maintenance page. If you received this, email is configured correctly.';
-
-		$this->email->from($this->cfg['email_smtp_user'], 'Macaw');
-		$this->email->to($to);
-		$this->email->subject($subject);
-		$this->email->message($message);
-
-		if ($this->email->send()) {
+		$message = 'This is a test email from Macaw Maintenance page. If you received this, email is configured correctly.';		
+		if ($this->common->email_admin($message, $subject, false)) {
 			$this->logging->log('activity', 'info', 'Test email sent to '.$to);
 			echo json_encode(array('success' => true, 'message' => 'Test email sent to '.$to));
 		} else {
-			$this->logging->log('error', 'info', 'Failed to send test email: '.$this->email->print_debugger());
+			$this->logging->log('error', 'info', 'Failed to send test email:');
 			echo json_encode(array('error' => 'Failed to send email. Check error logs for details.'));
 		}
+
+
+		// if (!$this->user->has_permission('admin')) {
+		// 	echo json_encode(array('error' => 'Permission denied.'));
+		// 	return;
+		// }
+
+		// $this->load->library('email');
+
+		// $config = array(
+		// 	'protocol' => 'smtp',
+		// 	'smtp_host' => $this->cfg['email_smtp_host'],
+		// 	'smtp_port' => $this->cfg['email_smtp_port'],
+		// 	'smtp_user' => $this->cfg['email_smtp_user'],
+		// 	'smtp_pass' => $this->cfg['email_smtp_pass'],
+		// 	'mailtype' => 'html',
+		// 	'charset' => 'utf-8'
+		// );
+
+		// $this->email->initialize($config);
+
+		// $this->email->from($this->cfg['email_smtp_user'], 'Macaw');
+		// $this->email->to($to);
+		// $this->email->subject($subject);
+		// $this->email->message($message);
+
+		// if ($this->email->send()) {
+		// 	$this->logging->log('activity', 'info', 'Test email sent to '.$to);
+		// 	echo json_encode(array('success' => true, 'message' => 'Test email sent to '.$to));
+		// } else {
+		// 	$this->logging->log('error', 'info', 'Failed to send test email: '.$this->email->print_debugger());
+		// 	echo json_encode(array('error' => 'Failed to send email. Check error logs for details.'));
+		// }
 	}
 
 	/**

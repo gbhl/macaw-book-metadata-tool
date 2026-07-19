@@ -116,7 +116,7 @@
 						<p style="color: #d9534f;"><strong><?php echo $log_summary['old_files']; ?> log file(s) are older than <?php echo $keep_log_days; ?> days and can be deleted.</strong></p>
 						<button type="button" id="btnDeleteLogs" class="button">Delete Old Log Files</button>
 					<?php else: ?>
-						<p style="color: #5cb85c;"><strong>All log files are within the retention period.</strong></p>
+						<p style="color: #009900;font-weight:bold">All log files are within the retention period.</p>
 					<?php endif; ?>
 				</div>
 				<h2>Unused Item Directories</h2>
@@ -136,17 +136,17 @@
 						</div>
 						<button type="button" id="btnDeleteDirs" class="button">Delete Selected Directories</button>
 					<?php else: ?>
-						<p>No completed items found to clean up.</p>
+						<p style="color: #009900;font-weight:bold">No completed items found to clean up.</p>
 					<?php endif; ?>					
 				</div>
 			</td>
 			<!-- Test emails to the admin -->
 			<td width="50%">
-				<h2>Test Email Settings</h2>
+				<!-- <h2>Test Email Settings</h2>
 				<div class="section">
 					<p>Send a test email to verify that email settings are configured correctly.</p>
 					<button type="button" id="btnTestEmail" class="button">Send Test Email</button>
-				</div>
+				</div> -->
 				<h2>Old Internet Archive Content</h2>
 				<div class="section">
 					<p>The following directories contain Internet Archive export data for completed items and can be deleted:</p>
@@ -164,7 +164,7 @@
 						</div>
 						<button type="button" id="btnDeleteIADirs" class="button">Delete Selected Export Directories</button>
 					<?php else: ?>
-						<p>No Internet Archive export directories found for completed items.</p>
+						<p style="color: #009900;font-weight:bold">No Internet Archive export directories found for completed items.</p>
 					<?php endif; ?>
 				</div>
 			</td>

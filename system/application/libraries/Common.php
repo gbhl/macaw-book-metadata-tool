@@ -769,8 +769,45 @@ class Common extends Controller {
 			}
 			$msg .= $message;
 			$this->CI->email->message($msg);
-			$this->CI->email->send();
+			return $this->CI->email->send();
 		}
+	}
+
+	/**
+	 * Delete old log files
+	 *
+	 * Based on the macaw.php configuration parameter "keep_log_days", 
+	 * delete log files that are older than that. Only affects files named
+	 * 
+	 *   macaw_access.YYYYMMDD.log
+	 *   macaw_activity.YYYYMMDD.log
+	 *   macaw_error.YYYYMMDD.log
+	 *   macaw_cron.YYYYMMDD.log
+	 */
+	function clean_logs() {
+		$keep_days = $this->cfg['keep_log_days'];
+		$cutoff_time = time() - ($keep_days * 24 * 60 * 60);
+		$deleted_count = 0;
+		$logs_dir = $this->cfg['logs_directory'];
+
+		// Delete logs from main directory only (not from books subdirectory)
+		if (is_dir($logs_dir)) {
+			$files = scandir($logs_dir);
+			foreach ($files as $file) {
+				if ($file == '.' || $file == '..' || is_dir($logs_dir . '/' . $file)) {
+					continue;
+				}
+
+				$file_path = $logs_dir . '/' . $file;
+				if (preg_match('/macaw_(access|activity|error|cron)\./', $file)) {
+					if (filemtime($file_path) < $cutoff_time) {
+						unlink($file_path);
+						$deleted_count++;
+					}
+				}
+			}
+		}
+		return $deleted_count;
 	}
 
 	/**
