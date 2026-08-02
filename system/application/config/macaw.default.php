@@ -227,6 +227,13 @@ $config['macaw']['export_optional_fields'] = array(
 );
 
 // ------------------------------
+// EXPORT VERIFY SSL
+// ------------------------------
+// In the rare case that the export destination has a self-signed certificate (which sometimes
+// occurs at the Internet Archive) set this to FALSE to allow uploads to continue.
+$config['macaw']['export_verify_ssl'] = TRUE;
+
+// ------------------------------
 // IMPORT MODULES
 // ------------------------------
 //

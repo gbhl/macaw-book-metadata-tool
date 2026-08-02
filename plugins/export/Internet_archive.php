@@ -115,6 +115,9 @@ class Internet_archive extends Controller {
 			curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
 			curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 			curl_setopt($curl, CURLOPT_BINARYTRANSFER, true);
+			if (isset($this->cfg['export_verify_ssl'])) {
+				curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, $this->cfg['export_verify_ssl']);
+			}
 			curl_setopt($curl, CURLOPT_TIMEOUT, 600);
 
 			$header_array = array();
