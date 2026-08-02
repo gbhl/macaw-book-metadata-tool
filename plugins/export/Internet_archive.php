@@ -1284,7 +1284,8 @@ class Internet_archive extends Controller {
 						if (isset($this->cfg['purge_ia_deriatives'])) {
 							if ($this->cfg['purge_ia_deriatives']) {
 								echo 'The purging IA export directory '.$id."\n";
-								$cmd = 'rm -fr '.$this->cfg['data_directory'].'/import_export/Internet_archive/'.$id;
+								$path = $this->cfg['data_directory'].'/import_export/Internet_archive/'.$id;
+								delete_files($path, true, 1);
 							}
 						}
 
