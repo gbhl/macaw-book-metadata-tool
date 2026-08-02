@@ -108,7 +108,7 @@ class Internet_archive extends Controller {
 		           "Uploading".($file_path ? $filename : '')." to $url";
 		print "$message\n";
 
-		$this->CI->logging->log('book', 'error', $message, $barcode);
+		$this->CI->logging->log('book', 'debug', $message, $barcode);
 	
 		if (!$testing) {
 			curl_setopt($curl, CURLOPT_URL, $url);
