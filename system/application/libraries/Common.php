@@ -785,7 +785,11 @@ class Common extends Controller {
 	 *   macaw_cron.YYYYMMDD.log
 	 */
 	function clean_logs() {
-		$keep_days = $this->cfg['keep_log_days'];
+		$keep_days = 30;
+		if (isset($this->cfg['keep_log_days'])) {
+			$keep_days = $this->cfg['keep_log_days'];
+		}
+
 		$cutoff_time = time() - ($keep_days * 24 * 60 * 60);
 		$deleted_count = 0;
 		$logs_dir = $this->cfg['logs_directory'];

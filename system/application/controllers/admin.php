@@ -307,8 +307,11 @@ class Admin extends Controller {
 		// Get log file summary
 		$data['title'] = 'Maintenance | Macaw';
 		$data['log_summary'] = $this->_get_log_summary();
-		$data['keep_log_days'] = $this->cfg['keep_log_days'];
-
+		$data['keep_log_days'] = 30;
+		if (isset($this->cfg['keep_log_days'])) {
+			$data['keep_log_days'] = $this->cfg['keep_log_days'];
+		}
+		
 		// Get completed items for cleanup checks
 		$this->load->model('book');
 		$completed_books = $this->book->get_all_books(true, 0, array('completed'));
@@ -333,7 +336,11 @@ class Admin extends Controller {
 	 */
 	function _get_log_summary() {
 		$logs_dir = $this->cfg['logs_directory'];
-		$keep_days = $this->cfg['keep_log_days'];
+		$keep_days = 30;
+		if (isset($this->cfg['keep_log_days'])) {
+			$keep_days = $this->cfg['keep_log_days'];
+		}
+
 		$cutoff_time = time() - ($keep_days * 24 * 60 * 60);
 
 		$summary = array(
