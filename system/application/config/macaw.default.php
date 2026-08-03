@@ -378,13 +378,12 @@ $config['macaw']['export_concurrency_limit'] = 1;
 // ------------------------------
 // INTERNET ARCHIVE TAG
 // ------------------------------
-// If this is filled in, Macaw will add a "bhl_macaw" Metadata field 
-// at the Internet Archive with this tag and the current version of 
-// Macaw. Use a brief identifier such as "Smithsonian", "BHL AU", 
+// If this is filled in, Macaw will add a "Bhl-macaw" Metadata field 
+// at the Internet Archive containing this tag combined plus the current version of 
+// Macaw. Use a brief identifier such as "Smithsonian", "SLA", "BHL AU", 
 // or "Univ of City".
-//
-// Example: "New-Macaw / 2.10.5"
 $config['macaw']['interet_archive_tag'] = 'New-Macaw';
+// At the Internet Archive, this will be "New-Macaw / 2.10.5"
 
 // ------------------------------
 // TEST MODE?
