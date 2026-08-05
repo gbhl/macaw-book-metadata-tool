@@ -118,7 +118,6 @@ class Internet_archive extends Controller {
 			if (isset($this->cfg['export_verify_ssl'])) {
 				curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, $this->cfg['export_verify_ssl']);
 			}
-			curl_setopt($curl, CURLOPT_TIMEOUT, 600);
 
 			$header_array = array();
 			if ($access_key && $secret) {
