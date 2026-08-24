@@ -1,10 +1,10 @@
 ########################################
 # CONFIGURATION FILES
 # We never want to track these because they are created at install
-
 application/config/config.php
 application/config/database.php
 application/config/macaw.php
+terms.txt
 # application/config/virtual_items
 application/config/virtual_items/*
 !application/config/virtual_items/sample-config.php
@@ -56,7 +56,3 @@ application/logs/books
 ########################################
 # VS CODE
 .vscode
-
-########################################
-# PHP Composer
-vendor
