@@ -2565,8 +2565,8 @@ class Internet_archive extends CI_Controller {
 		$metadata['x-archive-meta-mediatype'] = 'texts';
 
 		// Identify ourselves with the Macaw Tag
-		if ($this->cfg['interet_archive_tag']) {
-			$metadata['x-archive-meta-bhl-macaw'] = $this->cfg['interet_archive_tag'].' / '.$this->macaw_version;
+		if ($this->cfg['internet_archive_tag']) {
+			$metadata['x-archive-meta-bhl-macaw'] = $this->cfg['internet_archive_tag'].' / '.$this->macaw_version;
 		}
 		
 		// Contributor: Prefer the entered metadata, then the item's organization, then the hardcoded organization

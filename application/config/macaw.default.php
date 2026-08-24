@@ -377,7 +377,7 @@ $config['macaw']['export_concurrency_limit'] = 1;
 // or "Univ of City".
 //
 // Example: "New-Macaw / 2.10.5"
-$config['macaw']['interet_archive_tag'] = 'New-Macaw';
+$config['macaw']['internet_archive_tag'] = 'New-Macaw';
 
 // ------------------------------
 // TEST MODE?
