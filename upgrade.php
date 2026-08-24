@@ -4,7 +4,7 @@ define('ENVIRONMENT', 'production');
 
 require_once('application/config/database.php');
 
-$messages = [];
+$messages = ['database' => [], 'config/config.php' => [], 'config/macaw.php' => []];
 $continue = true;
 if ($db['default']['dbdriver'] == 'mysqli') {
     # Connect
@@ -14,9 +14,13 @@ if ($db['default']['dbdriver'] == 'mysqli') {
         $db['default']['password'], 
         $db['default']['database']
     );
-    
+
     # Get the stucture of the session table
-    $result = $dbh->query("select COLUMN_NAME from information_schema.columns where table_name = 'session'");
+    $result = $dbh->query(
+        "select COLUMN_NAME from information_schema.columns ".
+        "where table_name = 'session' and ".
+        "table_schema = '".$dbh->real_escape_string($db['default']['database'])."'"
+    );
     $old = false;
     foreach ($result as $row) {
         if ($row['COLUMN_NAME'] == 'session_id' || $row['COLUMN_NAME'] == 'user_agent' || 
@@ -36,9 +40,9 @@ if ($db['default']['dbdriver'] == 'mysqli') {
         $dbh->query("ALTER TABLE session DROP COLUMN `user_agent`;");
 
         $dbh->query("CREATE INDEX idx_session_timestamp on session(timestamp);");
-        $messages[] = "Session table updated.";
+        $messages['database'][] = "✅ Session table updated.";
     } else {
-        $messages[] = "Session table did not need any changes.";
+        $messages['database'][] = "✅ Session table did not need any changes.";
     }
 } elseif ($db['default']['dbdriver'] == 'postgre') {
     # Connect
@@ -74,61 +78,99 @@ if ($db['default']['dbdriver'] == 'mysqli') {
         $dbh->query('ALTER TABLE session DROP COLUMN `user_agent`;');
 
         $dbh->query('CREATE INDEX idx_session_timestamp on session(timestamp);');
-        $messages[] = "Session table updated.";
+        $messages['database'][] = "✅ Session table updated.";
     } else {
-        $messages[] = "Session table did not need any changes.";
+        $messages['database'][] = "✅ Session table did not need any changes.";
     }
 }
 
 # Check the configs
-$errors = [];
+$errors = ['database' => [], 'config/config.php' => [], 'config/macaw.php' => []];
 require_once('application/config/config.php');
 require_once('application/config/macaw.php');
+
+if (!isset($config['encryption_key']) || $config['encryption_key'] == '') { 
+    $errors['config/config.php'][] = "❌ Value <code>encryption_key</code> should be set.";
+}
 if (!isset($config['sess_driver']) || $config['sess_driver'] != 'database') { 
-    $errors[] = "config.php value <code>sess_driver</code> should be <code>database</code>";
+    $errors['config/config.php'][] = "❌ Value <code>sess_driver</code> should be <code>database</code>";
 }
 if (!isset($config['sess_cookie_name']) || $config['sess_cookie_name'] != 'macaw_session') { 
-    $errors[] = "config.php value <code>sess_cookie_name</code> should be <code>macaw_session</code>";
+    $errors['config/config.php'][] = "❌ Value <code>sess_cookie_name</code> should be <code>macaw_session</code>";
 }
 if (!isset($config['sess_samesite'])) { 
-    $errors[] = "config.php value <code>sess_samesite</code> should be <code>Strict</code> or <code>Lax</code>";
+    $errors['config/config.php'][] = "❌ Value <code>sess_samesite</code> should be <code>Strict</code> or <code>Lax</code>";
 }
 if (!isset($config['sess_expiration'])) { 
-    $errors[] = "config.php value <code>sess_expiration</code> is not set.";
+    $errors['config/config.php'][] = "❌ Value <code>sess_expiration</code> is not set.";
 }
 if (!isset($config['sess_save_path']) || $config['sess_save_path'] != 'session') { 
-    $errors[] = "config.php value <code>sess_save_path</code> should be <code>session</code>";
+    $errors['config/config.php'][] = "❌ Value <code>sess_save_path</code> should be <code>session</code>";
 }
 if (!isset($config['sess_match_ip']) || !$config['sess_match_ip']) { 
-    $errors[] = "config.php value <code>sess_match_ip</code> should be <code>TRUE</code>";
+    $errors['config/config.php'][] = "❌ Value <code>sess_match_ip</code> should be <code>TRUE</code>";
 }
 if (!isset($config['sess_time_to_update'])) { 
-    $errors[] = "config.php value <code>sess_time_to_update</code> is not set.";
+    $errors['config/config.php'][] = "❌ Value <code>sess_time_to_update</code> is not set.";
 }
 if (!isset($config['sess_regenerate_destroy'])) { 
-    $errors[] = "config.php value <code>sess_regenerate_destroy</code> is not set.";
+    $errors['config/config.php'][] = "❌ Value <code>sess_regenerate_destroy</code> is not set.";
 }
 if (!isset($config['cookie_secure'])) { 
-    $errors[] = "config.php value <code>cookie_secure</code> is not set.";
+    $errors['config/config.php'][] = "❌ Value <code>cookie_secure</code> is not set.";
 }
 if (!isset($config['cookie_httponly'])) { 
-    $errors[] = "config.php value <code>cookie_httponly</code> is not set.";
+    $errors['config/config.php'][] = "❌ Value <code>cookie_httponly</code> is not set.";
 }
 if (!isset($config['cookie_samesite']) || $config['cookie_samesite'] != 'Strict') { 
-    $errors[] = "config.php value <code>cookie_samesite</code> should be <code>Strict</code>";
+    $errors['config/config.php'][] = "❌ Value <code>cookie_samesite</code> should be <code>Strict</code>";
+}
+if (isset($config['sess_encrypt_cookie'])) { 
+    $errors['config/config.php'][] = "❌ Value <code>sess_encrypt_cookie</code> is no longer used and can be removed.";
+}
+if (isset($config['sess_table_name'])) { 
+    $errors['config/config.php'][] = "❌ Value <code>sess_table_name</code> is no longer used and can be removed.";
+}
+if (isset($config['sess_match_useragent'])) { 
+    $errors['config/config.php'][] = "❌ Value <code>sess_match_useragent</code> is no longer used and can be removed.";
 }
 
+foreach (array_keys($config['macaw']) as $key) {
+    if (is_array($config['macaw'][$key])) {
 
-if (preg_match('/system\//', $config['macaw']['logs_directory'])) {
-    $errors[] = "macaw.php value <code>logs_directory</code> should be not contain <code>system/</code>";
+    } else {
+        if (preg_match('/system\//', $config['macaw'][$key])) {
+            $errors['config/macaw.php'][] = "❌ Value <code>$key</code> should not contain <code>system/</code>";
+        }
+    }
 }
 if (!isset($config['macaw']['export_concurrency_limit'])) { 
-    $errors[] = "config.php value <code>export_concurrency_limit</code> is missing.";
+    $errors['config/macaw.php'][] = "❌ Value <code>export_concurrency_limit</code> is missing.";
 }
-if (!isset($config['macaw']['interet_archive_tag'])) { 
-    $errors[] = "config.php value <code>interet_archive_tag</code> is missing.";
+
+if (!isset($config['macaw']['internet_archive_tag']) && !isset($config['macaw']['interet_archive_tag'])) { 
+    $errors['config/macaw.php'][] = "❌ Value <code>internet_archive_tag</code> is missing.";
+} elseif (isset($config['macaw']['internet_archive_tag']) && !isset($config['macaw']['interet_archive_tag'])) { 
+    # This is good. Do nothing.
+} elseif (!isset($config['macaw']['internet_archive_tag']) && isset($config['macaw']['interet_archive_tag'])) { 
+    $errors['config/macaw.php'][] = "❌ Please rename <code>interet_archive_tag</code> (misspelled) to <code>internet_archive_tag</code>.";
+} elseif (isset($config['macaw']['internet_archive_tag']) && isset($config['macaw']['interet_archive_tag'])) { 
+    $errors['config/macaw.php'][] = "❌ Please remove the misspelled extra field: <code>interet_archive_tag</code>";
 }
-?>
+
+if (!isset($config['macaw']['bhl_api_key'])) { 
+    $errors['config/macaw.php'][] = "❌ Value <code>bhl_api_key</code> is missing.";
+}
+
+
+if (!count($errors['config/config.php'])) {
+    $messages['config/config.php'][] = "✅ config.php looks good.";
+}
+if (!count($errors['config/macaw.php'])) {
+    $messages['config/macaw.php'][] = "✅ macaw.php looks good.";
+}
+
+?>keep_log_days
 
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
@@ -155,17 +197,35 @@ if (!isset($config['macaw']['interet_archive_tag'])) {
                 <h1>Macaw</h1>
                 <h2>Upgrade Results</h2>
             </div>	
-            <div id="logincontent">
-                <?php foreach ($messages as $m) { ?>
-                    <p><?php print $m; ?></p>
-                <?php } ?>
-                <?php foreach ($errors as $m) { ?>
-                    <p><?php print $m; ?></p>
-                <?php } ?>
-                <?php if (count($errors)) { ?>
-                    <p>Fix these errors and reload.</p>
+            <div id="logincontent">               
+                <?php
+                    print "<h2>Database</h2>\n"; 
+                    foreach ($messages['database'] as $m) { 
+                        print "<p>$m</p>\n";
+                    }
+                ?>
+                <?php
+                    print "<h2>config/config.php settings</h2>\n"; 
+                    foreach ($errors['config/config.php'] as $m) { 
+                        print "<p>$m</p>\n";
+                    }
+                    foreach ($messages['config/config.php'] as $m) { 
+                        print "<p>$m</p>\n";
+                    }
+                ?>
+                <?php
+                    print "<h2>config/macaw.php settings</h2>\n"; 
+                    foreach ($errors['config/macaw.php'] as $m) { 
+                        print "<p>$m</p>\n";
+                    }
+                    foreach ($messages['config/macaw.php'] as $m) { 
+                        print "<p>$m</p>\n";
+                    }
+                ?>
+                <?php if (count(array_merge($errors['config/config.php'],$errors['config/macaw.php']))) { ?>
+                    <hr><p>⛔ Fix these errors and reload.</p>
                 <?php } else { ?>
-                    <p><a href="/">Continue to Login</a></p>
+                    <hr><p style="margin-top:1rem;font-size:150%;font-weight:bold">🎉 <a href="/">Continue to Login.</a></p>
                 <?php } ?>
             </div>          
         </div>
