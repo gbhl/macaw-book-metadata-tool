@@ -273,11 +273,12 @@ class Organization extends CI_Model {
 			') i ON o.id = i.org_id '.
 			'ORDER BY o.name'
 		)->result();
+
 		for ($i=0; $i < count($l); $i++) {
-			$l[$i]->created = preg_replace("/\.(\d+)$/","",$l[$i]->created);
-			$l[$i]->modified = preg_replace("/\.(\d+)$/","",$l[$i]->modified);
-			$l[$i]->created = preg_replace("/\-/","/",$l[$i]->created);
-			$l[$i]->modified = preg_replace("/\-/","/",$l[$i]->modified);
+			$l[$i]->created = preg_replace("/\.(\d+)$/","", (string)$l[$i]->created);
+			$l[$i]->modified = preg_replace("/\.(\d+)$/","", (string)$l[$i]->modified);
+			$l[$i]->created = preg_replace("/\-/", "/", (string)$l[$i]->created);
+			$l[$i]->modified = preg_replace("/\-/", "/", (string)$l[$i]->modified);
 		}
 		return $l;
 	}

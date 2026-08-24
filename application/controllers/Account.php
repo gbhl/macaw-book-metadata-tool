@@ -127,7 +127,6 @@ class Account extends CI_Controller {
 		$data['is_admin'] = $is_admin;
 		$data['is_local_admin'] = $is_local_admin;
 		$data['totp_enabled'] = (!$new && $data['is_self']) ? $this->user->totp_enabled : false;
-
 		$this->load->view('account/settings_view', $data);
 	}
 
@@ -281,6 +280,9 @@ class Account extends CI_Controller {
 						if ($perm == 'admin' && !$is_admin) {
 							continue;
 						}
+						if ($perm == 'local_admin' && !$is_admin) {
+							continue;
+						}
 						$perms[] = $perm;
 					}
 				}
@@ -326,6 +328,9 @@ class Account extends CI_Controller {
 					if (is_array($posted_perms)) {
 						foreach ($posted_perms as $perm) {
 							if ($perm == 'admin' && !$is_admin) {
+								continue;
+							}
+							if ($perm == 'local_admin' && !$is_admin) {
 								continue;
 							}
 							$perms[] = $perm;

@@ -110,10 +110,12 @@
 					<td class="fieldname" valign="top">Permissions:</td>
 					<td>
 						<?php foreach (array_keys($permissions) as $p) {
+							$disabled = false;
 							echo('<input type="checkbox" name="permissions[]" value="'.$p.'" id="perm_'.$p.'"');
 							echo(($permissions[$p] ? ' checked' : ''));
 							if ($p == 'admin' && !$is_admin) {
 								echo(' disabled');
+								$disabled = true;
 							}
 							if ($p == 'scan') {
 								echo('> <label for="perm_'.$p.'">Edit Metadata</label><br>');
@@ -124,11 +126,31 @@
 							} elseif ($p == 'qa_required') {
 								echo('> <label for="perm_'.$p.'">QA Required</label><br>');
 							} elseif ($p == 'admin') {
-								echo('> <label for="perm_'.$p.'">Admin</label><br>');
+								echo('> <label for="perm_'.$p.'" '.($disabled ? 'style="color:#999"' : '').'>Admin</label><br>');
 							}
 						} ?>
 					</td>
 				</tr>
+				<?php } else { ?>
+					<tr class="row">
+						<td class="fieldname" valign="top">Permissions:</td>
+						<td>
+							<?php foreach (array_keys($permissions) as $p) {
+								if ($p == 'scan') {
+									if ($permissions[$p]) { echo "Edit Metadata<br>"; }
+								} elseif ($p == 'local_admin') {
+									if ($permissions[$p]) { echo "Local Admin<br>"; }
+								} elseif ($p == 'qa') {
+									if ($permissions[$p]) { echo "QA Admin<br>"; }
+								} elseif ($p == 'qa_required') {
+									if ($permissions[$p]) { echo "QA Required<br>"; }
+								} elseif ($p == 'admin') {
+									if ($permissions[$p]) { echo "Admin<br>"; }
+								}
+							} ?>
+						</td>
+					</tr>
+
 				<?php } ?>
 			</table>
 		</form>
