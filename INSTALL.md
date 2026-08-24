@@ -1,5 +1,9 @@
 # Macaw Installation
 
+## Overview
+
+In the summer of 2010, the Smithsonian Institution Libraries, with a grant from the Atherton Seidell Endowment Fund, developed a process to scan folio volumes, large fold-outs, and other materials not suitable to our existing digitization workflow. As part of this process, the Macaw tool was developed to collect page-level metadata and manage the scanned pages. The result is a complete digital version of the item ready to be shared with external systems, such as the Biodiversity Heritage Library and the Internet Archive.
+
 Installation of Macaw is pretty straightforward. Generally the procedure is as follows, assuming the system requirements are met. Details are below.
 
 1. Install the required modules and components.

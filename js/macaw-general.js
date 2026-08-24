@@ -307,28 +307,39 @@
 		},
 
 
-		runCronAction: function(action) {	
-			// This is the callback to handle the saving of the data.
-			var runCallback = {
-				success: function (o){
-					eval('var r = '+o.responseText);
-					if (r.redirect) {
-						window.location = r.redirect;
-					} else {
-						if (r.error) {
-							General.showErrorMessage(r.error);
-						} else if (r.message) {
-							General.showMessage(r.message);
+		makeRequest: function(path, data, callback) {
+			var url = sBaseUrl + '/' + path;
+			var method = 'GET';
+			var postData = null;
+
+			if (data && Object.keys(data).length > 0) {
+				method = 'POST';
+				var params = [];
+				for (var key in data) {
+					if (data.hasOwnProperty(key)) {
+						if (Array.isArray(data[key])) {
+							for (var i = 0; i < data[key].length; i++) {
+								params.push(key + '[]=' + encodeURIComponent(data[key][i]));
+							}
+						} else {
+							params.push(key + '=' + encodeURIComponent(data[key]));
 						}
 					}
-				},
-				failure: function (o){
-					General.showErrorMessage('There was a problem starting the cron job. If it helps, the error was:<blockquote style="font-weight:bold;color:#990000;">'+o.statusText+"</blockquote>");
+				}
+				postData = params.join('&');
+			}
+
+			var requestCallback = {
+				success: callback,
+				failure: function(o) {
+					General.showErrorMessage('There was a problem with the request. Error: ' + o.statusText);
 				},
 				scope: this
 			};
-			var transaction = YAHOO.util.Connect.asyncRequest('GET', sBaseUrl+'/admin/cron/'+action, runCallback);
+
+			YAHOO.util.Connect.asyncRequest(method, url, requestCallback, postData);
 		}
+
 	}
 
 })();

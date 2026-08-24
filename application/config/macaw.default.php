@@ -227,6 +227,13 @@ $config['macaw']['export_optional_fields'] = array(
 );
 
 // ------------------------------
+// EXPORT VERIFY SSL
+// ------------------------------
+// In the rare case that the export destination has a self-signed certificate (which sometimes
+// occurs at the Internet Archive) set this to FALSE to allow uploads to continue.
+$config['macaw']['export_verify_ssl'] = TRUE;
+
+// ------------------------------
 // IMPORT MODULES
 // ------------------------------
 //
@@ -327,8 +334,8 @@ $config['macaw']['item_metadata_groups'] = array(
 //
 // The setting "jpeg2000_quality" is used for JP2 files created from other iamges, TIFF, PNG.
 // The setting "jpeg2000_quality_pdf" is used for JP2 files created from PDFs uploaded to Macaw.
-// $config['macaw']['jpeg2000_quality'] = '35';
-// $config['macaw']['jpeg2000_quality_pdf'] = '35';
+$config['macaw']['jpeg2000_quality'] = '40';
+$config['macaw']['jpeg2000_quality_pdf'] = '40';
 
 // For ImageMagick earlier than version 6.8.8-2, the Jasper Library is used and these values are more 
 // appropriate.
@@ -371,9 +378,9 @@ $config['macaw']['export_concurrency_limit'] = 1;
 // ------------------------------
 // INTERNET ARCHIVE TAG
 // ------------------------------
-// If this is filled in, Macaw will add a "bhl_macaw" Metadata field 
-// at the Internet Archive with this tag and the current version of 
-// Macaw. Use a brief identifier such as "Smithsonian", "BHL AU", 
+// If this is filled in, Macaw will add a "Bhl-macaw" Metadata field 
+// at the Internet Archive containing this tag combined plus the current version of 
+// Macaw. Use a brief identifier such as "Smithsonian", "SLA", "BHL AU", 
 // or "Univ of City".
 //
 // Example: "New-Macaw / 2.10.5"

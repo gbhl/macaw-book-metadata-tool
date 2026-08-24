@@ -4,8 +4,8 @@
  *
  * MACAW Metadata Collection and Workflow System
  *
- * Governs administrative activities such as viewing logs, and editing a
- * user's information.
+ * Governs administrative activities such editing users and contributros, 
+ * maintenance, export queues.
  *
  **/
 
@@ -282,137 +282,381 @@ class Admin extends CI_Controller {
 	}
 
 	/**
-	 * View an log files
+	 * Admin Maintenance Page
 	 *
-	 * Shows the page to view the log files in the system.
+	 * Provides tools for admins to perform occasional administrative tasks
+	 * including log management, finding unused directories, and testing email.
 	 *
 	 * @access public
-	 * @since Version 1.0
+	 * @since Version 1.8
 	 */
-	public function logs($filename = '') {
+	/* LOCAL ADMIN COMPLETED */
+	function maintenance() {
 		$this->common->check_session();
+
 		// Permission Checking
 		if (!$this->user->has_permission('admin')) {
 			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
 			redirect($this->config->item('base_url').'main/listitems');
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 		}
-		$data['filename'] = $filename;
+
+		// Get log file summary
+		$data['title'] = 'Maintenance | Macaw';
+		$data['log_summary'] = $this->_get_log_summary();
+		$data['keep_log_days'] = 30;
+		if (isset($this->cfg['keep_log_days'])) {
+			$data['keep_log_days'] = $this->cfg['keep_log_days'];
+		}
+		
+		// Get completed items for cleanup checks
+		$this->load->model('book');
+		$completed_books = $this->book->get_all_books(true, 0, array('completed'));
+		$data['completed_items'] = $completed_books;
+
+		// Check for unused directories
+		$data['unused_directories'] = $this->_find_unused_directories($completed_books);
+
+		// Check for Internet Archive export content
+		$ia_path = $this->cfg['data_directory'] . '/import_export/Internet_archive';
+		$data['ia_directories'] = $this->_find_ia_export_directories($ia_path, $completed_books);
+
 		$data['admin'] = ($this->session->userdata('username') == 'admin');
-		$this->load->view('admin/log_view', $data);
+		$this->load->view('admin/maintenance_view', $data);
 	}
 
 	/**
-	 * Get a list of log files
+	 * Get a summary of log files
 	 *
-	 * AJAX: In order to view the details of one log file, we need to get a
-	 * list of all of them. This function does that, returning a javascript
-	 * array of filenames.
+	 * @access private
+	 * @return array Summary of log files by type
+	 */
+	function _get_log_summary() {
+		$logs_dir = $this->cfg['logs_directory'];
+		$keep_days = 30;
+		if (isset($this->cfg['keep_log_days'])) {
+			$keep_days = $this->cfg['keep_log_days'];
+		}
+
+		$cutoff_time = time() - ($keep_days * 24 * 60 * 60);
+
+		$summary = array(
+			'macaw_access' => 0,
+			'macaw_activity' => 0,
+			'macaw_cron' => 0,
+			'macaw_error' => 0,
+			'books' => 0,
+			'old_files' => 0
+		);
+
+		if (is_dir($logs_dir)) {
+			$files = scandir($logs_dir);
+			foreach ($files as $file) {
+				if ($file == '.' || $file == '..' || is_dir($logs_dir . '/' . $file)) {
+					continue;
+				}
+
+				$file_path = $logs_dir . '/' . $file;
+				$is_macaw = false;
+
+				if (strpos($file, 'macaw_access') === 0) {
+					$summary['macaw_access']++;
+					$is_macaw = true;
+				} elseif (strpos($file, 'macaw_activity') === 0) {
+					$summary['macaw_activity']++;
+					$is_macaw = true;
+				} elseif (strpos($file, 'macaw_cron') === 0) {
+					$summary['macaw_cron']++;
+					$is_macaw = true;
+				} elseif (strpos($file, 'macaw_error') === 0) {
+					$summary['macaw_error']++;
+					$is_macaw = true;
+				}
+
+				if ($is_macaw && filemtime($file_path) < $cutoff_time) {
+					$summary['old_files']++;
+				}
+			}
+		}
+
+		// Count books logs (not included in retention policy)
+		$books_dir = $logs_dir . '/books';
+		if (is_dir($books_dir)) {
+			$summary['books'] = count(scandir($books_dir)) - 2; // -2 for . and ..
+		}
+
+		return $summary;
+	}
+
+	/**
+	 * Find directories for completed items that can be deleted
 	 *
-	 * If the $name is passedin, then we return the contents of that log file
-	 * in a JS Array, one array element for each line of the file.
-	 * Since we take filename as a parameter, we make sure that we use only the
-	 * end of the filename, stripping out anything before any slashes that
-	 * might be in the string given. Don't want to create any security holes here.
+	 * @access private
+	 * @param array $completed_books Array of completed book objects
+	 * @return array Array of directory information for completed items
+	 */
+	function _find_unused_directories($completed_books) {
+		$dirs = array();
+		$data_dir = $this->cfg['data_directory'];
+
+		foreach ($completed_books as $book) {
+			$item_dir = $data_dir . '/' . $book->barcode;
+			if (is_dir($item_dir)) {
+				$size = $this->_get_directory_size($item_dir);
+				$title = "(unknown)";
+				if (property_exists($book, 'title')) {
+					$title = $book->title;
+				}
+				$dirs[] = array(
+					'barcode' => $book->barcode,
+					'title' => $title,
+					'path' => $item_dir,
+					'size' => $size,
+					'size_display' => $this->_format_bytes($size)
+				);
+			}
+		}
+
+		return $dirs;
+	}
+
+	/**
+	 * Find Internet Archive export directories for completed items
+	 *
+	 * @access private
+	 * @param string $ia_path Path to Internet Archive export directory
+	 * @param array $completed_books Array of completed book objects
+	 * @return array Array of directory information
+	 */
+	function _find_ia_export_directories($ia_path, $completed_books) {
+		$dirs = array();
+
+		if (!is_dir($ia_path)) {
+			return $dirs;
+		}
+
+		$completed_barcodes = array();
+		foreach ($completed_books as $book) {
+			$completed_barcodes[$book->barcode] = $book;
+		}
+
+		$items = scandir($ia_path);
+		foreach ($items as $item) {
+			if ($item == '.' || $item == '..') {
+				continue;
+			}
+
+			$item_path = $ia_path . '/' . $item;
+			if (is_dir($item_path) && isset($completed_barcodes[$item])) {
+				$size = $this->_get_directory_size($item_path);
+				$dirs[] = array(
+					'barcode' => $item,
+					'title' => $completed_barcodes[$item]->title,
+					'path' => $item_path,
+					'size' => $size,
+					'size_display' => $this->_format_bytes($size)
+				);
+			}
+		}
+
+		return $dirs;
+	}
+
+	/**
+	 * Recursively get the size of a directory
+	 *
+	 * @access private
+	 * @param string $path Directory path
+	 * @return int Size in bytes
+	 */
+	function _get_directory_size($path) {
+		$size = 0;
+
+		if (!is_dir($path)) {
+			return filesize($path);
+		}
+
+		$items = scandir($path);
+		foreach ($items as $item) {
+			if ($item == '.' || $item == '..') {
+				continue;
+			}
+
+			$item_path = $path . '/' . $item;
+			if (is_dir($item_path)) {
+				$size += $this->_get_directory_size($item_path);
+			} else {
+				$size += filesize($item_path);
+			}
+		}
+
+		return $size;
+	}
+
+	/**
+	 * Format bytes to human readable format
+	 *
+	 * @access private
+	 * @param int $bytes Size in bytes
+	 * @return string Formatted size string
+	 */
+	function _format_bytes($bytes) {
+		$units = array('B', 'KB', 'MB', 'GB', 'TB');
+
+		$bytes = max($bytes, 0);
+		$pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+		$pow = min($pow, count($units) - 1);
+		$bytes /= (1 << (10 * $pow));
+
+		return round($bytes, 2) . ' ' . $units[$pow];
+	}
+
+	/**
+	 * Delete old log files
+	 *
+	 * AJAX: Deletes log files older than keep_log_days setting
+	 * Note: Book log files are never deleted
 	 *
 	 * @access public
-	 * @param string [$type] Which log file to view (access|error|book)
-	 * @param string [$barcode] Barcode of a book. Required if type=book, optional otherwise.
-	 * @since Version 1.0
 	 */
-	public function get_log($name = '') {
-		// Make sure we are logged in and stuff
-		if (!$this->common->check_session(true)) {
+	function delete_old_logs() {
+		$this->common->ajax_headers();
+
+		if (!$this->user->has_permission('admin')) {
+			echo json_encode(array('error' => 'Permission denied.'));
+			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
+			return;
+		}
+		$deleted_count = $this->common->clean_logs();
+
+		$this->logging->log('activity', 'info', 'Deleted '.$deleted_count.' old log files');
+		echo json_encode(array('success' => true, 'deleted' => $deleted_count));
+	}
+
+	/**
+	 * Delete selected directories
+	 *
+	 * AJAX: Deletes selected item directories
+	 *
+	 * @access public
+	 */
+	function delete_directories() {
+		$this->common->ajax_headers();
+
+		if (!$this->user->has_permission('admin')) {
+			echo json_encode(array('error' => 'Permission denied.'));
 			return;
 		}
 
-		if ($name == '') {
-			$books = directory_map($this->cfg['logs_directory'].'/books', true);
-			
-			$files = array();
-			// Get a list of the log files in the main log directory
-			$logs = directory_map($this->cfg['logs_directory'], true);
-			
-			$filter = '';
-			if (isset($_REQUEST['filter'])) {
-				$filter = $_REQUEST['filter'];
-				// $filter = preg_replace('/[^A-Za-z0-9]+/', '', $filter);
-			}
-			for ($i=0; $i < count($logs); $i++) {
-				if ($logs[$i] != 'books') {
-					if ($filter) {
-						if (@preg_match('|'.$filter.'|i', $logs[$i])) {
-							// Add them to our array of files
-							array_push($files, array('log' => $logs[$i]));
-						}
-					} else {
-						// Add them to our array of files
-						array_push($files, array('log' => $logs[$i]));
-					}
-				}
-			}
-		
-			// Get a list of the log files in the books directory
-			for ($i=0; $i < count($books); $i++) {
-				// Add them to our array of files
-				if ($filter) {
-					if (@preg_match('|'.$filter.'|i', $books[$i])) {
-						array_push($files, array('log' => 'books/'.$books[$i]));
-					}
-				} else {
-					array_push($files, array('log' => 'books/'.$books[$i]));
-				}
-			}
-			array_multisort($files);
-
-			// Send the data back to the browser
-			$this->common->ajax_headers();
-			 
-			echo json_encode($files);
-
-		} else {
-			// Cleanse the name. It could be hacky.
-			$name = preg_replace('/^.+\//', '$1', $name);
-			$name = preg_replace('/books_/', 'books/', $name);
-
-			// Read the file, convert it to an array
-			$file = file_get_contents($this->cfg['logs_directory'].'/'.$name);
-
-			$data = preg_split('/[\n\r]+/', $file);
-			// Convert to the final layout that we need
-			$lines = array();
-			for ($i=0; $i < count($data); $i++) {
-				// EXAMPLE LOG ENTRY: [2010-09-01 14:28:24] 172.17.199.164 system INFO: "User admin failed to logged in."
-				preg_match('/^\[([\d-]+) ([\d:]+)] ([^ ]+) ([^ ]+) ([^ ]+): "(.+)"$/', $data[$i], $fields);
-
-				if (count($fields) > 5) {
-					array_push($lines, array(
-						'entry' => $data[$i],
-						'date' => $fields[1],
-						'time' => $fields[2],
-						'datetime' => $fields[1].'&nbsp;'.$fields[2],
-						'ip' => $fields[3],
-						'user' => $fields[4],
-						'action' => $fields[5],
-						'message' => $fields[6]
-					));
-				} else {
-					array_push($lines, array(
-						'entry' => $data[$i],
-						'date' => '',
-						'time' => '',
-						'datetime' => '',
-						'ip' => '',
-						'user' => '',
-						'action' => '',
-						'message' => $data[$i]
-					));
-				}
-			}
-			// Send the data back to the browser
-			$this->common->ajax_headers();
-			echo json_encode($lines);
+		$barcodes = isset($_POST['barcodes']) ? $_POST['barcodes'] : array();
+		if (!is_array($barcodes)) {
+			$barcodes = array($barcodes);
 		}
+
+		$this->load->helper('file');
+		$deleted_count = 0;
+		$data_dir = $this->cfg['data_directory'];
+
+		foreach ($barcodes as $barcode) {
+			$dir_path = $data_dir . '/' . $barcode;
+			if (is_dir($dir_path)) {
+				delete_files($dir_path, true, 1);
+				$deleted_count++;
+				$this->logging->log('access', 'info', 'Deleted directory for completed item: '.$barcode);
+			}
+		}
+
+		echo json_encode(array('success' => true, 'deleted' => $deleted_count));
+	}
+
+	/**
+	 * Delete Internet Archive export directories
+	 *
+	 * AJAX: Deletes selected Internet Archive export directories
+	 *
+	 * @access public
+	 */
+	function delete_ia_directories() {
+		$this->common->ajax_headers();
+
+		if (!$this->user->has_permission('admin')) {
+			echo json_encode(array('error' => 'Permission denied.'));
+			return;
+		}
+
+		$barcodes = isset($_POST['barcodes']) ? $_POST['barcodes'] : array();
+		if (!is_array($barcodes)) {
+			$barcodes = array($barcodes);
+		}
+
+		$this->load->helper('file');
+		$deleted_count = 0;
+		$ia_path = $this->cfg['data_directory'] . '/import_export/Internet_archive';
+
+		foreach ($barcodes as $barcode) {
+			$dir_path = $ia_path . '/' . $barcode;
+			if (is_dir($dir_path)) {
+				delete_files($dir_path, true);
+				$deleted_count++;
+				$this->logging->log('activity', 'info', 'Deleted Internet Archive export directory for: '.$barcode);
+			}
+		}
+
+		echo json_encode(array('success' => true, 'deleted' => $deleted_count));
+	}
+
+	/**
+	 * Test email settings
+	 *
+	 * AJAX: Sends a test email to the admin email address
+	 *
+	 * @access public
+	 */
+	function test_email() {
+		$this->common->ajax_headers();
+		$to = $this->cfg['admin_email'];
+		$subject = 'Macaw Email Test';
+		$message = 'This is a test email from Macaw Maintenance page. If you received this, email is configured correctly.';		
+		if ($this->common->email_admin($message, $subject, false)) {
+			$this->logging->log('activity', 'info', 'Test email sent to '.$to);
+			echo json_encode(array('success' => true, 'message' => 'Test email sent to '.$to));
+		} else {
+			$this->logging->log('error', 'info', 'Failed to send test email:');
+			echo json_encode(array('error' => 'Failed to send email. Check error logs for details.'));
+		}
+
+
+		// if (!$this->user->has_permission('admin')) {
+		// 	echo json_encode(array('error' => 'Permission denied.'));
+		// 	return;
+		// }
+
+		// $this->load->library('email');
+
+		// $config = array(
+		// 	'protocol' => 'smtp',
+		// 	'smtp_host' => $this->cfg['email_smtp_host'],
+		// 	'smtp_port' => $this->cfg['email_smtp_port'],
+		// 	'smtp_user' => $this->cfg['email_smtp_user'],
+		// 	'smtp_pass' => $this->cfg['email_smtp_pass'],
+		// 	'mailtype' => 'html',
+		// 	'charset' => 'utf-8'
+		// );
+
+		// $this->email->initialize($config);
+
+		// $this->email->from($this->cfg['email_smtp_user'], 'Macaw');
+		// $this->email->to($to);
+		// $this->email->subject($subject);
+		// $this->email->message($message);
+
+		// if ($this->email->send()) {
+		// 	$this->logging->log('activity', 'info', 'Test email sent to '.$to);
+		// 	echo json_encode(array('success' => true, 'message' => 'Test email sent to '.$to));
+		// } else {
+		// 	$this->logging->log('error', 'info', 'Failed to send test email: '.$this->email->print_debugger());
+		// 	echo json_encode(array('error' => 'Failed to send email. Check error logs for details.'));
+		// }
 	}
 
 	/**
@@ -603,42 +847,6 @@ class Admin extends CI_Controller {
 			}
 		}
 		return $info_arr;
-	}
-
-	/* 
-	 * Spawn a cron activity 
-	 * 
-	 * Allows the admin to initiate a cron activity from the UI
-	 * 
-	 * @param string [$action] Which cron entry should be run. Must correspond to a method on the cron crontroller.
-	 */
-	public function cron($action) {
-		$this->common->ajax_headers();
-
-		if (!$this->user->has_permission('admin')) {
-			echo json_encode(array('error' => 'Permission denied.'));
-			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
-			return;
-		}
-
-		chdir($this->cfg['base_directory']);
-		// Try to identify the PHP executable on this system
-		if (PHP_OS_FAMILY == 'Windows') {
-			$fname = $this->logging->log('cron', 'info', 'Cron job \''.$action.'\' manually initiated.');
-			// SCS Changed the spawn process for windows compatability
-			// Assumes php.exe is in the path somewhere.
-			$php_exe = $this->common->get_php_exe();
-			$exec = 'START /b "" "'.$php_exe.'" "'.$this->cfg['base_directory'].DIRECTORY_SEPARATOR.'index.php" cron '.$action.' *> '.$this->cfg['logs_directory'].'\background.log & ' ;
-		} else {
-			$fname = $this->logging->log('cron', 'info', 'Cron job \''.$action.'\' manually initiated.');
-
-			// Now we can spawn the cron process.
-			$exec = 'cd "'.$this->cfg['base_directory'].'" && MACAW_OVERRIDE=1 "'.PHP_BINDIR.'/php" "'.$this->cfg['base_directory'].'/index.php" cron '.$action.' >> "'.$fname.'" 2>&1';
-		}
-		$this->logging->log('cron', 'info', "EXEC: $exec");
-		system($exec);
-
-		echo json_encode(array('redirect' => $this->config->item('base_url').'admin/logs/'.basename($fname)));
 	}
 
 	/**
