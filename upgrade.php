@@ -54,9 +54,9 @@ if ($db['default']['dbdriver'] == 'mysqli') {
     );
     
     # Get the stucture of the session table
-    $result = $dbh->query("select column_name from information_schema.columns where table_name = 'session'");
+    $result = pg_query($dbh, "select column_name from information_schema.columns where table_name = 'session'");
     $old = false;
-    foreach ($result as $row) {
+    while ($row = pg_fetch_array($result)) {
         if ($row['column_name'] == 'session_id' || $row['column_name'] == 'user_agent' || 
             $row['column_name'] == 'last_activity' || $row['column_name'] == 'user_data') {
             $old = true;
@@ -66,18 +66,18 @@ if ($db['default']['dbdriver'] == 'mysqli') {
     # Does it need updating
     if ($old) {
         # Update the strucutre of table
-        $dbh->query('ALTER TABLE session RENAME COLUMN "session_id" TO "id";');
-        $dbh->query('ALTER TABLE session RENAME COLUMN "last_activity" TO "timestamp";');
-        $dbh->query('ALTER TABLE session RENAME COLUMN "user_data" TO "data";');
+        pg_query($dbh, 'ALTER TABLE session RENAME COLUMN "session_id" TO "id";');
+        pg_query($dbh, 'ALTER TABLE session RENAME COLUMN "last_activity" TO "timestamp";');
+        pg_query($dbh, 'ALTER TABLE session RENAME COLUMN "user_data" TO "data";');
 
-        $dbh->query('ALTER TABLE session ALTER COLUMN "id" TYPE varchar(128);');
-        $dbh->query('ALTER TABLE session ALTER COLUMN "ip_address" TYPE varchar(45);');
-        $dbh->query('ALTER TABLE session ALTER COLUMN `timestamp` TYPE bigint;');
-        $dbh->query('ALTER TABLE session ALTER COLUMN "data" TYPE blob');
+        pg_query($dbh, 'ALTER TABLE session ALTER COLUMN "id" TYPE varchar(128);');
+        pg_query($dbh, 'ALTER TABLE session ALTER COLUMN "ip_address" TYPE varchar(45);');
+        pg_query($dbh, 'ALTER TABLE session ALTER COLUMN "timestamp" TYPE bigint;');
+        pg_query($dbh, 'ALTER TABLE session ALTER COLUMN "data" TYPE text;');
 
-        $dbh->query('ALTER TABLE session DROP COLUMN `user_agent`;');
+        pg_query($dbh, 'ALTER TABLE session DROP COLUMN "user_agent";');
 
-        $dbh->query('CREATE INDEX idx_session_timestamp on session(timestamp);');
+        pg_query($dbh, 'CREATE INDEX idx_session_timestamp on session(timestamp);');
         $messages['database'][] = "✅ Session table updated.";
     } else {
         $messages['database'][] = "✅ Session table did not need any changes.";
