@@ -30,6 +30,7 @@
 		// ----------------------------
 		initList: function() {
 			var formatEditLink = function(elLiner, oRecord, oColumn, oData) {
+				org_id = parseInt(oData).toString();
 				elLiner.innerHTML = "<a href=\"#\" onClick=\"Organization.edit('"+oData+"');return false;\"><img src=\""+sBaseUrl+"/images/icons/building_edit.png\" wdith=\"16\" height=\"16\"></a>";
 				elLiner.innerHTML += "&nbsp;&nbsp;<a href=\"#\" onClick=\"Organization.del('"+oData+"');return false;\"><img src=\""+sBaseUrl+"/images/icons/delete.png\" wdith=\"16\" height=\"16\"></a>";
 			}
