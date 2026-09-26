@@ -20,7 +20,7 @@ class Utils extends Controller {
 		$this->cfg = $this->config->item('macaw');
 	}
 
-		/**
+	/**
 	 * Reset page image dimensions in the database
 	 *
 	 * CLI: For all books, reset the image sizes in the database 
@@ -33,6 +33,11 @@ class Utils extends Controller {
 	 * @since Version 1.1
 	 */
 	function image_sizes() {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		}
 
 		// Get the books
 		$books = $this->book->get_all_books();
@@ -117,6 +122,12 @@ class Utils extends Controller {
 	 * @since Version 2.2
 	 */
 	function reset_item($barcode) {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		}
+
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
 			die;
@@ -273,20 +284,20 @@ class Utils extends Controller {
 			}
 			// If there is more than one, throw an error or ask for which one to use
 			if (count($pdfs) > 1) {
-        foreach ($pdfs as $p) {
-          $url = "https://archive.org/download/$identifier/".$p;
-          $dest = $pth.'/'.$p;
-          if (!file_exists($dest)) {
-            file_put_contents($dest, file_get_contents($url));
-          }  
-        }
+				foreach ($pdfs as $p) {
+					$url = "https://archive.org/download/$identifier/".$p;
+					$dest = $pth.'/'.$p;
+					if (!file_exists($dest)) {
+					file_put_contents($dest, file_get_contents($url));
+					}  
+				}
 				print "More than one PDF was found. Please address this manually.\n";
-        print "Files are located in: $pth\n";
-        die;
+				print "Files are located in: $pth\n";
+				die;
 			} elseif (count($pdfs) == 0) {
 				print "No PDF was found for $barcode. Cannot continue.\n";
-        die;
-      } else {
+				die;
+			} else {
 				// Download the PDF(s) from the internet archive: IDENTIFIER_orig_pdf.zip or IDENTIFIER_orig_pdf_##.zip
 				$url = "https://archive.org/download/$identifier/".$pdfs[0];
 				$dest = $pth.DIRECTORY_SEPARATOR.$pdfs[0];
@@ -517,6 +528,12 @@ class Utils extends Controller {
 	 * @since Version 2.8
 	 */
 	function reset_item_complete($barcode) {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		}
+
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
 			die;
@@ -548,6 +565,11 @@ class Utils extends Controller {
 	 * @since Version 2.8
 	 */
 	function reset_item_cleanup($barcode) {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		}
 
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
@@ -616,6 +638,12 @@ class Utils extends Controller {
 	 * @since Version 1.6
 	 */
 	function serialize($barcode) {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		}
+
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
 			die;
@@ -711,6 +739,12 @@ class Utils extends Controller {
 	 * @since Version 1.6
 	 */
 	function unserialize() {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		}
+
 		$args = func_get_args();
 	
 		$fname = $args[count($args)-1];
@@ -892,6 +926,12 @@ class Utils extends Controller {
 	 * @since Version 1.6
 	 */
 	function csvimport($filename, $filename2 = null, $username = 'admin') {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		} 
+
 		// Import the file
 		$errors = array();
 		
@@ -1062,7 +1102,7 @@ class Utils extends Controller {
 	 * 
 	 * @since Version 2.1.14
 	 */
-	function _save_import_status($file = '', $value = 1, $message = '', $finished = 0) {
+	private function _save_import_status($file = '', $value = 1, $message = '', $finished = 0) {
 		if ($file != '') {
 			write_file($file.'.log', 
 				json_encode(array(
@@ -1087,6 +1127,12 @@ class Utils extends Controller {
 	 * @since Version 1.6
 	 */
 	function delete_item($barcode, $confirm = null) {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		} 
+
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
 			die;
@@ -1157,7 +1203,7 @@ class Utils extends Controller {
 	 * below it. 
 	 *
 	 */
-	function _getFilesFromDir($dir) { 
+	private function _getFilesFromDir($dir) { 
 		$files = array(); 
 		if ($handle = opendir($dir)) { 
 			while (false !== ($file = readdir($handle))) { 
@@ -1204,6 +1250,12 @@ class Utils extends Controller {
 	 * @since Version 2.1.20
 	 */	
 	function import_pdf($barcode = null, $filename = null) {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		} 
+
 		if (!$barcode) {
 			print "Barcode is requred!\n";
 			die;
@@ -1306,7 +1358,7 @@ class Utils extends Controller {
 	 * 
 	 * INTERNAL/UTILITY: Used in import_pdf when splitting a PDF into PNGs. 
 	 */	
-	function _dedupe_files($files) {
+	private function _dedupe_files($files) {
 		$good_files = [];
 		foreach ($files as $fname => $data) {
 			$pi = pathinfo($fname);
@@ -1341,6 +1393,12 @@ class Utils extends Controller {
 	 * @since Version 2.7.0
 	 */	
 	function contributor_stats($hidekey = null) {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		} 
+
 		setlocale(LC_CTYPE, 'en_US');
 		$format = "%-50s %5s %6s %11s %-40s\n";
 		printf($format, 'CONTRIBUTOR', 'ITEMS', 'PAGES', 'LAST', 'IA EMAIL');
@@ -1421,6 +1479,12 @@ class Utils extends Controller {
 	 * @since Version 2.7.0
 	 */	
 	function check_all_marc() {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		} 
+
 		$books = $this->book->get_all_books();
 		
 		// Loop through the books
@@ -1458,7 +1522,7 @@ class Utils extends Controller {
 	 * 
 	 * INTERNAL/UTILITY: Used during reset_item to get the _orig_tiff.tar file over the network. 
 	 */	
-	function _get_ssh_file($filename) {
+	private function _get_ssh_file($filename) {
 		$ssh_user_and_host = '';
 		$ssh_path = '';
 
@@ -1481,7 +1545,7 @@ class Utils extends Controller {
 	 * 
 	 * INTERNAL/UTILITY: Used during reset_item_cleanup. 
 	 */	
-	function _delete_all($p) {
+	private function _delete_all($p) {
 		if (is_file($p)) {
 			return unlink($p);
 		} elseif (is_dir($p)) {
@@ -1500,6 +1564,12 @@ class Utils extends Controller {
 	 *   sudo -u apache php index.php utils set_password richardjm joelpassword214!
 	 */	
 	function set_password ($username = null, $password = null) {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		} 
+
 		if (!$username) {
 			print "User is requried\nUSAGE: php index.php utils set_password USERNAME PASSWORD\n";
 			return;
@@ -1528,6 +1598,12 @@ class Utils extends Controller {
 	 * @since Version 2.9.0
 	 */
 	function reload_marcxml($barcode) {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		} 
+
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
 			die;
@@ -1561,6 +1637,12 @@ class Utils extends Controller {
 	 * @since Version 2.9.0
 	 */
 	function csv_reimport($filename, $username = 'admin') {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		} 
+
 		// Import the file
 		$errors = array();
 		
