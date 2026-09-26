@@ -397,7 +397,8 @@ class User extends Model {
 			'	WHERE i.status_code NOT IN (\'completed\', \'exporting\')  '.
 			'	GROUP BY i.org_id '.
 			') i ON o.id = i.org_id '.
-			'WHERE o.id = '.$this->org_id
+			'WHERE o.id = ?',
+			array($this->org_id)
 		)->row()->bytes;
 		return $result;
 	}	

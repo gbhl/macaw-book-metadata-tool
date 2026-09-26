@@ -151,7 +151,7 @@ class Uploadhandler extends Controller {
 
     protected function handle_file_upload($uploaded_file, $name, $size, $type, $error, $index = null, $content_range = null) {
         $file = new \stdClass();
-        $file->name = $name;
+        $file->name = basename($name);
         $file->size = $this->fix_integer_overflow((int)$size);
         $file->type = $type;
         $file->finished = false;

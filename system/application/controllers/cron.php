@@ -250,13 +250,13 @@ class Cron extends Controller {
 			}
 
 			// Delete the metadata for items for the demo organization
-			$this->db->query('delete from metadata where item_id in (select id from item where org_id = '.$org[0]->id.')');
+			$this->db->query('delete from metadata where item_id in (select id from item where org_id = ?)', array($org[0]->id));
 	
 			// Delete the pages for the items for the demo organization
-			$this->db->query('delete from page where item_id in (select id from item where org_id = '.$org[0]->id.')');
+			$this->db->query('delete from page where item_id in (select id from item where org_id = ?)', array($org[0]->id));
 		
 			// Delete the items
-			$this->db->query('delete from item where org_id = '.$org[0]->id);
+			$this->db->query('delete from item where org_id = ?', array($org[0]->id));
 		}
 		
 		// Finally Reinstate the one clean demo item

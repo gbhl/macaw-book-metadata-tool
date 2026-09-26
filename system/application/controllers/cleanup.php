@@ -32,7 +32,7 @@ class Cleanup extends Controller {
 	 * uploading to IA. 
 	 */
 	 function _get_ia_keys($org_id) {
-		$query = $this->CI->db->query('select access_key, secret from custom_internet_archive_keys where org_id = '.$org_id);
+		$query = $this->CI->db->query('select access_key, secret from custom_internet_archive_keys where org_id = ?', array($org_id));
 		foreach ($query->result() as $row) {
 			return array(
 				'key' => $row->access_key,
@@ -58,11 +58,12 @@ class Cleanup extends Controller {
 	function set_ia_macaw_versions() {
 			// Get all items and IA Identifiers
 			$books = $this->book->get_all_books();
+			include_once('system/application/config/version.php');
 
 			// For each item, check the "macaw_uploader_version" 
 			foreach ($books as $book) {
 				$id = $this->book->get_metadata('ia_identifier');
-				$ia_metadata = file_get_contents("https://archive.org/metadata/${id}/metadata/macaw_uploader_version");
+				$ia_metadata = file_get_contents("https://archive.org/metadata/{$id}/metadata/macaw_uploader_version");
 				$json = json_decode($ia_metadata, true);
 				if (isset($json['error'])) {
 					// If missing, set the macaw_uploader_version based on the $version_dates
@@ -70,7 +71,7 @@ class Cleanup extends Controller {
 					$key = $this->_get_ia_keys($book->org_id);
 					$cmd = $this->cfg['curl_exe'];
 					$cmd .= " --data-urlencode -target=metadata";
-					$cmd .= " --data-urlencode -patch='{\"add\":\"/macaw_uploader_version\", \"value\":\"${version}\"}'";
+					$cmd .= ' --data-urlencode -patch=\'{"add":"bhl_macaw", "value":"'.$this->cfg['interet_archive_tag'].' / '.$version_rev.'"}\'';
 					$cmd .= " --data-urlencode access=".$key['access'];
 					$cmd .= " --data-urlencode secret=".$key['secret'];
 					$cmd .= " https://archive.org/metadata/${id} 2>&1";

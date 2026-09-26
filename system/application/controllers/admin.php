@@ -1426,19 +1426,21 @@ class Admin extends Controller {
 		       'INNER JOIN organization o ON o.id = i.org_id '.
 		       'GROUP BY EXTRACT(YEAR_MONTH FROM date_completed), org_id '.
 		       'ORDER BY EXTRACT(YEAR_MONTH FROM date_completed) DESC, o.name';
-				
+		$params = [];
+		
 		if ($this->user->has_permission('local_admin')) {
 			$this->user->load($this->session->userdata('username'));
 			$org_id = $this->user->org_id;
 
 			$sql = 'SELECT count(*) as items, max(o.name) as contributor, o.id, concat(monthname(date_completed), \' \', year(date_completed)) as month, sum(pages_found) as pages '.
-			       'FROM (select * from item where date_completed <> \'0000-00-00 00:00:00\' and org_id = '.$org_id.') i '.
+			       'FROM (select * from item where date_completed <> \'0000-00-00 00:00:00\' and org_id = ?) i '.
 			       'INNER JOIN organization o ON o.id = i.org_id '.
 			       'GROUP BY EXTRACT(YEAR_MONTH FROM date_completed), org_id '.
 			       'ORDER BY EXTRACT(YEAR_MONTH FROM date_completed) DESC, o.name';
+			$params[] = $org_id;
 		}
 
-		$query = $this->db->query($sql);
+		$query = $this->db->query($sql, $params);
 		$data['results'] = array();
 		foreach ($query->result() as $row) {
 			$data['results'][] = array(

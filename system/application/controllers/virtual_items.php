@@ -84,13 +84,13 @@ class Virtual_Items extends Controller {
 						$source['valid'] = $vi_config->check_config($vi, $fileinfo->getPathName());
 
 						// Count the items
-						$query = $this->db->query("select count(*) as total_items from custom_virtual_items where source = ".$this->db->escape($dirs[4]));
+						$query = $this->db->query("select count(*) as total_items from custom_virtual_items where source = ?", array($dirs[4]));
 						$row = $query->result();					
 						$source['item_count'] = $row[0]->total_items;
 						$data['total_item_count'] += (int)$row[0]->total_items;
 
 						// Count the pages
-						$query = $this->db->query("select count(*) as total_pages from page where item_id in (select i.id from item i inner join custom_virtual_items cvi on i.barcode = cvi.barcode where cvi.source = ".$this->db->escape($dirs[4]).")");
+						$query = $this->db->query("select count(*) as total_pages from page where item_id in (select i.id from item i inner join custom_virtual_items cvi on i.barcode = cvi.barcode where cvi.source = ?)", array($dirs[4]));
 						$row = $query->result();					
 						$source['page_count'] = $row[0]->total_pages;
 						$data['total_page_count'] += (int)$row[0]->total_pages;
@@ -130,8 +130,8 @@ class Virtual_Items extends Controller {
 
 		$sql = "select count(*) as thecount, status_code from ".
 		  "custom_virtual_items vi inner join item i on vi.barcode = i.barcode ".
-			"where vi.source = ".$this->db->escape($data['name'])." group by status_code order by status_code;";
-		$query = $this->db->query($sql);
+			"where vi.source = ? group by status_code order by status_code;";
+		$query = $this->db->query($sql, array($data['name']));
 		$rows = $query->result_array();
 		$data['item_summary'] = $rows;
 		$data['filter'] = array('All', 'Awaiting Export', 'Exporting', 'Completed');
@@ -154,8 +154,8 @@ class Virtual_Items extends Controller {
 
 		if ($id) {
 			$id = preg_replace("/[^0-9]/", '', $id);
-			$sql = "select * from custom_virtual_items_batches where id = $id";
-			$query = $this->db->query($sql);
+			$sql = "select * from custom_virtual_items_batches where id = ?";
+			$query = $this->db->query($sql, array($id));
 			$rows = $query->result_array();
 			$data = [];
 			$data['name'] = $rows[0]['source_filename'];
@@ -205,12 +205,12 @@ class Virtual_Items extends Controller {
 
 		$sql = "select vi.*, i.status_code from ".
 			"custom_virtual_items vi inner join item i on vi.barcode = i.barcode ".
-			"where vi.source = ".$this->db->escape($name)." and vi.batch_id ".($id ? '= '.$id : "is null")." and i.status_code <> 'completed' ".
+			"where vi.source = ? and vi.batch_id ".($id ? '= '.$this->db->escape($id) : "is null")." and i.status_code <> 'completed' ".
 			" UNION ".
 			"(select vi.*, i.status_code from ".
 			"custom_virtual_items vi inner join item i on vi.barcode = i.barcode ".
-			"where vi.source = ".$this->db->escape($name)." and vi.batch_id ".($id ? '= '.$id : "is null")." and i.status_code = 'completed' limit 100) order by created desc";
-		$query = $this->db->query($sql);
+			"where vi.source = ? and vi.batch_id ".($id ? '= '.$this->db->escape($id) : "is null")." and i.status_code = 'completed' limit 100) order by created desc";
+		$query = $this->db->query($sql, array($name, $name));
 		$rows = $query->result_array();
 
 		// Sort our records into the subarrays

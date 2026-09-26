@@ -1,6 +1,7 @@
 <?php 
 if (!function_exists('get_instance')) {
-   echo("Path not found!\n");
+    header("HTTP/1.1 404 Not Found");
+    echo("Path not found!\n");
 } else {
   $CI = get_instance();
   $CI->load->library('clicheck');

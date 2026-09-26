@@ -128,6 +128,11 @@ class Utils extends Controller {
 			return;
 		}
 
+		$barcode = basename($barcode);
+		if (!preg_match('/^[a-zA-Z0-9_\-. ]+$/', $barcode)) {
+			die("Invalid barcode format.");
+		}
+
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
 			die;
@@ -160,11 +165,11 @@ class Utils extends Controller {
 		// Set the status to reviewing
 		$this->book->load($barcode);
 		echo "Setting status back to reviewing...\n";
-		$this->db->query("update item set status_code = 'reviewing' where id = ".$this->book->id);
+		$this->db->query("update item set status_code = 'reviewing' where id = ?", array($this->book->id));
 
 		// Delete the IA Export status
 		echo "Clearing IA Export status...\n";
-		$this->db->query("delete from item_export_status where item_id = ".$this->book->id." and export_module = 'Internet_archive'");
+		$this->db->query("delete from item_export_status where item_id = ? and export_module = 'Internet_archive'", array($this->book->id));
 
 		// Do we need to copy metadata?
 		$this->db->select('count(*) as thecount');
@@ -173,7 +178,7 @@ class Utils extends Controller {
 		$row = $query->row();
 		if ($row->thecount == 0) {
 			echo "Restoring metadata...\n";
-			$this->db->query("insert into metadata (item_id, page_id, fieldname, counter, value, value_large) select item_id, page_id, fieldname, counter, value, value_large from metadata_archive where item_id = ".$this->book->id);
+			$this->db->query("insert into metadata (item_id, page_id, fieldname, counter, value, value_large) select item_id, page_id, fieldname, counter, value, value_large from metadata_archive where item_id = ?", array($this->book->id));
 		} else {
 			echo "Item has metadata, not restoring...\n";
 		}
@@ -430,10 +435,10 @@ class Utils extends Controller {
 
 		if ($fileext == 'jp2') {
 			// We dont (re)compress JP2s
-			$this->db->query("update item set ia_ready_images = $db_true where id = ".$this->book->id);
+			$this->db->query("update item set ia_ready_images = $db_true where id = ?", array($this->book->id));
 		} else {
 			// We dont compress everything else to JP2.
-			$this->db->query("update item set ia_ready_images = $db_false where id = ".$this->book->id);
+			$this->db->query("update item set ia_ready_images = $db_false where id = ?", array($this->book->id));
 		}
 
 		// If we got images from either IA or a local file,
@@ -534,6 +539,11 @@ class Utils extends Controller {
 			return;
 		}
 
+		$barcode = basename($barcode);
+		if (!preg_match('/^[a-zA-Z0-9_\-. ]+$/', $barcode)) {
+			die("Invalid barcode format.");
+		}
+
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
 			die;
@@ -548,7 +558,7 @@ class Utils extends Controller {
 		$this->book->load($barcode);
 		echo "Setting status to complete...\n";
 
-		$this->db->query("update item set status_code = 'completed' where id = ".$this->book->id);
+		$this->db->query("update item set status_code = 'completed' where id = ?", array($this->book->id));
 		print "Item has been set to complete. To send new images, use the following\n";
 		print "    sudo -u WWW_USER php index.php cron export Internet_archive ".$barcode." scans force\n\n";
 	}
@@ -569,6 +579,11 @@ class Utils extends Controller {
 		if (!$this->clicheck->isCli()) { 
 			show_404();
 			return;
+		}
+
+		$barcode = basename($barcode);
+		if (!preg_match('/^[a-zA-Z0-9_\-. ]+$/', $barcode)) {
+			die("Invalid barcode format.");
 		}
 
 		if (!$barcode) {
@@ -801,7 +816,7 @@ class Utils extends Controller {
 			system('mv -f '.$tmp.'/import_export/'.$barcode.'/scans/* '.$this->cfg['data_directory'].'/'.$barcode.'/scans/');
 		}
 
-		$item = unserialize(read_file($tmp.'/import_export/'.$barcode.'/item.dat'));
+		$item = unserialize(read_file($tmp.'/import_export/'.$barcode.'/item.dat'), ['allowed_classes' => false]);
 		if ($this->db->dbdriver == 'mysql' || $this->db->dbdriver == 'mysqli') {
 			if (!$item['needs_qa']) { $item['needs_qa'] = '0'; }
 			if ($item['needs_qa'] == 't') { $item['needs_qa'] = '1'; }
@@ -834,7 +849,7 @@ class Utils extends Controller {
 			echo "Item record added! (id=".$new_item_id.")\n";
 		}
 		
-		$page = unserialize(read_file($tmp.'/import_export/'.$barcode.'/page.dat'));
+		$page = unserialize(read_file($tmp.'/import_export/'.$barcode.'/page.dat'), ['allowed_classes' => false]);
 		$page_map = array();
 		$this->db->trans_start();
 		for ($i = 0; $i < count($page); $i++) {
@@ -862,7 +877,7 @@ class Utils extends Controller {
 		}
 		$this->db->trans_complete();
 
-		$metadata = unserialize(read_file($tmp.'/import_export/'.$barcode.'/metadata.dat'));
+		$metadata = unserialize(read_file($tmp.'/import_export/'.$barcode.'/metadata.dat'), ['allowed_classes' => false]);
 
 		// Verify we have new page numbers for all metadata items
 		for ($i = 0; $i < count($metadata); $i++) {	
@@ -1133,6 +1148,11 @@ class Utils extends Controller {
 			return;
 		} 
 
+		$barcode = basename($barcode);
+		if (!preg_match('/^[a-zA-Z0-9_\-. ]+$/', $barcode)) {
+			die("Invalid barcode format.");
+		}
+
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
 			die;
@@ -1256,6 +1276,11 @@ class Utils extends Controller {
 			return;
 		} 
 
+		$barcode = basename($barcode);
+		if (!preg_match('/^[a-zA-Z0-9_\-. ]+$/', $barcode)) {
+			die("Invalid barcode format.");
+		}
+
 		if (!$barcode) {
 			print "Barcode is requred!\n";
 			die;
@@ -1337,13 +1362,15 @@ class Utils extends Controller {
 		if ($this->db->dbdriver == 'mysql' || $this->db->dbdriver == 'mysqli') {
 			$this->db->query(
 				'delete from metadata
-				where item_id = '.$this->book->id.'
-				and page_id is null and fieldname = \'processing_pdf\' limit 1'
+				where item_id = ?
+				and page_id is null and fieldname = \'processing_pdf\' limit 1',
+				array($this->book->id)
 			);
 		} elseif ($this->db->dbdriver == 'postgre') {
 			$this->db->query(
-				'delete from metadata where id = (select id from metadata where item_id = '.$this->book->id.'
-				and page_id is null and fieldname = \'processing_pdf\' limit 1)'
+				'delete from metadata where id = (select id from metadata where item_id = ?
+				and page_id is null and fieldname = \'processing_pdf\' limit 1)', 
+				array($this->book->id)
 			);
 		}
 
@@ -1417,28 +1444,32 @@ class Utils extends Controller {
 		for ($i=0; $i < count($orgs); $i++) {
 			// Get a count of completed items for each contributor
 			$item_count = $this->db->query(
-				'SELECT count(*) as c FROM item i WHERE i.org_id = '.$orgs[$i]->id.
-				' AND i.status_code IN (\'completed\', \'exporting\') '
+				'SELECT count(*) as c FROM item i WHERE i.org_id = '.
+				' AND i.status_code IN (\'completed\', \'exporting\') ', 
+				array($orgs[$i]->id)
 			)->result();
 			$orgs[$i]->item_count = $item_count[0]->c;
 
 			// Get a count of pages for each completed item for each contributor
 			$page_count = $this->db->query(
-				'SELECT count(*) as c FROM page p INNER JOIN item i ON p.item_id = i.id WHERE i.org_id = '.$orgs[$i]->id.
-				' AND i.status_code IN (\'completed\', \'exporting\') '
+				'SELECT count(*) as c FROM page p INNER JOIN item i ON p.item_id = i.id WHERE i.org_id = ?'.
+				' AND i.status_code IN (\'completed\', \'exporting\') ',
+				array($orgs[$i]->id)
 			)->result();
 			$orgs[$i]->page_count = $page_count[0]->c;
 
 			// Get the IA ID of the most recent completed item for the contributor
 			$last_item = $this->db->query(
-				'SELECT id, COALESCE(date_completed, date_export_start, 0) as date_completed FROM item i WHERE i.org_id = '.$orgs[$i]->id.
+				'SELECT id, COALESCE(date_completed, date_export_start, 0) as date_completed FROM item i WHERE i.org_id = ?'.
 				' AND i.status_code IN (\'completed\', \'exporting\') '.
-				' ORDER BY COALESCE(date_completed, date_export_start, 0) desc'
+				' ORDER BY COALESCE(date_completed, date_export_start, 0) desc',
+				array($orgs[$i]->id)
 			)->result();
 
 			if (count($last_item) > 0) {
 				$ia = $this->db->query(
-					'SELECT identifier FROM custom_internet_archive WHERE item_id = '.$last_item[0]->id
+					'SELECT identifier FROM custom_internet_archive WHERE item_id = ?', 
+					array($last_item[0]->id)
 				)->result();
 
 				// Get the email address from IA's Metadata API for the most recent completed item
@@ -1603,6 +1634,11 @@ class Utils extends Controller {
 			show_404();
 			return;
 		} 
+
+		$barcode = basename($barcode);
+		if (!preg_match('/^[a-zA-Z0-9_\-. ]+$/', $barcode)) {
+			die("Invalid barcode format.");
+		}
 
 		if (!$barcode) {
 			echo "Please supply a barcode\n";

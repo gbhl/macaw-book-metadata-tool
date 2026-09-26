@@ -573,7 +573,7 @@ class Common extends Controller {
 				$this->CI->db->query("create table settings (name varchar(64), value varchar(64))");
 			}		
 		} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
-			$q = $this->CI->db->query("SELECT * FROM information_schema.tables WHERE table_schema = '".$this->CI->db->database."' AND table_name = 'settings' LIMIT 1;");
+			$q = $this->CI->db->query("SELECT * FROM information_schema.tables WHERE table_schema = ? AND table_name = 'settings' LIMIT 1;", array($this->CI->db->database));
 			$row = $q->result();
 			if (count($row) == 0) {
 				$this->CI->db->query("create table settings (name varchar(64), value varchar(64))");
@@ -657,6 +657,9 @@ class Common extends Controller {
 	 * @param string [$barcode] The barcode of the item we want to export
 	 */
 	function serialize($barcode) {
+
+		$barcode = preg_replace('/[^a-zA-Z0-9_\-. ]/', '', $barcode);
+
 		if (!$barcode) {
 			throw new Exception("Please supply a barcode.");
 		}
@@ -714,15 +717,15 @@ class Common extends Controller {
 		}
 		write_file($tmp.'/import_export/serialize/'.$barcode.'/metadata.dat', serialize($metadata));
 
-    if ($this->CI->db->table_exists('custom_internet_archive')) {
-      $query = $this->CI->db->query('select * from metadata where item_id = ?', array($id));
-      $custom_ia = $query->result();
-      for ($i = 0; $i < count($custom_ia); $i++) {
-        $custom_ia[$i] = (array)$custom_ia[$i];
-      }
-      write_file($tmp.'/import_export/serialize/'.$barcode.'/custom_internet_archive.dat', serialize($custom_ia));
-    }
-    
+		if ($this->CI->db->table_exists('custom_internet_archive')) {
+			$query = $this->CI->db->query('select * from metadata where item_id = ?', array($id));
+			$custom_ia = $query->result();
+			for ($i = 0; $i < count($custom_ia); $i++) {
+			$custom_ia[$i] = (array)$custom_ia[$i];
+			}
+			write_file($tmp.'/import_export/serialize/'.$barcode.'/custom_internet_archive.dat', serialize($custom_ia));
+		}
+
 		# 5. Gather the files
 		$files = array('marc.xml', 'thumbs', 'preview', 'scans');		
 		foreach ($files as $f) {

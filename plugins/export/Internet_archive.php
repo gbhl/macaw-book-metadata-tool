@@ -1907,7 +1907,7 @@ class Internet_archive extends Controller {
 		$segments_xml = new SimpleXMLElement('<bhlSegmentData></bhlSegmentData>');
 
 		// Query the database and check the results.
-		$query = $this->CI->db->query("SELECT * FROM custom_bhl_segments WHERE item_id = {$book->id}");
+		$query = $this->CI->db->query("SELECT * FROM custom_bhl_segments WHERE item_id = ? ", array($book->id));
 		if (count($query->result()) == 0) {
 				return NULL;
 		}
@@ -3195,7 +3195,7 @@ class Internet_archive extends Controller {
 	 * uploading to IA.
 	 * ---------------------------- */
 	function _get_ia_keys($org_id) {
-		$query = $this->CI->db->query('select access_key, secret from custom_internet_archive_keys where org_id = '.$org_id);
+		$query = $this->CI->db->query('select access_key, secret from custom_internet_archive_keys where org_id = ?', array($org_id));
 		foreach ($query->result() as $row) {
 			$this->access = $row->access_key;
 			$this->secret = $row->secret;
