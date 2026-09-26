@@ -35,6 +35,31 @@ class Common extends Controller {
 	}
 
 	/**
+	 * Strictly Santitize a Barcode
+	 * 
+	 * Strips down a barcode to something sane. This will remove any slashes
+	 * and multiple periods that could be used to perform a path traversal or
+	 * code execution.
+	 * 
+	 * We allow only A-Z, 0-9, single periods, parentheses, underscores, and dashes. 
+	 * All others are converted to dashes.
+	 *
+	 */
+	function clean_barcode($bc) {
+		# remove slashes.
+		$bc = preg_replace('/[\/\\\\]/', '', $bc);
+		# replace unwanted characters with dashes
+		$bc = preg_replace('/[^a-zA-Z0-9_\-.()]/', '-', $bc);
+		# remove any sequences of more than one period
+		$bc = preg_replace('/\.+/', '.', $bc);
+		# remove any sequences of more than one dash
+		$bc = preg_replace('/-+/', '-', $bc);
+		# remove trailing and leading periods, just in case.
+		$bc = preg_replace('/^\.|\.$/', '', $bc);
+		return $bc;
+	}
+
+	/**
 	 * Check the session
 	 *
 	 * Makes sure a user is logged in and takes appropriate action if the user is
@@ -657,8 +682,7 @@ class Common extends Controller {
 	 * @param string [$barcode] The barcode of the item we want to export
 	 */
 	function serialize($barcode) {
-
-		$barcode = preg_replace('/[^a-zA-Z0-9_\-. ]/', '', $barcode);
+		$barcode = $this->CI->common->clean_barcode($barcode);
 
 		if (!$barcode) {
 			throw new Exception("Please supply a barcode.");
@@ -683,10 +707,10 @@ class Common extends Controller {
 			throw new Exception("Permission denied to write to ".$tmp.'/import_export/serialize/');
 		}
 
-		if (!file_exists($tmp.'/import_export/serialize/'.$barcode)) {
-			mkdir($tmp.'/import_export/serialize/'.$barcode);
+		if (!file_exists(realpath($tmp.'/import_export/serialize/'.$barcode))) {
+			mkdir(realpath($tmp.'/import_export/serialize/'.$barcode));
 		}		
-		if (!is_writable($tmp.'/import_export/serialize/'.$barcode)) {
+		if (!is_writable(realpath($tmp.'/import_export/serialize/'.$barcode))) {
 			throw new Exception("Permission denied to write to ".$tmp.'/import_export/serialize/'.$barcode);
 		}
 
@@ -694,12 +718,12 @@ class Common extends Controller {
 		$query = $this->CI->db->query('select * from item where barcode = ?', array($barcode));
 		$item = $query->result();
 		$id = $item[0]->id;
-		write_file($tmp.'/import_export/serialize/'.$barcode.'/item.dat', serialize((array)$item[0]));
+		write_file(realpath($tmp.'/import_export/serialize/'.$barcode.'/item.dat'), serialize((array)$item[0]));
 
 		# 2. Get the item_export_status information
 		$query = $this->CI->db->query('select * from item_export_status where item_id = ?', array($id));
 		$item_export_status = $query->result();
-		write_file($tmp.'/import_export/serialize/'.$barcode.'/item_export_status.dat', serialize((array)$item_export_status));
+		write_file(realpath($tmp.'/import_export/serialize/'.$barcode.'/item_export_status.dat'), serialize((array)$item_export_status));
 
 		# 3. Get the page information
 		$query = $this->CI->db->query('select * from page where item_id = ?', array($id));
@@ -707,7 +731,7 @@ class Common extends Controller {
 		for ($i = 0; $i < count($page); $i++) {
 			$page[$i] = (array)$page[$i];
 		}
-		write_file($tmp.'/import_export/serialize/'.$barcode.'/page.dat', serialize($page));
+		write_file(realpath($tmp.'/import_export/serialize/'.$barcode.'/page.dat'), serialize($page));
 
 		# 4. Get the metadata information
 		$query = $this->CI->db->query('select * from metadata where item_id = ?', array($id));
@@ -715,7 +739,7 @@ class Common extends Controller {
 		for ($i = 0; $i < count($metadata); $i++) {
 			$metadata[$i] = (array)$metadata[$i];
 		}
-		write_file($tmp.'/import_export/serialize/'.$barcode.'/metadata.dat', serialize($metadata));
+		write_file(realpath($tmp.'/import_export/serialize/'.$barcode.'/metadata.dat'), serialize($metadata));
 
 		if ($this->CI->db->table_exists('custom_internet_archive')) {
 			$query = $this->CI->db->query('select * from metadata where item_id = ?', array($id));
@@ -723,7 +747,7 @@ class Common extends Controller {
 			for ($i = 0; $i < count($custom_ia); $i++) {
 			$custom_ia[$i] = (array)$custom_ia[$i];
 			}
-			write_file($tmp.'/import_export/serialize/'.$barcode.'/custom_internet_archive.dat', serialize($custom_ia));
+			write_file(realpath($tmp.'/import_export/serialize/'.$barcode.'/custom_internet_archive.dat'), serialize($custom_ia));
 		}
 
 		# 5. Gather the files

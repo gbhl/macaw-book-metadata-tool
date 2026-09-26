@@ -86,7 +86,7 @@ class Book extends Model {
 	 */
 	function load($barcode = '') {
 		// Sanitize Barcode
-		$barcode = preg_replace('/[^a-zA-Z0-9_\-. ]/', '', $barcode);
+		$barcode = $this->common->clean_barcode($barcode);
 
 		if (isset($barcode)) {
 
@@ -169,7 +169,7 @@ class Book extends Model {
 	 */
 	function exists($barcode) {
 		// Sanitize Barcode
-		$barcode = preg_replace('/[^a-zA-Z0-9_\-. ]/', '', $barcode);
+		$barcode = $this->common->clean_barcode($barcode);
 
 		// Query the database for the barcode
 		$this->db->where('barcode', "$barcode");
@@ -1059,12 +1059,12 @@ class Book extends Model {
 	 *
 	 */
 	function add($info) {
-		// Prevent Blind SQL Injection
+		// Sanitize Barcode or Identifier		
 		if (isset($info['barcode'])) {
-			$info['barcode'] = trim($this->db->escape_str($info['barcode']));
+			$info['barcode'] = $this->common->clean_barcode($info['barcode']);
 		}
 		if (isset($info['identifier'])) {
-			$info['barcode'] = trim($info['identifier']);
+			$info['barcode'] = $this->common->clean_barcode($info['identifier']);
 		}
 		# Holding institution and contributor are equivalent
 		# but we like to use contributor, so convert it back.
@@ -1450,7 +1450,7 @@ class Book extends Model {
 		$func = function($f) {return "'".$f['fieldname']."'";};
 		$this->db->query(
 			'delete from metadata
-			where item_id = 
+			where item_id = ?
 			and page_id is null',
 			array($this->book->id)
 		);

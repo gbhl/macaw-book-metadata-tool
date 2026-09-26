@@ -127,11 +127,8 @@ class Utils extends Controller {
 			show_404();
 			return;
 		}
-
-		$barcode = basename($barcode);
-		if (!preg_match('/^[a-zA-Z0-9_\-. ]+$/', $barcode)) {
-			die("Invalid barcode format.");
-		}
+		// Sanitize the barcode to prevent errors
+		$barcode = $this->common->clean_barcode($barcode);
 
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
@@ -539,10 +536,8 @@ class Utils extends Controller {
 			return;
 		}
 
-		$barcode = basename($barcode);
-		if (!preg_match('/^[a-zA-Z0-9_\-. ]+$/', $barcode)) {
-			die("Invalid barcode format.");
-		}
+		// Sanitize the barcode to prevent errors
+		$barcode = $this->common->clean_barcode($barcode);
 
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
@@ -581,10 +576,8 @@ class Utils extends Controller {
 			return;
 		}
 
-		$barcode = basename($barcode);
-		if (!preg_match('/^[a-zA-Z0-9_\-. ]+$/', $barcode)) {
-			die("Invalid barcode format.");
-		}
+		// Sanitize the barcode to prevent errors
+		$barcode = $this->common->clean_barcode($barcode);
 
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
@@ -658,6 +651,9 @@ class Utils extends Controller {
 			show_404();
 			return;
 		}
+
+		// Sanitize the barcode to prevent errors
+		$barcode = $this->common->clean_barcode($barcode);
 
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
@@ -1012,7 +1008,9 @@ class Utils extends Controller {
 			$c = 1;
 			$max = count($info);
 			foreach ($info as $b) {
-				// Is this book already in our database?
+				// Sanitize the barcode to prevent errors
+				$b['identifier'] = $this->common->clean_barcode($b['identifier']);
+				// Is this book already in our database?				
 				if (!$this->book->exists($b['identifier'])) {
 					try {			
 						// Add the book
@@ -1055,6 +1053,8 @@ class Utils extends Controller {
 				$max = count($info);
 				foreach ($info as $p) {
 					try {
+						// Sanitize the barcode to prevent errors
+						$p['identifier'] = $this->common->clean_barcode($p['identifier']);
 						$this->book->load($p['identifier']);
 						if (!$this->book->page_exists($p['filename'])) {
 
@@ -1148,10 +1148,8 @@ class Utils extends Controller {
 			return;
 		} 
 
-		$barcode = basename($barcode);
-		if (!preg_match('/^[a-zA-Z0-9_\-. ]+$/', $barcode)) {
-			die("Invalid barcode format.");
-		}
+		// Sanitize the barcode to prevent errors
+		$barcode = $this->common->clean_barcode($barcode);
 
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
@@ -1276,10 +1274,8 @@ class Utils extends Controller {
 			return;
 		} 
 
-		$barcode = basename($barcode);
-		if (!preg_match('/^[a-zA-Z0-9_\-. ]+$/', $barcode)) {
-			die("Invalid barcode format.");
-		}
+		// Sanitize the barcode to prevent errors
+		$barcode = $this->common->clean_barcode($barcode);
 
 		if (!$barcode) {
 			print "Barcode is requred!\n";
@@ -1635,10 +1631,8 @@ class Utils extends Controller {
 			return;
 		} 
 
-		$barcode = basename($barcode);
-		if (!preg_match('/^[a-zA-Z0-9_\-. ]+$/', $barcode)) {
-			die("Invalid barcode format.");
-		}
+		// Sanitize the barcode to prevent errors
+		$barcode = $this->common->clean_barcode($barcode);
 
 		if (!$barcode) {
 			echo "Please supply a barcode\n";

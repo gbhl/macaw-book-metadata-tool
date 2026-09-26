@@ -953,7 +953,7 @@ class Main extends Controller {
 		
 		// Get our book
 		// Sanitize the barcode
-		$info['barcode'] = preg_replace('/[^a-zA-Z0-9_\-. ]/', '', $_POST['identifier']);
+		$info['barcode'] = $this->common->clean_barcode($_POST['identifier']);
 
 		try {
 			$this->book->add($info);
