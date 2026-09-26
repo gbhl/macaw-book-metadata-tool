@@ -1,3 +1,5 @@
+<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed'); ?>
+
 <?php  $this->load->view('header');  ?>
 
 <table border="0" cellpadding="0" cellspacing="1" style="width:100%">

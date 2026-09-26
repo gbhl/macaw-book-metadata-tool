@@ -1,3 +1,5 @@
+<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed'); ?>
+
 <?php  $this->load->view('header');  ?>
 
 <p><?php echo anchor(array($base_uri, 'view'), '&lt; '.$scaff_view_all); ?></p>
