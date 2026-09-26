@@ -109,15 +109,13 @@ class CSRF_Protection
 		if (!isset($_SERVER['REQUEST_URI'])) {
 			return;
 		}
-		// Do not validate when editing pages, and it may take time sessions might timeout
-		if (strpos($_SERVER['REQUEST_URI'], '/scan/') !== false) {
-			return;
-		}
-		$this->referer_check();
-					
+
 		// Is this a post request?
 		// @link http://stackoverflow.com/questions/1372147/php-check-whether-a-request-is-get-or-post
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+			// Check referer on POST requests only (CSRF concern)
+			$this->referer_check();
+
 			// Is the token field set and valid?
 			$posted_token = $this->CI->input->post(self::$token_name);
 			if ($posted_token === FALSE || $posted_token != $this->CI->session->userdata(self::$token_name)) {
@@ -127,23 +125,18 @@ class CSRF_Protection
 		}
 	}
 	
-	private function referer_check() {		
+	private function referer_check() {
 		if (!empty($_SERVER['HTTP_REFERER'])) {
 			$accepted_referer = $this->CI->config->item('base_url');
 			$referer_accepted = false;
-			
+
 			$pattern =	'/^'.preg_replace('/(\.|\/)/','\\\$1',$accepted_referer).'(\/.*)*/';
-			if(preg_match($pattern, $_SERVER['HTTP_REFERER'])) 
+			if(preg_match($pattern, $_SERVER['HTTP_REFERER']))
 				$referer_accepted = true;
 
-			// This suddenly started causing trouble. Skip this check for now
-			$referer_accepted = true;
-			
 			if(!$referer_accepted) {
 				show_error('Request was invalid. Invalid referer.', 400);
-			}		
-		} else if (strpos($_SERVER['REQUEST_URI'], '/login/checklogin') !== false)  {
-			show_error('Request was invalid. Invalid referer.', 400);
+			}
 		}
 	}
 	
