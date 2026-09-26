@@ -234,7 +234,7 @@ $config['encryption_key'] = "";
 */
 $config['sess_cookie_name']		= 'macaw_session';
 $config['sess_expiration']		= 7200;
-$config['sess_encrypt_cookie']	= FALSE;
+$config['sess_encrypt_cookie']	= TRUE;
 $config['sess_use_database']	= TRUE;
 $config['sess_table_name']		= 'session';
 $config['sess_match_ip']		= FALSE;
