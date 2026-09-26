@@ -2,8 +2,23 @@
     RewriteEngine On
     RewriteBase /
 
-    RewriteCond %{REQUEST_URI} update-macaw.sh
+    RewriteCond %{REQUEST_URI} update-macaw.sh [NC,OR]
+    RewriteCond %{REQUEST_URI} Update-Macaw.ps1
     RewriteRule ^ - [F,L]
+
+    # image.php hardening
+    # image.php legitimately serves scanned page files. The app only ever sends:
+    #   type = thumbnail | preview | original
+    #   img  = a bare filename (urlencoded), no slashes, no ".."
+    #   code = a barcode token, no slashes
+    # Reject anything outside those shapes. This blocks ../ traversal without
+    # touching image.php itself. Order of checks: any one match => 403.
+    RewriteCond %{REQUEST_URI} (^|/)image\.php$ [NC]
+    RewriteCond %{QUERY_STRING} (\.\.|%2e%2e|%252e|%2f|%5c|\\\\) [NC,OR]
+    RewriteCond %{QUERY_STRING} (^|&)(img|code)=[^&]*(/|%2f|%5c) [NC,OR]
+    RewriteCond %{QUERY_STRING} (^|&)type=(?!(thumbnail|preview|original)(&|$))[^&]* [NC]
+    RewriteRule ^ - [F,L]
+    # --- end image.php hardening
 
     RewriteCond %{REQUEST_URI} !(/index\.php|/image\.php|/install\.php|/robots\.txt|/favicon\.ico|/assets/|/images/|/js/|/css/|/books/|/plugins/|/inc/|/cors/)
     RewriteRule ^(.*)$ index.php/$1 [L]
@@ -43,10 +58,3 @@
 		Header set Cache-Control "max-age=86400, public"
 	</FilesMatch>
 </IfModule> 
-
-<IfModule mod_php5.c>
-# Some servers will not allow these to be set here. If they give a 500 Server Error, set them in the PHP.INI file.
-	php_value upload_max_filesize "512M"
-	php_value post_max_size "512M"
-	php_value memory_limit "512M"
-</IfModule>
