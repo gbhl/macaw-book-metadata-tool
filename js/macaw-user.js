@@ -171,13 +171,13 @@
 
 
 		edit: function(username) {
-			// Call the URL to get the data
-			var transaction = YAHOO.util.Connect.asyncRequest('GET', sBaseUrl+'/admin/account_edit/'+username+'/', User.editUserCallback, null);
+			// Navigate to the edit page
+			window.location.href = sBaseUrl + 'admin/users/edit/' + username;
 		},
 
 		add: function() {
-			// Call the URL to get the data
-			var transaction = YAHOO.util.Connect.asyncRequest('GET', sBaseUrl+'/admin/account_add/', User.editUserCallback, null);
+			// Navigate to the add page
+			window.location.href = sBaseUrl + 'admin/users/add';
 		},
 
 		// ----------------------------

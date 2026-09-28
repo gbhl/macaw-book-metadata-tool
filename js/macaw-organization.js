@@ -143,13 +143,13 @@
 
 
 		edit: function(id) {
-			// Call the URL to get the data
-			var transaction = YAHOO.util.Connect.asyncRequest('GET', sBaseUrl+'/admin/organization_edit/'+id+'/', Organization.editOrganizationCallback, null);
+			// Navigate to the edit page
+			window.location.href = sBaseUrl + 'admin/organizations/edit/' + id;
 		},
 
 		add: function() {
-			// Call the URL to get the data
-			var transaction = YAHOO.util.Connect.asyncRequest('GET', sBaseUrl+'/admin/organization_add/', Organization.editOrganizationCallback, null);
+			// Navigate to the add page
+			window.location.href = sBaseUrl + 'admin/organizations/add';
 		},
 
 		// ----------------------------

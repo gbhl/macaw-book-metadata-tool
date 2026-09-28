@@ -772,21 +772,19 @@ class Admin extends Controller {
 
 				$data['org_name'] = $this->user->org_name;
 				$data['org_id'] = $this->user->org_id;
-				
-				// Display the page
-				$content = $this->load->view('admin/account_edit_view', $data, true);
 
-				echo json_encode(array('dialogContent' => $content));
+				// Display the page
+				$this->load->view('admin/account_edit_page', $data);
 
 			} catch (Exception $e) {
 				// This handles anything strange that might come across while getting the user object.
-				$this->common->ajax_headers();
-	    	    echo json_encode(array('error' => $e->getMessage()));
+				$this->session->set_userdata('errormessage', $e->getMessage());
+				redirect('admin/users/');
 			}
 		} else {
 			// if we can't edit the user, then we bounce back to their own edit page with a slap on the wrist.
-			$this->common->ajax_headers();
-			echo json_encode(array('error' => 'You do not have permission to edit that account.'));
+			$this->session->set_userdata('errormessage', 'You do not have permission to edit that account.');
+			redirect('admin/');
 		}
 	}
 
@@ -840,8 +838,7 @@ class Admin extends Controller {
 		}
 
 		// Display the page
-		$content = $this->load->view('admin/account_edit_view', $data, true);
-		echo json_encode(array('dialogContent' => $content));
+		$this->load->view('admin/account_add_page', $data);
 	}
 
 	/**
@@ -900,16 +897,15 @@ class Admin extends Controller {
 					}
 				} catch (Exception $e) {
 					// This handles anything strange that might come across while getting the user object.
-					$this->common->ajax_headers();
-	    		    echo json_encode(array('error' => $e->getMessage()));
+					$this->session->set_userdata('errormessage', $e->getMessage());
 					$this->logging->log('error', 'debug', 'Inside account_save() (new): '.$e->getMessage());
-					return;
+					redirect('admin/users/add');
 				}
 
-				// Send a nominal response back to the browser
-				$this->common->ajax_headers();
-				echo json_encode(array('message' => 'Account added!'));
+				// Redirect to user list on success
+				$this->session->set_userdata('successmessage', 'Account added!');
 				$this->logging->log('access', 'info', 'Added account: '.$this->input->post('username'));
+				redirect('admin/users/');
 
 			} else {
 				$this->common->ajax_headers();
@@ -951,29 +947,28 @@ class Admin extends Controller {
 						$this->user->set_permissions($perms);
 					}
 
-					// Send a nominal response back to the browser
-					$this->common->ajax_headers();
-					echo json_encode(array('message' => 'Changes saved!'));
-					$this->logging->log('access', 'info', 'Upadted user: '.$this->input->post('username'));
-
 					// Update the session, but only if we are editing ourself.
 					if ($username == $this->session->userdata('username')) {
 						$this->session->set_userdata('full_name', $this->input->post('full_name'));
 						$this->session->set_userdata('email', $this->input->post('email'));
 					}
 
+					// Redirect to user list on success
+					$this->session->set_userdata('successmessage', 'Changes saved!');
+					$this->logging->log('access', 'info', 'Updated user: '.$this->input->post('username'));
+					redirect('admin/users/');
+
 				} catch (Exception $e) {
 					// This handles anything strange that might come across while getting the user object.
-					$this->common->ajax_headers();
-	    		    echo json_encode(array('error' => $e->getMessage()));
+					$this->session->set_userdata('errormessage', $e->getMessage());
 					$this->logging->log('error', 'debug', 'Inside account_save() (edit): '.$e->getMessage());
+					redirect('admin/users/edit/'.$username);
 				}
 			} else {
 				// if we can't edit the user, then we bounce back to their own edit page with a slap on the wrist.
-				$this->common->ajax_headers();
 				$this->session->set_userdata('errormessage', 'You do not have permission to edit the account "'.$username.'". Here is the page to edit your own account instead.');
-				echo json_encode(array('redirect' => $this->config->item('base_url').'admin/account_edit/'));
 				$this->logging->log('error', 'debug', 'Permission denied to edit the account "'.$username);
+				redirect('admin/users/edit/');
 			}
 		}
 	}
@@ -1215,14 +1210,12 @@ class Admin extends Controller {
 			$data['token'] = $this->session->userdata('li_token');
 
 			// Display the page
-			$content = $this->load->view('admin/organization_edit_view', $data, true);
-
-			echo json_encode(array('dialogContent' => $content));
+			$this->load->view('admin/organization_edit_page', $data);
 
 		} catch (Exception $e) {
 			// This handles anything strange that might come across while getting the organization object.
-			$this->common->ajax_headers();
-			echo json_encode(array('error' => $e->getMessage()));
+			$this->session->set_userdata('errormessage', $e->getMessage());
+			redirect('admin/organizations/');
 		}
 	}
 
@@ -1269,8 +1262,7 @@ class Admin extends Controller {
 		$data['token'] = $this->session->userdata('li_token');
 
 		// Display the page
-		$content = $this->load->view('admin/organization_edit_view', $data, true);
-		echo json_encode(array('dialogContent' => $content));
+		$this->load->view('admin/organization_add_page', $data);
 	}
 
 	/**
@@ -1289,10 +1281,9 @@ class Admin extends Controller {
 			return;
 		}
 		if (!$this->user->has_permission('admin')) {
-			$this->common->ajax_headers();
-			echo json_encode(array('error' => 'Permission denied.'));
+			$this->session->set_userdata('errormessage', 'Permission denied.');
 			$this->logging->log('error', 'debug', 'Permission denied to save the contributor "'.$this->input->post('name'));
-			return;
+			redirect('admin/organizations/');
 		}
 
 
@@ -1319,18 +1310,17 @@ class Admin extends Controller {
 			try {
 				// Add the organization, with proper error handling
 				$this->organization->add();
+
+				// Redirect to organization list on success
+				$this->session->set_userdata('successmessage', 'Contributor added!');
+				$this->logging->log('access', 'info', 'Added contributor '.$this->input->post('name'));
+				redirect('admin/organizations/');
 			} catch (Exception $e) {
 				// This handles anything strange that might come across while getting the organization object.
-				$this->common->ajax_headers();
-				echo json_encode(array('error' => $e->getMessage()));
+				$this->session->set_userdata('errormessage', $e->getMessage());
 				$this->logging->log('error', 'debug', 'Inside organization_save() (new): '.$e->getMessage());
-				return;
+				redirect('admin/organizations/add');
 			}
-
-			// Send a nominal response back to the browser
-			$this->common->ajax_headers();
-			echo json_encode(array('message' => 'Contributor added!'));
-			$this->logging->log('access', 'info', 'Added contributor '.$this->input->post('name'));
 		} else { // WE ARE EDITING AN EXISTING ORG
 			// Get the data from the POST and make it into something useful
 			// Load the organization based on the id passed
@@ -1353,20 +1343,19 @@ class Admin extends Controller {
 			}
 
 			try {
-				// Add the organization, with proper error handling
+				// Update the organization, with proper error handling
 				$this->organization->update();
+
+				// Redirect to organization list on success
+				$this->session->set_userdata('successmessage', 'Changes saved!');
+				$this->logging->log('access', 'info', 'Updated Contributor: '.$this->input->post('name'). ' (id '.$this->input->post('id').')');
+				redirect('admin/organizations/');
 			} catch (Exception $e) {
 				// This handles anything strange that might come across while getting the organization object.
-				$this->common->ajax_headers();
-				echo json_encode(array('error' => $e->getMessage()));
+				$this->session->set_userdata('errormessage', $e->getMessage());
 				$this->logging->log('error', 'debug', 'Inside organization_save() (update): '.$e->getMessage());
-				return;
+				redirect('admin/organizations/edit/'.$this->input->post('id'));
 			}
-
-			// Send a nominal response back to the browser
-			$this->common->ajax_headers();
-			echo json_encode(array('message' => 'Changes saved!'));
-			$this->logging->log('access', 'info', 'Upadted Contributor: '.$this->input->post('name'). ' (id '.$this->input->post('id').')');
 		}
 	}
 
