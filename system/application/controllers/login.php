@@ -158,24 +158,24 @@ class Login extends Controller {
 	 * Process forgot password request
 	 */
 	function request_password_reset() {
-		$username = trim($this->input->post('username'));
+		$email = trim($this->input->post('email'));
 
-		if (!$username) {
-			$this->session->set_userdata('errormessage', 'Please enter your username.');
+		if (!$email) {
+			$this->session->set_userdata('errormessage', 'Please enter your email address.');
 			redirect($this->config->item('base_url').'login/forgot_password');
 			return;
 		}
 
-		$account = $this->db->get_where('account', array('username' => $username))->row();
+		$account = $this->db->get_where('account', array('email' => $email))->row();
 
 		if (!$account || !$account->email) {
-			$this->session->set_userdata('errormessage', 'Username not found or email not configured.');
-			redirect($this->config->item('base_url').'login/forgot_password');
+			$this->session->set_userdata('successmessage', 'If an account exists with that email address, you will receive a message with a password reset link.');
+			redirect($this->config->item('base_url').'login');
 			return;
 		}
 
 		$token = bin2hex(random_bytes(32));
-		$expires = date('Y-m-d H:i:s', time() + (24 * 3600));
+		$expires = date('Y-m-d H:i:s', time() + 3600);
 
 		$this->db->insert('password_reset_tokens', array(
 			'account_id' => $account->id,
@@ -202,22 +202,22 @@ class Login extends Controller {
 		$this->email->initialize($email_config);
 		$this->email->from($cfg['admin_email'], 'Macaw Admin');
 		$this->email->to($account->email);
-		$this->email->subject('Password Reset Request - Macaw');
+		$this->email->subject('[Macaw] Password Reset Request');
 		$this->email->message(
 			'<html><body>'.
 			'<p>A password reset has been requested for your Macaw account.</p>'.
-			'<p>Click the link below to reset your password (this link will expire in 24 hours):</p>'.
+			'<p>Click the link below to reset your password (this link will expire in 1 hour):</p>'.
 			'<p><a href="'.$reset_url.'">'.$reset_url.'</a></p>'.
 			'<p>If you did not request this reset, please ignore this email.</p>'.
 			'</body></html>'
 		);
 
 		if ($this->email->send()) {
-			$this->logging->log('access', 'info', 'Password reset email sent for user '.$username);
-			$this->session->set_userdata('successmessage', 'Password reset email sent. Check your email for further instructions.');
+			$this->logging->log('access', 'error', 'Sent password reset email to '.$email);
+			$this->session->set_userdata('successmessage', 'If an account exists with that email address, you will receive a message with a password reset link.');
 		} else {
-			$this->logging->log('access', 'error', 'Failed to send password reset email for user '.$username);
-			$this->session->set_userdata('errormessage', 'Failed to send password reset email. Please contact an administrator.');
+			$this->logging->log('access', 'error', 'Failed to send password reset email to '.$email);
+			$this->session->set_userdata('errormessage', 'Failed to send password reset email.');
 		}
 
 		redirect($this->config->item('base_url').'login');

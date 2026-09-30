@@ -105,8 +105,106 @@
 		handleLoginSubmit: function() {
 			Dom.get('loginform').submit();
 		}
-
 	}
+
+	LostPwd = {
+
+		// ----------------------------
+		// Function: init()
+		//
+		// Initializes the login page by building and showing the login window.
+		//
+		// Arguments
+		//    None
+		//
+		// Return Value / Effect
+		//    The login box is displayed on the page.
+		//
+		// TODO: Make sure <enter> submits the login form on all browsers.
+		// ----------------------------
+		title: '',
+		button: '',
+		init: function(params, params2) {
+			if (!YAHOO.macaw.lostpwd) {
+				// Initialize the  Panel
+			MessageBox.init();
+			YAHOO.macaw.lostpwd =
+				new YAHOO.widget.Dialog("lostpwd",
+					{ 
+					  close: false,
+					  draggable: false,
+					  zindex:10,
+					  modal: false,
+					  visible: false,
+					  preventcontextoverlap: false,
+					  postmethod: "form",
+					  buttons: [ { text: LostPwd.button, handler: LostPwd.handleLostPwdSubmit, isDefault: true } ]
+					}
+				);
+				var keyLostPwd = new YAHOO.util.KeyListener(
+					document,
+					{ keys: 13 },
+					{ fn: LostPwd.handleLostPwdSubmit,
+					  scope: YAHOO.macaw.login,
+					  correctScope: true }
+				);
+				YAHOO.macaw.lostpwd.cfg.queueProperty("keylisteners", keyLostPwd);
+
+				YAHOO.macaw.lostpwd.setHeader(LostPwd.title);
+				YAHOO.macaw.lostpwd.setBody(Dom.get('logincontenttemplate').innerHTML);
+				Dom.get('logincontent').innerHTML = '';
+				YAHOO.macaw.lostpwd.render(Dom.get('logincontent'));
+			}
+
+			// Show the Panel
+			YAHOO.macaw.lostpwd.show();
+			LostPwd.centerLostPwd();
+			YAHOO.util.Event.addListener(window, 'resize', LostPwd.centerLostPwd);
+		},
+
+		// ----------------------------
+		// Function: centerLogin()
+		//
+		// Keeps the login box centered on the page, more or less
+		//
+		// Arguments
+		//    None
+		//
+		// Return Value / Effect
+		//    The login window is always centered in the whitespace on the right
+		//    side of the window.
+		// ----------------------------
+		centerLostPwd: function(ev) {
+			var rgBD = Dom.getRegion('bd');
+			var total = rgBD.right - rgBD.left;
+
+			var rgTH = Dom.getRegion('thumbs');
+			var left = rgTH.right - rgTH.left;
+
+			var width = new Number(total - left);
+			var new_left = new Number(((width - 300) / 2) + left + 20).toFixed() ;
+			Dom.setX("login_c", new_left);
+			if (ev) {
+				YAHOO.util.Event.stopEvent(ev);
+			}
+		},
+
+		// ----------------------------
+		// Function: handleLoginSubmit()
+		//
+		// Submits the login form when the OK button is clicked.
+		//
+		// Arguments
+		//    None
+		//
+		// Return Value / Effect
+		//    The login page is submitted and the page reloads.
+		// ----------------------------
+		handleLostPwdSubmit: function() {
+			Dom.get('lostpwdform').submit();
+		}
+	}
+
 
 	General = {
 		message: null,

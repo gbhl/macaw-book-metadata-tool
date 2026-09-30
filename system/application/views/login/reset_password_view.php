@@ -9,6 +9,11 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=9" />
 	<title>Reset Password | Macaw</title>
 	<?php $this->load->view('global/head_view') ?>
+	<script type="text/javascript">
+		LostPwd.title = "Reset Password";
+		LostPwd.button = "Reset Password";
+	    YAHOO.util.Event.onDOMReady(LostPwd.init);
+	</script>
 </head>
 <body class="yui-skin-sam">
 
@@ -28,28 +33,23 @@
 		<?php $this->load->view('global/error_messages_view') ?>
 
 		<div id="logincontent">
-			<div style="padding: 20px;">
-				<h2>Reset Password</h2>
+			<div id="logincontenttemplate" style="width:30px; display:none;visibility:hidden">
 				<p>Enter your new password below.</p>
 
-				<?php echo form_open($this->config->item('base_url').'login/process_reset_password') ?>
-					<input type="hidden" name="token" value="<?php echo htmlspecialchars($token); ?>">
+				<?php echo form_open($this->config->item('base_url').'login/process_reset_password', array('id' => 'lostpwdform')) ?>
 
-					<div style="margin-bottom: 15px;">
-						<label for="password">New Password:</label><br>
-						<input type="password" name="password" id="password" size="30" maxlength="64" tabindex="1" style="padding: 5px; font-size: 14px;">
-						<p style="font-size: 12px; color: #666;">Minimum 6 characters</p>
-					</div>
+				<input type="hidden" name="token" value="<?php echo htmlspecialchars($token); ?>">
 
-					<div style="margin-bottom: 15px;">
-						<label for="password_confirm">Confirm Password:</label><br>
-						<input type="password" name="password_confirm" id="password_confirm" size="30" maxlength="64" tabindex="2" style="padding: 5px; font-size: 14px;">
-					</div>
+				<div style="margin-bottom: 15px;">
+					<span class="loginlabel"><label for="password">New Password:</label></span>
+					<span class="loginfield"><input type="password" name="password" id="password" size="15" maxlength="64" tabindex="1"></span>
+				</div>
 
-					<div style="margin-bottom: 15px;">
-						<input type="submit" value="Reset Password" style="padding: 8px 20px; font-size: 14px;">
-						<a href="<?php echo $this->config->item('base_url').'login'; ?>" style="margin-left: 10px;">Back to Login</a>
-					</div>
+				<div style="margin-bottom: 15px;">
+					<span class="loginlabel"><label for="password_confirm">Confirm Password:</label></span>
+					<span class="loginfield"><input type="password" name="password_confirm" id="password_confirm" size="15" maxlength="64" tabindex="2"></span>
+				</div>
+
 				<?php echo form_close() ?>
 			</div>
 		</div>

@@ -1,6 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
         "http://www.w3.org/TR/html4/strict.dtd">
-<?php	include_once('system/application/config/version.php');
+<?php 
+	include_once('system/application/config/version.php');
 	$cfg = $this->config->item('macaw');
 ?>
 <html lang="en">
@@ -9,6 +10,11 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=9" />
 	<title>Forgot Password | Macaw</title>
 	<?php $this->load->view('global/head_view') ?>
+	<script type="text/javascript">
+		LostPwd.title = "Forgot Password";
+		LostPwd.button = "Send Email";
+	    YAHOO.util.Event.onDOMReady(LostPwd.init);
+	</script>
 </head>
 <body class="yui-skin-sam">
 
@@ -23,23 +29,22 @@
 				<h3>Demo / Development Version</h3>
 			<?php } else { ?>
 				<h3>Version <?php echo($version_rev); ?> / <?php echo($version_date); ?></h3>
+				<a href="https://docs.google.com/document/d/18TD8BkHbuP6hTKUKb0OV1UzlZ4Qcx0MdOkJt_cjcWL8/edit?usp=sharing" target="_blank">Changes and Release Notes</a>
 			<?php } ?>
 		</div>
 		<?php $this->load->view('global/error_messages_view') ?>
 
 		<div id="logincontent">
-			<div style="padding: 20px;">
-				<h2>Forgot Password</h2>
-				<p>Enter your username to receive a password reset link via email.</p>
+			<div id="logincontenttemplate" style="width:30px; display:none;visibility:hidden">
+				<p>Enter your email address to<br>
+				receive a password reset link.</p>
 
-				<?php echo form_open($this->config->item('base_url').'login/request_password_reset') ?>
+				<?php echo form_open($this->config->item('base_url').'login/request_password_reset', array('id' => 'lostpwdform')) ?>
 					<div style="margin-bottom: 15px;">
-						<label for="username">Username:</label><br>
-						<input type="text" name="username" id="username" size="30" maxlength="32" tabindex="1" style="padding: 5px; font-size: 14px;">
-					</div>
 
+					<span class="loginlabel"><?php echo form_label('Email:','email') ?></span>
+					<span class="loginfield"><?php echo form_input(array('name' => 'email', 'id' => 'email', 'size' => '20', 'maxlength' => '128', 'tabindex' => '1')) ?></span>
 					<div style="margin-bottom: 15px;">
-						<input type="submit" value="Send Reset Email" style="padding: 8px 20px; font-size: 14px;">
 						<a href="<?php echo $this->config->item('base_url').'login'; ?>" style="margin-left: 10px;">Back to Login</a>
 					</div>
 				<?php echo form_close() ?>

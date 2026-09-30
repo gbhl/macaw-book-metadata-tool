@@ -131,8 +131,8 @@ td.yui-dt-last {
 /* ****************************** */
 
 .message-overlay {
-	padding: 15px 2%;
-	margin: 5px 2%;
+	padding: 15px 5px 25px 5px;
+	margin: 5px 5px;
 	width: 92%;
 	font-family: Georgia;	
 	text-align: left;
@@ -402,12 +402,12 @@ td.yui-dt-last {
 
 #login button{
 	font-family: Georgia;
-   background-color: #426a80;
-   background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#6a92a9), to(#426a80));
-   background-image: -webkit-linear-gradient(top, #6a92a9, #426a80);
-   background-image:    -moz-linear-gradient(top, #6a92a9, #426a80);
-   background-image:     -ms-linear-gradient(top, #6a92a9, #426a80);
-   background-image:      -o-linear-gradient(top, #6a92a9, #426a80);
+	background-color: #426a80;
+	background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#6a92a9), to(#426a80));
+	background-image: -webkit-linear-gradient(top, #6a92a9, #426a80);
+	background-image:    -moz-linear-gradient(top, #6a92a9, #426a80);
+	background-image:     -ms-linear-gradient(top, #6a92a9, #426a80);
+	background-image:      -o-linear-gradient(top, #6a92a9, #426a80);
 	color: #fff;
 	width: 105px;
 	height: 31px;
@@ -416,6 +416,8 @@ td.yui-dt-last {
 	border-radius: 3px;
 	border: 1px solid #265858;
 	box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 0px 0px;
+	margin-left: auto;
+	margin-right: auto;
 }
 #login_details {
 	float:right;
