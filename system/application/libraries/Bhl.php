@@ -45,7 +45,7 @@ class BHL extends Controller {
 				"http" => array('timeout' => 5)
 			);
 			// Get the institutions
-			$url = 'https://www.biodiversitylibrary.org/api2/httpquery.ashx?op=GetInstitutions&format=json&apikey='.$this->cfg['bhl_api_key'];
+			$url = 'https://www.biodiversitylibrary.org/api3?op=GetInstitutions&format=json&apikey='.$this->cfg['bhl_api_key'];
 			$json = @file_get_contents($url, false, stream_context_create($arrContextOptions));
 			if ($json) {
 				$json = json_decode($json);
@@ -55,6 +55,7 @@ class BHL extends Controller {
 			}
 		}
 		
+		# TODO Update this automatically 
 		if (!count($results)) {
 			if (file_exists(BASEPATH . '/../assets/bhl-contributors.json')) {
 				$json = json_decode(file_get_contents(BASEPATH . '/../assets/bhl-contributors.json'));
