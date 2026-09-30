@@ -694,8 +694,7 @@ class Admin extends Controller {
 	 * @param string [$username] The name of the user to edit.
 	 * @since Version 1.0
 	 */
-	/* LOCAL ADMIN COMPLETED */
-	function account_list() {
+	public function account_list() {
 		// Make sure we are logged in and stuff
 		if (!$this->common->check_session(true)) {
 			return;
@@ -708,271 +707,7 @@ class Admin extends Controller {
 		}
 		echo json_encode($this->user->get_list($org_id));
 	}
-
-	/**
-	 * Edit a user's account
-	 *
-	 * AJAX: Allows the admin to edit an account, or allows a user to edit his or her
-	 * own account. Also makes sure that the logged in user has permission to
-	 * edit the acccount.
-	 *
-	 * @access public
-	 * @param string [$username] The name of the user to edit.
-	 * @since Version 1.0
-	 */
-	/* LOCAL ADMIN COMPLETED */
-	function account_edit($username = '') {
-		// Make sure we are logged in and stuff
-		if (!$this->common->check_session(true)) {
-			return;
-		}
-
-		// If we didn't get a username on the URL, we assume we are editing ourself.
-		if (!$username) {
-			$username = $this->session->userdata('username');
-		}
-
-		// Make sure we can edit the user in question
-		if ($this->_can_edit_account($this->session->userdata('username'), $username)) {
-			try {
-				// Record whether or not we are an admin
-				$is_local_admin = $this->user->has_permission('local_admin');
-				$data['is_local_admin'] = $is_local_admin;
-
-				$is_admin = $this->user->has_permission('admin');
-				$data['is_admin'] = $is_admin;
-
-				// Load the record for the user
-				$this->user->load($username);
-
-				// Get the data with which to fill the screen
-				$datestring = "M d, Y h:i a";
-				$data['new'] = false;
-				$data['username'] = $username;
-				$data['full_name'] = $this->user->full_name;
-				$data['email'] = $this->user->email;
-				$data['created'] = date($datestring, strtotime($this->user->created));
-				$data['modified'] = date($datestring, strtotime($this->user->modified));
-				$data['last_login'] = date($datestring, strtotime($this->user->last_login));
-				$data['permissions'] = $this->user->get_permissions();
-				$data['token'] = $this->session->userdata('li_token');
-
-				if ($is_admin) {
-					$data['locked_org_id'] = false;
-					$data['organizations'] = $this->organization->get_list();
-
-				} elseif ($is_local_admin) {
-					$data['locked_org_id'] = true;
-					$data['organizations'] = array();
-
-				} else {
-					$data['locked_org_id'] = true;
-					$data['organizations'] = array();
-				}
-
-				$data['org_name'] = $this->user->org_name;
-				$data['org_id'] = $this->user->org_id;
-
-				// Display the page
-				$this->load->view('admin/account_edit_page', $data);
-
-			} catch (Exception $e) {
-				// This handles anything strange that might come across while getting the user object.
-				$this->session->set_userdata('errormessage', $e->getMessage());
-				redirect('admin/users/');
-			}
-		} else {
-			// if we can't edit the user, then we bounce back to their own edit page with a slap on the wrist.
-			$this->session->set_userdata('errormessage', 'You do not have permission to edit that account.');
-			redirect('admin/');
-		}
-	}
-
-	/**
-	 * Add a new user account
-	 *
-	 * AJAX: Allows the admin to edit an account, or allows a user to edit his or her
-	 * own account. Also makes sure that the logged in user has permission to
-	 * edit the acccount.
-	 *
-	 * @access public
-	 * @param string [$username] The name of the user to edit.
-	 * @since Version 1.2
-	 */
-	/* LOCAL ADMIN COMPLETED */
-	function account_add() {
-		// Make sure we are logged in and stuff
-		if (!$this->common->check_session(true)) {
-			return;
-		}
-
-		$admin_user = new User;
-		$admin_user->load($this->session->userdata('username'));
-
-		// Record whether or not we are an admin
-		$is_admin = $admin_user->has_permission('admin');
-		$data['is_admin'] = $is_admin;
-
-		$is_local_admin = $admin_user->has_permission('local_admin');
-		$data['is_local_admin'] = $is_local_admin;
-
-		// Fill the page
-		$this->user->load();
-		$data['new'] = true;
-		$datestring = "M d, Y h:i a";
-		$data['created'] = date($datestring, time());
-		$data['permissions'] = $this->user->get_permissions();
-		$data['token'] = $this->session->userdata('li_token');
 		
-		if ($is_admin) {
-			$data['locked_org_id'] = false;
-			$data['organizations'] = $this->organization->get_list();
-			$data['org_name'] = '';
-			$data['org_id'] = -1;
-
-		} elseif ($is_local_admin) {
-			$data['locked_org_id'] = true;
-			$data['organizations'] = array();
-			$data['org_name'] = $admin_user->org_name;
-			$data['org_id'] = $admin_user->org_id;
-		}
-
-		// Display the page
-		$this->load->view('admin/account_add_page', $data);
-	}
-
-	/**
-	 * Save changes to an account
-	 *
-	 * AJAX: Gets the list of files for this book and their status as to being
-	 * scanned and processed. The data comes from the database, which is in
-	 * turn populated by the cron job.
-	 *
-	 * @since Version 1.0
-	 */
-	/* LOCAL ADMIN COMPLETED */
-	function account_save() {
-		// Make sure we are logged in and stuff
-		if (!$this->common->check_session(true)) {
-			return;
-		}
-
-		$is_admin = $this->user->has_permission('admin');
-		$is_local_admin = $this->user->has_permission('local_admin');
-
-		if ($this->input->post('new')) { // WE ARE ADDING A NEW ACCOUNT
-			// Only admins (or local admins) can add accounts
-			if ($is_admin || $is_local_admin) {
-				// Force the user object to re-initialize
-				$this->user->load();
-
-				// Set the user's data
-				$this->user->full_name = $this->input->post('full_name');
-				$this->user->email = $this->input->post('email');
-				$this->user->org_id = $this->input->post('org_id');
-				$this->user->password  = $this->input->post('password');
-
-				try {
-					// Add the user, with proper error handling
-					$this->user->add($this->input->post('username'));
-
-					// Reload the user, else the save permissions will fail.
-					$this->user->load($this->input->post('username'));
-					
-					// Filter the permissions. Only full admins can set the admin flag. 
-					$perms = array();
-					if ($this->input->post('permissions')) {
-						if (count($this->input->post('permissions')) > 0) {
-							foreach ($this->input->post('permissions') as $perm) {
-								if ($perm == 'admin') {
-									if ($is_admin) {
-										$perms[] = $perm;
-									}
-								} else {
-									$perms[] = $perm;						
-								}						
-							}
-							$this->user->set_permissions($perms);						
-						}
-					}
-				} catch (Exception $e) {
-					// This handles anything strange that might come across while getting the user object.
-					$this->session->set_userdata('errormessage', $e->getMessage());
-					$this->logging->log('error', 'debug', 'Inside account_save() (new): '.$e->getMessage());
-					redirect('admin/users/add');
-				}
-
-				// Redirect to user list on success
-				$this->session->set_userdata('successmessage', 'Account added!');
-				$this->logging->log('access', 'info', 'Added account: '.$this->input->post('username'));
-				redirect('admin/users/');
-
-			} else {
-				$this->common->ajax_headers();
-				$this->session->set_userdata('errormessage', 'You do not have permission to add an account');
-				echo json_encode(array('redirect' => $this->config->item('base_url').'main/listitems'));
-				$this->logging->log('error', 'debug', 'Permission denied to add a new account.');
-			}
-
-		} else { // WE ARE EDITING AN EXISTING ACCOUNT
-			// Get the data from the POST and make it into something useful
-			// Make sure we are being good little users.
-			$username = $this->input->post('username');
-			if ($this->_can_edit_account($this->session->userdata('username'), $username)) {
-				try {
-					// Load the user based on the username passed
-					$this->user->load($username);
-
-					// Update the data
-					$this->user->full_name = $this->input->post('full_name');
-					$this->user->email = $this->input->post('email');
-					$this->user->org_id = $this->input->post('org_id');
-					$this->user->password = $this->input->post('password');
-					$this->user->update();
-
-					// Only admins (or local admins) can save permissions, even if they are is removing their own permission.
-					if ($is_admin || $is_local_admin) {
-						// Filter the permissions. Only full admins can set the admin flag. 
-						$perms = array();
-						foreach ($this->input->post('permissions') as $perm) {
-							if ($perm == 'admin') {
-								if ($is_admin) {
-									$perms[] = $perm;
-								}
-							} else {
-								$perms[] = $perm;						
-							}						
-						}
-	
-						$this->user->set_permissions($perms);
-					}
-
-					// Update the session, but only if we are editing ourself.
-					if ($username == $this->session->userdata('username')) {
-						$this->session->set_userdata('full_name', $this->input->post('full_name'));
-						$this->session->set_userdata('email', $this->input->post('email'));
-					}
-
-					// Redirect to user list on success
-					$this->session->set_userdata('successmessage', 'Changes saved!');
-					$this->logging->log('access', 'info', 'Updated user: '.$this->input->post('username'));
-					redirect('admin/users/');
-
-				} catch (Exception $e) {
-					// This handles anything strange that might come across while getting the user object.
-					$this->session->set_userdata('errormessage', $e->getMessage());
-					$this->logging->log('error', 'debug', 'Inside account_save() (edit): '.$e->getMessage());
-					redirect('admin/users/edit/'.$username);
-				}
-			} else {
-				// if we can't edit the user, then we bounce back to their own edit page with a slap on the wrist.
-				$this->session->set_userdata('errormessage', 'You do not have permission to edit the account "'.$username.'". Here is the page to edit your own account instead.');
-				$this->logging->log('error', 'debug', 'Permission denied to edit the account "'.$username);
-				redirect('admin/users/edit/');
-			}
-		}
-	}
-
 	/**
 	 * Delete an account
 	 *
@@ -1032,13 +767,12 @@ class Admin extends Controller {
 		$this->user->load($this->session->userdata('username'));
 
 		if ($user == 'admin' || 
-		    $user == $target || 
-		    $this->user->has_permission('admin') || 
-		    ($this->user->has_permission('local_admin') && 
-		     $this->user->org_id == $target_user->org_id && 
-		     $target != 'admin'
-		    )
-		   ) {
+			$user == $target || 
+			$this->user->has_permission('admin') || 
+			($this->user->has_permission('local_admin') && 
+				$this->user->org_id == $target_user->org_id && 
+				$target != 'admin'
+			)) {
 			return true;
 		}
 		return false;
@@ -1120,7 +854,7 @@ class Admin extends Controller {
 	 * @since Version 1.7
 	 */
 	/* LOCAL ADMIN COMPLETED */
-	function organization() {
+	function contributors() {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('admin')) {
@@ -1129,7 +863,7 @@ class Admin extends Controller {
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 		}
 
-		$this->load->view('admin/organization_view');
+		$this->load->view('admin/contributor_view');
 	}
 
 	/**
@@ -1139,7 +873,7 @@ class Admin extends Controller {
 	 * @since Version 1.7
 	 */
 	/* LOCAL ADMIN COMPLETED */
-	function organization_list() {
+	function contributor_list() {
 		// Make sure we are logged in and stuff
 		if (!$this->common->check_session(true)) {
 			return;
@@ -1152,246 +886,6 @@ class Admin extends Controller {
 
 		$this->common->ajax_headers();
 		echo json_encode($this->organization->get_list());
-	}
-
-	/**
-	 * Edit an organization
-	 *
-	 *
-	 * @param string [$id] The name of the organization to edit.
-	 * @since Version 1.7
-	 */
-	/* LOCAL ADMIN COMPLETED */
-	function organization_edit($id = 0) {
-		// Make sure we are logged in and stuff
-		if (!$this->common->check_session(true)) {
-			return;
-		}
-
-		if (!$this->user->has_permission('admin')) {
-			$this->common->ajax_headers();
-			echo json_encode(array('error' => 'Permission denied.'));
-			return;
-		}
-
-		// If we didn't get an ID on the URL, we assume we are editing ourself.
-		if (!$id) {
-			echo json_encode(array('error' => 'Please select an organization to edit.'));
-			return;
-		}
-
-		// Make sure we can edit the Organization in question
-		try {
-			// Load the record for the organization
-			$this->organization->load($id);
-
-			// Get the data with which to fill the screen
-			$datestring = "M d, Y h:i a";
-			$data['new'] = false;
-			$data['id'] = $this->organization->id;
-			$data['name'] = $this->organization->name;
-			$data['person'] = $this->organization->person;
-			$data['email'] = $this->organization->email;
-			$data['phone'] = $this->organization->phone;
-			$data['address'] = $this->organization->address;
-			$data['address2'] = $this->organization->address2;
-			$data['city'] = $this->organization->city;
-			$data['state'] = $this->organization->state;
-			$data['postal'] = $this->organization->postal;
-			$data['country'] = $this->organization->country;
-			$data['created'] = $this->organization->created;
-			$data['modified'] = $this->organization->modified;
-			$data['show_api_keys'] = false;
-			if ($this->db->table_exists('custom_internet_archive_keys')) {
-				$data['show_api_keys'] = true;
-				$data['api_key'] = $this->organization->ia_api_key;
-				$data['secret_key'] = $this->organization->ia_secret_key;
-			}
-			$data['token'] = $this->session->userdata('li_token');
-
-			// Display the page
-			$this->load->view('admin/organization_edit_page', $data);
-
-		} catch (Exception $e) {
-			// This handles anything strange that might come across while getting the organization object.
-			$this->session->set_userdata('errormessage', $e->getMessage());
-			redirect('admin/organizations/');
-		}
-	}
-
-	/**
-	 * Add a new organization
-	 *
-	 * AJAX
-	 *
-	 * @since Version 1.7
-	 */
-	/* LOCAL ADMIN COMPLETED */
-	function organization_add() {
-		// Make sure we are logged in and stuff
-		if (!$this->common->check_session(true)) {
-			return;
-		}
-		if (!$this->user->has_permission('admin')) {
-			$this->common->ajax_headers();
-			echo json_encode(array('error' => 'Permission denied.'));
-			return;
-		}
-
-		$this->organization->load();
-		$data['new'] = true;
-		$data['name'] = '';
-		$data['person'] = '';
-		$data['email'] = '';
-		$data['phone'] = '';
-		$data['address'] = '';
-		$data['address2'] = '';
-		$data['city'] = '';
-		$data['state'] = '';
-		$data['postal'] = '';
-		$data['country'] = '';
-		$data['created'] = '';
-		$data['modified'] = '';
-		$data['show_api_keys'] = false;
-		if ($this->db->table_exists('custom_internet_archive_keys')) {
-			$data['show_api_keys'] = true;
-			$data['api_key'] = '';
-			$data['secret_key'] = '';
-		}
-		$data['id'] = 0;
-		$data['token'] = $this->session->userdata('li_token');
-
-		// Display the page
-		$this->load->view('admin/organization_add_page', $data);
-	}
-
-	/**
-	 * Save changes to an organization
-	 *
-	 * AJAX: Gets the list of files for this book and their status as to being
-	 * scanned and processed. The data comes from the database, which is in
-	 * turn populated by the cron job.
-	 *
-	 * @since Version 1.7
-	 */
-	/* LOCAL ADMIN COMPLETED */
-	function organization_save() {
-		// Make sure we are logged in and stuff
-		if (!$this->common->check_session(true)) {
-			return;
-		}
-		if (!$this->user->has_permission('admin')) {
-			$this->session->set_userdata('errormessage', 'Permission denied.');
-			$this->logging->log('error', 'debug', 'Permission denied to save the contributor "'.$this->input->post('name'));
-			redirect('admin/organizations/');
-		}
-
-
-		if ($this->input->post('new')) { // WE ARE ADDING A NEW ORG
-			// Force the organization object to re-initialize
-			$this->organization->load();
-
-			// Set the organization's data
-			$this->organization->name = $this->input->post('name');
-			$this->organization->person = $this->input->post('person');
-			$this->organization->email = $this->input->post('email');
-			$this->organization->phone = $this->input->post('phone');
-			$this->organization->address = $this->input->post('address');
-			$this->organization->address2 = $this->input->post('address2');
-			$this->organization->city = $this->input->post('city');
-			$this->organization->state = $this->input->post('state');
-			$this->organization->postal = $this->input->post('postal');
-			$this->organization->country = $this->input->post('country');
-			if ($this->db->table_exists('custom_internet_archive_keys')) {
-				$this->organization->ia_api_key = $this->input->post('api_key');
-				$this->organization->ia_secret_key = $this->input->post('secret_key');
-			}
-		
-			try {
-				// Add the organization, with proper error handling
-				$this->organization->add();
-
-				// Redirect to organization list on success
-				$this->session->set_userdata('successmessage', 'Contributor added!');
-				$this->logging->log('access', 'info', 'Added contributor '.$this->input->post('name'));
-				redirect('admin/organizations/');
-			} catch (Exception $e) {
-				// This handles anything strange that might come across while getting the organization object.
-				$this->session->set_userdata('errormessage', $e->getMessage());
-				$this->logging->log('error', 'debug', 'Inside organization_save() (new): '.$e->getMessage());
-				redirect('admin/organizations/add');
-			}
-		} else { // WE ARE EDITING AN EXISTING ORG
-			// Get the data from the POST and make it into something useful
-			// Load the organization based on the id passed
-			$this->organization->load($this->input->post('id'));
-
-			// Update the data
-			$this->organization->name = $this->input->post('name');
-			$this->organization->person = $this->input->post('person');
-			$this->organization->email = $this->input->post('email');
-			$this->organization->phone = $this->input->post('phone');
-			$this->organization->address = $this->input->post('address');
-			$this->organization->address2 = $this->input->post('address2');
-			$this->organization->city = $this->input->post('city');
-			$this->organization->state = $this->input->post('state');
-			$this->organization->postal = $this->input->post('postal');
-			$this->organization->country = $this->input->post('country');
-			if ($this->db->table_exists('custom_internet_archive_keys')) {
-				$this->organization->ia_api_key = $this->input->post('api_key');
-				$this->organization->ia_secret_key = $this->input->post('secret_key');
-			}
-
-			try {
-				// Update the organization, with proper error handling
-				$this->organization->update();
-
-				// Redirect to organization list on success
-				$this->session->set_userdata('successmessage', 'Changes saved!');
-				$this->logging->log('access', 'info', 'Updated Contributor: '.$this->input->post('name'). ' (id '.$this->input->post('id').')');
-				redirect('admin/organizations/');
-			} catch (Exception $e) {
-				// This handles anything strange that might come across while getting the organization object.
-				$this->session->set_userdata('errormessage', $e->getMessage());
-				$this->logging->log('error', 'debug', 'Inside organization_save() (update): '.$e->getMessage());
-				redirect('admin/organizations/edit/'.$this->input->post('id'));
-			}
-		}
-	}
-
-	/**
-	 * Delete an organization
-	 *
-	 * AJAX: Only admins can delete organizations. We clear the permissions table and the
-	 * organizations table. That's it.
-	 *
-	 * @since Version 1.2
-	 */
-	/* LOCAL ADMIN COMPLETED */
-	function organization_delete($id) {
-		if (!$this->user->has_permission('admin')) {
-			$this->common->ajax_headers();
-			echo json_encode(array('error' => 'Permission denied.'));
-			$this->logging->log('error', 'debug', 'Permission denied to delete the contributor "'.$id);
-			return;
-		}
-		if (!isset($id)) {
-			$this->common->ajax_headers();
-			echo json_encode(array('error' => 'You did not supply the ID of an contributor to delete.'));
-			$this->logging->log('error', 'debug', 'No contributor ID supplied for deletion.');		
-		}
-
-		$this->db->where('id', $id);
-		$this->db->delete('organization');
-
-		if ($this->db->table_exists('custom_internet_archive_keys')) {
-			$this->db->where('org_id', $id);
-			$this->db->delete('custom_internet_archive_keys');
-		}
-		
-		$this->common->ajax_headers();
-		echo json_encode(array('message' => 'Contributor deleted.'));
-		$this->logging->log('access', 'info', 'Deleted Contributor '.$id);
 	}
 
 	/**

@@ -1,7 +1,9 @@
 <?php
 	include_once('system/application/config/version.php');
 	$cfg = $this->config->item('macaw');
-	$is_admin = $this->user->has_permission('admin') || $this->user->has_permission('local_admin');	
+	if (!isset($is_admin) || $is_admin === null) {
+		$is_admin = $this->user->has_permission('admin') || $this->user->has_permission('local_admin');	
+	}
 	$can_edit_item = false;
 	$barcode = $this->session->userdata('barcode');
 	if ($barcode) {
@@ -84,7 +86,7 @@
 					<ul>
 						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/account"><img src="<?php echo $this->config->item('base_url'); ?>images/08_list_accounts_icon_sm.png">List Accounts</a></li>
 						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/queues"><img src="<?php echo $this->config->item('base_url'); ?>images/09_queues_icon_sm.png">Queues</a></li>
-						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/organization"><img src="<?php echo $this->config->item('base_url'); ?>images/11_organisations_icon_sm.png">Contributors</a></li>
+						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/contributors"><img src="<?php echo $this->config->item('base_url'); ?>images/11_organisations_icon_sm.png">Contributors</a></li>
 						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/monthly_report"><img src="<?php echo $this->config->item('base_url'); ?>images/10_view_logs_icon_sm.png">Monthly Report</a></li>
 						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/maintenance"><img src="<?php echo $this->config->item('base_url'); ?>images/12_manually_run_icon_sm.png">Maintenance</a></li>
 						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/stalled_exports"><img src="<?php echo $this->config->item('base_url'); ?>images/10_view_logs_icon_sm.png">Stalled Exports</a></li>
