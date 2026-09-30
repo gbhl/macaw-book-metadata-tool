@@ -81,15 +81,16 @@ th a{
 	text-decoration: none;
 }
 th a:hover{
-	color:#056A92;
+	color:#014e6d;
 	text-decoration: none;
 }
-td a{
-	color: #696B6E;
-	text-decoration: none;
+td a,
+a{
+	color: #014e6d;
 }
-td a:hover{
-	color: #888;
+td a:hover,
+a:hover{
+	color: #012533;
 }
 a.yui-dt-sortable{
 	color:white;
@@ -375,7 +376,7 @@ td.yui-dt-last {
 	border-bottom-right-radius: 3px;
 	-moz-border-radius-bottomleft: 3px;
 	-moz-border-radius-bottomright: 3px;
-	min-height: 205px;	
+	min-height: 240px;	
 }
 #logincontent .loginlabel{
 	width:100%;
@@ -1225,6 +1226,14 @@ table#admin_scheduled_jobs td {
     height: 31px;
     width: 70px;
 }
+
+.large .yui-button#btnDelete button,
+.large .yui-button#btnCancel button,
+.large .yui-button#btnConfirm button,
+.large .yui-button#btnSave button {
+    width: 140px;
+}
+
 .yui-button#btnConfirm,
 .yui-button#btnDelete {
     border-color: #660000;
@@ -1662,7 +1671,9 @@ textarea, input {
 	font-weight: normal;
 }
 #edit table {
-	width:100%;
+	/* width:100%; */
+	margin-left: auto;
+	margin-right: auto;
 }
 #edit table td, #edit table { 
 	border: none;
@@ -1673,7 +1684,7 @@ textarea, input {
 	padding: 10px 40px 0px 80px;
 }
 #edit td.fieldname {
-	width: 17%;
+	/* width: 17%; */
 	font-weight: bold;
 }
 #edit input[type=checkbox]{	
@@ -1683,9 +1694,10 @@ textarea, input {
 	width:140px;
 }
 #edit input[type=text],
+#edit input[type=password],
 #edit input[type=file],
 #edit textarea {
-	width: 100%;
+	width: 60%;
 	color: #333;
 }
 #edit textarea {

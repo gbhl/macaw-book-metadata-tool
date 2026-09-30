@@ -18,7 +18,7 @@
 		// Function: initList()
 		//
 		// Initializes the organization list page by creating and filling in the list
-		// of organizations. The data is taken from the /admin/organization_list/ URL which
+		// of organizations. The data is taken from the /admin/contributor_list/ URL which
 		// returns a JSON array and is used to populate a YUI data source. This
 		// allows us to later requery the database when the data has changed.
 		//
@@ -45,7 +45,7 @@
 				{key:"id",			label: "Actions",		formatter:formatEditLink}
 			];
 
-			var myDataSource = new YAHOO.util.XHRDataSource(sBaseUrl+'/admin/organization_list/');
+			var myDataSource = new YAHOO.util.XHRDataSource(sBaseUrl+'/admin/contributor_list/');
 			myDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
 			myDataSource.responseSchema = {
 				fields: ["id", "name", "person", "city", "state", "country", "bytes"]
@@ -137,19 +137,19 @@
 			}
 			if (confirm('Are you sure you want to delete this contributor?')) {
 				// Call the URL to get the data
-				var transaction = YAHOO.util.Connect.asyncRequest('GET', sBaseUrl+'/admin/organization_delete/'+id+'/', handleDelete, null);
+				var transaction = YAHOO.util.Connect.asyncRequest('GET', sBaseUrl+'/contributor/delete/'+id+'/', handleDelete, null);
 			}
 		},
 
 
 		edit: function(id) {
 			// Navigate to the edit page
-			window.location.href = sBaseUrl + 'admin/organizations/edit/' + id;
+			window.location.href = sBaseUrl + '/contributor/edit/' + id;
 		},
 
 		add: function() {
 			// Navigate to the add page
-			window.location.href = sBaseUrl + 'admin/organizations/add';
+			window.location.href = sBaseUrl + '/contributor/add';
 		},
 
 		// ----------------------------
@@ -163,7 +163,7 @@
 		//
 		// Arguments
 		//    ct - The content of the dialog box, taken from the
-		//         /admin/organization_edit/ URL
+		//         /contributor/edit/ URL
 		//
 		// Return Value / Effect
 		//    Dialog box is shown, prepped to send data to the server
