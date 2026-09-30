@@ -51,8 +51,10 @@
 						<span class="loginfield"><?php echo form_password(array('name' => 'password', 'id' => 'password', 'size' => '20', 'maxlength' => '32', 'tabindex' => '2')) ?></span>
 					
 				</table>
-				
-				
+
+				<p style="text-align: center; margin-top: 15px;">
+					<a href="<?php echo $this->config->item('base_url').'login/forgot_password'; ?>">Forgot your password?</a>
+				</p>
 			<?php echo form_close() ?>
 		</div>
 	

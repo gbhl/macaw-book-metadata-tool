@@ -10,6 +10,10 @@ if ($this->session->userdata('warning')) {
 if ($this->session->userdata('errormessage')) {
 	echo ('<div id="errormessage" class="message-overlay"><div class="icon"></div>'.$this->session->userdata('errormessage').'<button id="btnCloseError">Close</button></div>');
 	$this->session->set_userdata('errormessage', '');
-} 
+}
+if ($this->session->userdata('successmessage')) {
+	echo ('<div id="message" class="message-overlay"><div class="icon"></div>'.$this->session->userdata('successmessage').'<button id="btnCloseMessage">Close</button></div>');
+	$this->session->set_userdata('successmessage', '');
+}
 ?>
 
