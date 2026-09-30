@@ -142,11 +142,11 @@
 			</td>
 			<!-- Test emails to the admin -->
 			<td width="50%">
-				<!-- <h2>Test Email Settings</h2>
+				<h2>Test Email Settings</h2>
 				<div class="section">
 					<p>Send a test email to verify that email settings are configured correctly.</p>
 					<button type="button" id="btnTestEmail" class="button">Send Test Email</button>
-				</div> -->
+				</div>
 				<h2>Old Internet Archive Content</h2>
 				<div class="section">
 					<p>The following directories contain Internet Archive export data for completed items and can be deleted:</p>

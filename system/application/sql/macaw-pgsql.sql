@@ -67,6 +67,15 @@ CREATE TABLE account (
     terms_conditions timestamp without time zone
 );
 
+CREATE TABLE password_reset_tokens (
+    id integer NOT NULL,
+    account_id integer NOT NULL,
+    token character varying(64) NOT NULL,
+    created timestamp without time zone DEFAULT now(),
+    expires timestamp without time zone,
+    used timestamp without time zone
+);
+
 CREATE TABLE permission (
     username character varying(32),
     permission character varying(32)

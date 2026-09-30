@@ -135,6 +135,18 @@ INSERT INTO settings (name, value) values ('installed', '1');
 -- ALTER TABLE page ADD CONSTRAINT page_pkey PRIMARY KEY (id);
 ALTER TABLE settings ADD CONSTRAINT settings_name_key_unique UNIQUE (name);
 
+CREATE TABLE password_reset_tokens (
+    id int(11) auto_increment NOT NULL,
+    account_id int(11) NOT NULL,
+    token varchar(64) NOT NULL,
+    created timestamp DEFAULT CURRENT_TIMESTAMP,
+    expires timestamp,
+    used timestamp NULL,
+    PRIMARY KEY(id),
+    FOREIGN KEY(account_id) REFERENCES account(id) ON DELETE CASCADE,
+    UNIQUE KEY(token)
+) ENGINE=InnoDB CHARACTER SET=utf8 COLLATE=utf8_unicode_ci;
+
 ALTER TABLE `account` ADD INDEX (username);
 ALTER TABLE `logging` ADD INDEX (date, statistic);
 ALTER TABLE `permission` ADD INDEX (username, permission);
