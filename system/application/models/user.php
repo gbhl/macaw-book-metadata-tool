@@ -21,26 +21,28 @@ if (!defined('PHPASS_HASH_PORTABLE')) {
 
 class User extends Model {
 
-    public $username = '';
-    public $password = '';
-    public $last_login = '';
-    public $created = '';
-    public $modified = '';
-    public $full_name = '';
-    public $email = '';
-    public $widgets = '';
-    public $org_id = '';
-    public $org_name = '';
-    public $permissions = '';
-    public $terms_conditions = '';
+	public $username = '';
+	public $password = '';
+	public $last_login = '';
+	public $created = '';
+	public $modified = '';
+	public $full_name = '';
+	public $email = '';
+	public $widgets = '';
+	public $org_id = '';
+	public $org_name = '';
+	public $permissions = '';
+	public $terms_conditions = '';
+	public $totp_secret = null;
+	public $totp_enabled = false;
 
-    private $all_permissions = array('scan', 'qa_required', 'qa', 'local_admin', 'admin');
+	private $all_permissions = array('scan', 'qa_required', 'qa', 'local_admin', 'admin');
 
-    function __construct()
-    {
-        // Call the Model constructor
-        parent::__construct();
-    }
+	function __construct()
+	{
+		// Call the Model constructor
+		parent::__construct();
+	}
 
 	/**
 	 * Load the info for a user
@@ -72,17 +74,19 @@ class User extends Model {
 				// property in CI or PHP?
 				$row = $user->row();
 
-				$this->username					= $username;
-				$this->password					= '';
-				$this->last_login				= preg_replace('/\.\d+$/', '', $row->last_login);
-				$this->created					= preg_replace('/\.\d+$/', '', $row->created);
-				$this->modified					= preg_replace('/\.\d+$/', '', $row->modified);
-				$this->widgets					= ($row->widgets ? $row->widgets : '[]');
-				$this->full_name				= $row->full_name;
-				$this->email						= $row->email;
-				$this->org_id						= $row->org_id;
-				$this->org_name					= $row->org_name;
+				$this->username			= $username;
+				$this->password			= '';
+				$this->last_login		= preg_replace('/\.\d+$/', '', $row->last_login);
+				$this->created			= preg_replace('/\.\d+$/', '', $row->created);
+				$this->modified			= preg_replace('/\.\d+$/', '', $row->modified);
+				$this->widgets			= ($row->widgets ? $row->widgets : '[]');
+				$this->full_name		= $row->full_name;
+				$this->email			= $row->email;
+				$this->org_id			= $row->org_id;
+				$this->org_name			= $row->org_name;
 				$this->terms_conditions	= $row->terms_conditions;
+				$this->totp_enabled		= isset($row->totp_enabled) ? (bool)$row->totp_enabled : false;
+				$this->totp_secret		= isset($row->totp_secret)  ? $row->totp_secret : null;
 			}
 		}
 		// else, we've created a new, blank object WITHOUT a username
@@ -97,18 +101,20 @@ class User extends Model {
 	 * @since Version 1.2
 	 */
  	function _unload() {
-		$this->username					= '';
-		$this->password					= '';
-		$this->last_login				= '';
-		$this->created					= '';
-		$this->modified					= '';
-		$this->widgets					= '';
-		$this->full_name				= '';
-		$this->email						= '';
-		$this->org_id						= '';
-	  $this->permissions			= '';
-	  $this->terms_conditions = '';
- 	}
+		$this->username			= '';
+		$this->password			= '';
+		$this->last_login		= '';
+		$this->created			= '';
+		$this->modified			= '';
+		$this->widgets			= '';
+		$this->full_name		= '';
+		$this->email			= '';
+		$this->org_id			= '';
+		$this->permissions		= '';
+		$this->terms_conditions	= '';
+		$this->totp_enabled		= false;
+		$this->totp_secret		= null;
+	}
 
 	/**
 	 * Save the data for a user.
@@ -397,7 +403,8 @@ class User extends Model {
 			'	WHERE i.status_code NOT IN (\'completed\', \'exporting\')  '.
 			'	GROUP BY i.org_id '.
 			') i ON o.id = i.org_id '.
-			'WHERE o.id = '.$this->org_id
+			'WHERE o.id = ?',
+			array($this->org_id)
 		)->row()->bytes;
 		return $result;
 	}	

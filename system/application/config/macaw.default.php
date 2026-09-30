@@ -263,6 +263,7 @@ $config['macaw']['email_smtp_host'] = "smtp.website.com";
 $config['macaw']['email_smtp_port'] = "25";
 $config['macaw']['email_smtp_user'] = "";
 $config['macaw']['email_smtp_pass'] = "";
+$config['macaw']['email_smtp_crypto'] = "";  // Set to "tls" to enable STARTTLS
 
 
 // ------------------------------
@@ -363,7 +364,7 @@ $config['macaw']['jpeg2000_quality_pdf'] = '40';
 // ------------------------------
 // Macaw likes to keep things clean. If this is set to the NAME of an orgnaization, all of the items for that
 // organization will be purged nightly and replaced with a single test item. The name must match exactly 
-// to the name of the organization in the /admin/organization page.
+// to the name of the organization in the /admin/contributors page.
 // $config['macaw']['demo_organization'] = '';
 
 // ------------------------------

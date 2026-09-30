@@ -952,7 +952,9 @@ class Main extends Controller {
 		$info = array();
 		
 		// Get our book
-		$info['barcode'] = $_POST['identifier'];
+		// Sanitize the barcode
+		$info['barcode'] = $this->common->clean_barcode($_POST['identifier']);
+
 		try {
 			$this->book->add($info);
 		} catch (Exception $e) {

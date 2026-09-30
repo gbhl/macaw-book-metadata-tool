@@ -20,7 +20,7 @@ class Utils extends Controller {
 		$this->cfg = $this->config->item('macaw');
 	}
 
-		/**
+	/**
 	 * Reset page image dimensions in the database
 	 *
 	 * CLI: For all books, reset the image sizes in the database 
@@ -33,6 +33,11 @@ class Utils extends Controller {
 	 * @since Version 1.1
 	 */
 	function image_sizes() {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		}
 
 		// Get the books
 		$books = $this->book->get_all_books();
@@ -117,6 +122,14 @@ class Utils extends Controller {
 	 * @since Version 2.2
 	 */
 	function reset_item($barcode) {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		}
+		// Sanitize the barcode to prevent errors
+		$barcode = $this->common->clean_barcode($barcode);
+
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
 			die;
@@ -149,11 +162,11 @@ class Utils extends Controller {
 		// Set the status to reviewing
 		$this->book->load($barcode);
 		echo "Setting status back to reviewing...\n";
-		$this->db->query("update item set status_code = 'reviewing' where id = ".$this->book->id);
+		$this->db->query("update item set status_code = 'reviewing' where id = ?", array($this->book->id));
 
 		// Delete the IA Export status
 		echo "Clearing IA Export status...\n";
-		$this->db->query("delete from item_export_status where item_id = ".$this->book->id." and export_module = 'Internet_archive'");
+		$this->db->query("delete from item_export_status where item_id = ? and export_module = 'Internet_archive'", array($this->book->id));
 
 		// Do we need to copy metadata?
 		$this->db->select('count(*) as thecount');
@@ -162,7 +175,7 @@ class Utils extends Controller {
 		$row = $query->row();
 		if ($row->thecount == 0) {
 			echo "Restoring metadata...\n";
-			$this->db->query("insert into metadata (item_id, page_id, fieldname, counter, value, value_large) select item_id, page_id, fieldname, counter, value, value_large from metadata_archive where item_id = ".$this->book->id);
+			$this->db->query("insert into metadata (item_id, page_id, fieldname, counter, value, value_large) select item_id, page_id, fieldname, counter, value, value_large from metadata_archive where item_id = ?", array($this->book->id));
 		} else {
 			echo "Item has metadata, not restoring...\n";
 		}
@@ -273,20 +286,20 @@ class Utils extends Controller {
 			}
 			// If there is more than one, throw an error or ask for which one to use
 			if (count($pdfs) > 1) {
-        foreach ($pdfs as $p) {
-          $url = "https://archive.org/download/$identifier/".$p;
-          $dest = $pth.'/'.$p;
-          if (!file_exists($dest)) {
-            file_put_contents($dest, file_get_contents($url));
-          }  
-        }
+				foreach ($pdfs as $p) {
+					$url = "https://archive.org/download/$identifier/".$p;
+					$dest = $pth.'/'.$p;
+					if (!file_exists($dest)) {
+					file_put_contents($dest, file_get_contents($url));
+					}  
+				}
 				print "More than one PDF was found. Please address this manually.\n";
-        print "Files are located in: $pth\n";
-        die;
+				print "Files are located in: $pth\n";
+				die;
 			} elseif (count($pdfs) == 0) {
 				print "No PDF was found for $barcode. Cannot continue.\n";
-        die;
-      } else {
+				die;
+			} else {
 				// Download the PDF(s) from the internet archive: IDENTIFIER_orig_pdf.zip or IDENTIFIER_orig_pdf_##.zip
 				$url = "https://archive.org/download/$identifier/".$pdfs[0];
 				$dest = $pth.DIRECTORY_SEPARATOR.$pdfs[0];
@@ -419,10 +432,10 @@ class Utils extends Controller {
 
 		if ($fileext == 'jp2') {
 			// We dont (re)compress JP2s
-			$this->db->query("update item set ia_ready_images = $db_true where id = ".$this->book->id);
+			$this->db->query("update item set ia_ready_images = $db_true where id = ?", array($this->book->id));
 		} else {
 			// We dont compress everything else to JP2.
-			$this->db->query("update item set ia_ready_images = $db_false where id = ".$this->book->id);
+			$this->db->query("update item set ia_ready_images = $db_false where id = ?", array($this->book->id));
 		}
 
 		// If we got images from either IA or a local file,
@@ -517,6 +530,15 @@ class Utils extends Controller {
 	 * @since Version 2.8
 	 */
 	function reset_item_complete($barcode) {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		}
+
+		// Sanitize the barcode to prevent errors
+		$barcode = $this->common->clean_barcode($barcode);
+
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
 			die;
@@ -531,7 +553,7 @@ class Utils extends Controller {
 		$this->book->load($barcode);
 		echo "Setting status to complete...\n";
 
-		$this->db->query("update item set status_code = 'completed' where id = ".$this->book->id);
+		$this->db->query("update item set status_code = 'completed' where id = ?", array($this->book->id));
 		print "Item has been set to complete. To send new images, use the following\n";
 		print "    sudo -u WWW_USER php index.php cron export Internet_archive ".$barcode." scans force\n\n";
 	}
@@ -548,6 +570,14 @@ class Utils extends Controller {
 	 * @since Version 2.8
 	 */
 	function reset_item_cleanup($barcode) {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		}
+
+		// Sanitize the barcode to prevent errors
+		$barcode = $this->common->clean_barcode($barcode);
 
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
@@ -616,6 +646,15 @@ class Utils extends Controller {
 	 * @since Version 1.6
 	 */
 	function serialize($barcode) {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		}
+
+		// Sanitize the barcode to prevent errors
+		$barcode = $this->common->clean_barcode($barcode);
+
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
 			die;
@@ -711,6 +750,12 @@ class Utils extends Controller {
 	 * @since Version 1.6
 	 */
 	function unserialize() {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		}
+
 		$args = func_get_args();
 	
 		$fname = $args[count($args)-1];
@@ -767,7 +812,7 @@ class Utils extends Controller {
 			system('mv -f '.$tmp.'/import_export/'.$barcode.'/scans/* '.$this->cfg['data_directory'].'/'.$barcode.'/scans/');
 		}
 
-		$item = unserialize(read_file($tmp.'/import_export/'.$barcode.'/item.dat'));
+		$item = unserialize(read_file($tmp.'/import_export/'.$barcode.'/item.dat'), ['allowed_classes' => false]);
 		if ($this->db->dbdriver == 'mysql' || $this->db->dbdriver == 'mysqli') {
 			if (!$item['needs_qa']) { $item['needs_qa'] = '0'; }
 			if ($item['needs_qa'] == 't') { $item['needs_qa'] = '1'; }
@@ -800,7 +845,7 @@ class Utils extends Controller {
 			echo "Item record added! (id=".$new_item_id.")\n";
 		}
 		
-		$page = unserialize(read_file($tmp.'/import_export/'.$barcode.'/page.dat'));
+		$page = unserialize(read_file($tmp.'/import_export/'.$barcode.'/page.dat'), ['allowed_classes' => false]);
 		$page_map = array();
 		$this->db->trans_start();
 		for ($i = 0; $i < count($page); $i++) {
@@ -828,7 +873,7 @@ class Utils extends Controller {
 		}
 		$this->db->trans_complete();
 
-		$metadata = unserialize(read_file($tmp.'/import_export/'.$barcode.'/metadata.dat'));
+		$metadata = unserialize(read_file($tmp.'/import_export/'.$barcode.'/metadata.dat'), ['allowed_classes' => false]);
 
 		// Verify we have new page numbers for all metadata items
 		for ($i = 0; $i < count($metadata); $i++) {	
@@ -892,6 +937,12 @@ class Utils extends Controller {
 	 * @since Version 1.6
 	 */
 	function csvimport($filename, $filename2 = null, $username = 'admin') {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		} 
+
 		// Import the file
 		$errors = array();
 		
@@ -957,7 +1008,9 @@ class Utils extends Controller {
 			$c = 1;
 			$max = count($info);
 			foreach ($info as $b) {
-				// Is this book already in our database?
+				// Sanitize the barcode to prevent errors
+				$b['identifier'] = $this->common->clean_barcode($b['identifier']);
+				// Is this book already in our database?				
 				if (!$this->book->exists($b['identifier'])) {
 					try {			
 						// Add the book
@@ -1000,6 +1053,8 @@ class Utils extends Controller {
 				$max = count($info);
 				foreach ($info as $p) {
 					try {
+						// Sanitize the barcode to prevent errors
+						$p['identifier'] = $this->common->clean_barcode($p['identifier']);
 						$this->book->load($p['identifier']);
 						if (!$this->book->page_exists($p['filename'])) {
 
@@ -1062,7 +1117,7 @@ class Utils extends Controller {
 	 * 
 	 * @since Version 2.1.14
 	 */
-	function _save_import_status($file = '', $value = 1, $message = '', $finished = 0) {
+	private function _save_import_status($file = '', $value = 1, $message = '', $finished = 0) {
 		if ($file != '') {
 			write_file($file.'.log', 
 				json_encode(array(
@@ -1087,6 +1142,15 @@ class Utils extends Controller {
 	 * @since Version 1.6
 	 */
 	function delete_item($barcode, $confirm = null) {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		} 
+
+		// Sanitize the barcode to prevent errors
+		$barcode = $this->common->clean_barcode($barcode);
+
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
 			die;
@@ -1157,7 +1221,7 @@ class Utils extends Controller {
 	 * below it. 
 	 *
 	 */
-	function _getFilesFromDir($dir) { 
+	private function _getFilesFromDir($dir) { 
 		$files = array(); 
 		if ($handle = opendir($dir)) { 
 			while (false !== ($file = readdir($handle))) { 
@@ -1204,6 +1268,15 @@ class Utils extends Controller {
 	 * @since Version 2.1.20
 	 */	
 	function import_pdf($barcode = null, $filename = null) {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		} 
+
+		// Sanitize the barcode to prevent errors
+		$barcode = $this->common->clean_barcode($barcode);
+
 		if (!$barcode) {
 			print "Barcode is requred!\n";
 			die;
@@ -1285,13 +1358,15 @@ class Utils extends Controller {
 		if ($this->db->dbdriver == 'mysql' || $this->db->dbdriver == 'mysqli') {
 			$this->db->query(
 				'delete from metadata
-				where item_id = '.$this->book->id.'
-				and page_id is null and fieldname = \'processing_pdf\' limit 1'
+				where item_id = ?
+				and page_id is null and fieldname = \'processing_pdf\' limit 1',
+				array($this->book->id)
 			);
 		} elseif ($this->db->dbdriver == 'postgre') {
 			$this->db->query(
-				'delete from metadata where id = (select id from metadata where item_id = '.$this->book->id.'
-				and page_id is null and fieldname = \'processing_pdf\' limit 1)'
+				'delete from metadata where id = (select id from metadata where item_id = ?
+				and page_id is null and fieldname = \'processing_pdf\' limit 1)', 
+				array($this->book->id)
 			);
 		}
 
@@ -1306,7 +1381,7 @@ class Utils extends Controller {
 	 * 
 	 * INTERNAL/UTILITY: Used in import_pdf when splitting a PDF into PNGs. 
 	 */	
-	function _dedupe_files($files) {
+	private function _dedupe_files($files) {
 		$good_files = [];
 		foreach ($files as $fname => $data) {
 			$pi = pathinfo($fname);
@@ -1341,6 +1416,12 @@ class Utils extends Controller {
 	 * @since Version 2.7.0
 	 */	
 	function contributor_stats($hidekey = null) {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		} 
+
 		setlocale(LC_CTYPE, 'en_US');
 		$format = "%-50s %5s %6s %11s %-40s\n";
 		printf($format, 'CONTRIBUTOR', 'ITEMS', 'PAGES', 'LAST', 'IA EMAIL');
@@ -1359,28 +1440,32 @@ class Utils extends Controller {
 		for ($i=0; $i < count($orgs); $i++) {
 			// Get a count of completed items for each contributor
 			$item_count = $this->db->query(
-				'SELECT count(*) as c FROM item i WHERE i.org_id = '.$orgs[$i]->id.
-				' AND i.status_code IN (\'completed\', \'exporting\') '
+				'SELECT count(*) as c FROM item i WHERE i.org_id = '.
+				' AND i.status_code IN (\'completed\', \'exporting\') ', 
+				array($orgs[$i]->id)
 			)->result();
 			$orgs[$i]->item_count = $item_count[0]->c;
 
 			// Get a count of pages for each completed item for each contributor
 			$page_count = $this->db->query(
-				'SELECT count(*) as c FROM page p INNER JOIN item i ON p.item_id = i.id WHERE i.org_id = '.$orgs[$i]->id.
-				' AND i.status_code IN (\'completed\', \'exporting\') '
+				'SELECT count(*) as c FROM page p INNER JOIN item i ON p.item_id = i.id WHERE i.org_id = ?'.
+				' AND i.status_code IN (\'completed\', \'exporting\') ',
+				array($orgs[$i]->id)
 			)->result();
 			$orgs[$i]->page_count = $page_count[0]->c;
 
 			// Get the IA ID of the most recent completed item for the contributor
 			$last_item = $this->db->query(
-				'SELECT id, COALESCE(date_completed, date_export_start, 0) as date_completed FROM item i WHERE i.org_id = '.$orgs[$i]->id.
+				'SELECT id, COALESCE(date_completed, date_export_start, 0) as date_completed FROM item i WHERE i.org_id = ?'.
 				' AND i.status_code IN (\'completed\', \'exporting\') '.
-				' ORDER BY COALESCE(date_completed, date_export_start, 0) desc'
+				' ORDER BY COALESCE(date_completed, date_export_start, 0) desc',
+				array($orgs[$i]->id)
 			)->result();
 
 			if (count($last_item) > 0) {
 				$ia = $this->db->query(
-					'SELECT identifier FROM custom_internet_archive WHERE item_id = '.$last_item[0]->id
+					'SELECT identifier FROM custom_internet_archive WHERE item_id = ?', 
+					array($last_item[0]->id)
 				)->result();
 
 				// Get the email address from IA's Metadata API for the most recent completed item
@@ -1421,6 +1506,12 @@ class Utils extends Controller {
 	 * @since Version 2.7.0
 	 */	
 	function check_all_marc() {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		} 
+
 		$books = $this->book->get_all_books();
 		
 		// Loop through the books
@@ -1458,7 +1549,7 @@ class Utils extends Controller {
 	 * 
 	 * INTERNAL/UTILITY: Used during reset_item to get the _orig_tiff.tar file over the network. 
 	 */	
-	function _get_ssh_file($filename) {
+	private function _get_ssh_file($filename) {
 		$ssh_user_and_host = '';
 		$ssh_path = '';
 
@@ -1481,7 +1572,7 @@ class Utils extends Controller {
 	 * 
 	 * INTERNAL/UTILITY: Used during reset_item_cleanup. 
 	 */	
-	function _delete_all($p) {
+	private function _delete_all($p) {
 		if (is_file($p)) {
 			return unlink($p);
 		} elseif (is_dir($p)) {
@@ -1500,6 +1591,12 @@ class Utils extends Controller {
 	 *   sudo -u apache php index.php utils set_password richardjm joelpassword214!
 	 */	
 	function set_password ($username = null, $password = null) {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		} 
+
 		if (!$username) {
 			print "User is requried\nUSAGE: php index.php utils set_password USERNAME PASSWORD\n";
 			return;
@@ -1528,6 +1625,15 @@ class Utils extends Controller {
 	 * @since Version 2.9.0
 	 */
 	function reload_marcxml($barcode) {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		} 
+
+		// Sanitize the barcode to prevent errors
+		$barcode = $this->common->clean_barcode($barcode);
+
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
 			die;
@@ -1561,6 +1667,12 @@ class Utils extends Controller {
 	 * @since Version 2.9.0
 	 */
 	function csv_reimport($filename, $username = 'admin') {
+		$this->load->library('clicheck');
+		if (!$this->clicheck->isCli()) { 
+			show_404();
+			return;
+		} 
+
 		// Import the file
 		$errors = array();
 		

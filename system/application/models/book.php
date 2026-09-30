@@ -85,8 +85,9 @@ class Book extends Model {
 	 * @param string [$barcode] The barcode of the item in question
 	 */
 	function load($barcode = '') {
-		// Prevent Blind SQL Injection
-		$barcode = $this->db->escape_str($barcode);
+		// Sanitize Barcode
+		$barcode = $this->common->clean_barcode($barcode);
+
 		if (isset($barcode)) {
 
 			// Query the database for the barcode
@@ -114,14 +115,14 @@ class Book extends Model {
 				$this->pages_scanned = $row->pages_scanned;
 				$this->scan_time     = $row->scan_time;
 
-        $this->date_created        = $row->date_created;
-        $this->date_scanning_start = $row->date_scanning_start;
-        $this->date_scanning_end   = $row->date_scanning_end;
-        $this->date_review_start   = $row->date_review_start;
-        $this->date_review_end     = $row->date_review_end;
-        $this->date_export_start   = $row->date_export_start;
-        $this->date_completed      = $row->date_completed;
-      
+				$this->date_created        = $row->date_created;
+				$this->date_scanning_start = $row->date_scanning_start;
+				$this->date_scanning_end   = $row->date_scanning_end;
+				$this->date_review_start   = $row->date_review_start;
+				$this->date_review_end     = $row->date_review_end;
+				$this->date_export_start   = $row->date_export_start;
+				$this->date_completed      = $row->date_completed;
+
 				if ($row->needs_qa == 't' || $row->needs_qa == '1') { 
 					$this->needs_qa = true;
 				} else {
@@ -167,7 +168,9 @@ class Book extends Model {
 	 * @param string [$barcode] The barcode of the item in question
 	 */
 	function exists($barcode) {
-		$barcode = $this->db->escape_str($barcode);
+		// Sanitize Barcode
+		$barcode = $this->common->clean_barcode($barcode);
+
 		// Query the database for the barcode
 		$this->db->where('barcode', "$barcode");
 		$item = $this->db->get('item');
@@ -610,17 +613,19 @@ class Book extends Model {
 		}
 		$this->db->query(
 			'delete from metadata
-			where item_id = '.$this->book->id.'
-			and page_id = '.$this->db->escape($page_id).'
-			and page_id is not null'
+			where item_id = ?
+			and page_id = ?
+			and page_id is not null',
+			array($this->book->id, $page_id)
 		);
 	}
 
 	function delete_page($page_id) {
 		$this->db->query(
 			'delete from page
-			where item_id = '.$this->db->escape($this->book->id).'
-			and id = '.$this->db->escape($page_id)
+			where item_id = ?
+			and id = ?',
+			array($this->book->id, $page_id)
 		);
 	}
 
@@ -1054,12 +1059,12 @@ class Book extends Model {
 	 *
 	 */
 	function add($info) {
-		// Prevent Blind SQL Injection
+		// Sanitize Barcode or Identifier		
 		if (isset($info['barcode'])) {
-			$info['barcode'] = trim($this->db->escape_str($info['barcode']));
+			$info['barcode'] = $this->common->clean_barcode($info['barcode']);
 		}
 		if (isset($info['identifier'])) {
-			$info['barcode'] = trim($info['identifier']);
+			$info['barcode'] = $this->common->clean_barcode($info['identifier']);
 		}
 		# Holding institution and contributor are equivalent
 		# but we like to use contributor, so convert it back.
@@ -1445,8 +1450,9 @@ class Book extends Model {
 		$func = function($f) {return "'".$f['fieldname']."'";};
 		$this->db->query(
 			'delete from metadata
-			where item_id = '.$this->book->id.'
-			and page_id is null'
+			where item_id = ?
+			and page_id is null',
+			array($this->book->id)
 		);
 
 		// Re-Add the metadata
@@ -2193,8 +2199,9 @@ class Book extends Model {
 		$c = $this->db->query(
 			"select lower(fieldname) as fieldname, coalesce(value, value_large) as val
 			from metadata
-			where item_id = ".$this->id."
-			  and page_id is null"
+			where item_id = ?
+			  and page_id is null",
+			  array($this->id)
 		);
 		$results = array();
 		foreach ($c->result() as $row) {

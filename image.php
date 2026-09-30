@@ -37,54 +37,65 @@
 	// ---------------------------
 	// Read the Config File
 	// ---------------------------
-	$config = null;
+	$config = [];
 	require(BASEPATH.$application_folder.'/config/macaw.php');
 
-	$type = $_GET['type'];
-	$barcode = $_GET['code'];
-	$img = urldecode($_GET['img']);
-	$path = '';
 	$baseDir = $config['macaw']['data_directory'];
-	if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-		// To be fast, baseDir is hardcoded
-		// But this really should come from the config file
-		if ($type == 'thumbnail') {
-			$path = $baseDir . '\\BARCODE\\thumbs';
-		} elseif ($type == 'preview') {
-			$path = $baseDir . '\\BARCODE\\preview';
-		} elseif ($type == 'original') {
-			$path = $baseDir . '\\BARCODE\\scans';
-		} else {
-			$last_error = 'Unrecognized path type supplied';
-			throw new Exception($last_error);
-			return;
-		}
-		$path = preg_replace('/BARCODE/', $barcode, $path);
-		readfile( $path . '\\' . $img); 
-    	// header('Warning: abs' . $path . '\\' . $img);
-		
-	} else {
-		// To be fast, baseDir is hardcoded
-		// But this really should come from the config file
-	 	if ($type == 'thumbnail') {
-			$path = $baseDir . '/BARCODE/thumbs';
-		} elseif ($type == 'preview') {
-			$path = $baseDir . '/BARCODE/preview';
-		} elseif ($type == 'original') {
-			$path = $baseDir . '/BARCODE/scans';
-		} else {
-			$last_error = 'Unrecognized path type supplied';
-			throw new Exception($last_error);
-			return;
-		}
-		$path = preg_replace('/BARCODE/', $barcode, $path);
-		if (file_exists($path . '/' . $img)) {
-			header('Content-Type: image/' . $_GET['ext']);
-			readfile( $path . '/' . $img); 
-		} else {
-			http_response_code(404);
-			print "<!doctype html><html><head><title>404 Not Found</title></head><body><h1>404 not found</h1></body></html>";
-		}
-		
+	$type = $_GET['type'];
+	$barcode = basename($_GET['code']);
+	$img = basename(urldecode($_GET['img']));
+	$path = '';
+
+	# Sanitize Barcode - Allow only alphanumeric, hyphen, underscore
+	if (!preg_match('/^[a-zA-Z0-9_\-. ]+$/', $barcode)) {
+		http_response_code(400);
+		die("Invalid barcode format.");
 	}
-?>
+
+	# Sanitize Type (already good, but make explicit)
+	if (!in_array($type, ['thumbnail', 'preview', 'original'], true)) {
+		http_response_code(400);
+		die("Invalid type.");
+	}
+
+	# Sanitize Img - basename() already does this, but verify no traversal
+	if ($img !== basename($img) || strpos($img, '/') !== false || strpos($img, '\\') !== false) {
+		http_response_code(400);
+		die("Invalid filename.");
+	}
+
+
+	if ($type == 'thumbnail') {
+		$expected_base = $baseDir . DIRECTORY_SEPARATOR . $barcode . DIRECTORY_SEPARATOR . 'thumbs';
+	} elseif ($type == 'preview') {
+		$expected_base = $baseDir . DIRECTORY_SEPARATOR . $barcode . DIRECTORY_SEPARATOR . 'preview';
+	} elseif ($type == 'original') {
+		$expected_base = $baseDir . DIRECTORY_SEPARATOR . $barcode . DIRECTORY_SEPARATOR . 'scans';
+	} else {
+		http_response_code(400);
+		die("Invalid type.");
+	}
+
+	# Resolve actual paths and verify
+	$real_base = realpath($expected_base);
+	$real_file = realpath($expected_base . DIRECTORY_SEPARATOR . $img);
+
+	if ($real_base === false || $real_file === false) {
+		http_response_code(404);
+		die("File not found.");
+	}
+
+	# Ensure resolved file is within the expected base directory
+	if (strpos($real_file, $real_base . DIRECTORY_SEPARATOR) !== 0 && $real_file !== $real_base) {
+		http_response_code(403);
+		die("Access denied.");
+	}
+
+	# Now safe to serve
+	if (file_exists($real_file)) {
+		header('Content-Type: ' . mime_content_type($real_file));
+		readfile($real_file);
+	} else {
+		http_response_code(404);
+		die("File not found.");
+	}

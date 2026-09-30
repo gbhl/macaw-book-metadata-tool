@@ -36,6 +36,7 @@ class CI_Email {
 	var	$smtp_pass		= "";		// SMTP Password
 	var	$smtp_port		= "25";		// SMTP Port
 	var	$smtp_timeout	= 5;		// SMTP Timeout in seconds
+	var	$smtp_crypto	= "";		// SMTP Encryption type: 'tls' or 'ssl'
 	var	$wordwrap		= TRUE;		// TRUE/FALSE  Turns word-wrap on/off
 	var	$wrapchars		= "76";		// Number of characters to wrap at.
 	var	$mailtype		= "text";	// text/html  Defines email formatting
@@ -1652,7 +1653,27 @@ class CI_Email {
 		}
 
 		$this->_set_error_message($this->_get_smtp_data());
-		return $this->_send_command('hello');
+
+		if ( ! $this->_send_command('hello'))
+		{
+			return FALSE;
+		}
+
+		// Upgrade to TLS if STARTTLS is configured
+		if ($this->smtp_crypto == 'tls')
+		{
+			if ( ! $this->_send_starttls())
+			{
+				return FALSE;
+			}
+			// Re-send EHLO after TLS upgrade
+			if ( ! $this->_send_command('hello'))
+			{
+				return FALSE;
+			}
+		}
+
+		return TRUE;
 	}
   
 	// --------------------------------------------------------------------
@@ -1786,6 +1807,12 @@ class CI_Email {
 	 */
 	function _send_data($data)
 	{
+		if ( ! is_resource($this->_smtp_connect))
+		{
+			$this->_set_error_message('email_smtp_error', 'SMTP connection not established');
+			return FALSE;
+		}
+
 		if ( ! fwrite($this->_smtp_connect, $data . $this->newline))
 		{
 			$this->_set_error_message('email_smtp_data_failure', $data);
@@ -2026,6 +2053,42 @@ class CI_Email {
 					);
 
 		return ( ! isset($mimes[strtolower($ext)])) ? "application/x-unknown-content-type" : $mimes[strtolower($ext)];
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
+	 * Send STARTTLS command to upgrade connection to TLS
+	 *
+	 * @access	private
+	 * @return	bool
+	 */
+	function _send_starttls()
+	{
+		$this->_send_data('STARTTLS');
+		$reply = $this->_get_smtp_data();
+
+		if (strncmp($reply, '220', 3) != 0)
+		{
+			$this->_set_error_message('email_smtp_error', 'STARTTLS failed: '.$reply);
+			return FALSE;
+		}
+
+		// Determine the appropriate crypto method
+		$crypto = STREAM_CRYPTO_METHOD_TLS_CLIENT;
+		if (defined('STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT'))
+		{
+			$crypto = STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT;
+		}
+
+		// Upgrade the socket connection to TLS
+		if ( ! stream_socket_enable_crypto($this->_smtp_connect, TRUE, $crypto))
+		{
+			$this->_set_error_message('email_smtp_error', 'Failed to enable TLS encryption on socket');
+			return FALSE;
+		}
+
+		return TRUE;
 	}
 
 }

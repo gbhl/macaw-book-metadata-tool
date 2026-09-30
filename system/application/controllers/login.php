@@ -58,16 +58,71 @@ class Login extends Controller {
 
 		$this->load->library('Authentication');
 
-		if($this->authentication->auth($user, $pass)) {
-			$this->logging->log('access', 'info', 'User logged in.');
-			// Clear out any old sessions. This should be speedy.
-			$this->authentication->clear_sessions();
-			
-			redirect($this->config->item('base_url').'dashboard');
+		if ($this->authentication->auth($user, $pass)) {
+			// Check whether this account requires TOTP
+			$account = $this->db->get_where('account', array('username' => $user))->row();
+			if ($account && $account->totp_enabled && !empty($account->totp_secret)) {
+				// Password OK but TOTP still needed — keep session data but mark as not fully logged in
+				$this->session->set_userdata('logged_in', false);
+				$this->session->set_userdata('totp_pending', true);
+				$this->logging->log('access', 'info', 'User '.$user.' passed password, awaiting TOTP.');
+				redirect($this->config->item('base_url').'login/totp');
+			} else {
+				$this->logging->log('access', 'info', 'User logged in.');
+				redirect($this->config->item('base_url').'dashboard');
+			}
 		} else {
 			$this->session->set_userdata('errormessage', 'You entered an incorrect username or password. Please try again.');
-			$this->logging->log('access', 'info', 'User '.$user.' failed to logged in.');
+			$this->logging->log('access', 'info', 'User '.$user.' failed to log in.');
 			$this->index();
+		}
+	}
+
+	/**
+	 * Show the TOTP verification page.
+	 *
+	 * Only accessible when a password-authenticated session is pending TOTP.
+	 */
+	public function totp() {
+		if (!$this->session->userdata('totp_pending')) {
+			redirect($this->config->item('base_url').'login');
+			return;
+		}
+		$this->load->view('login/totp_view');
+	}
+
+	/**
+	 * Verify the submitted TOTP code and complete the login.
+	 */
+	public function checktotp() {
+		if (!$this->session->userdata('totp_pending')) {
+			redirect($this->config->item('base_url').'login');
+			return;
+		}
+
+		$username = $this->session->userdata('username');
+		$code = $this->input->post('totp_code');
+
+		$account = $this->db->get_where('account', array('username' => $username))->row();
+
+		if (empty($account->totp_enabled) || empty($account->totp_secret)) {
+			// TOTP no longer required — just complete the login
+			$this->session->set_userdata('logged_in', true);
+			$this->session->unset_userdata('totp_pending');
+			redirect($this->config->item('base_url').'dashboard');
+			return;
+		}
+
+		$this->load->library('Totp');
+		if ($this->totp->verify($account->totp_secret, $code)) {
+			$this->session->set_userdata('logged_in', true);
+			$this->session->unset_userdata('totp_pending');
+			$this->logging->log('access', 'info', 'User '.$username.' completed TOTP verification.');
+			redirect($this->config->item('base_url').'dashboard');
+		} else {
+			$this->session->set_userdata('errormessage', 'Invalid verification code. Please try again.');
+			$this->logging->log('access', 'info', 'User '.$username.' failed TOTP verification.');
+			$this->totp();
 		}
 	}
 
@@ -86,6 +141,177 @@ class Login extends Controller {
 		$this->logging->log('access', 'info', 'User logged out.');
 
 		$this->authentication->deauth();
+		redirect($this->config->item('base_url').'login');
+	}
+
+	/**
+	 * Show the forgot password form
+	 */
+	function forgot_password() {
+		if ($this->session->userdata('logged_in')) {
+			redirect($this->config->item('base_url').'dashboard');
+		}
+		$this->load->view('login/forgot_password_view');
+	}
+
+	/**
+	 * Process forgot password request
+	 */
+	function request_password_reset() {
+		$username = trim($this->input->post('username'));
+
+		if (!$username) {
+			$this->session->set_userdata('errormessage', 'Please enter your username.');
+			redirect($this->config->item('base_url').'login/forgot_password');
+			return;
+		}
+
+		$account = $this->db->get_where('account', array('username' => $username))->row();
+
+		if (!$account || !$account->email) {
+			$this->session->set_userdata('errormessage', 'Username not found or email not configured.');
+			redirect($this->config->item('base_url').'login/forgot_password');
+			return;
+		}
+
+		$token = bin2hex(random_bytes(32));
+		$expires = date('Y-m-d H:i:s', time() + (24 * 3600));
+
+		$this->db->insert('password_reset_tokens', array(
+			'account_id' => $account->id,
+			'token' => $token,
+			'expires' => $expires
+		));
+
+		$reset_url = $this->config->item('base_url').'login/reset_password/'.$token;
+
+		$cfg = $this->config->item('macaw');
+		$email_config = array(
+			'protocol' => 'smtp',
+			'mailtype' => 'html',
+			'crlf' => '\r\n',
+			'newline' => '\r\n',
+			'smtp_host' => $cfg['email_smtp_host'],
+			'smtp_port' => $cfg['email_smtp_port'],
+		);
+		if ($cfg['email_smtp_user']) { $email_config['smtp_user'] = $cfg['email_smtp_user']; }
+		if ($cfg['email_smtp_pass']) { $email_config['smtp_pass'] = $cfg['email_smtp_pass']; }
+		if ($cfg['email_smtp_crypto']) { $email_config['smtp_crypto'] = $cfg['email_smtp_crypto']; }
+
+		$this->load->library('email');
+		$this->email->initialize($email_config);
+		$this->email->from($cfg['admin_email'], 'Macaw Admin');
+		$this->email->to($account->email);
+		$this->email->subject('Password Reset Request - Macaw');
+		$this->email->message(
+			'<html><body>'.
+			'<p>A password reset has been requested for your Macaw account.</p>'.
+			'<p>Click the link below to reset your password (this link will expire in 24 hours):</p>'.
+			'<p><a href="'.$reset_url.'">'.$reset_url.'</a></p>'.
+			'<p>If you did not request this reset, please ignore this email.</p>'.
+			'</body></html>'
+		);
+
+		if ($this->email->send()) {
+			$this->logging->log('access', 'info', 'Password reset email sent for user '.$username);
+			$this->session->set_userdata('successmessage', 'Password reset email sent. Check your email for further instructions.');
+		} else {
+			$this->logging->log('access', 'error', 'Failed to send password reset email for user '.$username);
+			$this->session->set_userdata('errormessage', 'Failed to send password reset email. Please contact an administrator.');
+		}
+
+		redirect($this->config->item('base_url').'login');
+	}
+
+	/**
+	 * Show the password reset form
+	 */
+	function reset_password($token = '') {
+		if ($this->session->userdata('logged_in')) {
+			redirect($this->config->item('base_url').'dashboard');
+		}
+
+		if (!$token) {
+			$this->session->set_userdata('errormessage', 'Invalid or missing reset token.');
+			redirect($this->config->item('base_url').'login');
+			return;
+		}
+
+		$reset = $this->db->get_where('password_reset_tokens', array('token' => $token))->row();
+
+		if (!$reset || $reset->used || strtotime($reset->expires) < time()) {
+			$this->session->set_userdata('errormessage', 'Password reset link has expired or is invalid.');
+			redirect($this->config->item('base_url').'login');
+			return;
+		}
+
+		$data['token'] = $token;
+		$this->load->view('login/reset_password_view', $data);
+	}
+
+	/**
+	 * Process password reset submission
+	 */
+	function process_reset_password() {
+		$token = $this->input->post('token');
+		$password = $this->input->post('password');
+		$password_confirm = $this->input->post('password_confirm');
+
+		if (!$token) {
+			$this->session->set_userdata('errormessage', 'Invalid or missing reset token.');
+			redirect($this->config->item('base_url').'login');
+			return;
+		}
+
+		if (!$password || !$password_confirm) {
+			$this->session->set_userdata('errormessage', 'Please enter and confirm your new password.');
+			redirect($this->config->item('base_url').'login/reset_password/'.$token);
+			return;
+		}
+
+		if ($password !== $password_confirm) {
+			$this->session->set_userdata('errormessage', 'Passwords do not match.');
+			redirect($this->config->item('base_url').'login/reset_password/'.$token);
+			return;
+		}
+
+		if (strlen($password) < 6) {
+			$this->session->set_userdata('errormessage', 'Password must be at least 6 characters long.');
+			redirect($this->config->item('base_url').'login/reset_password/'.$token);
+			return;
+		}
+
+		$reset = $this->db->get_where('password_reset_tokens', array('token' => $token))->row();
+
+		if (!$reset || $reset->used || strtotime($reset->expires) < time()) {
+			$this->session->set_userdata('errormessage', 'Password reset link has expired or is invalid.');
+			redirect($this->config->item('base_url').'login');
+			return;
+		}
+		require_once(APPPATH.'libraries/Authentication/phpass-0.1/PasswordHash.php');
+		if (!defined('PHPASS_HASH_STRENGTH')) {
+			define('PHPASS_HASH_STRENGTH', 8);
+		}
+		if (!defined('PHPASS_HASH_PORTABLE')) {
+			define('PHPASS_HASH_PORTABLE', false);
+		}
+		$hasher = new PasswordHash(PHPASS_HASH_STRENGTH, PHPASS_HASH_PORTABLE);
+		$hashed_password = $hasher->HashPassword($password);
+
+		$this->db->update('account',
+			array('password' => $hashed_password),
+			array('id' => $reset->account_id)
+		);
+
+		$this->db->update('password_reset_tokens',
+			array('used' => date('Y-m-d H:i:s')),
+			array('id' => $reset->id)
+		);
+
+		$account = $this->db->get_where('account', array('id' => $reset->account_id))->row();
+		$this->logging->log('access', 'info', 'User '.$account->username.' reset their password.');
+
+		$this->session->set_userdata('successmessage', 'Your password has been successfully reset. You can now log in with your new password.');
 		redirect($this->config->item('base_url').'login');
 	}
 }

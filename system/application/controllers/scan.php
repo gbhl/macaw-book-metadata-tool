@@ -706,7 +706,8 @@ class Scan extends Controller {
 			$config['smtp_port'] = $this->cfg['email_smtp_port'];
 			if ($this->cfg['email_smtp_user']) { $config['smtp_user'] = $this->cfg['email_smtp_user']; }
 			if ($this->cfg['email_smtp_pass']) { $config['smtp_pass'] = $this->cfg['email_smtp_pass']; }
-			
+			if ($this->cfg['email_smtp_crypto']) { $config['smtp_crypto'] = $this->cfg['email_smtp_crypto']; }
+
 			$this->email->initialize($config);
 			$this->email->from($this->cfg['admin_email'], 'MACAW Admin');
 			$this->email->to($qa_users);
