@@ -956,7 +956,7 @@ class Main extends Controller {
 		// Sanitize the barcode
 		$info['barcode'] = $this->common->clean_barcode($_POST['identifier']);
 		if ($_POST['identifier'] != $info['barcode']) {
-			$this->session->set_userdata('warning', 'The identifier was updated to "'.$info['barcode'].'"'.);
+			$this->session->set_userdata('warning', 'The identifier was updated to "'.$info['barcode'].'"');
 		}
 
 		try {

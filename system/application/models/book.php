@@ -90,7 +90,7 @@ class Book extends Model {
 		$old_barcode = $barcode;
 		$barcode = $this>common->clean_barcode($barcode);
 		if ($barcode != $old_barcode) {
-			$this->session->set_userdata('warning', 'The identifier was updated to "'.$info['barcode'].'"');
+			$this->session->set_userdata('warning', 'The identifier was updated to "'.$barcode.'"');
 		}
 
 		if (isset($barcode)) {

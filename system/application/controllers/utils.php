@@ -131,7 +131,7 @@ class Utils extends Controller {
 		$old_barcode = $barcode;
 		$barcode = $this->common->clean_barcode($barcode);
 		if ($barcode != $old_barcode) {
-			print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+			print "Warning: The identifier was updated to \"".$barcode."\"";
 		}
 
 		if (!$barcode) {
@@ -544,7 +544,7 @@ class Utils extends Controller {
 		$old_barcode = $barcode;
 		$barcode = $this->common->clean_barcode($barcode);
 		if ($barcode != $old_barcode) {
-			print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+			print "Warning: The identifier was updated to \"".$barcode."\"";
 		}
 
 		if (!$barcode) {
@@ -588,7 +588,7 @@ class Utils extends Controller {
 		$old_barcode = $barcode;
 		$barcode = $this->common->clean_barcode($barcode);
 		if ($barcode != $old_barcode) {
-			print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+			print "Warning: The identifier was updated to \"".$barcode."\"";
 		}
 
 		if (!$barcode) {
@@ -668,7 +668,7 @@ class Utils extends Controller {
 		$old_barcode = $barcode;
 		$barcode = $this->common->clean_barcode($barcode);
 		if ($barcode != $old_barcode) {
-			print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+			print "Warning: The identifier was updated to \"".$barcode."\"";
 		}
 
 		if (!$barcode) {
@@ -1173,7 +1173,7 @@ class Utils extends Controller {
 		$old_barcode = $barcode;
 		$barcode = $this->common->clean_barcode($barcode);
 		if ($barcode != $old_barcode) {
-			print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+			print "Warning: The identifier was updated to \"".$barcode."\"";
 		}
 
 		if (!$barcode) {
@@ -1303,7 +1303,7 @@ class Utils extends Controller {
 		$old_barcode = $barcode;
 		$barcode = $this->common->clean_barcode($barcode);
 		if ($barcode != $old_barcode) {
-			print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+			print "Warning: The identifier was updated to \"".$barcode."\"";
 		}
 
 		if (!$barcode) {
@@ -1664,7 +1664,7 @@ class Utils extends Controller {
 		$old_barcode = $barcode;
 		$barcode = $this->common->clean_barcode($barcode);
 		if ($barcode != $old_barcode) {
-			print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+			print "Warning: The identifier was updated to \"".$barcode."\"";
 		}
 
 		if (!$barcode) {
