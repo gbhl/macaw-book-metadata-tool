@@ -19,12 +19,12 @@
 
 	<div id="logincontainerborder">
 		<div id="logincontainer">
+			<?php $this->load->view('global/error_messages_view') ?>
 			<div id="loginheader">
 				<img id="hero" width="318" height="483" alt="Rosellas" src="<?php echo $this->config->item('base_url'); ?>images/rosellas_macaw_login.png">
 				<h1>Macaw</h1>
 				<h2>Metadata Collection and Workflow System</h2>
 			</div>
-			<?php $this->load->view('global/error_messages_view') ?>
 
 			<div id="logincontent">
 				<h3>Two-Factor Authentication</h3>

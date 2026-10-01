@@ -19,6 +19,7 @@
 
 	<div id="logincontainerborder">
 	<div id="logincontainer">
+		<?php $this->load->view('global/error_messages_view') ?>
 		<div id="loginheader">
 			<img id="hero" width="318" height="483" alt="Rosellas" src="<?php echo $this->config->item('base_url'); ?>images/rosellas_macaw_login.png">
 			<h1>Macaw</h1>
@@ -30,7 +31,6 @@
 				<h3>Version <?php echo($version_rev); ?> / <?php echo($version_date); ?></h3>
 			<?php } ?>
 		</div>
-		<?php $this->load->view('global/error_messages_view') ?>
 
 		<div id="logincontent">
 			<div id="logincontenttemplate" style="width:30px; display:none;visibility:hidden">

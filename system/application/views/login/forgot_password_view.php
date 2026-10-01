@@ -40,7 +40,6 @@
 				receive a password reset link.</p>
 
 				<?php echo form_open($this->config->item('base_url').'login/request_password_reset', array('id' => 'lostpwdform')) ?>
-					<div style="margin-bottom: 15px;">
 
 					<span class="loginlabel"><?php echo form_label('Email:','email') ?></span>
 					<span class="loginfield"><?php echo form_input(array('name' => 'email', 'id' => 'email', 'size' => '20', 'maxlength' => '128', 'tabindex' => '1')) ?></span>
