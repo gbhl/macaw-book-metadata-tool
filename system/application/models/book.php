@@ -956,13 +956,13 @@ class Book extends Model {
 			
 			$res = $query->result();
 			if ($get_size) {
-        for ($i = 0; $i < count($res); $i++) {
-          if (!$res[$i]->total_mbytes) {
-            $res[$i]->bytes = intval($this->_dir_size($this->cfg['data_directory'].'/'.$res[$i]->barcode))*1024;
-          } else {
-            $res[$i]->bytes = intval($res[$i]->total_mbytes)*1024;
-          }
-        }
+				for ($i = 0; $i < count($res); $i++) {
+					if (!$res[$i]->total_mbytes) {
+						$res[$i]->bytes = intval($this->_dir_size($this->cfg['data_directory'].'/'.$res[$i]->barcode))*1024;
+					} else {
+						$res[$i]->bytes = intval($res[$i]->total_mbytes)*1024;
+					}
+				}
 			} else {
 				for ($i = 0; $i < count($res); $i++) {
 					$res[$i]->bytes = 0;
@@ -976,6 +976,7 @@ class Book extends Model {
 		}
 	}
 
+	// TODO - Replace with Native CI1 function in file helper
 	function _dir_size($f) {
 		if (PHP_OS_FAMILY == 'Windows') {
 			$size = 0;
@@ -995,9 +996,8 @@ class Book extends Model {
 
 	function _rec_dir_size($f){
 		$size = 0;
-		foreach (glob(rtrim($f, '/').'/*', GLOB_NOSORT) as $each) 
-		{
-				$size += is_file($each) ? filesize($each) : $this->_rec_dir_size($each);
+		foreach (glob(rtrim($f, '/').'/*', GLOB_NOSORT) as $each)  {
+			$size += is_file($each) ? filesize($each) : $this->_rec_dir_size($each);
 		}
 		return $size;
 	}

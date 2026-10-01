@@ -260,31 +260,6 @@ class Admin extends Controller {
 	}
 
 	/**
-	 * Show the manual functions
-	 **/
-	/* LOCAL ADMIN COMPLETED */
-	function scheduled_jobs() {
-		$this->common->check_session();
-
-		// Permission Checking
-		if (!$this->user->has_permission('admin')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
-			redirect($this->config->item('base_url').'main/listitems');
-			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
-		}
-
-			
-		$data['export_modules'] = implode(', ',$this->cfg['export_modules']);
-		if (isset($this->cfg['demo_organization'])) {
-			$data['demo_org'] = $this->cfg['demo_organization'];
-		} else {
-			$data['demo_org'] = "none"; 
-		}
-		$data['admin'] = ($this->session->userdata('username') == 'admin');
-		$this->load->view('admin/scheduled_jobs_view.php', $data);
-	}
-
-	/**
 	 * Admin Maintenance Page
 	 *
 	 * Provides tools for admins to perform occasional administrative tasks

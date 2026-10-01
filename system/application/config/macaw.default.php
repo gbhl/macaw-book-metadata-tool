@@ -360,14 +360,6 @@ $config['macaw']['jpeg2000_quality_pdf'] = '40';
 // $config['macaw']['purge_ia_deriatives'] = FALSE;
 
 // ------------------------------
-// Demo Organization
-// ------------------------------
-// Macaw likes to keep things clean. If this is set to the NAME of an orgnaization, all of the items for that
-// organization will be purged nightly and replaced with a single test item. The name must match exactly 
-// to the name of the organization in the /admin/contributors page.
-// $config['macaw']['demo_organization'] = '';
-
-// ------------------------------
 // EXPORT CONCURRENCY
 // ------------------------------
 // How many items can we export at one time? Currently this is only used

@@ -130,10 +130,10 @@ class Scan extends Controller {
 			// Now we can spawn the cron process.
 			if (PHP_OS_FAMILY == 'Windows') {
 				$php_exe = $this->common->get_php_exe();
-				$cmd = 'START /b "" "'.$php_exe.'" "'.$this->cfg['base_directory'].'/index.php" "cron" "import_pages" "'.$this->book->barcode.'" *> '.$this->cfg['logs_directory'].'\background.log & ';
+				$cmd = 'START /b "" "'.$php_exe.'" "'.$this->cfg['base_directory'].'/index.php" "cron" "import_pages" "'.escapeshellarg($this->book->barcode).'" *> '.$this->cfg['logs_directory'].'\background.log & ';
 				pclose(popen($cmd,"r"));
 			} else {
-				system('MACAW_OVERRIDE=1 "'.PHP_BINDIR.DIRECTORY_SEPARATOR.'php" "'.$this->cfg['base_directory'].'/index.php" cron import_pages \''.$this->book->barcode.'\' > /dev/null 2> /dev/null < /dev/null &');
+				system('MACAW_OVERRIDE=1 "'.PHP_BINDIR.DIRECTORY_SEPARATOR.'php" "'.$this->cfg['base_directory'].'/index.php" cron import_pages \''.escapeshellarg($this->book->barcode).'\' > /dev/null 2> /dev/null < /dev/null &');
 			}
 			
 		} catch (Exception $e) {

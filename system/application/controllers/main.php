@@ -1134,12 +1134,12 @@ class Main extends Controller {
 			chdir($this->cfg['base_directory']);
 			if (PHP_OS_FAMILY == 'Windows') {
 				$php_exe = $this->common->get_php_exe();
-				$cmd = 'START /b "" "'.$php_exe.'" "'.$this->cfg['base_directory'].DIRECTORY_SEPARATOR.'index.php" utils csvimport "'.$fname.'" "'.$fname2.'" "'.$username.'" '.' *> '.$this->cfg['logs_directory'].'\background.log & ';
+				$cmd = 'START /b "" "'.$php_exe.'" "'.$this->cfg['base_directory'].DIRECTORY_SEPARATOR.'index.php" utils csvimport "'.$fname.'" "'.$fname2.'" "'.escapeshellarg($username).'" '.' *> '.$this->cfg['logs_directory'].'\background.log & ';
 				$this->logging->log('access', 'info', 'Importing CSV file(s): '.$fname.' and '.$fname2);
 				$this->logging->log('access', 'info', 'Command: '.$cmd);
 				pclose(popen($cmd,"r"));
 			} else {
-				$cmd = PHP_BINDIR.DIRECTORY_SEPARATOR.'php index.php utils csvimport "'.$fname.'" "'.$fname2.'" "'.$username.'" > /dev/null 2>&1 &'; 
+				$cmd = PHP_BINDIR.DIRECTORY_SEPARATOR.'php index.php utils csvimport "'.$fname.'" "'.$fname2.'" "'.escapeshellarg($username).'" > /dev/null 2>&1 &'; 
 				$this->logging->log('access', 'info', 'Importing CSV file(s): '.$fname.' and '.$fname2);
 				$this->logging->log('access', 'info', 'Command: '.$cmd);
 				system($cmd);
