@@ -169,7 +169,7 @@ class Login extends Controller {
 		$account = $this->db->get_where('account', array('email' => $email))->row();
 
 		if (!$account || !$account->email) {
-			$this->session->set_userdata('successmessage', 'If an account exists with that email address, you will receive a message with a password reset link.');
+			$this->session->set_userdata('message', 'If an account exists with that email address, you will receive a message with a password reset link.');
 			redirect($this->config->item('base_url').'login');
 			return;
 		}
@@ -214,7 +214,7 @@ class Login extends Controller {
 
 		if ($this->email->send()) {
 			$this->logging->log('access', 'error', 'Sent password reset email to '.$email);
-			$this->session->set_userdata('successmessage', 'If an account exists with that email address, you will receive a message with a password reset link.');
+			$this->session->set_userdata('message', 'If an account exists with that email address, you will receive a message with a password reset link.');
 		} else {
 			$this->logging->log('access', 'error', 'Failed to send password reset email to '.$email);
 			$this->session->set_userdata('errormessage', 'Failed to send password reset email.');
@@ -311,7 +311,7 @@ class Login extends Controller {
 		$account = $this->db->get_where('account', array('id' => $reset->account_id))->row();
 		$this->logging->log('access', 'info', 'User '.$account->username.' reset their password.');
 
-		$this->session->set_userdata('successmessage', 'Your password has been successfully reset. You can now log in with your new password.');
+		$this->session->set_userdata('message', 'Your password has been successfully reset. You can now log in with your new password.');
 		redirect($this->config->item('base_url').'login');
 	}
 }

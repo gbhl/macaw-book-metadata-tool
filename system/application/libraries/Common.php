@@ -682,7 +682,12 @@ class Common extends Controller {
 	 * @param string [$barcode] The barcode of the item we want to export
 	 */
 	function serialize($barcode) {
+
+		$old_barcode = $barcode;
 		$barcode = $this->CI->common->clean_barcode($barcode);
+		if ($barcode != $old_barcode) {
+			print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+		}
 
 		if (!$barcode) {
 			throw new Exception("Please supply a barcode.");

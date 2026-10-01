@@ -128,7 +128,11 @@ class Utils extends Controller {
 			return;
 		}
 		// Sanitize the barcode to prevent errors
+		$old_barcode = $barcode;
 		$barcode = $this->common->clean_barcode($barcode);
+		if ($barcode != $old_barcode) {
+			print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+		}
 
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
@@ -537,7 +541,11 @@ class Utils extends Controller {
 		}
 
 		// Sanitize the barcode to prevent errors
+		$old_barcode = $barcode;
 		$barcode = $this->common->clean_barcode($barcode);
+		if ($barcode != $old_barcode) {
+			print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+		}
 
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
@@ -577,7 +585,11 @@ class Utils extends Controller {
 		}
 
 		// Sanitize the barcode to prevent errors
+		$old_barcode = $barcode;
 		$barcode = $this->common->clean_barcode($barcode);
+		if ($barcode != $old_barcode) {
+			print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+		}
 
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
@@ -653,7 +665,11 @@ class Utils extends Controller {
 		}
 
 		// Sanitize the barcode to prevent errors
+		$old_barcode = $barcode;
 		$barcode = $this->common->clean_barcode($barcode);
+		if ($barcode != $old_barcode) {
+			print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+		}
 
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
@@ -936,7 +952,7 @@ class Utils extends Controller {
 	 * 
 	 * @since Version 1.6
 	 */
-	function csvimport($filename, $filename2 = null, $username = 'admin') {
+	function csvimport($filename = null, $filename2 = null, $username = 'admin') {
 		$this->load->library('clicheck');
 		if (!$this->clicheck->isCli()) { 
 			show_404();
@@ -1009,7 +1025,12 @@ class Utils extends Controller {
 			$max = count($info);
 			foreach ($info as $b) {
 				// Sanitize the barcode to prevent errors
+				$old_barcode = $b['identifier'];
 				$b['identifier'] = $this->common->clean_barcode($b['identifier']);
+				if ($b['identifier'] != $old_barcode) {
+					print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+				}
+
 				// Is this book already in our database?				
 				if (!$this->book->exists($b['identifier'])) {
 					try {			
@@ -1149,7 +1170,11 @@ class Utils extends Controller {
 		} 
 
 		// Sanitize the barcode to prevent errors
+		$old_barcode = $barcode;
 		$barcode = $this->common->clean_barcode($barcode);
+		if ($barcode != $old_barcode) {
+			print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+		}
 
 		if (!$barcode) {
 			echo "Please supply a barcode\n";
@@ -1275,7 +1300,11 @@ class Utils extends Controller {
 		} 
 
 		// Sanitize the barcode to prevent errors
+		$old_barcode = $barcode;
 		$barcode = $this->common->clean_barcode($barcode);
+		if ($barcode != $old_barcode) {
+			print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+		}
 
 		if (!$barcode) {
 			print "Barcode is requred!\n";
@@ -1632,7 +1661,11 @@ class Utils extends Controller {
 		} 
 
 		// Sanitize the barcode to prevent errors
+		$old_barcode = $barcode;
 		$barcode = $this->common->clean_barcode($barcode);
+		if ($barcode != $old_barcode) {
+			print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+		}
 
 		if (!$barcode) {
 			echo "Please supply a barcode\n";

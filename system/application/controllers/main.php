@@ -116,7 +116,7 @@ class Main extends Controller {
 		}
 
 		// Get the barcode from the form
-		$barcode = $value; // TODO: Validate this as numbers only
+		$barcode = $this->common->clean_barcode($value);
 
 		$ret = $this->common->validate_log_config($barcode);
 		if ($ret) {
@@ -196,6 +196,7 @@ class Main extends Controller {
 			return;
 		}
 
+		
 		// Get the barcode from the form		
 		if (!$this->book->exists($barcode)) {
 			// We don't want to be left with a situation that makes the user thinks they
@@ -237,15 +238,15 @@ class Main extends Controller {
 					redirect($this->config->item('base_url').'scan/review');
 
 				} elseif ($this->book->status == 'reviewed') {
-  				redirect($this->config->item('base_url').'scan/review');
+				redirect($this->config->item('base_url').'scan/review');
 
 				} elseif ($this->book->status == 'completed' || $this->book->status == 'exporting' || $this->book->status == 'archived'){
-          $this->session->set_userdata('warning', 'This item can no longer be edited. You are seeing the item\'s history instead.');
-          redirect($this->config->item('base_url').'scan/history');
+					$this->session->set_userdata('warning', 'This item can no longer be edited. You are seeing the item\'s history instead.');
+					redirect($this->config->item('base_url').'scan/history');
 
 				} elseif ($this->book->status == 'error' ){
-          $this->session->set_userdata('errormessage', 'This item has had an error. Here is the history of the item to help debug.');
-          redirect($this->config->item('base_url').'scan/history');
+					$this->session->set_userdata('errormessage', 'This item has had an error. Here is the history of the item to help debug.');
+					redirect($this->config->item('base_url').'scan/history');
 
 				} else {
 					redirect($this->config->item('base_url').'main');
@@ -954,6 +955,9 @@ class Main extends Controller {
 		// Get our book
 		// Sanitize the barcode
 		$info['barcode'] = $this->common->clean_barcode($_POST['identifier']);
+		if ($_POST['identifier'] != $info['barcode']) {
+			$this->session->set_userdata('warning', 'The identifier was updated to "'.$info['barcode'].'"'.);
+		}
 
 		try {
 			$this->book->add($info);

@@ -180,7 +180,7 @@ class Contributor extends Controller {
 				$this->organization->add();
 
 				// Redirect to organization list on success
-				$this->session->set_userdata('successmessage', 'Contributor added!');
+				$this->session->set_userdata('message', 'Contributor added!');
 				$this->logging->log('access', 'info', 'Added contributor '.$this->input->post('name'));
 				redirect('admin/contributors/');
 			} catch (Exception $e) {
@@ -215,7 +215,7 @@ class Contributor extends Controller {
 				$this->organization->update();
 
 				// Redirect to organization list on success
-				$this->session->set_userdata('successmessage', 'Changes saved!');
+				$this->session->set_userdata('message', 'Changes saved!');
 				$this->logging->log('access', 'info', 'Updated Contributor: '.$this->input->post('name'). ' (id '.$this->input->post('id').')');
 				redirect('admin/contributors/');
 			} catch (Exception $e) {
