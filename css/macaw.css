@@ -136,18 +136,20 @@ td.yui-dt-last {
 	width: 92%;
 	font-family: Georgia;	
 	text-align: left;
+	font-size: 110%;
 	line-height: 20px;
 	min-height: 40px;	
 	z-index: 12;
 	position: absolute;
 	border-radius: 6px;
 	border: 4px solid #999;
+	left: 0;
+	right: 0;
+	margin-inline: auto;
 }
 .message-overlay .icon {
-	height: 42px;
-	width: 42px;
-	float: left;
-	margin-right: 15px;
+	font-size: 130%;
+	margin: 0 1rem;
 }
 .message-overlay button {
 	padding: 4px 10px;
@@ -162,35 +164,20 @@ td.yui-dt-last {
 	padding:10px;
 	border: 2px solid;
 }
-#message {
-	border-color: #c7d7b8;
-	color: #21350e;
+#alert.error { 
+	border-color: #FF0000;
+	color: #450000;
+	background: #FFD9D9;
+}
+#alert.warning { 
+	border-color: #ec9001;
+	color: #7d4c00;
+	background: #ffe8c5;
+}
+#alert.message {
+	border-color: #5DA31C;
+	color: #21350E;
 	background: #E8EEE0;
-}
-#warning {
-	border-color: #fac287;
-	color: rgb(68, 36, 0);
-	background: #FFF0C9;
-}
-#errormessage {
-	border-color: #f3b5b1;
-	color:#410000;
-	background: #f8e3e1;
-}
-#errormessage ul {
-	margin: 0 0 0 60px;
-}
-#errormessage li {
-	list-style: disc outside;
-}
-#message .icon {
-	 background: url(../images/round_info_green_icon.png) no-repeat center left;
-}
-#warning .icon {
-	background: url(../images/triangle_warning_icon.png) no-repeat center left;
-}
-#errormessage .icon {
-	background: url(../images/round_error_icon.png) no-repeat center left;
 }
 /* ****************************** */
 /* Global Header */

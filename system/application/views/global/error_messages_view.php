@@ -1,14 +1,28 @@
 <?php
-if ($this->session->userdata('message')) {
-	echo ('<div id="message" class="message-overlay"><div class="icon"></div>'.htmlentities($this->session->userdata('message')).'<button id="btnCloseMessage">Close</button></div>');
-	$this->session->set_userdata('message', '');
+if ($this->session->userdata('message') || 
+    $this->session->userdata('warning') || 
+	$this->session->userdata('errormessage')) { 
+		$class = '';
+		if ($this->session->userdata('message')) { $class = "message "; }
+		if ($this->session->userdata('warning')) { $class = "warning "; }
+		if ($this->session->userdata('errormessage')) { $class = "error"; }
+	?>
+	<div id="alert" class="message-overlay <?php echo $class; ?>">
+		<?php if ($this->session->userdata('message')) { ?>
+			<p><span class="icon">✅</span><?php echo htmlentities($this->session->userdata('message')); ?></p>
+		<?php } ?>
+		<?php if ($this->session->userdata('warning')) { ?>
+			<p><span class="icon">⚠️</span><?php echo htmlentities($this->session->userdata('warning')); ?></p>
+		<?php } ?>
+		<?php if ($this->session->userdata('errormessage')) { ?>
+			<p><span class="icon">⛔</span><?php echo htmlentities($this->session->userdata('errormessage')); ?></p>
+		<?php } ?>
+		<button id="btnCloseMessage">Close</button>
+	</div>
+<?php 
 }
-if ($this->session->userdata('warning')) {
-	echo ('<div id="warning" class="message-overlay"><div class="icon"></div>'.htmlentities($this->session->userdata('warning')).'<button id="btnCloseWarning">Close</button></div>');
-	$this->session->set_userdata('warning', '');
-}
-if ($this->session->userdata('errormessage')) {
-	echo ('<div id="errormessage" class="message-overlay"><div class="icon"></div>'.htmlentities($this->session->userdata('errormessage')).'<button id="btnCloseError">Close</button></div>');
-	$this->session->set_userdata('errormessage', '');
-}
-
+// Clear the errors
+$this->session->set_userdata('message', '');
+$this->session->set_userdata('warning', '');
+$this->session->set_userdata('errormessage', '');
+?>
