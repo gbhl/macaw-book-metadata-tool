@@ -320,7 +320,6 @@ class Admin extends Controller {
 
 		$summary = array(
 			'macaw_access' => 0,
-			'macaw_activity' => 0,
 			'macaw_cron' => 0,
 			'macaw_error' => 0,
 			'books' => 0,
@@ -339,9 +338,6 @@ class Admin extends Controller {
 
 				if (strpos($file, 'macaw_access') === 0) {
 					$summary['macaw_access']++;
-					$is_macaw = true;
-				} elseif (strpos($file, 'macaw_activity') === 0) {
-					$summary['macaw_activity']++;
 					$is_macaw = true;
 				} elseif (strpos($file, 'macaw_cron') === 0) {
 					$summary['macaw_cron']++;
@@ -507,7 +503,7 @@ class Admin extends Controller {
 		}
 		$deleted_count = $this->common->clean_logs();
 
-		$this->logging->log('activity', 'info', 'Deleted '.$deleted_count.' old log files');
+		$this->logging->log('access', 'info', 'Deleted '.$deleted_count.' old log files');
 		echo json_encode(array('success' => true, 'deleted' => $deleted_count));
 	}
 
@@ -576,7 +572,7 @@ class Admin extends Controller {
 			if (is_dir($dir_path)) {
 				delete_files($dir_path, true);
 				$deleted_count++;
-				$this->logging->log('activity', 'info', 'Deleted Internet Archive export directory for: '.$barcode);
+				$this->logging->log('access', 'info', 'Deleted Internet Archive export directory for: '.$barcode);
 			}
 		}
 
@@ -596,7 +592,7 @@ class Admin extends Controller {
 		$subject = 'Macaw Email Test';
 		$message = 'This is a test email from Macaw Maintenance page. If you received this, email is configured correctly.';		
 		if ($this->common->email_admin($message, $subject, false)) {
-			$this->logging->log('activity', 'info', 'Test email sent to '.$to);
+			$this->logging->log('access', 'info', 'Test email sent to '.$to);
 			echo json_encode(array('success' => true, 'message' => 'Test email sent to '.$to));
 		} else {
 			$this->logging->log('error', 'info', 'Failed to send test email:');
@@ -629,7 +625,7 @@ class Admin extends Controller {
 		// $this->email->message($message);
 
 		// if ($this->email->send()) {
-		// 	$this->logging->log('activity', 'info', 'Test email sent to '.$to);
+		// 	$this->logging->log('access', 'info', 'Test email sent to '.$to);
 		// 	echo json_encode(array('success' => true, 'message' => 'Test email sent to '.$to));
 		// } else {
 		// 	$this->logging->log('error', 'info', 'Failed to send test email: '.$this->email->print_debugger());

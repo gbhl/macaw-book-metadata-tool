@@ -315,13 +315,6 @@ YAHOO.macaw.SAMPLE.metadataChange = function(obj) {
 	// We CANNOT do this:  this[fields[f].id] = obj.value      (The "this" object refers to something else entirely)
 	// We CANNOT do this:  pg[i].set(fields[f].id, obj.value)
 
-	// Log all the pages that were modified at once to not spam the server
-	if (obj.id != 'metadata_form') {
-		if (!multiple || (multiple && obj.value)) {
-			Scanning.log(page_ids.join('|'), obj.id, obj.value);
-		}
-	}
-
 	oBook._updateDataTableRecordset();
 }
 

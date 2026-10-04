@@ -142,7 +142,6 @@ YAHOO.macaw.Page = function(parent, data, mdModules) {
 	this.delete = function() {
 		this.deleted = true;
 		General.divDelete(this.elemThumbnailLI.id);
-		Scanning.log(this.pageID, 'PageDeleted', 'DELETED');
 	};
 	// ----------------------------
 	// Function: select()

@@ -106,7 +106,6 @@
 					<p>Current log files in the system:</p>
 					<ul>
 						<li>Macaw Access Logs: <?php echo $log_summary['macaw_access']; ?> files</li>
-						<li>Macaw Activity Logs: <?php echo $log_summary['macaw_activity']; ?> files</li>
 						<li>Macaw Cron Logs: <?php echo $log_summary['macaw_cron']; ?> files</li>
 						<li>Macaw Error Logs: <?php echo $log_summary['macaw_error']; ?> files</li>
 						<li>Book Logs: <?php echo $log_summary['books']; ?> files <em>(never deleted)</em></li>

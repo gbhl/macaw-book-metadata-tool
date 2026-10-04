@@ -82,30 +82,6 @@ class Utils extends Controller {
 	}
 
 	/**
-	 * Log activity while reviewing
-	 *
-	 * AJAX: While scanning a book, it becomes useful to know what a user has done
-	 * in detail in order to offer something for forensic analysis should
-	 * something horrible go wrong. To this end, we've added a JS function that
-	 * calls this /scan/log/ function to track a user's activities. The data
-	 * sent here is passed directly to the standard Macaw logging function.
-	 *
-	 * POST Parameters are: pageid, field, value
-	 *
-	 * @since Version 1.1
-	 */
-	function log() {
-		$data = json_decode($this->input->post('data'));
-
-		$this->logging->log(
-			'activity',
-			'info',
-			'Item='.$this->session->userdata('barcode').', Page='.$data->pageid.', Field='.$data->field.', Value='.$data->value
-		);
-		echo "Ok";
-	}
-
-	/**
 	 * Reopen/reset an item
 	 *
 	 * CLI: Given a barcode on the command line, this will reset the item so that it can be

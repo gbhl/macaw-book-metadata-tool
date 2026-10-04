@@ -242,17 +242,6 @@ class Common extends Controller {
 			}
 		}
 
-		// Can we write to the activity log?
-		$fname = 'macaw_activity.log';
-		if ($this->cfg['activity_log']) {
-			$fname = $this->macaw_strftime($this->cfg['activity_log']);
-		}
-		if (file_exists($path.'/'.$fname)) {
-			if (!$this->path_is_writable($path.'/'.$fname)) { 
-				return $fname;
-			}
-		}
-
 		// Can we write to the cron log?
 		$fname = 'macaw_cron.log';
 		if ($this->cfg['cron_log']) {
@@ -686,7 +675,7 @@ class Common extends Controller {
 		$old_barcode = $barcode;
 		$barcode = $this->CI->common->clean_barcode($barcode);
 		if ($barcode != $old_barcode) {
-			print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+			print "Warning: The identifier was updated to \"".$barcode."\"";
 		}
 
 		if (!$barcode) {
@@ -813,7 +802,6 @@ class Common extends Controller {
 	 * delete log files that are older than that. Only affects files named
 	 * 
 	 *   macaw_access.YYYYMMDD.log
-	 *   macaw_activity.YYYYMMDD.log
 	 *   macaw_error.YYYYMMDD.log
 	 *   macaw_cron.YYYYMMDD.log
 	 */
@@ -836,7 +824,7 @@ class Common extends Controller {
 				}
 
 				$file_path = $logs_dir . '/' . $file;
-				if (preg_match('/macaw_(access|activity|error|cron)\./', $file)) {
+				if (preg_match('/macaw_(access|error|cron)\./', $file)) {
 					if (filemtime($file_path) < $cutoff_time) {
 						unlink($file_path);
 						$deleted_count++;
