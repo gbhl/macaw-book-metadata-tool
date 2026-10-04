@@ -115,7 +115,6 @@ class Utils extends Controller {
 	 * Usage: 
 	 *    sudo -u apache php index.php utils reset_item 3908808264355 
 	 *    sudo -u apache php index.php utils reset_item 3908808264355 /path/to/SomeFilename_orig_tiff.tar
-	 *    sudo -u apache php index.php utils reset_item 3908808264355 sftp://server/path/to/file.tar
 	 *    sudo -u apache php index.php utils reset_item 3908808264355 internet_archive_pdf
 	 *    sudo -u apache php index.php utils reset_item 3908808264355 internet_archive
 	 * 
@@ -141,7 +140,6 @@ class Utils extends Controller {
 		function reset_usage() {
 			print "USAGE: sudo -u WWW_USER php index.php utils reset_item IDENTIFIER\n";
 			print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER PATH\n";
-			print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER SFTP://SERVER/PATH/TO/FILE\n";
 			print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER internet_archive_pdf\n";
 			print "       sudo -u WWW_USER php index.php utils reset_item IDENTIFIER internet_archive\n";
 			print "\n";
@@ -344,24 +342,7 @@ class Utils extends Controller {
 				return;
 			}
 			
-			// Does the path start with sftp://?
-			if ((int)strpos($ia_or_filename,'sftp:/') > 0) {
-				$this->logging->log('book', 'info', 'Downloading images from the SFTP.', $barcode);
-				// It does, see if we can grab the file and then treat it as a regular file.
-				print "Downloading via SCP/SFTP...\n";
-				$ret = $this->_get_ssh_file($ia_or_filename);
-				if ($ret === false) {
-					print "Unable to connect via ssh. Check server and username.\n";
-					return;
-				}
-				if ($ret === null) {
-					print "unable to copy file from SFTP\n";
-					return;
-				}
-				$filename = $ret;
-			} else {
-				$filename = '/'.$ia_or_filename;
-			}
+			$filename = '/'.$ia_or_filename;
 
 			// try looking for the file 
 			if (!file_exists($filename)) {
@@ -1571,29 +1552,6 @@ class Utils extends Controller {
 
 			}
 		}
-	}
-	
-	/**
-	 * Download a file over SSH/SCP
-	 * 
-	 * INTERNAL/UTILITY: Used during reset_item to get the _orig_tiff.tar file over the network. 
-	 */	
-	private function _get_ssh_file($filename) {
-		$ssh_user_and_host = '';
-		$ssh_path = '';
-
-		$matches = [];
-		if (preg_match('|^sftp://?(.*?)/(.*?)$|',$filename, $matches)) {
-			$ssh_user_and_host = $matches[1];
-			$ssh_path = '/'.$matches[2];
-		}
-		$temp = $this->cfg['data_directory'].'/import_export/'.basename($filename);
-		$cmd = "scp -q {$ssh_user_and_host}:/{$ssh_path} {$temp}";
-		`$cmd`;
-		if (file_exists($temp)) {
-			return $temp;
-		}
-		return false;
 	}
 
 	/**
