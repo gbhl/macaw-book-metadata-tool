@@ -30,9 +30,10 @@
 // ------------------------
 // 2010-07-07  JMR  Created
 // 2011-08-11  JMR  Trimmed down to include only the export() method
-//
+// 2026-10-04  JMG  Small Updates
 // ***********************************************************
 
+// Important: Class Name and Filename must match the regex: [A-Za-z0-9_]
 class Export_Generic extends Controller {
 
 	// ----------------------------
@@ -42,10 +43,6 @@ class Export_Generic extends Controller {
 	// here as you build your module. You should customize this as
 	// necessary for the individual export destination.
 	// ----------------------------
-	// private $submission_url = "http://submit.website.com/";
-	// private $submission_key = "kiDtXwew234FwkKJUDdkv3tj3RXF6uigFqET";
-	// private $harvest_url    = "http://www.website.com/";
-	// private $harvest_items  = array('ocr.txt','meta.xml','other-file.pdf');
 
 	var $CI;
 	var $cfg;
@@ -58,7 +55,7 @@ class Export_Generic extends Controller {
 	// anything here, either.
 	// ----------------------------
 
-	function Export_Generic() {
+	function __construct() {
 		$this->CI = get_instance();
 		$this->cfg = $this->CI->config->item('macaw');
 	}
@@ -81,32 +78,32 @@ class Export_Generic extends Controller {
 	function export($args) {
 
 		// --------------------------------------
-    // If we can run multiple exports, then do so
+		// If we can run multiple exports, then do so
 		// --------------------------------------
-    $limit = 1;
-    if (array_key_exists('export_concurrency_limit', $this->cfg)) {
-      $limit = (int)$this->cfg['export_concurrency_limit'];
-      if ($limit < 1) { $limit = 1; } // Limit the limits
-    }
+		$limit = 1;
+		if (array_key_exists('export_concurrency_limit', $this->cfg)) {
+			$limit = (int)$this->cfg['export_concurrency_limit'];
+			if ($limit < 1) { $limit = 1; } // Limit the limits
+		}
 
 		// --------------------------------------
-    // Are there too many sibling processes? 
+		// Are there too many sibling processes? 
 		// --------------------------------------
-    $found = $this->count_exports();
+		$found = $this->count_exports();
 
-    if ($found > ($limit-1)) { // We subtract one to account for ourself
-      // No, so we quit.
-      if (!getenv("MACAW_OVERRIDE")) {
-        $this->CI->logging->log('access', 'info', "Too many Internet_archive children. Exiting.");
-        return false;
-      } else {
-        $this->CI->logging->log('access', 'info', "Got override. Continuing.");
-      }
-    }
+		if ($found > ($limit-1)) { // We subtract one to account for ourself
+			// No, so we quit.
+			if (!getenv("MACAW_OVERRIDE")) {
+			$this->CI->logging->log('access', 'info', "Too many Internet_archive children. Exiting.");
+			return false;
+			} else {
+			$this->CI->logging->log('access', 'info', "Got override. Continuing.");
+			}
+		}
 
-    // --------------------------------------
-    // Start the export work here
-    // --------------------------------------
+		// --------------------------------------
+		// Start the export work here
+		// --------------------------------------
 
 	}
 
@@ -114,34 +111,35 @@ class Export_Generic extends Controller {
 	// Function: count_exports()
 	//
 	// Count how many processes like ourselves already exists.
-  // 
-  // Self-contained, but using this on windows will usually
-  // always return 1. 
+	// 
+	// Self-contained, but using this on windows will usually
+	// always return 1. 
 	// ----------------------------
-  function count_exports() {
+	function count_exports($search = null) {
 		// --------------------------------------
-    // Count how many are running, remember we count as one process
+		// Count how many are running, remember we count as one process
 		// --------------------------------------
 		$commands = array();
 		$pid = getmypid().'';
 		$found = 0;
-    $search = "export ".basename(__FILE__, '.php'); 
+		if (!$search) {
+			$search = "export ".basename(__FILE__, '.php'); 
+		}
 
-    if (PHP_OS_FAMILY == 'Windows') {
-      // Windows will be always be limited to 1.
-			exec("tasklist | FIND \"php\"",$commands);
+		if (PHP_OS_FAMILY == 'Windows') {
+			// Windows will be always be limited to 1.
+			exec("tasklist | FIND \"php\"", $commands);
 			$search = "php.exe";
 		} else {
 			exec("ps -fe | grep -v sudo | grep php", $commands);
 		}
-    
 		if (count($commands) > 0) {
 			foreach ($commands as $command) {
-				if (strpos($command, $search) > 0 && strpos($command, $pid) == 0) {
+				if (strpos($command, $search) !== false && strpos($command, $pid) === false) {
 					$found++;
 				}
 			}
 		}
-    return $found;
-  }
+		return $found;
+	}
 }

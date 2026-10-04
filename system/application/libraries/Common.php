@@ -888,46 +888,14 @@ class Common extends Controller {
 				$found = true; continue;
 			}
 			if (!$found) {
-				// 3. Get the number of bytes used in the /books/ directory
-				if (PHP_OS_FAMILY == 'Windows') {
-					$df_e = disk_free_space("E:");
-					$ds = disk_total_space("E:");
-					$dup = 0;
-					if ($ds != 0){
-						$dup = (($ds - $df_e)/$ds)*100;
-					}
-					echo('percentage'.$dup);
-					$this->CI->db->query(
-						"insert into logging (date, statistic, value) values (
-							date_trunc('d', now() - interval '1 day') ,
-							'disk-usage',
-							".$dup."
-						)"
-					);
-				} else {
-					$output = array();
-					$matches = array();
-					exec('df -k '.$this->CI->cfg['data_directory'], $output);
-					$pct = preg_match('/\b([0-9]+)\%/', $output[1], $matches);
-					
-					$this->CI->db->query(
-						"insert into logging (date, statistic, value) values (
-							date_trunc('d', now() - interval '1 day') ,
-							'disk-usage',
-							".$matches[1]."
-						)"
-					);
-				}
-				
-// Changed this to use percent, rather than actual bytes.				
-// 				$bytes = preg_match('/^.*? +\d+ (\d+)/', $output[1], $matches);
-// 				$this->CI->db->query(
-// 					"insert into logging (date, statistic, value) values (
-// 						date_trunc('d', now() - interval '1 day') ,
-// 						'disk-usage',
-// 						".($matches[1] * 1024)."
-// 					)"
-// 				);
+				// 3. Get percent disk space used in the /books/ directory
+				$p = $this->CI->cfg['data_directory'];
+				$usage = (100-round(disk_free_space($p)/disk_total_space($p)*100));
+				$this->CI->db->query(
+					"insert into logging (date, statistic, value) values (
+					date_trunc('d', now() - interval '1 day'), 'disk-usage', ?)", 
+					array($usage)
+				);
 			}
 		} elseif ($this->CI->db->dbdriver == 'mysql' || $this->CI->db->dbdriver == 'mysqli') {
 			// Has this statistic already been generated

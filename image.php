@@ -93,7 +93,11 @@
 
 	# Now safe to serve
 	if (file_exists($real_file)) {
-		header('Content-Type: ' . mime_content_type($real_file));
+
+		$finfo = finfo_open(FILEINFO_MIME_TYPE);
+		$mime = finfo_file($finfo, $real_file);
+		finfo_close($finfo);
+		header('Content-Type: ' . ($mime ?: 'application/octet-stream'));
 		readfile($real_file);
 	} else {
 		http_response_code(404);
