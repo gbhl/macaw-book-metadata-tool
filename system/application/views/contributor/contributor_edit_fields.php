@@ -6,10 +6,12 @@
 		<input type="hidden" name="id" value="<?php echo($id); ?>">
 	<?php }?>
 	<table border="1" cellspacing="5" cellpadding="5">
-		<tr class="row">
-			<td class="fieldname">Contributor ID:</td>
-			<td><?php echo($id) ?></td>
-		</tr>
+		<?php if (!$new) { ?>
+			<tr class="row">
+				<td class="fieldname">Contributor ID:</td>
+				<td><?php echo($id) ?></td>
+			</tr>
+		<?php } ?>
 		<tr class="row">
 			<td class="fieldname">Contributor Name:</td>
 			<td><input type="text" name="name" value="<?php echo($name) ?>" size="25"> (req.)</td>
@@ -59,7 +61,7 @@
 			</tr>
 			<tr class="row">
 				<td class="fieldname">Secret Key:</td>
-				<td><input type="password" name="secret_key" autocomplete="false" value="<?php echo($secret_key) ?>" size="25" maxlength="64"> (max: 64 chars)</td>
+				<td><input type="password" name="secret_key" autocomplete="false" value="" size="25" maxlength="64"> (max: 64 chars)</td>
 			</tr>
 		<?php } ?>
 	</table>

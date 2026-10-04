@@ -11,5 +11,4 @@ if ($this->session->userdata('errormessage')) {
 	echo ('<div id="errormessage" class="message-overlay"><div class="icon"></div>'.htmlentities($this->session->userdata('errormessage')).'<button id="btnCloseError">Close</button></div>');
 	$this->session->set_userdata('errormessage', '');
 }
-?>
 

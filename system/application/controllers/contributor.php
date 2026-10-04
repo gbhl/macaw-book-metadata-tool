@@ -21,7 +21,36 @@ class Contributor extends Controller {
 
 	function index() {
 		$this->common->check_session();
-		redirect($this->config->item('base_url').'admin/contributors');
+		// Permission Checking
+		if (!$this->user->has_permission('admin')) {
+			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			redirect($this->config->item('base_url').'main/listitems');
+			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
+		}
+
+		$this->load->view('contributor/contributor_view');
+	}
+
+	/**
+	 * Get a list of all organizations
+	 *
+	 *
+	 * @since Version 1.7
+	 */
+	/* LOCAL ADMIN COMPLETED */
+	function list() {
+		// Make sure we are logged in and stuff
+		if (!$this->common->check_session(true)) {
+			return;
+		}
+		if (!$this->user->has_permission('admin')) {
+			$this->common->ajax_headers();
+			echo json_encode(array('error' => 'Permission denied.'));
+			return;
+		}
+
+		$this->common->ajax_headers();
+		echo json_encode($this->organization->get_list());
 	}
 
 		/**
@@ -38,16 +67,21 @@ class Contributor extends Controller {
 			return;
 		}
 
-		if (!$this->user->has_permission('admin')) {
-			$this->common->ajax_headers();
-			echo json_encode(array('error' => 'Permission denied.'));
-			return;
+		// Allow admins to edit any contributor
+		// Allow local admins to edit their own contributor
+		$continue = false;
+		if ($this->user->has_permission('admin')) { $continue = true; }
+		if ($this->user->has_permission('local_admin') && $this->user->id == $id) { $continue = true; }
+		if (!$continue) {
+			$this->session->set_userdata('errormessage', "Permission denied to edit a contributor.");
+			$this->logging->log('error', 'debug', 'Permission denied to edit a contributor ID='.$id);
+			redirect('contributor');
 		}
 
 		// If we didn't get an ID on the URL, we assume we are editing ourself.
 		if (!$id) {
-			echo json_encode(array('error' => 'Please select an organization to edit.'));
-			return;
+			$this->session->set_userdata('errormessage', "Please select an organization to edit.");
+			redirect('contributor');
 		}
 
 		// Make sure we can edit the Organization in question
@@ -80,12 +114,12 @@ class Contributor extends Controller {
 			$data['token'] = $this->session->userdata('li_token');
 
 			// Display the page
-			$this->load->view('admin/contributor_edit_page', $data);
+			$this->load->view('contributor/contributor_edit_page', $data);
 
 		} catch (Exception $e) {
 			// This handles anything strange that might come across while getting the organization object.
 			$this->session->set_userdata('errormessage', $e->getMessage());
-			redirect('admin/contributors/');
+			redirect('contributor');
 		}
 	}
 
@@ -102,9 +136,9 @@ class Contributor extends Controller {
 			return;
 		}
 		if (!$this->user->has_permission('admin')) {
-			$this->common->ajax_headers();
-			echo json_encode(array('error' => 'Permission denied.'));
-			return;
+			$this->session->set_userdata('errormessage', 'Permission denied to add a contributor.');
+			$this->logging->log('error', 'debug', 'Permission denied to add a contributor.');
+			redirect('contributor');
 		}
 
 		$this->organization->load();
@@ -131,7 +165,7 @@ class Contributor extends Controller {
 		$data['token'] = $this->session->userdata('li_token');
 
 		// Display the page
-		$this->load->view('admin/contributor_add_page', $data);
+		$this->load->view('contributor/contributor_add_page', $data);
 	}
 
 	/**
@@ -148,14 +182,17 @@ class Contributor extends Controller {
 		if (!$this->common->check_session(true)) {
 			return;
 		}
-		if (!$this->user->has_permission('admin')) {
-			$this->session->set_userdata('errormessage', 'Permission denied.');
-			$this->logging->log('error', 'debug', 'Permission denied to save the contributor "'.$this->input->post('name'));
-			redirect('admin/contributors/');
-		}
 
 
 		if ($this->input->post('new')) { // WE ARE ADDING A NEW ORG
+
+			// Allow admins to edit any contributor
+			if (!$this->user->has_permission('admin')) {
+				$this->session->set_userdata('errormessage', 'Permission denied to saving a new contributor.');
+				$this->logging->log('error', 'debug', 'Permission denied to saving a new contributor.');
+				redirect('contributor');
+			}
+
 			// Force the organization object to re-initialize
 			$this->organization->load();
 
@@ -172,7 +209,11 @@ class Contributor extends Controller {
 			$this->organization->country = $this->input->post('country');
 			if ($this->db->table_exists('custom_internet_archive_keys')) {
 				$this->organization->ia_api_key = $this->input->post('api_key');
-				$this->organization->ia_secret_key = $this->input->post('secret_key');
+				if (trim($this->input->post('secret_key'))) {
+					// Save only if we have a value
+					$this->organization->ia_secret_key = $this->input->post('secret_key');
+				}
+				
 			}
 		
 			try {
@@ -182,7 +223,7 @@ class Contributor extends Controller {
 				// Redirect to organization list on success
 				$this->session->set_userdata('message', 'Contributor added!');
 				$this->logging->log('access', 'info', 'Added contributor '.$this->input->post('name'));
-				redirect('admin/contributors/');
+				redirect('contributor');
 			} catch (Exception $e) {
 				// This handles anything strange that might come across while getting the organization object.
 				$this->session->set_userdata('errormessage', $e->getMessage());
@@ -190,6 +231,18 @@ class Contributor extends Controller {
 				redirect('contributor/add');
 			}
 		} else { // WE ARE EDITING AN EXISTING ORG
+
+			// Allow admins to edit any contributor
+			// Allow local admins to edit their own contributor
+			$continue = false;
+			if ($this->user->has_permission('admin')) { $continue = true; }
+			if ($this->user->has_permission('local_admin') && $this->user->id == $this->input->post('id')) { $continue = true; }
+			if (!$continue) {
+				$this->session->set_userdata('errormessage', 'Permission denied to edit the contributor.');
+				$this->logging->log('error', 'debug', 'Permission denied to edit the contributor "'.$this->input->post('name'));
+				redirect('contributor');
+			}
+
 			// Get the data from the POST and make it into something useful
 			// Load the organization based on the id passed
 			$this->organization->load($this->input->post('id'));
@@ -206,8 +259,20 @@ class Contributor extends Controller {
 			$this->organization->postal = $this->input->post('postal');
 			$this->organization->country = $this->input->post('country');
 			if ($this->db->table_exists('custom_internet_archive_keys')) {
-				$this->organization->ia_api_key = $this->input->post('api_key');
-				$this->organization->ia_secret_key = $this->input->post('secret_key');
+				if (!trim($this->input->post('api_key')) && trim($this->input->post('secret_key'))) {
+					$this->session->set_userdata('errormessage', 'Both API Key and Secret Key are required.');
+				} elseif (!trim($this->input->post('api_key'))) {
+					// clear the secret key when the api key is empty
+					$this->organization->ia_api_key = '';
+					$this->organization->ia_secret_key = '';
+				} else {				
+					$this->organization->ia_api_key = $this->input->post('api_key');
+					// save the secret only if something was supplied
+					if (trim($this->input->post('secret_key'))) {
+						$this->organization->ia_secret_key = $this->input->post('secret_key');
+					}
+
+				}
 			}
 
 			try {
@@ -217,7 +282,7 @@ class Contributor extends Controller {
 				// Redirect to organization list on success
 				$this->session->set_userdata('message', 'Changes saved!');
 				$this->logging->log('access', 'info', 'Updated Contributor: '.$this->input->post('name'). ' (id '.$this->input->post('id').')');
-				redirect('admin/contributors/');
+				redirect('contributor');
 			} catch (Exception $e) {
 				// This handles anything strange that might come across while getting the organization object.
 				$this->session->set_userdata('errormessage', $e->getMessage());
@@ -236,6 +301,10 @@ class Contributor extends Controller {
 	 * @since Version 1.2
 	 */
 	function delete($id) {
+		if (!$this->common->check_session(true)) {
+			return;
+		}
+		// Allow admins to delete any contributor
 		if (!$this->user->has_permission('admin')) {
 			$this->common->ajax_headers();
 			echo json_encode(array('error' => 'Permission denied.'));

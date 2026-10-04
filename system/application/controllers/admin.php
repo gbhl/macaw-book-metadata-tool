@@ -824,46 +824,6 @@ class Admin extends Controller {
 	}
 
 	/**
-	 * List all organizations
-	 *
-	 * @since Version 1.7
-	 */
-	/* LOCAL ADMIN COMPLETED */
-	function contributors() {
-		$this->common->check_session();
-		// Permission Checking
-		if (!$this->user->has_permission('admin')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
-			redirect($this->config->item('base_url').'main/listitems');
-			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
-		}
-
-		$this->load->view('admin/contributor_view');
-	}
-
-	/**
-	 * Get a list of all organizations
-	 *
-	 *
-	 * @since Version 1.7
-	 */
-	/* LOCAL ADMIN COMPLETED */
-	function contributor_list() {
-		// Make sure we are logged in and stuff
-		if (!$this->common->check_session(true)) {
-			return;
-		}
-		if (!$this->user->has_permission('admin')) {
-			$this->common->ajax_headers();
-			echo json_encode(array('error' => 'Permission denied.'));
-			return;
-		}
-
-		$this->common->ajax_headers();
-		echo json_encode($this->organization->get_list());
-	}
-
-	/**
 	 * Monthly repoert
 	 *
 	 * Only admins and local admins can see this grouping of which organization contributed how many items and pages
