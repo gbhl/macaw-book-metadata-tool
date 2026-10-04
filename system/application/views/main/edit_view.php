@@ -415,7 +415,9 @@
 		</form>
 		<div class="savebutton">
 			<button id="btnSave">Save</button>
+			<?php if (!$new) { ?>
 			<button id="btnDelete">Delete Item</button>
+			<?php } ?>
 		</div>
 	</div>
 	<?php $this->load->view('global/footer_view') ?>
