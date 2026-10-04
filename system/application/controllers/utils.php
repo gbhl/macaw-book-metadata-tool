@@ -130,7 +130,7 @@ class Utils extends Controller {
 		$old_barcode = $barcode;
 		$barcode = $this->common->clean_barcode($barcode);
 		if ($barcode != $old_barcode) {
-			print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+			print "Warning: The identifier was updated to \"".$barcode."\"";
 		}
 
 		if (!$barcode) {
@@ -196,8 +196,9 @@ class Utils extends Controller {
 				$identifier = $row->identifier;
 				if (file_exists($this->cfg['data_directory'].'/import_export/Internet_archive/'.$row->identifier)) {
 					echo "Clearing IA Export files...\n";
-					$cmd = 'rm -fr '.$this->cfg['data_directory'].'/import_export/Internet_archive/'.$row->identifier;
-					`$cmd`;
+					$this->load->helper('file');
+					$path = $this->cfg['data_directory'].'/import_export/Internet_archive/'.$row->identifier;
+					delete_files($path, true);
 				} else {
 					echo "No IA Export files to clear...\n";
 				}
@@ -525,7 +526,7 @@ class Utils extends Controller {
 		$old_barcode = $barcode;
 		$barcode = $this->common->clean_barcode($barcode);
 		if ($barcode != $old_barcode) {
-			print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+			print "Warning: The identifier was updated to \"".$barcode."\"";
 		}
 
 		if (!$barcode) {
@@ -569,7 +570,7 @@ class Utils extends Controller {
 		$old_barcode = $barcode;
 		$barcode = $this->common->clean_barcode($barcode);
 		if ($barcode != $old_barcode) {
-			print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+			print "Warning: The identifier was updated to \"".$barcode."\"";
 		}
 
 		if (!$barcode) {
@@ -649,7 +650,7 @@ class Utils extends Controller {
 		$old_barcode = $barcode;
 		$barcode = $this->common->clean_barcode($barcode);
 		if ($barcode != $old_barcode) {
-			print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+			print "Warning: The identifier was updated to \"".$barcode."\"";
 		}
 
 		if (!$barcode) {
@@ -1009,7 +1010,7 @@ class Utils extends Controller {
 				$old_barcode = $b['identifier'];
 				$b['identifier'] = $this->common->clean_barcode($b['identifier']);
 				if ($b['identifier'] != $old_barcode) {
-					print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+					print "Warning: The identifier was updated to \"".$b['identifier']."\"";
 				}
 
 				// Is this book already in our database?				
@@ -1154,7 +1155,7 @@ class Utils extends Controller {
 		$old_barcode = $barcode;
 		$barcode = $this->common->clean_barcode($barcode);
 		if ($barcode != $old_barcode) {
-			print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+			print "Warning: The identifier was updated to \"".$barcode."\"";
 		}
 
 		if (!$barcode) {
@@ -1284,7 +1285,7 @@ class Utils extends Controller {
 		$old_barcode = $barcode;
 		$barcode = $this->common->clean_barcode($barcode);
 		if ($barcode != $old_barcode) {
-			print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+			print "Warning: The identifier was updated to \"".$barcode."\"";
 		}
 
 		if (!$barcode) {
@@ -1622,7 +1623,7 @@ class Utils extends Controller {
 		$old_barcode = $barcode;
 		$barcode = $this->common->clean_barcode($barcode);
 		if ($barcode != $old_barcode) {
-			print "Warning: The identifier was updated to \"".$info['barcode']."\"";
+			print "Warning: The identifier was updated to \"".$barcode."\"";
 		}
 
 		if (!$barcode) {
