@@ -71,7 +71,7 @@ class Contributor extends Controller {
 		// Allow local admins to edit their own contributor
 		$continue = false;
 		if ($this->user->has_permission('admin')) { $continue = true; }
-		if ($this->user->has_permission('local_admin') && $this->user->id == $id) { $continue = true; }
+		if ($this->user->has_permission('local_admin') && $this->user->org_id == $id) { $continue = true; }
 		if (!$continue) {
 			$this->session->set_userdata('errormessage', "Permission denied to edit a contributor.");
 			$this->logging->log('error', 'debug', 'Permission denied to edit a contributor ID='.$id);
@@ -236,7 +236,7 @@ class Contributor extends Controller {
 			// Allow local admins to edit their own contributor
 			$continue = false;
 			if ($this->user->has_permission('admin')) { $continue = true; }
-			if ($this->user->has_permission('local_admin') && $this->user->id == $this->input->post('id')) { $continue = true; }
+			if ($this->user->has_permission('local_admin') && $this->user->org_id == $this->input->post('id')) { $continue = true; }
 			if (!$continue) {
 				$this->session->set_userdata('errormessage', 'Permission denied to edit the contributor.');
 				$this->logging->log('error', 'debug', 'Permission denied to edit the contributor "'.$this->input->post('name'));
