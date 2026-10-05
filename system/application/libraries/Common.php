@@ -49,13 +49,13 @@ class Common extends Controller {
 		# remove slashes.
 		$bc = preg_replace('/[\/\\\\]/', '', $bc);
 		# replace unwanted characters with dashes
-		$bc = preg_replace('/[^a-zA-Z0-9_\-.()]/', '-', $bc);
+		$bc = preg_replace('/[ !@#$%^&*+=}{\[\];:\'“”"<>,\/\?`~|]/', '-', $bc);
 		# remove any sequences of more than one period
 		$bc = preg_replace('/\.+/', '.', $bc);
 		# remove any sequences of more than one dash
 		$bc = preg_replace('/-+/', '-', $bc);
-		# remove trailing and leading periods, just in case.
-		$bc = preg_replace('/^\.|\.$/', '', $bc);
+		# remove trailing and leading symbols, just in case.
+		$bc = preg_replace('/^[\._-]|[\._-]$/', '', $bc);
 		return $bc;
 	}
 
