@@ -75,6 +75,13 @@
 					<td><input type="password" name="password_c" value="" size="20" id="password_c"></td>
 				</tr>
 				<tr class="row">
+					<td></td>
+					<td style="color: #666; padding-bottom: 10px;">
+						<strong>Password Requirements:</strong> Minimum 12 characters, must include<br>
+						uppercase, lowercase, digits, and special characters.
+					</td>
+				</tr>
+				<tr class="row">
 					<td class="fieldname">Email:</td>
 					<td><input type="text" name="email" value="<?php echo htmlspecialchars($email); ?>" size="60" id="email"></td>
 				</tr>
