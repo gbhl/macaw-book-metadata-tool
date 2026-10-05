@@ -954,9 +954,12 @@ class Main extends Controller {
 		
 		// Get our book
 		// Sanitize the barcode
+		if (!isset($_POST['identifier'])) {
+			$_POST['identifier'] = '';
+		}
 		$info['barcode'] = $this->common->clean_barcode($_POST['identifier']);
 		if ($_POST['identifier'] != $info['barcode']) {
-			$this->session->set_userdata('warning', 'The identifier was updated to "'.$info['barcode'].'"');
+			$this->session->set_userdata('warning', 'IMPORTANT: The identifier was updated to "'.$info['barcode'].'"');
 		}
 
 		try {

@@ -91,7 +91,7 @@ class Book extends Model {
 		$old_barcode = $barcode;
 		$barcode = $this->common->clean_barcode($barcode);
 		if ($barcode != $old_barcode) {
-			$this->session->set_userdata('warning', 'The identifier was updated to "'.$barcode.'"');
+			$this->session->set_userdata('warning', 'IMPORTANT: The identifier was updated to "'.$barcode.'"');
 		}
 
 		if (isset($barcode)) {
@@ -1070,13 +1070,13 @@ class Book extends Model {
 			$old_barcode = $info['barcode'];
 			$info['barcode'] = $this->common->clean_barcode($info['barcode']);
 			if ($info['barcode'] != $old_barcode) {
-				$this->session->set_userdata('warning', 'The identifier was updated to "'.$info['barcode'].'"');
+				$this->session->set_userdata('warning', 'IMPORTANT: The identifier was updated to "'.$info['barcode'].'"');
 			}
 		}
 		if (isset($info['identifier'])) {
 			$info['barcode'] = $this->common->clean_barcode($info['identifier']);
 			if ($info['barcode'] != $info['identifier']) {
-				$this->session->set_userdata('warning', 'The identifier was updated to "'.$info['barcode'].'"');
+				$this->session->set_userdata('warning', 'IMPORTANT: The identifier was updated to "'.$info['barcode'].'"');
 			}
 		}
 		# Holding institution and contributor are equivalent

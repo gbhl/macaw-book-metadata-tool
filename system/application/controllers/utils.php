@@ -987,6 +987,8 @@ class Utils extends Controller {
 				$b['identifier'] = $this->common->clean_barcode($b['identifier']);
 				if ($b['identifier'] != $old_barcode) {
 					print "Warning: The identifier was updated to \"".$b['identifier']."\"";
+					$errors[] = 'IMPORTANT: The identifier was updated to "'.$info['barcode'].'"';
+					$errorcount++;
 				}
 
 				// Is this book already in our database?				

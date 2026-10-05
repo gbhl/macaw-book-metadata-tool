@@ -179,6 +179,32 @@ td.yui-dt-last {
 	color: #21350E;
 	background: #E8EEE0;
 }
+#warning {
+	border-color: #fac287;
+	color: rgb(68, 36, 0);
+	background: #FFF0C9;
+}
+#errormessage {
+	border-color: #f3b5b1;
+	color:#410000;
+	background: #f8e3e1;
+}
+#errormessage ul {
+	margin: 0 0 0 60px;
+}
+#errormessage li {
+	list-style: disc outside;
+}
+#message .icon {
+	 background: url(../images/round_info_green_icon.png) no-repeat center left;
+}
+#warning .icon {
+	background: url(../images/triangle_warning_icon.png) no-repeat center left;
+}
+#errormessage .icon {
+	background: url(../images/round_error_icon.png) no-repeat center left;
+}
+
 /* ****************************** */
 /* Global Header */
 /* ****************************** */

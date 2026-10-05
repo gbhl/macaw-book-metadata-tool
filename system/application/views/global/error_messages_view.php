@@ -1,6 +1,6 @@
 <?php
 if ($this->session->userdata('message') || 
-    $this->session->userdata('warning') || 
+	$this->session->userdata('warning') || 
 	$this->session->userdata('errormessage')) { 
 		$class = '';
 		if ($this->session->userdata('message')) { $class = "message "; }
