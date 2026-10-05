@@ -21,14 +21,17 @@ class Contributor extends Controller {
 
 	function index() {
 		$this->common->check_session();
+		$data = [];
+		$data['is_admin'] = $this->user->has_permission('admin');
 		// Permission Checking
-		if (!$this->user->has_permission('admin')) {
+		if (!$this->user->has_permission('admin') && !$this->user->has_permission('local_admin')) {
 			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
 			redirect($this->config->item('base_url').'main/listitems');
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 		}
 
-		$this->load->view('contributor/contributor_view');
+
+		$this->load->view('contributor/contributor_view', $data);
 	}
 
 	/**
@@ -43,14 +46,20 @@ class Contributor extends Controller {
 		if (!$this->common->check_session(true)) {
 			return;
 		}
-		if (!$this->user->has_permission('admin')) {
+		if ($this->user->has_permission('admin')) {
 			$this->common->ajax_headers();
-			echo json_encode(array('error' => 'Permission denied.'));
+			echo json_encode($this->organization->get_list());
+			return;
+		} elseif ($this->user->has_permission('local_admin')) {
+			$this->common->ajax_headers();
+			echo json_encode($this->organization->get_list($this->user->org_id));
 			return;
 		}
 
+
 		$this->common->ajax_headers();
-		echo json_encode($this->organization->get_list());
+		echo json_encode(array('error' => 'Permission denied.'));
+
 	}
 
 		/**

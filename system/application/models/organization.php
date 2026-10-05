@@ -259,7 +259,7 @@ class Organization extends Model {
 	 *
 	 * @since Version 1.7
 	 */
-	function get_list() {
+	function get_list($org_id = 0) {
 		// Simple query, get everyone, but list the fields we want. Password should always be hidden.
 		$l = $this->db->query(
 			'SELECT o.*, coalesce(i.bytes, 0) as bytes '.
@@ -271,7 +271,9 @@ class Organization extends Model {
 			'	WHERE i.status_code NOT IN (\'completed\', \'exporting\')  '.
 			'	GROUP BY i.org_id '.
 			') i ON o.id = i.org_id '.
-			'ORDER BY o.name'
+			($org_id > 0 ? ' WHERE org_id = ? ' : '').
+			'ORDER BY o.name',
+			($org_id > 0 ? array($org_id) : [])
 		)->result();
 		for ($i=0; $i < count($l); $i++) {
 			$l[$i]->created = preg_replace("/\.(\d+)$/","",$l[$i]->created);

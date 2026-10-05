@@ -1,9 +1,8 @@
 <?php
 	include_once('system/application/config/version.php');
 	$cfg = $this->config->item('macaw');
-	if (!isset($is_admin) || $is_admin === null) {
-		$is_admin = $this->user->has_permission('admin') || $this->user->has_permission('local_admin');	
-	}
+	$is_admin = $this->user->has_permission('admin');
+	$is_local_admin = $this->user->has_permission('local_admin');
 	$can_edit_item = false;
 	$barcode = $this->session->userdata('barcode');
 	if ($barcode) {
@@ -59,7 +58,7 @@
 					<ul>					
 						<?php if ($can_edit_item) { ?>
 							<li><a href="<?php echo $this->config->item('base_url'); ?>main/edit"><img src="<?php echo $this->config->item('base_url'); ?>images/07_edit_items_icon_sm.png">Edit Item</a></li>						
-							<?php if ($is_admin) { ?>
+							<?php if ($is_admin && $barcode) { ?>
               					<li><a href="<?php echo $this->config->item('base_url'); ?>main/admin_edit"><img src="<?php echo $this->config->item('base_url'); ?>images/07_edit_items_icon_sm.png">Edit Item (Admin)</a></li>						
             				<?php } ?>
             				<li><a href="<?php echo $this->config->item('base_url'); ?>scan/upload/"><img src="<?php echo $this->config->item('base_url'); ?>images/icon-upload-small.png">Upload Pages</a></li>
@@ -81,20 +80,20 @@
 						<?php } ?>
 					</ul>
 				</li>
-				<?php if ($is_admin) { ?>
-				<li class="top"><a href="#admin">Admin</a>
-					<ul>
-						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/account"><img src="<?php echo $this->config->item('base_url'); ?>images/08_list_accounts_icon_sm.png">List Accounts</a></li>
-						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/queues"><img src="<?php echo $this->config->item('base_url'); ?>images/09_queues_icon_sm.png">Queues</a></li>
-						<li><a href="<?php echo $this->config->item('base_url'); ?>contributor"><img src="<?php echo $this->config->item('base_url'); ?>images/11_organisations_icon_sm.png">Contributors</a></li>
-						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/monthly_report"><img src="<?php echo $this->config->item('base_url'); ?>images/10_view_logs_icon_sm.png">Monthly Report</a></li>
-						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/maintenance"><img src="<?php echo $this->config->item('base_url'); ?>images/12_manually_run_icon_sm.png">Maintenance</a></li>
-						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/stalled_exports"><img src="<?php echo $this->config->item('base_url'); ?>images/10_view_logs_icon_sm.png">Stalled Exports</a></li>
-						<li><a href="<?php echo $this->config->item('base_url'); ?>admin/view_config"><img src="<?php echo $this->config->item('base_url'); ?>images/10_view_logs_icon_sm.png">Macaw Config</a></li>
-						<li class="last"><a href="<?php echo $this->config->item('base_url'); ?>virtual_items"><img src="<?php echo $this->config->item('base_url'); ?>images/12_manually_run_icon_sm.png">Virtual Items</a></li>
-					</ul>
-				</li>
-				<li class="top"><a href="#" title="This is how much disk space is remaining for macaw to use for TIFF files, etc."><?php print $free.'% Free'; ?></a></li>
+				<?php if ($is_admin || $is_local_admin) { ?>
+					<li class="top"><a href="#admin">Admin</a>
+						<ul>
+							<li><a href="<?php echo $this->config->item('base_url'); ?>admin/account"><img src="<?php echo $this->config->item('base_url'); ?>images/08_list_accounts_icon_sm.png">List Accounts</a></li>
+							<li><a href="<?php echo $this->config->item('base_url'); ?>admin/queues"><img src="<?php echo $this->config->item('base_url'); ?>images/09_queues_icon_sm.png">Queues</a></li>
+							<li><a href="<?php echo $this->config->item('base_url'); ?>contributor"><img src="<?php echo $this->config->item('base_url'); ?>images/11_organisations_icon_sm.png">Contributors</a></li>
+							<li><a href="<?php echo $this->config->item('base_url'); ?>admin/monthly_report"><img src="<?php echo $this->config->item('base_url'); ?>images/10_view_logs_icon_sm.png">Monthly Report</a></li>
+							<?php if ($is_admin) { ?> <li><a href="<?php echo $this->config->item('base_url'); ?>admin/maintenance"><img src="<?php echo $this->config->item('base_url'); ?>images/12_manually_run_icon_sm.png">Maintenance</a></li> <?php } ?>
+							<li><a href="<?php echo $this->config->item('base_url'); ?>admin/stalled_exports"><img src="<?php echo $this->config->item('base_url'); ?>images/10_view_logs_icon_sm.png">Stalled Exports</a></li>
+							<?php if ($is_admin) { ?> <li><a href="<?php echo $this->config->item('base_url'); ?>admin/view_config"><img src="<?php echo $this->config->item('base_url'); ?>images/10_view_logs_icon_sm.png">Macaw Config</a></li> <?php } ?>
+							<?php if ($is_admin) { ?> <li class="last"><a href="<?php echo $this->config->item('base_url'); ?>virtual_items"><img src="<?php echo $this->config->item('base_url'); ?>images/12_manually_run_icon_sm.png">Virtual Items</a></li> <?php } ?>
+						</ul>
+					</li>
+					<li class="top"><a href="#" title="This is how much disk space is remaining for macaw to use for TIFF files, etc."><?php print $free.'% Free'; ?></a></li>
 				<?php } else { ?>
 					<li class="top"><a href="#admin">Admin</a>
 						<ul>

@@ -28,11 +28,13 @@
 		// Return Value / Effect
 		//    List is shown and is populated with data
 		// ----------------------------
-		initList: function() {
+		initList: function(is_admin) {
 			var formatEditLink = function(elLiner, oRecord, oColumn, oData) {
 				org_id = parseInt(oData).toString();
 				elLiner.innerHTML = "<a href=\"#\" onClick=\"Organization.edit('"+oData+"');return false;\"><img src=\""+sBaseUrl+"/images/icons/building_edit.png\" wdith=\"16\" height=\"16\"></a>";
-				elLiner.innerHTML += "&nbsp;&nbsp;<a href=\"#\" onClick=\"Organization.del('"+oData+"');return false;\"><img src=\""+sBaseUrl+"/images/icons/delete.png\" wdith=\"16\" height=\"16\"></a>";
+				if (is_admin) {
+					elLiner.innerHTML += "&nbsp;&nbsp;<a href=\"#\" onClick=\"Organization.del('"+oData+"');return false;\"><img src=\""+sBaseUrl+"/images/icons/delete.png\" wdith=\"16\" height=\"16\"></a>";
+				}
 			}
 
 			var myColumnDefs = [

@@ -10,7 +10,11 @@
 	<script type="text/javascript">
 		function init() {
 			MessageBox.init();
-			Organization.initList();
+			<?php if ($is_admin) { ?>
+				Organization.initList(true);
+			<?php } else { ?>
+				Organization.initList(false);
+			<?php } ?>
 		}
 		YAHOO.util.Event.onDOMReady(init);
 	</script>
@@ -20,9 +24,11 @@
 	<div id="orglist">
 		<h1>All Contributors</h1>
 		<div id="organizations"></div>
+		<?php if ($is_admin) { ?>
 		<div style="margin-top:10px">
 			<button id="btnAddOrganization">Add Contributor</button>
 		</div>
+		<?php } ?>
 	</div>	
 	<div id="dlgEdit" class="yui-pe-content"></div>
 	<?php $this->load->view('global/footer_view') ?>
