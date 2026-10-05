@@ -73,8 +73,8 @@ class Logging extends Controller {
 			$ok = 0;
 
 			// Decide if we are going to log
-			if ($log == 'error' || $log == 'book' || $log == 'activity') {
-				// Errors, book-related and activity logs are always logged
+			if ($log == 'error' || $log == 'book') {
+				// Errors and book-related logs are always logged
 				$ok = 1;
 			} elseif ($log == 'access') {
 				// If we're going to the access log, we then use the severity levels
@@ -127,11 +127,6 @@ class Logging extends Controller {
 						$fname = $path.'/macaw_error.log';
 						if ($this->cfg['error_log']) {
 							$fname = $path.'/'.$this->CI->common->macaw_strftime($this->cfg['error_log']);
-						}
-					} elseif ($log == 'activity') {
-						$fname = $path.'/macaw_activity.log';
-						if ($this->cfg['activity_log']) {
-							$fname = $path.'/'.$this->CI->common->macaw_strftime($this->cfg['activity_log']);
 						}
 					} elseif ($log == 'cron') {
 						$fname = $path.'/macaw_cron.log';

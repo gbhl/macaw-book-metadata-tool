@@ -337,8 +337,8 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 		if (removed) {
 			this._unrenderOneMetadataType('page_types', obj.id);
 		}
-		Scanning.log(page_ids.join('|'), 'DELETE_page_type', type_removed);
 		Scanning.resizeWindow();
+		oBook.modified = 1;
 		oBook._updateDataTableRecordset();
 		// Log all the pages that were modified at once to not spam the server
 	}
@@ -620,9 +620,8 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 			// Collect the pageids we modify
 			page_ids.push(pg[i].pageID);
 		}
+		oBook.modified = 1;
 		oBook._updateDataTableRecordset();
-		// Log all the pages that were modified at once to not spam the server
-		Scanning.log(page_ids.join('|'), 'clearYear', 'DELETED');
 	}
 
 	this.clearVolume = function () {
@@ -644,9 +643,8 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 			// Collect the pageids we modify
 			page_ids.push(pg[i].pageID);
 		}
+		oBook.modified = 1;
 		oBook._updateDataTableRecordset();
-		// Log all the pages that were modified at once to not spam the server
-		Scanning.log(page_ids.join('|'), 'clearVolume', 'DELETED');
 	}
 
 	this.clearPageSide = function () {
@@ -668,9 +666,8 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 			// Collect the pageids we modify
 			page_ids.push(pg[i].pageID);
 		}
+		oBook.modified = 1;
 		oBook._updateDataTableRecordset();
-		// Log all the pages that were modified at once to not spam the server
-		Scanning.log(page_ids.join('|'), 'clearPageSide', 'DELETED');
 	}
 
   this.clearPieceText = function () {
@@ -692,9 +689,8 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 			// Collect the pageids we modify
 			page_ids.push(pg[i].pageID);
 		}
+		oBook.modified = 1;
 		oBook._updateDataTableRecordset();
-		// Log all the pages that were modified at once to not spam the server
-		Scanning.log(page_ids.join('|'), 'piece_text', 'DELETED');
   }
 
 
@@ -716,9 +712,8 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 			page_ids.push(pg[i].pageID);
 			pg[i].metadata.changed.fire('ALL');
 		}
+		oBook.modified = 1;
 		oBook._updateDataTableRecordset();
-		// Log all the pages that were modified at once to not spam the server
-		Scanning.log(page_ids.join('|'), 'clearPageType', 'DELETED');
 	}
 
 
@@ -745,9 +740,8 @@ YAHOO.macaw.Standard_Metadata = function(parent, data) {
 			// Collect the pageids we modify
 			page_ids.push(pg[i].pageID);
 		}
+		oBook.modified = 1;
 		oBook._updateDataTableRecordset();
-		// Log all the pages that were modified at once to not spam the server
-		Scanning.log(page_ids.join('|'), 'clearPageNumber', 'DELETED');
 	}
 	// ----------------------------
 	// Function: set()
@@ -1090,19 +1084,7 @@ YAHOO.macaw.Standard_Metadata.metadataChange = function(obj) {
 		page_ids.push(pg[i].pageID);
 	}
 
-	// Log all the pages that were modified at once to not spam the server
-	if (obj.id != 'metadata_form') {
-		if (obj.id == 'future_review') {
-			Scanning.log(page_ids.join('|'), obj.id, obj.checked);
-		} else if (obj.id == 'page_number_implicit') {
-			Scanning.log(page_ids.join('|'), obj.id, obj.checked);
-		} else {
-			if (!multiple || (multiple && obj.value)) {
-				Scanning.log(page_ids.join('|'), obj.id, obj.value);
-			}
-		}
-	}
-
+	oBook.modified = 1;
 	oBook._updateDataTableRecordset();
 }
 
@@ -1131,10 +1113,8 @@ YAHOO.macaw.Standard_Metadata.evtAddPageType = function (obj) {
 		page_ids.push(pg[i].pageID);
 		pg[i].metadata.changed.fire(obj.value);
 	}
-	// Save all of pages to the server together in order to not spam the server
-	Scanning.log(page_ids.join('|'), 'page_type', obj.value);
-
 	// All done!
+	oBook.modified = 1;
 	oBook._updateDataTableRecordset();
   
 }

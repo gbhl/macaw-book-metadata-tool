@@ -202,36 +202,35 @@ var int = function(x) {
 }
 
 	MessageBox = {
-		closeError: null,
-		closeWarning: null,
+		// closeError: null,
+		// closeWarning: null,
 		closeMessage: null,
 		init: function() {			
-			err = Dom.get('errormessage');
-			if (err) {
-				MessageBox.closeError = Dom.get("btnCloseError");
-				YAHOO.util.Event.addListener(MessageBox.closeError, "click", MessageBox.close, 'error');				
-			}
-			warn = Dom.get('warning');
-			if (warn) {
-				MessageBox.closeWarning = new Dom.get("btnCloseWarning");
-				YAHOO.util.Event.addListener(MessageBox.closeWarning, "click", MessageBox.close, 'warning');				
-			}
-			msg = Dom.get('message');
-			if (msg) {
+			// err = Dom.get('errormessage');
+			// if (err) {
+			// 	MessageBox.closeError = Dom.get("btnCloseError");
+			// 	YAHOO.util.Event.addListener(MessageBox.closeError, "click", MessageBox.close, 'error');				
+			// }
+			// warn = Dom.get('warning');
+			// if (warn) {
+			// 	MessageBox.closeWarning = new Dom.get("btnCloseWarning");
+			// 	YAHOO.util.Event.addListener(MessageBox.closeWarning, "click", MessageBox.close, 'warning');				
+			// }
+			if (Dom.get('alert')) {
 				MessageBox.closeMessage = new Dom.get("btnCloseMessage");
-				YAHOO.util.Event.addListener(MessageBox.closeMessage, "click", MessageBox.close, 'message');				
+				YAHOO.util.Event.addListener(MessageBox.closeMessage, "click", MessageBox.close);				
 			}
 		},
 		close: function(event,payload) {
-			if (payload == 'error') {
-				el = MessageBox.closeError;
-			}
-			if (payload == 'warning') {
-				el = MessageBox.closeWarning;
-			}
-			if (payload == 'message') {
-				el = MessageBox.closeMessage;
-			}
+			// if (payload == 'error') {
+			// 	el = MessageBox.closeError;
+			// }
+			// if (payload == 'warning') {
+			// 	el = MessageBox.closeWarning;
+			// }
+			// if (payload == 'message') {
+			el = MessageBox.closeMessage;
+			// }
 			YAHOO.util.Event.removeListener(el, "click");
 			el.parentElement.parentElement.removeChild(el.parentElement);
 		}

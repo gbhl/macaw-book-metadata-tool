@@ -136,18 +136,20 @@ td.yui-dt-last {
 	width: 92%;
 	font-family: Georgia;	
 	text-align: left;
+	font-size: 110%;
 	line-height: 20px;
 	min-height: 40px;	
 	z-index: 12;
 	position: absolute;
 	border-radius: 6px;
 	border: 4px solid #999;
+	left: 0;
+	right: 0;
+	margin-inline: auto;
 }
 .message-overlay .icon {
-	height: 42px;
-	width: 42px;
-	float: left;
-	margin-right: 15px;
+	font-size: 130%;
+	margin: 0 1rem;
 }
 .message-overlay button {
 	padding: 4px 10px;
@@ -162,35 +164,20 @@ td.yui-dt-last {
 	padding:10px;
 	border: 2px solid;
 }
-#message {
-	border-color: #c7d7b8;
-	color: #21350e;
+#alert.error { 
+	border-color: #FF0000;
+	color: #450000;
+	background: #FFD9D9;
+}
+#alert.warning { 
+	border-color: #ec9001;
+	color: #7d4c00;
+	background: #ffe8c5;
+}
+#alert.message {
+	border-color: #5DA31C;
+	color: #21350E;
 	background: #E8EEE0;
-}
-#warning {
-	border-color: #fac287;
-	color: rgb(68, 36, 0);
-	background: #FFF0C9;
-}
-#errormessage {
-	border-color: #f3b5b1;
-	color:#410000;
-	background: #f8e3e1;
-}
-#errormessage ul {
-	margin: 0 0 0 60px;
-}
-#errormessage li {
-	list-style: disc outside;
-}
-#message .icon {
-	 background: url(../images/round_info_green_icon.png) no-repeat center left;
-}
-#warning .icon {
-	background: url(../images/triangle_warning_icon.png) no-repeat center left;
-}
-#errormessage .icon {
-	background: url(../images/round_error_icon.png) no-repeat center left;
 }
 /* ****************************** */
 /* Global Header */
@@ -296,7 +283,6 @@ td.yui-dt-last {
 	background-color: #72accd;
 	color: #fff;
 	width: 32px;
-	-webkit-box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 0px 0px;
 	background-color: #72accd;
 	border-radius: 3px;
 	border: 1px solid #72accd;
@@ -311,8 +297,6 @@ td.yui-dt-last {
 	margin: 70px auto;
 	margin-bottom: 30px;	
 	border-radius: 3px;
-	-moz-box-shadow:    6px 6px 5px 3px #ccc;
-	-webkit-box-shadow: 6px 6px 5px 3px #ccc;
 	box-shadow:         6px 6px 5px 3px #ccc;
 	position: relative;
 }
@@ -327,7 +311,6 @@ td.yui-dt-last {
 	color: #fff;
 	font-family: Georgia;
 	background-color: #d44b35;
-	background-image:-webkit-linear-gradient(#cb4833 0%, #d44b35 33.77%);
 	padding: 25px 20px;
 	margin: 0px;
 	border: none;
@@ -339,8 +322,6 @@ td.yui-dt-last {
 	padding:38px 80px 27px 20px;
 	border-top-left-radius: 3px;
 	border-top-right-radius: 3px;
-	-moz-border-radius-topleft: 3px;
-	-moz-border-radius-topright: 3px;
 	  
 }
 #loginheader h1 {
@@ -374,8 +355,6 @@ td.yui-dt-last {
 	padding:30px 80px 30px 30px;
 		border-bottom-left-radius: 3px;
 	border-bottom-right-radius: 3px;
-	-moz-border-radius-bottomleft: 3px;
-	-moz-border-radius-bottomright: 3px;
 	min-height: 240px;	
 }
 #logincontent .loginlabel{
@@ -403,15 +382,9 @@ td.yui-dt-last {
 #login button{
 	font-family: Georgia;
 	background-color: #426a80;
-	background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#6a92a9), to(#426a80));
-	background-image: -webkit-linear-gradient(top, #6a92a9, #426a80);
-	background-image:    -moz-linear-gradient(top, #6a92a9, #426a80);
-	background-image:     -ms-linear-gradient(top, #6a92a9, #426a80);
-	background-image:      -o-linear-gradient(top, #6a92a9, #426a80);
 	color: #fff;
 	width: 105px;
 	height: 31px;
-	-webkit-box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 0px 0px;
 	font-size: 120%;
 	border-radius: 3px;
 	border: 1px solid #265858;
@@ -508,11 +481,7 @@ td.yui-dt-last {
 	width: 171px;
 	padding: 6px 6px;
 	margin: 0;
-	-moz-border-radius: 5px;
-	-webkit-border-radius: 5px;
 	border-radius: 5px;
-	-moz-border-radius-top-left: 0px;
-	-webkit-border-radius-top-left: 0px;
 	border-top-left-radius: 0px;
 }
 #main-menu ul li.top:hover ul {
@@ -700,8 +669,6 @@ td.yui-dt-last {
 	padding:0px 15px;
 	border-top-left-radius: 6px;
 	border-top-right-radius: 6px;
-	-moz-border-radius-topleft: 6px;
-	-moz-border-radius-topright: 6px;
 	border:1px solid #4E7D96;
 	border-bottom: none;
 	position: relative;
@@ -782,7 +749,6 @@ td.yui-dt-last {
 	text-align: center;
 	margin-bottom: 15px;
 	clear:both;
-	-moz-border-radius: 15px;
 	border-radius: 20px;
 }
 #scan_progress #finished {
@@ -790,7 +756,6 @@ td.yui-dt-last {
 	margin: 0px auto;
 	padding: 0px 10px 15px;
 	text-align: center;
-	-moz-border-radius: 15px;
 	border-radius: 20px;
 	clear: both;
 }
@@ -826,7 +791,6 @@ td.yui-dt-last {
 	font-weight: bold;
 	color: #FFF;
 	background-color: #9CF;
-	-moz-border-radius: 15px;
 	border-radius: 20px;
 	padding: 5px 8px 3px;
 	margin-right: 10px;
@@ -1245,8 +1209,6 @@ table#admin_scheduled_jobs td {
     width: 120px;
     background-color: #990000;
     border-color: #660000;
-    border-top: 0;
-    border-bottom: 0;
     box-shadow: none;
 }
 .yui-button#btnConfirm button {
@@ -1536,8 +1498,6 @@ span#btnHistoryOk {
 	border: 1px solid #4F7E97;
 	border-top-left-radius: 6px;
 	border-top-right-radius: 6px;
-	-moz-border-radius-topleft: 6px;
-	-moz-border-radius-topright: 6px;
 	color: white;
 	font-family: Helvetica;
 	font-size: 17px;
@@ -1552,8 +1512,6 @@ span#btnHistoryOk {
 	background: #F6F8FA;
 	border-bottom-left-radius: 6px;
 	border-bottom-right-radius: 6px;
-	-moz-border-radius-bottomleft: 6px;
-	-moz-border-radius-bottomright: 6px;
 }
 #viConfig {
 	width: 908px;
@@ -1719,8 +1677,6 @@ textarea, input {
 	border: 1px solid #9FB9C7;
 	border-bottom-left-radius: 6px;
 	border-bottom-right-radius: 6px;
-	-moz-border-radius-bottomleft: 6px;
-	-moz-border-radius-bottomright: 6px;
 	text-align: center;
 	padding-top: 1em;	
 }
@@ -1796,8 +1752,6 @@ textarea, input {
 	border: 1px solid #9fb9c7;
 	border-top-left-radius: 6px;
 	border-top-right-radius: 6px;
-	-moz-border-radius-topleft: 6px;
-	-moz-border-radius-topright: 6px;
 	color: white;
 	font-family: Helvetica;
 	font-size: 17px;
@@ -1833,8 +1787,6 @@ textarea, input {
 	border: 1px solid #9fb9c7;
 	border-top-left-radius: 6px;
 	border-top-right-radius: 6px;
-	-moz-border-radius-topleft: 6px;
-	-moz-border-radius-topright: 6px;
 	color: white;
 	font-family: Helvetica;
 	font-size: 17px;
@@ -1857,8 +1809,6 @@ textarea, input {
 	border: 1px solid #4F7E97;
 	border-top-left-radius: 6px;
 	border-top-right-radius: 6px;
-	-moz-border-radius-topleft: 6px;
-	-moz-border-radius-topright: 6px;
 	border-bottom: none;
 	color: white;
 	font-family: Helvetica;
@@ -1872,11 +1822,6 @@ textarea, input {
 	border-color: #7EA0B4;
 }
 #queues li a{   
-	-moz-border-bottom-colors: none;
-	-moz-border-image: none;
-	-moz-border-left-colors: none;
-	-moz-border-right-colors: none;
-	-moz-border-top-colors: none;
 	background: none repeat scroll 0 0 #DAE3E9;
 	border-color: #DEDEDE #DEDEDE -moz-use-text-color;
 	border-style: solid solid none;
@@ -1896,11 +1841,6 @@ textarea, input {
 }   
     
 #queues li.selected a{   
-	-moz-border-bottom-colors: none;
-	-moz-border-image: none;
-	-moz-border-left-colors: none;
-	-moz-border-right-colors: none;
-	-moz-border-top-colors: none;
 	background: none repeat scroll 0 0 #7EA0B4;
 	border-color: #BACDD7 #BACDD7 -moz-use-text-color;
 	border-style: solid solid none;
@@ -1977,7 +1917,6 @@ textarea, input {
 	background-color: #F6F8FA;
 	margin: 20px auto;
 	border-radius: 6px;
-	-moz-border-radius: 6px;
 	width:300px;
 }
 #uploadcontrols h1 {
@@ -1989,11 +1928,8 @@ textarea, input {
 	padding: 15px;
 	margin: 0;
 	border-radius: 6px;
-	-moz-border-radius: 6px;
 	border-bottom-right-radius:  0px;
 	border-bottom-left-radius:   0px;
-	-border-bottom-right-radius: 0px;
-	-border-bottom-left-radius:  0px;
 }
 
 #uploadcontrolsbody {
@@ -2219,20 +2155,3 @@ div.progress {
     background-color: #0f3010;
     border-color: #000000;
 }
-
-/* ****************************** */
-/* BOOTSTRAP SUCKS                */
-/* ****************************** */
-* {
-  -webkit-box-sizing: content-box;
-     -moz-box-sizing: content-box;
-          box-sizing: content-box;
-}
-*:before,
-*:after {
-  -webkit-box-sizing: content-box;
-     -moz-box-sizing: content-box;
-          box-sizing: content-box;
-}
-
-

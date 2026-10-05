@@ -601,35 +601,7 @@
 			Dom.setStyle('thumbs', 'height', intHeight+'px');
 
 
-		},
-
-		// ----------------------------
-		// Function:
-		//
-		// Arguments
-		//
-		// Return Value / Effect
-		//
-		// ----------------------------
-		log: function(pageid, field, value) {
-			oBook.modified = 1;
-
-      // Get the CSRF token
-      $csrf_name = document.querySelector('meta[name="csrf-name"]').content;
-      $csrf_token = document.querySelector('meta[name="csrf-token"]').content;
-
-			YAHOO.util.Connect.asyncRequest(
-				'POST',
-				sBaseUrl+'/utils/log',
-				{
-          success: function (o){ }, 
-          failure: function (o){ }, 
-          scope: this
-        },
-				$csrf_name+'='+$csrf_token+'&data='+YAHOO.lang.JSON.stringify({"pageid":pageid, "field":field, "value":value})
-			);
 		}
-
 	};
 
 })();

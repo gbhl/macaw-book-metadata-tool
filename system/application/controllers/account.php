@@ -19,6 +19,7 @@ class Account extends Controller {
 		$this->cfg = $this->config->item('macaw');
 		$this->load->library('Totp');
 		$this->load->library('QrCode');
+		$this->load->library('PasswordValidator');
 	}
 
 	public function index() {
@@ -270,6 +271,15 @@ class Account extends Controller {
 			$this->session->set_userdata('errormessage', 'Passwords do not match.');
 			redirect($this->_return_url());
 			return;
+		}
+
+		if ($password) {
+			$validation = $this->passwordvalidator->validate($password);
+			if (!$validation['valid']) {
+				$this->session->set_userdata('errormessage', 'Password does not meet requirements: ' . implode(' ', $validation['errors']));
+				redirect($this->_return_url());
+				return;
+			}
 		}
 
 		if ($this->input->post('new')) {

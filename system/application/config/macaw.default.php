@@ -85,7 +85,6 @@ $config['macaw']['upload_cutoff'] = 20;
 // Other values from strftime() are allowed, but the string must translate to a valid
 // filename for your system. i.e., colons and slashes will likely cause trouble.
 $config['macaw']['access_log']   = 'macaw_access.%Y%m%d.log';
-$config['macaw']['activity_log'] = 'macaw_activity.%Y%m%d.log';
 $config['macaw']['error_log']    = 'macaw_error.%Y%m%d.log';
 $config['macaw']['cron_log']     = 'macaw_cron.%Y%m%d.log';
 

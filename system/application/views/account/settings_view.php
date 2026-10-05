@@ -44,13 +44,6 @@
 				<input type="hidden" name="return_to" value="account/settings/<?php echo htmlspecialchars($username); ?>">
 			<?php } ?>
 			<table border="0" cellspacing="5" cellpadding="5">
-				<?php if (!$is_self) { ?>
-				<tr class="row">
-					<td colspan="2" style="font-size: 125%;">
-						<strong><a style="color: #3588A8;" href="<?php echo $this->config->item('base_url'); ?>admin/account">&laquo; Back to Account List</a></strong>
-					</td>
-				</tr>
-				<?php } ?>
 				<tr class="row">
 					<td class="fieldname">Username:</td>
 					<td><?php if ($new) { ?>
@@ -80,6 +73,13 @@
 				<tr class="row">
 					<td class="fieldname">Confirm Password:</td>
 					<td><input type="password" name="password_c" value="" size="20" id="password_c"></td>
+				</tr>
+				<tr class="row">
+					<td></td>
+					<td style="color: #666; padding-bottom: 10px;">
+						<strong>Password Requirements:</strong> Minimum 12 characters, must include<br>
+						uppercase, lowercase, digits, and special characters.
+					</td>
 				</tr>
 				<tr class="row">
 					<td class="fieldname">Email:</td>

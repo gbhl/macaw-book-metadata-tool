@@ -4,7 +4,7 @@
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=9" />
-	<title>Add New Contributor | Macaw</title>
+	<title>Edit Contributor | Macaw</title>
 	<?php $this->load->view('global/head_view') ?>
 	<script type="text/javascript">
 		function init() {
@@ -18,9 +18,10 @@
 </head>
 <body class="yui-skin-sam">
 	<?php $this->load->view('global/header_view') ?>
+	<div class="content-wrapper" style="padding: 20px;">
 	<div id="edit">
-		<h1>Add New Contributor</h1>
-		<?php $this->load->view('admin/contributor_edit_fields') ?>
+		<h1>Edit Contributor</h1>
+		<?php $this->load->view('contributor/contributor_edit_fields') ?>
 	</div>
 	<?php $this->load->view('global/footer_view') ?>
 </body>

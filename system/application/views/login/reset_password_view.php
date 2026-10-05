@@ -35,7 +35,6 @@
 		<div id="logincontent">
 			<div id="logincontenttemplate" style="width:30px; display:none;visibility:hidden">
 				<p>Enter your new password below.</p>
-
 				<?php echo form_open($this->config->item('base_url').'login/process_reset_password', array('id' => 'lostpwdform')) ?>
 
 				<input type="hidden" name="token" value="<?php echo htmlspecialchars($token); ?>">
@@ -49,7 +48,10 @@
 					<span class="loginlabel"><label for="password_confirm">Confirm Password:</label></span>
 					<span class="loginfield"><input type="password" name="password_confirm" id="password_confirm" size="15" maxlength="64" tabindex="2"></span>
 				</div>
-
+				<p style="color: #666;">
+					<strong>Password Requirements:</strong> Minimum 12 characters, must include
+					uppercase, lowercase, digits, and special characters.
+				</p>
 				<?php echo form_close() ?>
 			</div>
 		</div>

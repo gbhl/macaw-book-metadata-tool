@@ -74,7 +74,7 @@ class Cleanup extends Controller {
 					$cmd .= ' --data-urlencode -patch=\'{"add":"bhl_macaw", "value":"'.$this->cfg['interet_archive_tag'].' / '.$version_rev.'"}\'';
 					$cmd .= " --data-urlencode access=".$key['access'];
 					$cmd .= " --data-urlencode secret=".$key['secret'];
-					$cmd .= " https://archive.org/metadata/${id} 2>&1";
+					$cmd .= " https://archive.org/metadata/{$id} 2>&1";
 					echo $cmd;
 					die;
 

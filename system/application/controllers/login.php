@@ -12,6 +12,7 @@ class Login extends Controller {
 
 	function __construct() {
 		parent::__construct();
+		$this->load->library('PasswordValidator');
 	}
 
 	/**
@@ -275,8 +276,9 @@ class Login extends Controller {
 			return;
 		}
 
-		if (strlen($password) < 6) {
-			$this->session->set_userdata('errormessage', 'Password must be at least 6 characters long.');
+		$validation = $this->passwordvalidator->validate($password);
+		if (!$validation['valid']) {
+			$this->session->set_userdata('errormessage', 'Password does not meet requirements: ' . implode(' ', $validation['errors']));
 			redirect($this->config->item('base_url').'login/reset_password/'.$token);
 			return;
 		}

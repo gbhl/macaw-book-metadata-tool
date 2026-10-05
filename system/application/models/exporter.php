@@ -55,21 +55,33 @@ class Exporter extends Model {
 			// Decide if the first argument is a export module name, if it is, we call just that module
 			// with the remainder of the arguments.
 			if (in_array($args[0], $export_modules)) {
-				require_once($config['plugins_directory'].'/export/'.$args[0].EXT);
-				eval('$obj = new '.$args[0].'();');
-				array_shift($args);
-				$obj->export($args);
+				// Sanity sanitize
+				$args[0] = preg_replace('/[^A-Za-z0-9_]/', '', $args[0]);
+				$module_file = $config['plugins_directory'].'/export/'.$args[0].EXT;
+				// Check if the export file exists
+				if (file_exists($module_file)) {
+					require_once($module_file);
+					$obj = new $args[0]();
+					array_shift($args);
+					$obj->export($args);
+				}
 			} else {
-				echo "Export Module not found: $args[0] (Allowed values are: ".implode(', ', $this->cfg['export_modules']).")\n";
+				print "Export Module not found: $args[0] (Allowed values are: ".implode(', ', $this->cfg['export_modules']).")\n";
 			}
 			return;
 		}
 
 		// Loop through the list, calling the share() function on each object
 		foreach ($export_modules as $p) {
- 			require_once($config['plugins_directory'].'/export/'.$p.EXT);
- 			eval('$obj = new '.$p.'();');
- 			$obj->export($args);
+			// Sanity sanitize
+			$p = preg_replace('/[^A-Za-z0-9_]/', '', $p);
+			$module_file = $config['plugins_directory'].'/export/'.$p.EXT;
+			// Check if the export file exists
+			if (file_exists($module_file)) {
+				require_once($module_file);
+				$obj = new $p();
+				$obj->export($args);
+			}
 		}
 	}
 

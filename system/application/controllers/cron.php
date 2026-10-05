@@ -193,7 +193,8 @@ class Cron extends Controller {
 		}		
 		if (count($commands) > 0) {
 			foreach ($commands as $command) {
-				if (strpos($command, $search) > 0 && strpos($command, $pid) == 0) {
+				if (strpos($command, $search) !== false && 
+					strpos($command, $pid) !== false) {
 					$found++;
 				}
 			}

@@ -52,7 +52,7 @@
 
 	# get the current step, if there is one.
 	if (isset($_REQUEST['step'])) {
-		$step = $_REQUEST['step'];
+		$step = isset($_REQUEST['step']) ? (int)$_REQUEST['step'] : 0;
 	}
 	
 	# Sanity checks
