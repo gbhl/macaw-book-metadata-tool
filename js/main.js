@@ -77,6 +77,12 @@ $(function () {
             return false;
         }
         data.formData = inputs.serializeArray();
+		// Add CSRF token from meta tag
+		var csrfName = $('meta[name="csrf-name"]').attr('content');
+		var csrfToken = $('meta[name="csrf-token"]').attr('content');
+		if (csrfName && csrfToken) {
+			data.formData.push({name: csrfName, value: csrfToken});
+		}
 		// Enables the Cancel button while files are being uploaded.
 		$('.btn-warning.cancel').prop("disabled", false);
     });
@@ -139,11 +145,18 @@ $(function () {
 			$('#fileupload').addClass('fileupload-processing');
 			$('.btn-missing').css('display','none');
 			$('.btn-metadata').css('display','none');
+			var csrfName = $('meta[name="csrf-name"]').attr('content');
+			var csrfToken = $('meta[name="csrf-token"]').attr('content');
+			var ajaxData = {};
+			if (csrfName && csrfToken) {
+				ajaxData[csrfName] = csrfToken;
+			}
 			$.ajax({
 					// Uncomment the following to send cross-domain cookies:
 					//xhrFields: {withCredentials: true},
 					url: $('#fileupload').fileupload('option', 'url'),
 					dataType: 'json',
+					data: ajaxData,
 					context: $('#fileupload')[0]
 			}).always(function () {
 					$(this).removeClass('fileupload-processing');
