@@ -12,71 +12,71 @@
 /* global $, window */
 
 $(function () {
-    'use strict';
+	'use strict';
 	var loadingPDF = false;
 	
 	// Disables the Cancel button from the start.
 	$('.btn-warning.cancel').prop("disabled", true);
 
-    // Initialize the jQuery File Upload widget:
-    $('#fileupload').fileupload({
-      // Uncomment the following to send cross-domain cookies:
-      // xhrFields: {withCredentials: true},
-      // Uncomment the following to avoid caches, and comment out the other
-      url: '/scan/do_upload/' + Date.now(),
-      // url: '/scan/do_upload/',
-      sequentialUploads: false,
-      limitConcurrentUploads: 3,
-      autoUpload: false,
-	  maxChunkSize: 10485760,
-	  multipart: true,
-      maxFileSize: 1073741824
-    });
+	// Initialize the jQuery File Upload widget:
+	$('#fileupload').fileupload({
+		// Uncomment the following to send cross-domain cookies:
+		// xhrFields: {withCredentials: true},
+		// Uncomment the following to avoid caches, and comment out the other
+		url: '/scan/do_upload/' + Date.now(),
+		// url: '/scan/do_upload/',
+		sequentialUploads: false,
+		limitConcurrentUploads: 3,
+		autoUpload: false,
+		maxChunkSize: 10485760,
+		multipart: true,
+		maxFileSize: 1073741824
+	});
 
-    // Enable iframe cross-domain access via redirect option:
-    $('#fileupload').fileupload(
-        'option',
-        'redirect',
-        window.location.href.replace(
-            /\/[^\/]*$/,
-            '/cors/result.html?%s'
-        )
-    );
+	// Enable iframe cross-domain access via redirect option:
+	$('#fileupload').fileupload(
+		'option',
+		'redirect',
+		window.location.href.replace(
+			/\/[^\/]*$/,
+			'/cors/result.html?%s'
+		)
+	);
 
 		// Call when we select a file to upload
 		// Set the counter of the file so that we know what order we uploaded them
-    $('#fileupload').bind('fileuploadchange', function (e, data) {
+	$('#fileupload').bind('fileuploadchange', function (e, data) {
 			data.files.forEach(function(el, idx, arr) { 
 				arr[idx].counter = idx+1;
 			});
-    });
+	});
 
 		// Call when files are dropped onto the page
 		// Set the counter of the file so that we know what order we uploaded them
-    $('#fileupload').bind('fileuploaddrop', function (e, data) {
+	$('#fileupload').bind('fileuploaddrop', function (e, data) {
 			data.files.forEach(function(el, idx, arr) { 
 				arr[idx].counter = idx+1;
 			});
-    });
+	});
 
 		// Call when we start uploading a single file
 		// We need to know if we are uploading a PDF so we can handle buttons and messages later.
-    $('#fileupload').bind('fileuploadsend', function (e, data) {
+	$('#fileupload').bind('fileuploadsend', function (e, data) {
 			// Enables the Cancel button while the file is being uploaded.
 			//$('.btn-warning.cancel').prop("disabled", false);
-    });
+	});
 
 		// This is called when we start uploading.
 		// We pass some extra data (namely, the sequence number) with the image
-    $('#fileupload').bind('fileuploadsubmit', function (e, data) {
-        var inputs = data.context.find(':input');
-        if (inputs.filter(function () {
-                return !this.value && $(this).prop('required');
-            }).first().focus().length) {
-            data.context.find('button').prop('disabled', false);
-            return false;
-        }
-        data.formData = inputs.serializeArray();
+	$('#fileupload').bind('fileuploadsubmit', function (e, data) {
+		var inputs = data.context.find(':input');
+		if (inputs.filter(function () {
+				return !this.value && $(this).prop('required');
+			}).first().focus().length) {
+			data.context.find('button').prop('disabled', false);
+			return false;
+		}
+		data.formData = inputs.serializeArray();
 		// Add CSRF token from meta tag
 		var csrfName = $('meta[name="csrf-name"]').attr('content');
 		var csrfToken = $('meta[name="csrf-token"]').attr('content');
@@ -85,12 +85,12 @@ $(function () {
 		}
 		// Enables the Cancel button while files are being uploaded.
 		$('.btn-warning.cancel').prop("disabled", false);
-    });
+	});
 
 		// This is called when one file is finished uploading
 		// We check to see if we need to reload the list of files
-    $('#fileupload').bind('fileuploaddone', function (e, data) {
-    	if (data.result) {
+	$('#fileupload').bind('fileuploaddone', function (e, data) {
+		if (data.result) {
 				if (data.result.reload) {
 					if (!loadingPDF) {
 						loadingPDF = true;
@@ -114,11 +114,11 @@ $(function () {
 					$('#pdfmessage')[0].style.display = 'none';
 				}
 			}
-    });
+	});
 
 		// This is called when all files is finished uploading
 		// We display the buttons on the page, but only if we aren't loading a PDF
-    $('#fileupload').bind('fileuploadstop', function (e, data) {
+	$('#fileupload').bind('fileuploadstop', function (e, data) {
 			if (!loadingPDF) {
 				// Wait until we hope we are done
 				if (hasMissingPages) {
@@ -130,13 +130,13 @@ $(function () {
 				// Disables the Cancel button when upload is complete.
 				$('.btn-warning.cancel').prop("disabled", true);
 			}
-    });
+	});
 
 
 
-    // Click handlers for Enter Page Metadata and Insert Missing Pages
-    $('.btn-metadata').on("click", function(){window.location.href = '/scan/review';});
-    $('.btn-missing').on("click",  function(){window.location.href = '/scan/missing/insert';});
+	// Click handlers for Enter Page Metadata and Insert Missing Pages
+	$('.btn-metadata').on("click", function(){window.location.href = '/scan/review';});
+	$('.btn-missing').on("click",  function(){window.location.href = '/scan/missing/insert';});
 
 		initializeFiles();
 
