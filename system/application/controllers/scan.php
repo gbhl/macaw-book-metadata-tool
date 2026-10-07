@@ -989,9 +989,6 @@ class Scan extends Controller {
 			mkdir($scans_dir,0777, true);
 			$this->logging->log('book', 'info', 'Created directory: '.$scans_dir, $barcode);
 		}
-		// print "_FILES...\n<br><pre>";
-		// print_r($_FILES);
-		// print "</pre>";
 
 		if (!count($_FILES)) {
 			//Load the list of existing files in the upload directory
@@ -1010,6 +1007,7 @@ class Scan extends Controller {
 			}
 		} else {
 			$this->load->library('Uploadhandler');
+			$this->uploadhandler->set('param_name', 'file');
 			$this->uploadhandler->set('upload_dir', $scans_dir);
 			$files = $this->uploadhandler->init();
 
