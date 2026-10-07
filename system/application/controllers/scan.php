@@ -961,7 +961,7 @@ class Scan extends Controller {
 			$data['book_has_missing_pages'] = true;
 		}
 		$this->logging->log('book', 'info', "Loading Upload page Missing is ".$data['book_has_missing_pages']." Page count is ".count($pgs), $barcode);
-		$this->load->view('scan/upload_view_jquery', $data);		
+		$this->load->view('scan/upload_view_dropzone', $data);		
 	}
 
 	/**
@@ -989,7 +989,10 @@ class Scan extends Controller {
 			mkdir($scans_dir,0777, true);
 			$this->logging->log('book', 'info', 'Created directory: '.$scans_dir, $barcode);
 		}
-		
+		// print "_FILES...\n<br><pre>";
+		// print_r($_FILES);
+		// print "</pre>";
+
 		if (!count($_FILES)) {
 			//Load the list of existing files in the upload directory
 			$foundFiles = $this->_get_existing_files($scans_dir, $barcode);
@@ -1024,7 +1027,7 @@ class Scan extends Controller {
 					$missing = true;
 				}
 				$this->logging->log('book', 'info', "Starting Import Missing is $missing Page count is ".count($pgs), $barcode);
-
+				
 				foreach ($files as $fieldName => $file) {
 					if (preg_match("/\.pdf$/i", $file->name)) {
 						// We got a PDF, we need to split it

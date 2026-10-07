@@ -1,0 +1,191 @@
+/* Dropzone custom styling */
+
+.upload-area {
+	margin-top: 20px;
+}
+
+.existing-files {
+	background-color: #f9f9f9;
+	border: 1px solid #ddd;
+	padding: 15px;
+	border-radius: 4px;
+	margin-bottom: 20px;
+	max-height: 400px;
+	overflow-y: auto;
+}
+
+.existing-files h3 {
+	margin-top: 0;
+	font-size: 16px;
+	margin-bottom: 10px;
+}
+
+.existing-files p {
+	margin: 0;
+	padding: 10px;
+}
+
+/* Dropzone container */
+.dropzone {
+	border: 2px dashed #3498db;
+	border-radius: 4px;
+	padding: 40px;
+	text-align: center;
+	background-color: #f8f9fa;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	min-height: 300px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.dropzone.dz-drag-hover {
+	background-color: #e8f4f8;
+	border-color: #2980b9;
+}
+
+.dropzone .dz-message {
+	margin: 0;
+	color: #666;
+}
+
+.dropzone .dz-message .big-icon {
+	font-size: 48px;
+	margin-bottom: 15px;
+}
+
+.dropzone .dz-message p {
+	margin: 5px 0;
+}
+
+.dropzone .dz-message strong {
+	color: #333;
+	font-size: 16px;
+}
+
+/* Preview styling */
+.dz-preview {
+	margin: 10px;
+	padding: 10px;
+	background: white;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	display: inline-block;
+	min-width: 200px;
+	position: relative;
+}
+
+.dz-preview .dz-details {
+	padding: 10px;
+}
+
+.dz-preview .dz-filename {
+	font-weight: bold;
+	margin-bottom: 5px;
+	word-wrap: break-word;
+}
+
+.dz-preview .dz-size {
+	font-size: 12px;
+	color: #999;
+	margin-bottom: 10px;
+}
+
+.dz-preview .dz-progress {
+	display: none;
+}
+
+.dz-preview.dz-processing .dz-progress {
+	display: block;
+	height: 4px;
+	background: #e0e0e0;
+	border-radius: 2px;
+	overflow: hidden;
+}
+
+.dz-preview .dz-progress .dz-upload {
+	display: block;
+	height: 100%;
+	width: 0;
+	background: #5cb85c;
+	transition: width 0.3s ease;
+}
+
+.dz-preview .dz-remove {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	background: #e74c3c;
+	color: white;
+	border: none;
+	border-radius: 3px;
+	padding: 5px 10px;
+	cursor: pointer;
+	font-size: 12px;
+}
+
+.dz-preview .dz-remove:hover {
+	background: #c0392b;
+}
+
+.dz-preview.dz-error {
+	border-color: #e74c3c;
+	background-color: #fadbd8;
+}
+
+.dz-preview.dz-error .dz-error-message {
+	color: #c0392b;
+	font-size: 12px;
+	margin-top: 10px;
+	padding: 5px;
+	background-color: white;
+	border-radius: 3px;
+}
+
+.dz-preview.dz-success {
+	border-color: #5cb85c;
+	background-color: #d4edda;
+}
+
+.dz-preview.dz-success .dz-success-mark {
+	color: #5cb85c;
+	display: block;
+}
+
+/* Controls */
+.upload-controls {
+	margin-top: 20px;
+}
+
+.btn-metadata,
+.btn-missing {
+	display: none;
+}
+
+#uploadProgress {
+	margin-top: 15px;
+}
+
+#pdfmessage {
+	display: none;
+	margin-top: 10px;
+	padding: 10px 15px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+	.dropzone {
+		padding: 20px;
+		min-height: 200px;
+	}
+
+	.dropzone .dz-message .big-icon {
+		font-size: 32px;
+	}
+
+	.dz-preview {
+		min-width: auto;
+		width: calc(100% - 20px);
+	}
+}
