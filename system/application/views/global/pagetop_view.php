@@ -11,7 +11,7 @@
 	<div id="login_details">
 		<a href="#" onClick="User.edit('');"><?php echo $this->session->userdata('full_name') ?></a> |
 		<a href="<?php echo $this->config->item('base_url'); ?>login/logout">Logout</a> |
-		<a href="http://s.si.edu/BHLMacawUserGuide" target="_blank">Help</a>
+		<a href="http://s.si.edu/BHLMacawUserGuide" target="_blank" rel="noopener noreferrer">Help</a>
 	</div>
 
 	<div class="clear"><!-- --></div>

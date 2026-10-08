@@ -29,7 +29,7 @@
 				<h3>Demo / Development Version</h3>
 			<?php } else { ?>
 				<h3>Version <?php echo($version_rev); ?> / <?php echo($version_date); ?></h3>
-				<a href="https://docs.google.com/document/d/18TD8BkHbuP6hTKUKb0OV1UzlZ4Qcx0MdOkJt_cjcWL8/edit?usp=sharing" target="_blank">Changes and Release Notes</a>
+				<a href="https://docs.google.com/document/d/18TD8BkHbuP6hTKUKb0OV1UzlZ4Qcx0MdOkJt_cjcWL8/edit?usp=sharing" target="_blank" rel="noopener noreferrer">Changes and Release Notes</a>
 			<?php } ?>
 		</div>
 		<?php $this->load->view('global/error_messages_view') ?>

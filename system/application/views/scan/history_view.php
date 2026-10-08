@@ -18,7 +18,7 @@
         <textarea rows="35" cols="80" id="log_listing"><?php echo($log) ?></textarea>
         <div id="history_status">
           <?php if ($ia_identifier) { ?>
-            <div style="margin:1em 0;font-weight:bold;font-size:110%"><a href="https://archive.org/details/<?php echo $ia_identifier; ?>" target="_blank">View at Internet Archive</a></div>
+            <div style="margin:1em 0;font-weight:bold;font-size:110%"><a href="https://archive.org/details/<?php echo $ia_identifier; ?>" target="_blank" rel="noopener noreferrer">View at Internet Archive</a></div>
           <?php } ?>
           <table>
             <tbody>

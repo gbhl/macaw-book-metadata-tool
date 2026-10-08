@@ -28,7 +28,7 @@
 					<h3>Demo / Development Version</h3>
 				<?php } else { ?>
 					<h3>Version <?php echo($version_rev); ?> / <?php echo($version_date); ?></h3>
-					<a href="https://docs.google.com/document/d/18TD8BkHbuP6hTKUKb0OV1UzlZ4Qcx0MdOkJt_cjcWL8/edit?usp=sharing" target="_blank">Changes and Release Notes</a>
+					<a href="https://docs.google.com/document/d/18TD8BkHbuP6hTKUKb0OV1UzlZ4Qcx0MdOkJt_cjcWL8/edit?usp=sharing" target="_blank" rel="noopener noreferrer">Changes and Release Notes</a>
 				<?php } ?>
 			</div>
 			
@@ -43,7 +43,7 @@
 				<span class="loginlabel"><?php echo form_label('User Name:','username') ?></span>
 				<span class="loginfield"><?php echo form_input(array('name' => 'username', 'id' => 'username', 'size' => '20', 'maxlength' => '32', 'tabindex' => '1'), $username) ?></span>
 				<span class="loginlabel"><?php echo form_label('Password:','password') ?></span>
-				<span class="loginfield"><?php echo form_password(array('name' => 'password', 'id' => 'password', 'size' => '20', 'maxlength' => '32', 'tabindex' => '2')) ?></span>			
+				<span class="loginfield"><?php echo form_password(array('name' => 'password', 'id' => 'password', 'size' => '20', 'maxlength' => '32', 'tabindex' => '2', 'autocomplete' => "off")) ?></span>			
 				<a href="<?php echo $this->config->item('base_url').'login/forgot_password'; ?>">Forgot your password?</a>
 				<?php echo form_close() ?>
 			</div>

@@ -36,7 +36,7 @@
 					<p>
 					Scan the QR code below with an authenticator app such as<br>
 					<strong>Google Authenticator</strong>, <strong>Authy</strong>, your password manager,  <br>
-					or any other app that supports <a href="https://en.wikipedia.org/wiki/Time-based_one-time_password" target="_blank">TOTP</a> (RFC 6238).
+					or any other app that supports <a href="https://en.wikipedia.org/wiki/Time-based_one-time_password" target="_blank" rel="noopener noreferrer">TOTP</a> (RFC 6238).
 					</p>
 					<p>
 					After scanning, enter the 6-digit code shown in the app to confirm the<br>

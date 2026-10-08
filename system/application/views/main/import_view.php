@@ -18,14 +18,14 @@
       <p>
         Documentation may be found at:
         <ul>
-          <li><a href="https://docs.google.com/spreadsheets/d/1h6WeUILNBjiGHxrphDzUQKui2vVSXHwl6V-H1d0AIIY/edit?usp=sharing" _target="_blank">BHL Metadata Requirements | Schema Tables  v.2</a></li>
+          <li><a href="https://docs.google.com/spreadsheets/d/1h6WeUILNBjiGHxrphDzUQKui2vVSXHwl6V-H1d0AIIY/edit?usp=sharing" _target="_blank" rel="noopener noreferrer">BHL Metadata Requirements | Schema Tables  v.2</a></li>
         </ul>
       </p>
       <p>
         CSV Templates may be found at: 
         <ul>
-          <li><a href="https://drive.google.com/file/d/1t4evnIuz8zAvTT4Xrc_gZpOZPE-rNDp8/view?pli=1" _target="_blank">Macaw Item Level Template.xslx</a></li>
-          <li><a href="https://drive.google.com/file/d/1CkFEzLCRl5aKErpD7Dp7Kx11i5TYoJEM/view?pli=1" _target="_blank">Macaw Page Level Template.xslx</a></li>
+          <li><a href="https://drive.google.com/file/d/1t4evnIuz8zAvTT4Xrc_gZpOZPE-rNDp8/view?pli=1" _target="_blank" rel="noopener noreferrer">Macaw Item Level Template.xslx</a></li>
+          <li><a href="https://drive.google.com/file/d/1CkFEzLCRl5aKErpD7Dp7Kx11i5TYoJEM/view?pli=1" _target="_blank" rel="noopener noreferrer"Macaw Page Level Template.xslx</a></li>
         </ul>
         
       </p>

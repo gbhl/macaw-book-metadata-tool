@@ -39,7 +39,7 @@
 					<tr>
 						<td nowrap>
 						<label for="page_type">Page&nbsp;Type:&nbsp;<img src="<?php echo $this->config->item('base_url'); ?>images/icons/add.png" id="btnShowAddPageTypeDlg" class="icon">&nbsp;<img src="<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png" id="btnClearPageType" class="icon" onMouseOver="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete.png';" onMouseOut="this.src='<?php echo $this->config->item('base_url'); ?>images/icons/page_white_delete_grey.png';"></label><br>
-						<a id="page-type-defs" href="https://s.si.edu/BHLpagetypes" title="Page Type Definitions" target="_blank">(Page Type Defintions)</a>
+						<a id="page-type-defs" href="https://s.si.edu/BHLpagetypes" title="Page Type Definitions" target="_blank" rel="noopener noreferrer">(Page Type Defintions)</a>
 						</td>
 						<td>
 							<div id="page_types"></div>
