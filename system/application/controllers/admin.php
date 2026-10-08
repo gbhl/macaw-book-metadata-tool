@@ -690,7 +690,13 @@ class Admin extends Controller {
 	/* LOCAL ADMIN COMPLETED */
 	function account_delete($username = null) {
 		$target_user = new User;
-		$target_user->load($username);
+		try {
+			$target_user->load($username);
+		} catch(Exception $e) {
+			$this->common->ajax_headers();
+			echo json_encode(array('error' => 'User not found!'));
+			return;
+		}
 
 		$this->user->load($this->session->userdata('username'));
 		if ($username == $this->session->userdata('username')) {

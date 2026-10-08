@@ -21,6 +21,7 @@ if (!defined('PHPASS_HASH_PORTABLE')) {
 
 class User extends Model {
 
+	public $id = 0;
 	public $username = '';
 	public $password = '';
 	public $last_login = '';
@@ -74,6 +75,7 @@ class User extends Model {
 				// property in CI or PHP?
 				$row = $user->row();
 
+				$this->org_id			= $row->id;
 				$this->username			= $username;
 				$this->password			= '';
 				$this->last_login		= preg_replace('/\.\d+$/', '', $row->last_login);
