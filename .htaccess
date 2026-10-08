@@ -2,6 +2,8 @@
     RewriteEngine On
     RewriteBase /
 
+    # Prevent web access to the update scripts. These shouldn't 
+    # executed from the webroot anyway.
     RewriteCond %{REQUEST_URI} update-macaw.sh [NC,OR]
     RewriteCond %{REQUEST_URI} Update-Macaw.ps1
     RewriteRule ^ - [F,L]
@@ -57,4 +59,5 @@
 	<FilesMatch "\.(ico|pdf|flv|jpg|jpeg|png|gif|js|css|swf)$">
 		Header set Cache-Control "max-age=86400, public"
 	</FilesMatch>
+    Header always set X-Frame-Options "SAMEORIGIN"
 </IfModule> 
