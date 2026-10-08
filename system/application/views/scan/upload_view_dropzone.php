@@ -6,8 +6,6 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=9" />
 	<title>Scan | Upload | Macaw</title>
 
-	<!-- Bootstrap styles -->
-	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 	<!-- Dropzone styles -->
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.css">
 	<link rel="stylesheet" href="/css/dropzone-custom.css">
@@ -46,6 +44,7 @@
 		</div>
 	<?php } else { ?>
 		<div class="container">
+			<div style="width: 75%; margin-left: auto;margin-right:auto;">
 			<?php if ($used >= $this->cfg['upload_warning']) { ?>
 				<h2 id="warning" class="message-static">Your organization is using <?php echo($this->cfg['upload_warning']) ?>% or more of available disk space.</h2>
 			<?php } ?>
@@ -56,6 +55,7 @@
 				The maximum size for each file is <strong><?php echo($upload_max_filesize) ?></strong><br>
 				<span style="font-weight:bold;color:#900;">Please note: Thumbnails for existing image files are no longer displayed.</span>
 			</p>
+			</div>
 
 			<div class="upload-area">
 				<div id="existingFiles" class="existing-files">

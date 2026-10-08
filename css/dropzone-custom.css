@@ -1,7 +1,12 @@
 /* Dropzone custom styling */
-
 .upload-area {
 	margin-top: 20px;
+	display: grid;
+	grid-template-columns: 1fr 2fr;
+	gap: 20px;
+	width: 75%;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 .existing-files {
@@ -26,18 +31,21 @@
 }
 
 /* Dropzone container */
-.dropzone {
+ .dropzone {
 	border: 2px dashed #3498db;
 	border-radius: 4px;
-	padding: 40px;
+	padding: 20px;
 	text-align: center;
 	background-color: #f8f9fa;
 	cursor: pointer;
 	transition: all 0.3s ease;
 	min-height: 300px;
+	max-width: 100%;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	flex-wrap: wrap;
+	flex-grow: 4; 
 }
 
 .dropzone.dz-drag-hover {
@@ -72,7 +80,7 @@
 	border: 1px solid #ddd;
 	border-radius: 4px;
 	display: inline-block;
-	min-width: 200px;
+	min-width: 144px;
 	position: relative;
 }
 
@@ -153,6 +161,7 @@
 	display: block;
 }
 
+
 /* Controls */
 .upload-controls {
 	margin-top: 20px;
@@ -171,7 +180,7 @@
 	display: none;
 	margin-top: 10px;
 	padding: 10px 15px;
-}
+} 
 
 /* Responsive */
 @media (max-width: 768px) {

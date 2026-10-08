@@ -19,12 +19,13 @@ document.addEventListener('DOMContentLoaded', function() {
 	// Initialize Dropzone
 	dropzoneInstance = new Dropzone('form#dropzoneForm', {
 		autoProcessQueue: false,
-		maxFilesize: 1024,
+		maxFilesize: 1073741824,
 		parallelUploads: 3,
 		uploadMultiple: false,
-		acceptedFiles: '.png,.tiff,.tif,.jp2,.pdf,.jpg,.jpeg',
-		addRemoveLinks: true,
-		timeout: 300000
+		acceptedFiles: '.png,.tiff,.tif,.jp2,.pdf,.jpg,.jpeg,.webp',
+		addRemoveLinks: false,
+		timeout: 300000,
+		createImageThumbnails: true
 	});
 
 	console.log('Dropzone initialized');

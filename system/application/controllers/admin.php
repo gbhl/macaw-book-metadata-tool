@@ -693,7 +693,12 @@ class Admin extends Controller {
 		$target_user->load($username);
 
 		$this->user->load($this->session->userdata('username'));
-		if (!isset($username)) {
+		if ($username == $this->session->userdata('username')) {
+			$this->common->ajax_headers();
+			echo json_encode(array('error' => 'You can\'t delete your own account!'));
+			$this->logging->log('error', 'debug', 'Tried to delete their own account.');
+
+		} elseif (!isset($username)) {
 			$this->common->ajax_headers();
 			echo json_encode(array('error' => 'You did not supply the name of an account to delete.'));
 			$this->logging->log('error', 'debug', 'No account name supplied for deletion.');
