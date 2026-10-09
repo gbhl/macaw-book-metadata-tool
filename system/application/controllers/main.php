@@ -342,7 +342,7 @@ class Main extends Controller {
 				array_push($md, array(
 					'fieldnamex' => $i['fieldname'].'_'.$array_counts[$i['fieldname']],
 					'fieldname' => $i['fieldname'],
-					'value' => $i['value']
+					'value' => htmlspecialchars($i['value'])
 				));
 			}
 		}
@@ -466,7 +466,8 @@ class Main extends Controller {
 							}		
 						}
 						// We got a value from the plain text field.
-						$this->book->set_metadata(trim($_REQUEST['new_fieldname_'.$c]), $_REQUEST['new_value_'.$c], false);
+						$val = htmlspecialchars_decode($_REQUEST['new_value_'.$c]);
+						$this->book->set_metadata(trim($_REQUEST['new_fieldname_'.$c]), $val, false);
 					} elseif ($_REQUEST['new_fieldname_'.$c] && array_key_exists('new_value_'.$c.'_file', $_FILES)) {
 						// We didn't get a value, so let's see if we got a file upload
 						// Make sure the file exists, dummy!
@@ -481,6 +482,7 @@ class Main extends Controller {
 							$v = trim($v);
 							// Don't save an empty value.
 							if (isset($v) && $v != '') {
+								$v = htmlspecialchars_decode($v);
 								$this->book->set_metadata(trim($field), $v, false);
 							}
 						}
@@ -584,11 +586,11 @@ class Main extends Controller {
 		redirect($this->config->item('base_url').'main/edit');	
 	}
 	
-  function admin_edit() {
+	function admin_edit() {
 		$this->common->check_session();
 		$errormessages = [];
 
-    if (!$this->user->has_permission('admin')) {
+		if (!$this->user->has_permission('admin')) {
 			$this->session->set_userdata('errormessage', 'Only admins can use the admin edit page!');
 			redirect($this->config->item('base_url').'main/edit');
 			return;		
@@ -603,117 +605,119 @@ class Main extends Controller {
 				'Error' => 'error'
 			);
 			$data['export_modules'] = [];
-	    	$this->load->view('main/admin_edit_view', $data);
+			$this->load->view('main/admin_edit_view', $data);
 			return;
 		} 
 		$this->book->load($barcode);
 
-    $data = [];
-    $data['identifier'] = $this->book->barcode;
-    $data['id'] = $this->book->id;
-    $data['status_code'] = $this->book->status;
-    $data['all_statuses'] = array(
-      'New' => 'new',
-      'Importing' => 'scanning',
-      'Imported' => 'scanned',
-      'In Progress' => 'reviewing',
-      'Awaiting Export' => 'reviewed',
-      'Exporting' => 'exporting',
-      'QA Ready' => 'qa-ready',
-      'QA Active' => 'qa-active',
-      'Completed' => 'completed',
-      'Error' => 'error'
-    );
-    $data['export_modules'] = [];
+		$data = [];
+		$data['identifier'] = $this->book->barcode;
+		$data['id'] = $this->book->id;
+		$data['status_code'] = $this->book->status;
+		$data['all_statuses'] = array(
+			'New' => 'new',
+			'Importing' => 'scanning',
+			'Imported' => 'scanned',
+			'In Progress' => 'reviewing',
+			'Awaiting Export' => 'reviewed',
+			'Exporting' => 'exporting',
+			'QA Ready' => 'qa-ready',
+			'QA Active' => 'qa-active',
+			'Completed' => 'completed',
+			'Error' => 'error'
+		);
+		$data['export_modules'] = [];
 
-    foreach ($this->cfg['export_modules'] as $m) {
-      if ($m == 'Internet_archive') {
-        $data['export_modules'][] = array(
-          'module_name' => $m,  
-          'statuses' => array (
-            '(empty)' => '',
-            'uploading' => 'uploading',
-            'uploaded' => 'uploaded',
-            'verified_upload' => 'verified_upload',
-            'verified_derive' => 'verified_derive',
-            'completed' => 'completed',
-            'error' => 'error',  
-          ),
-          'current' => $this->book->get_export_status($m)
-        );          
-      }
-      if ($m == 'Data_purge') {
-        $data['export_modules'][] = array(
-          'module_name' => $m,  
-          'statuses' => array (
-            '(empty)' => '',
-            'in_progress' => 'in_progress',
-            'completed' => 'completed',
-          ),
-          'current' => $this->book->get_export_status($m)
-        );  
-      }
-      if ($m == 'Isilon_archive') {
-        $data['export_modules'][] = array(
-          'module_name' => $m,  
-          'statuses' => array (
-            '(empty)' => '',
-            'in_progress' => 'in_progress',
-            'completed' => 'completed',
-          ),
-          'current' => $this->book->get_export_status($m)
-        );  
-      }
-    }
-    $this->load->view('main/admin_edit_view', $data);
+		// Use the list of export modules to fill the list of Item Export Statuses
+		foreach ($this->cfg['export_modules'] as $m) {
+			// Find and load the export module
+			$module_file = $this->cfg['plugins_directory'].'/export/'.$m.EXT;
+			if (file_exists($module_file)) {
+				require_once($module_file);
+				$obj = new $m();
+				unset($statuses);
+				// Get and use the statuses from the object.
+				$statuses['(empty)'] = '';
+				foreach ($obj->get_statuses() as $s) {
+					$statuses[$s] = $s;
+				}
+				$data['export_modules'][] = array(
+					'module_name' => $m,	
+					'statuses' => $statuses,
+					'current' => $this->book->get_export_status($m)
+				);
+			}
+		}
+		$this->load->view('main/admin_edit_view', $data);
+	}
 
-  }
-
-  function admin_edit_save() {
+	function admin_edit_save() {
 		$this->common->check_session();
-    if (!$this->user->has_permission('admin')) {
+		if (!$this->user->has_permission('admin')) {
 			$this->session->set_userdata('errormessage', 'Only admins can use the admin edit page!');
 			redirect($this->config->item('base_url').'main/edit');
 			return;		
 		}
 
-    // Check each item retuned, save only if it's different
+		// Sanitize the item status
+		if (!$this->book->_is_valid_status('book', $_REQUEST['new_export_status'])) {
+			$this->session->set_userdata('errormessage', 'Invalid status.');
+			redirect($this->config->item('base_url').'main/admin_edit');
+			return;
+		}
+
+		// Sanitize the module statuses
+		foreach ($this->cfg['export_modules'] as $m) {
+			if (isset($_REQUEST['new_'.$m]) && $_REQUEST['new_'.$m] !== '') {
+				// Find and load the export module
+				$module_file = $this->cfg['plugins_directory'].'/export/'.$m.EXT;
+				if (file_exists($module_file)) {
+					require_once($module_file);
+					// Create the object
+					$obj = new $m();
+					// The value given has to be in the list
+					if (array_search($_REQUEST['new_'.$m],$obj->get_statuses()) === false) {
+						$this->session->set_userdata('errormessage', 'Invalid item status.');
+						redirect($this->config->item('base_url').'main/admin_edit');
+						return;
+					}
+				}
+			}
+		}
+
+		// Check each item retuned, save only if it's different
 		$barcode = $this->session->userdata('barcode');
 		$this->book->load($barcode);
 
-    $changed = false;
-    $messages = [];
+		$changed = false;
+		$messages = [];
 
-    // print "<pre>";
-    // print_r($_REQUEST);
-    // die;
-
-    foreach ($this->cfg['export_modules'] as $m) {
-      if (!$_REQUEST['new_'.$m]) {
-        if ($this->book->get_export_status($m)) {
-          // Handle an empty field
-          $this->book->set_export_status('DELETE', true, $m);
-          $messages[] = 'Item status removed for '.$m.'!';
-        }
-      } elseif ($_REQUEST['new_'.$m] != $this->book->get_export_status($m)) {
-        $this->book->set_export_status($_REQUEST['new_'.$m], true, $m);
-        $messages[] = 'Item status saved for '.$m.'!';
-      }
-    }
-    // Do this last to override whatever might be happening in set_export_status
-    if ($_REQUEST['new_export_status'] != $this->book->status) {
-      $this->book->set_status($_REQUEST['new_export_status'], true);
-      $messages[] = 'Item status saved!';
-    }
-    if (count($messages)) {
-      $this->session->set_userdata('message', implode('<br>', $messages));
-    } else {
-      $this->session->set_userdata('warning', 'No changes were made.');
-    }
-    
+		foreach ($this->cfg['export_modules'] as $m) {
+			if (!$_REQUEST['new_'.$m]) {
+				if ($this->book->get_export_status($m)) {
+					// Handle an empty field
+					$this->book->set_export_status('DELETE', true, $m);
+					$messages[] = 'Item status removed for '.$m.'!';
+				}
+			} elseif ($_REQUEST['new_'.$m] != $this->book->get_export_status($m)) {
+				$this->book->set_export_status($_REQUEST['new_'.$m], true, $m);
+				$messages[] = 'Item status saved for '.$m.'.';
+	 		}
+		}
+		// Do this last to override whatever might be happening in set_export_status
+		if ($_REQUEST['new_export_status'] != $this->book->status) {
+			$this->book->set_status($_REQUEST['new_export_status'], true);
+			$messages[] = 'Item status saved!';
+		}
+		if (count($messages)) {
+			$this->session->set_userdata('message', implode('<br>', $messages));
+		} else {
+			$this->session->set_userdata('warning', 'No changes were made.');
+		}
+		
 		//Changed redirect to review with new style and workflow
 		redirect($this->config->item('base_url').'main/admin_edit');	
-  }
+	}
 
 
 	/**

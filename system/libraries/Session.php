@@ -665,7 +665,8 @@ class CI_Session {
 					$this->sess_expiration + time(),
 					$this->cookie_path,
 					$this->cookie_domain,
-					0
+					true, # Secure
+					true, # HttpOnly
 				);
 		// Mark cookie as set
 		$this->cookie_set = TRUE;

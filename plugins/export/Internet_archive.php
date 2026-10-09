@@ -3412,4 +3412,18 @@ class Internet_archive extends Controller {
 			return $dest;
 		}
 	}
+
+	// ----------------------------
+	// Function: get_statuses()
+	//
+	// Return a simple array of all of the values this module
+	// may use when calling $this->CI->book->set_export_status().
+	// 
+	// Generally, these should be in the the order of progression,
+	// if there is one, and the last should always be "completed".
+	// ----------------------------
+	function get_statuses() {
+		return ['uploading', 'uploaded', 'verified_upload', 'verified_derive', 'completed', 'error'];
+	}
+
 }

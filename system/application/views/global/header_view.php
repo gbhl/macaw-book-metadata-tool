@@ -103,12 +103,16 @@
 				<?php } ?>
 			</ul>            
 		</div>
-		<?php if (isset($item_title)) { ?>
-			<div id="item-title">
-				<?php if (is_array($item_title)) {echo($item_title[0]);} else {echo($item_title);} ?>
-			</div>
-		<?php } ?>
-		
+		<?php 
+			if (isset($item_title)) { 
+				if (is_array($item_title)) { 
+					$item_title = $item_title[0];
+				}
+				print '<div id="item-title">';
+				print htmlspecialchars($item_title, ENT_QUOTES);
+				print '</div>';
+			} 
+		?>
 		<div class="messagediv">
 			<?php $this->load->view('global/error_messages_view') ?>
 		</div>	

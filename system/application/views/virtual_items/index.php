@@ -14,8 +14,6 @@
 
 		<h2><a href="/virtual_items/sources">View Virtual Item Sources</a>
 
-		<h2><a href="/virtual_items/batches">View Virtual Item Spreadsheet Results</a>
-
 	<?php $this->load->view('global/footer_view') ?>
 </body>
 </html>
