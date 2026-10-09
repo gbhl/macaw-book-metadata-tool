@@ -44,6 +44,7 @@ class CI_Session {
 	var $userdata					= array();
 	var $CI;
 	var $now;
+	var $cookie_set					= FALSE;
 
 	/**
 	 * Session Constructor
@@ -633,6 +634,12 @@ class CI_Session {
 	 */
 	function _set_cookie($cookie_data = NULL)
 	{
+		// Prevent setting the cookie multiple times in a single request
+		if ($this->cookie_set === TRUE)
+		{
+			return;
+		}
+
 		if (is_null($cookie_data))
 		{
 			$cookie_data = $this->userdata;
@@ -660,8 +667,9 @@ class CI_Session {
 					$this->cookie_domain,
 					0
 				);
+		// Mark cookie as set
+		$this->cookie_set = TRUE;
 	}
-
 	// --------------------------------------------------------------------
 
 	/**
