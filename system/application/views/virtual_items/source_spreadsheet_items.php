@@ -6,19 +6,18 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=9" />
 	<title>Virtual Items | Macaw</title>
 	<?php $this->load->view('global/head_view') ?>
-  <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/themes/prism.min.css"/> -->
 </head>
 <body id="manualbody" class="yui-skin-sam">
 	<?php $this->load->view('global/header_view') ?>
 	
-	<h1>Virtual Item Spreadsheet: <?php echo $name; ?></h1>
-	<h2>Uploaded by <?php echo $uploaded_by; ?> on <?php echo $created; ?></h2>
+	<h1>Virtual Item Spreadsheet: <?php echo h($name); ?></h1>
+	<h2>Uploaded by <?php echo h($uploaded_by); ?> on <?php echo h($created); ?></h2>
 	<div id="userqueues" class="fulltable">
 		<ul class="queueheading">
 			<li class="selected"><a href="#tab2">Virtual Item Articles</a></li>
 			<select id="queue-filter">
 				<?php foreach ($filter as $f) { ?>
-					<option value="<?php echo strtolower($f) ?>"><?php echo $f ?></option>
+					<option value="<?php echo h(strtolower($f)) ?>"><?php echo h($f) ?></option>
 				<?php } ?>
 			</select>
 		</ul>
@@ -33,6 +32,5 @@
 	</script>
 
 	<?php $this->load->view('global/footer_view') ?>
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/prism.min.js"></script> -->
 </body>
 </html>

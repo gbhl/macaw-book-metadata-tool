@@ -194,16 +194,19 @@
 	</script>
 </head>
 <body class="yui-skin-sam">
-	<?php $this->load->view('global/header_view') ?>
-	<?php $this->load->view('global/error_messages_view') ?>
+	<?php 
+		$this->load->view('global/header_view');
+		$this->load->view('global/error_messages_view');
+		$base_url = $this->config->item('base_url');
+	?>
 
 	<div id="edit">
 		<?php if ($new) { ?>
 			<h1 >Add Item</h1>
-			<form action="<?php echo $this->config->item('base_url'); ?>main/add_save" method="post" id="edit_form" enctype="multipart/form-data">
+			<form action="<?php echo $base_url; ?>main/add_save" method="post" id="edit_form" enctype="multipart/form-data">
 		<?php } else { ?>
 			<h1>Edit Item</h1>
-			<form action="<?php echo $this->config->item('base_url'); ?>main/edit_save" method="post" id="edit_form" enctype="multipart/form-data">
+			<form action="<?php echo $base_url; ?>main/edit_save" method="post" id="edit_form" enctype="multipart/form-data">
 			<input type="hidden" name="id" value="<?php echo($id) ?>">
 			<input type="hidden" name="action" id="save_action" value="save">
 		<?php } ?>
@@ -213,15 +216,15 @@
 					<td class="fieldname">Identifier:</td>
 					<td>
 					<?php if ($new) { ?>
-						<input type="text" name="identifier"  value="<?php echo($identifier) ?>">
+						<input type="text" name="identifier"  value="<?php echo attr($identifier) ?>">
 					<?php } else { ?>
-						<?php echo($identifier) ?>&nbsp;&nbsp;&nbsp;&nbsp;(<strong>Macaw ID:</strong> <?php echo($id) ?>)
+						<?php echo h($identifier) ?>&nbsp;&nbsp;&nbsp;&nbsp;(<strong>Macaw ID:</strong> <?php echo($id) ?>)
 					<?php } ?>
 					</td>
 				</tr>
 				<tr class="row">
 					<td class="fieldname">Contributor:</td>
-					<td><?php echo($organization) ?></td>
+					<td><?php echo h($organization) ?></td>
 				</tr>
 				<tr class="row">
 				  <?php if ($org_has_qa) { ?>
@@ -255,7 +258,7 @@
 					<td>
 						<select name="copyright[]">
 						<?php	foreach ($copyright_values as $c) {?>
-							<option value="<?php echo($c['value']) ?>" <?php echo ($c['value'] == $copyright ? 'selected' : ''); ?>><?php echo($c['title']) ?></option>
+							<option value="<?php echo attr($c['value']) ?>" <?php echo ($c['value'] == $copyright ? 'selected' : ''); ?>><?php echo h($c['title']) ?></option>
 						<?php } ?>
 						</select>
 					</td>
@@ -265,7 +268,7 @@
 					<td>
 						<select name="cc_license[]">
 						<?php	foreach ($cc_licenses as $c) {?>
-							<option value="<?php echo($c['value']) ?>" <?php echo ($c['value'] == $cc_license ? 'selected' : ''); ?>><?php echo($c['title']) ?></option>
+							<option value="<?php echo attr($c['value']) ?>" <?php echo ($c['value'] == $cc_license ? 'selected' : ''); ?>><?php echo h($c['title']) ?></option>
 						<?php } ?>
 						</select> (Only for "In Copyright, Permission Granted")
 
@@ -309,7 +312,7 @@
 										} 
 									?>
 								</select>
-								<div id="<?php echo($i['fieldname']); ?>_other" class="txt-other-value" <?php if (!$other) {?> style="display: none" <?php } ?>>
+								<div id="<?php echo attr($i['fieldname']); ?>_other" class="txt-other-value" <?php if (!$other) {?> style="display: none" <?php } ?>>
 								<?php if ($other) {?>
 									Other: <input type="text" name="<?php echo($i['fieldname']); ?>_other" placeholder="Enter other value here" value="<?php echo($i['value']); ?>">
 								<?php } else { ?>
@@ -317,23 +320,23 @@
 								<?php } ?>
 								</div>
 							</td>
-							<td><a href="javascript:FIELDS.deleteField('existing_field_<?php echo($c); ?>')"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/delete.png" title="Delete field"></a></td>
+							<td><a href="javascript:FIELDS.deleteField('existing_field_<?php echo($c); ?>')"><img src="<?php echo $base_url; ?>images/icons/delete.png" title="Delete field"></a></td>
 						</tr>
 						
 					<?php  } else { ?> 
 						<tr class="row" id="existing_field_<?php echo($c) ?>">
-							<td class="fieldname"><?php echo($i['fieldname']); ?>:</td>
+							<td class="fieldname"><?php echo h($i['fieldname']); ?>:</td>
 							<td>
 							<?php if (strlen($i['value']) > 100) { ?>
-								<textarea name="<?php echo($i['fieldname']); ?>[]" rows="5" cols="83" class="txt-fieldvalue"><?php echo(htmlspecialchars($i['value'])); ?></textarea>
+								<textarea name="<?php echo attr($i['fieldname']); ?>[]" rows="5" cols="83" class="txt-fieldvalue"><?php echo(h($i['value'])); ?></textarea>
 							</td>
 							<td>
-								<a href="javascript:FIELDS.deleteField('existing_field_<?php echo($c); ?>')"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/delete.png" title="Delete field"></a>
+								<a href="javascript:FIELDS.deleteField('existing_field_<?php echo($c); ?>')"><img src="<?php echo $base_url; ?>images/icons/delete.png" title="Delete field"></a>
 								<?php } else { ?>
-								<input type="text" name="<?php echo($i['fieldname']); ?>[]"  value="<?php echo(htmlspecialchars($i['value'])); ?>" class="txt-fieldvalue">
+								<input type="text" name="<?php echo attr($i['fieldname']); ?>[]"  value="<?php echo attr($i['value']); ?>" class="txt-fieldvalue">
 							</td>
 							<td>
-								<a href="javascript:FIELDS.deleteField('existing_field_<?php echo($c); ?>')"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/delete.png" title="Delete field"></a>
+								<a href="javascript:FIELDS.deleteField('existing_field_<?php echo($c); ?>')"><img src="<?php echo $base_url; ?>images/icons/delete.png" title="Delete field"></a>
 								<?php } ?>
 							</td>
 						</tr>
@@ -375,7 +378,7 @@
 									Other: <input type="text" name="new_value_<?php echo($counter); ?>_other" placeholder="Enter other value here">
 								</div>
 							</td>
-							<td><a href="javascript:FIELDS.deleteField('newfields_<?php echo($counter); ?>')"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/delete.png" title="Delete field"></a></td>
+							<td><a href="javascript:FIELDS.deleteField('newfields_<?php echo($counter); ?>')"><img src="<?php echo $base_url; ?>images/icons/delete.png" title="Delete field"></a></td>
 						</tr>
 				<?php } ?>
 
@@ -393,8 +396,8 @@
 								<input type="file" name="new_value_<?php echo($counter); ?>_file"  id="new_value_<?php echo($counter); ?>_file" style="display:none" class="txt-fieldvalue">
 							</td>
 							<td>
-								<a href="javascript:FIELDS.toggleNewField('<?php echo($counter); ?>')"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/page_add.png" title="Upload File" id="upload_toggle_<?php echo($counter); ?>"></a>
-								<a href="javascript:FIELDS.deleteField('newfields_<?php echo($counter); ?>')"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/delete.png" title="Delete field"></a>
+								<a href="javascript:FIELDS.toggleNewField('<?php echo($counter); ?>')"><img src="<?php echo $base_url; ?>images/icons/page_add.png" title="Upload File" id="upload_toggle_<?php echo($counter); ?>"></a>
+								<a href="javascript:FIELDS.deleteField('newfields_<?php echo($counter); ?>')"><img src="<?php echo $base_url; ?>images/icons/delete.png" title="Delete field"></a>
 							</td>
 						</tr>
 				<?php
@@ -407,7 +410,7 @@
 						<input type="file" name="new_value_1_file"  id="new_value_1_file" style="display:none" class="txt-fieldvalue">
 					</td>
 					<td>
-						<a href="javascript:FIELDS.toggleNewField('1')"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/page_add.png" title="Upload File" id="upload_toggle_1"></a><a href="javascript:FIELDS.deleteField('newfields_1')"><img src="<?php echo $this->config->item('base_url'); ?>images/icons/delete.png" title="Delete field"></a>
+						<a href="javascript:FIELDS.toggleNewField('1')"><img src="<?php echo $base_url; ?>images/icons/page_add.png" title="Upload File" id="upload_toggle_1"></a><a href="javascript:FIELDS.deleteField('newfields_1')"><img src="<?php echo $base_url; ?>images/icons/delete.png" title="Delete field"></a>
 					</td>
 				</tr>
 			</table> <!-- close of div = newfields -->

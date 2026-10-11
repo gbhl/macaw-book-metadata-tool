@@ -9,13 +9,13 @@ if ($this->session->userdata('message') ||
 	?>
 	<div id="alert" class="message-overlay <?php echo $class; ?>">
 		<?php if ($this->session->userdata('message')) { ?>
-			<p><span class="icon">✅</span><?php echo htmlentities($this->session->userdata('message')); ?></p>
+			<p><span class="icon">✅</span><?php echo h($this->session->userdata('message')); ?></p>
 		<?php } ?>
 		<?php if ($this->session->userdata('warning')) { ?>
-			<p><span class="icon">⚠️</span><?php echo htmlentities($this->session->userdata('warning')); ?></p>
+			<p><span class="icon">⚠️</span><?php echo h($this->session->userdata('warning')); ?></p>
 		<?php } ?>
 		<?php if ($this->session->userdata('errormessage')) { ?>
-			<p><span class="icon">⛔</span><?php echo htmlentities($this->session->userdata('errormessage')); ?></p>
+			<p><span class="icon">⛔</span><?php echo h($this->session->userdata('errormessage')); ?></p>
 		<?php } ?>
 		<button id="btnCloseMessage">Close</button>
 	</div>

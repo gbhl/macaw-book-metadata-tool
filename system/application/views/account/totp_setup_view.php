@@ -22,7 +22,7 @@
 	<div id="edit">
 		<h1>Enable Two-Factor Authentication</h1>
 		<form action="<?php echo $this->config->item('base_url'); ?>account/totp_enable/" method="post" id="totp_setup_form">
-		<input type="hidden" name="li_token" value="<?php echo htmlspecialchars($token); ?>">
+		<input type="hidden" name="li_token" value="<?php echo h($token); ?>">
 
 		<table border="0" cellspacing="5" cellpadding="5">
 			<tr class="row">
@@ -53,7 +53,7 @@
 			<tr class="row">
 				<td class="fieldname" valign="top">Manual Entry Key:</td>
 				<td>
-					<code style="font-family: monospace; font-size: 1.5em; letter-spacing: 0.1em;"><?php echo htmlspecialchars($secret); ?></code>
+					<code style="font-family: monospace; font-size: 1.5em; letter-spacing: 0.1em;"><?php echo h($secret); ?></code>
 					<br>
 					<small>Enter this key manually if you cannot scan the QR code.</small>
 				</td>

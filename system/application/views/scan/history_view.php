@@ -32,7 +32,7 @@
               <tr><td>Completed</td><td><?php echo($item['date_completed']) ?></td></tr>
               <tr><td>Export Status</td><td></td></tr>
               <?php foreach ($item['export_status'] as $k => $v) { ?>
-                <tr><td style="font-weight: normal"><?php echo $k; ?></td><td><?php echo $v['status_code'].'<br>'.$v['date']; ?></td></tr>
+                <tr><td style="font-weight: normal"><?php echo h($k); ?></td><td><?php echo $v['status_code'].'<br>'.$v['date']; ?></td></tr>
               <?php } ?>
             </tbody>
           </table>

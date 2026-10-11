@@ -37,7 +37,7 @@
 				<p>Enter your new password below.</p>
 				<?php echo form_open($this->config->item('base_url').'login/process_reset_password', array('id' => 'lostpwdform')) ?>
 
-				<input type="hidden" name="token" value="<?php echo htmlspecialchars($token); ?>">
+				<input type="hidden" name="token" value="<?php echo h($token); ?>">
 
 				<div style="margin-bottom: 15px;">
 					<span class="loginlabel"><label for="password">New Password:</label></span>

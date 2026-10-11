@@ -38,7 +38,7 @@
         <tr class="row">
 					<td class="fieldname">Identifier:</td>
 					<td>
-						<?php echo($identifier) ?>&nbsp;&nbsp;&nbsp;&nbsp;(<strong>Macaw ID:</strong> <?php echo($id) ?>)
+						<?php echo(h($identifier)) ?>&nbsp;&nbsp;&nbsp;&nbsp;(<strong>Macaw ID:</strong> <?php echo($id) ?>)
 					</td>
 				</tr>
 				<tr class="row">
@@ -50,9 +50,9 @@
                 foreach ($all_statuses as $k => $v) {
                   if ($v == $status_code) { 
                     $current = $k;
-                    echo "<option value=\"$v\" selected=\"selected\">$k</option>";
+                    echo "<option value=\"".attr($v)."\" selected=\"selected\">".h($k)."</option>";
                   } else {
-                    echo "<option value=\"$v\">$k</option>";
+                    echo "<option value=\"".attr($v)."\">".h($k)."</option>";
                   }
                 } 
               ?>
@@ -66,15 +66,15 @@
             <table>
               <?php foreach ($export_modules as $export) { ?>
                 <tr>
-                  <td><?php echo $export['module_name']; ?></td>
+                  <td><?php echo h($export['module_name']); ?></td>
                   <td>
-                    <select name="new_<?php echo $export['module_name']; ?>">
+                    <select name="new_<?php echo attr($export['module_name']); ?>">
                     <?php 
                       foreach ($export['statuses'] as $k => $v) {
                         if ($v == $export['current']) { 
-                          echo "<option value=\"$v\" selected=\"selected\">$k</option>";
+                          echo "<option value=\"".attr($v)."\" selected=\"selected\">".h($k)."</option>";
                         } else {
-                          echo "<option value=\"$v\">$k</option>";
+                          echo "<option value=\"".attr($v)."\">".h($k)."</option>";
                         }
                       } 
                     ?>

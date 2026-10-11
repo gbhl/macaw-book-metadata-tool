@@ -46,8 +46,8 @@
         <?php 
         foreach ($config_params as $s) {
           echo "<tr>";
-            echo "<td>".$s['paramater']."</td>";
-            echo "<td>".$s['value']."</td>";
+            echo "<td>".h($s['paramater'])."</td>";
+            echo "<td>".h($s['value'])."</td>";
           echo "</tr>";
         }
         if ($all) {
@@ -58,7 +58,7 @@
           foreach ($phpvars as $v => $val) {
             echo "<tr>";
               echo "<td>&nbsp;&nbsp;&nbsp;&nbsp;".$v."</td>";
-              echo "<td>".$val."</td>";
+              echo "<td>".h($val)."</td>";
             echo "</tr>";
           }
 
@@ -68,13 +68,13 @@
           echo "</tr>";
           foreach (array_keys($phpinfo) as $section) {
             echo "<tr>";
-              echo "<td><strong>".$section."</strong></td>";
+              echo "<td><strong>".h($section)."</strong></td>";
               echo "<td>##############################################################</td>";
             echo "</tr>";
             foreach ($phpinfo[$section] as $k => $v) {
               echo "<tr>";
                 echo "<td>&nbsp;&nbsp;&nbsp;&nbsp;".$k."</td>";
-                echo "<td>".print_r($v,true)."</td>";
+                echo "<td>".h(print_r($v,true))."</td>";
               echo "</tr>";
             }
           }

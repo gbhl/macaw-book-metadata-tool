@@ -12,7 +12,7 @@
  * @author      Security Team
  */
 
-class OutputEncoder {
+class Outputencoder extends Controller {
 
     /**
      * Instance of CI
@@ -23,7 +23,7 @@ class OutputEncoder {
      * Constructor
      */
     public function __construct() {
-        $this->CI =& get_instance();
+		$this->CI = get_instance();
     }
 
     /**
@@ -210,7 +210,7 @@ class OutputEncoder {
      * // BAD: Don't do this anymore (but if you must...)
      * $safe = $this->outputencoder->database($name);
      */
-    public function database($str) {
+    public function db($str) {
         return $this->CI->db->escape_str($str);
     }
 

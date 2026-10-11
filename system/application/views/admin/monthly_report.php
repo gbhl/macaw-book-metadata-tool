@@ -31,10 +31,10 @@
 				<?php $curr_month = $r['month']; ?>
 			<?php } ?>
 			<tr>
-				<td><?php echo($r['month']); ?></td>
-				<td><?php echo($r['contributor']); ?></td>
-				<td><?php echo($r['items']); ?></td>
-				<td><?php echo($r['pages']); ?></td>
+				<td><?php echo(h($r['month'])); ?></td>
+				<td><?php echo(h($r['contributor'])); ?></td>
+				<td><?php echo(h($r['items'])); ?></td>
+				<td><?php echo(h($r['pages'])); ?></td>
 			</tr>
 			<?php } ?>
 		</table>

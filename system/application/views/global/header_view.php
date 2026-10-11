@@ -24,6 +24,7 @@
 		}
 	}
 	$free = (int)(disk_free_space($cfg['data_directory'])/disk_total_space($cfg['data_directory'])*100);
+	$base_url = $this->config->item('base_url');
 ?>
 
 <?php if ($this->uri->total_segments() == 0 || $this->uri->segment(1) == 'login') { ?>
@@ -34,7 +35,7 @@
 		<div id="banner">
 			<div id="hd">
 				<div id="title" style="float: left">
-					<img src="<?php echo $this->config->item('base_url'); ?>images/logo.png" alt="logo.png" width="22" height="22" border="0" align="left" id="logo">
+					<img src="<?php echo $base_url; ?>images/logo.png" alt="logo.png" width="22" height="22" border="0" align="left" id="logo">
 					<div style="float:left">
 					<h4 style="padding-right:10px;">Macaw Metadata Collection and Workflow System <?php if ($cfg['testing']) { echo(' <span style="color:#F90;">&nbsp;&nbsp;&nbsp;&nbsp;DEVELOPMENT VERSION</span>'); }?></h4>
 					</div>
@@ -46,58 +47,58 @@
 		<!-- Added main menu view --> 
 		<div id="main-menu"> 
 			<ul>
-				<li class="top"><a href="<?php echo $this->config->item('base_url'); ?>dashboard">Dashboard</a></li>
-				<li class="top"><a href="<?php echo $this->config->item('base_url'); ?>main/listitems">In Progress</a></li>
+				<li class="top"><a href="<?php echo $base_url; ?>dashboard">Dashboard</a></li>
+				<li class="top"><a href="<?php echo $base_url; ?>main/listitems">In Progress</a></li>
 				<li class="top"><a href="#create-new">Create New</a>
 					<ul>
-						<li><a href="<?php echo $this->config->item('base_url'); ?>main/add"><img src="<?php echo $this->config->item('base_url'); ?>images/01_manually_ad_icon_sm.png">Manually Add Item</a></li>
-						<li class="last"><a href="<?php echo $this->config->item('base_url'); ?>main/import"><img src="<?php echo $this->config->item('base_url'); ?>images/01_manually_ad_icon_sm.png">Create from CSV</a></li>
+						<li><a href="<?php echo $base_url; ?>main/add"><img src="<?php echo $base_url; ?>images/01_manually_ad_icon_sm.png">Manually Add Item</a></li>
+						<li class="last"><a href="<?php echo $base_url; ?>main/import"><img src="<?php echo $base_url; ?>images/01_manually_ad_icon_sm.png">Create from CSV</a></li>
 					</ul>
 				</li>
 				<li class="top"><a href="#manage">Current Item</a>
 					<ul>					
 						<?php if ($can_edit_item) { ?>
-							<li><a href="<?php echo $this->config->item('base_url'); ?>main/edit"><img src="<?php echo $this->config->item('base_url'); ?>images/07_edit_items_icon_sm.png">Edit Item</a></li>						
+							<li><a href="<?php echo $base_url; ?>main/edit"><img src="<?php echo $base_url; ?>images/07_edit_items_icon_sm.png">Edit Item</a></li>						
 							<?php if ($is_admin && $barcode) { ?>
-              					<li><a href="<?php echo $this->config->item('base_url'); ?>main/admin_edit"><img src="<?php echo $this->config->item('base_url'); ?>images/07_edit_items_icon_sm.png">Edit Item (Admin)</a></li>						
+              					<li><a href="<?php echo $base_url; ?>main/admin_edit"><img src="<?php echo $base_url; ?>images/07_edit_items_icon_sm.png">Edit Item (Admin)</a></li>						
             				<?php } ?>
-            				<li><a href="<?php echo $this->config->item('base_url'); ?>scan/upload/"><img src="<?php echo $this->config->item('base_url'); ?>images/icon-upload-small.png">Upload Pages</a></li>
-							<li><a href="<?php echo $this->config->item('base_url'); ?>scan/review"><img src="<?php echo $this->config->item('base_url'); ?>images/04_review_pages_icon_sm.png">Edit Page Metadata</a></li>
-							<li><a href="<?php echo $this->config->item('base_url'); ?>scan/missing/insert"><img src="<?php echo $this->config->item('base_url'); ?>images/05_insert_missing_pages_icon_sm.png">Insert Missing Pages</a></li>
+            				<li><a href="<?php echo $base_url; ?>scan/upload/"><img src="<?php echo $base_url; ?>images/icon-upload-small.png">Upload Pages</a></li>
+							<li><a href="<?php echo $base_url; ?>scan/review"><img src="<?php echo $base_url; ?>images/04_review_pages_icon_sm.png">Edit Page Metadata</a></li>
+							<li><a href="<?php echo $base_url; ?>scan/missing/insert"><img src="<?php echo $base_url; ?>images/05_insert_missing_pages_icon_sm.png">Insert Missing Pages</a></li>
 						<?php } else { ?>
-							<li class="disabled"><a href="#"><img src="<?php echo $this->config->item('base_url'); ?>images/07_edit_items_icon_sm.png">Edit Item</a></li>						
+							<li class="disabled"><a href="#"><img src="<?php echo $base_url; ?>images/07_edit_items_icon_sm.png">Edit Item</a></li>						
 							<?php if ($is_admin && $barcode) { ?>
-								<li><a href="<?php echo $this->config->item('base_url'); ?>main/admin_edit"><img src="<?php echo $this->config->item('base_url'); ?>images/07_edit_items_icon_sm.png">Edit Item (Admin)</a></li>						
+								<li><a href="<?php echo $base_url; ?>main/admin_edit"><img src="<?php echo $base_url; ?>images/07_edit_items_icon_sm.png">Edit Item (Admin)</a></li>						
 							<?php } ?>
-							<li class="disabled"><a href="#"><img src="<?php echo $this->config->item('base_url'); ?>images/03_import_pages_icon_sm.png">Upload Pages</a></li>
-							<li class="disabled"><a href="#"><img src="<?php echo $this->config->item('base_url'); ?>images/04_review_pages_icon_sm.png">Edit Page Metadata</a></li>
-							<li class="disabled"><a href="#"><img src="<?php echo $this->config->item('base_url'); ?>images/05_insert_missing_pages_icon_sm.png">Insert Missing Pages</a></li>
+							<li class="disabled"><a href="#"><img src="<?php echo $base_url; ?>images/03_import_pages_icon_sm.png">Upload Pages</a></li>
+							<li class="disabled"><a href="#"><img src="<?php echo $base_url; ?>images/04_review_pages_icon_sm.png">Edit Page Metadata</a></li>
+							<li class="disabled"><a href="#"><img src="<?php echo $base_url; ?>images/05_insert_missing_pages_icon_sm.png">Insert Missing Pages</a></li>
 						<?php } ?>
 						<?php if ($barcode) { ?>
-							<li class="last"><a href="<?php echo $this->config->item('base_url'); ?>scan/history"><img src="<?php echo $this->config->item('base_url'); ?>images/06_view_history_icon_sm.png">View History</a></li>
+							<li class="last"><a href="<?php echo $base_url; ?>scan/history"><img src="<?php echo $base_url; ?>images/06_view_history_icon_sm.png">View History</a></li>
 						<?php } else { ?>
-							<li class="last disabled"><a href="#"><img src="<?php echo $this->config->item('base_url'); ?>images/06_view_history_icon_sm.png">View History</a></li>
+							<li class="last disabled"><a href="#"><img src="<?php echo $base_url; ?>images/06_view_history_icon_sm.png">View History</a></li>
 						<?php } ?>
 					</ul>
 				</li>
 				<?php if ($is_admin || $is_local_admin) { ?>
 					<li class="top"><a href="#admin">Admin</a>
 						<ul>
-							<li><a href="<?php echo $this->config->item('base_url'); ?>admin/account"><img src="<?php echo $this->config->item('base_url'); ?>images/08_list_accounts_icon_sm.png">List Accounts</a></li>
-							<li><a href="<?php echo $this->config->item('base_url'); ?>admin/queues"><img src="<?php echo $this->config->item('base_url'); ?>images/09_queues_icon_sm.png">Queues</a></li>
-							<li><a href="<?php echo $this->config->item('base_url'); ?>contributor"><img src="<?php echo $this->config->item('base_url'); ?>images/11_organisations_icon_sm.png">Contributors</a></li>
-							<li><a href="<?php echo $this->config->item('base_url'); ?>admin/monthly_report"><img src="<?php echo $this->config->item('base_url'); ?>images/10_view_logs_icon_sm.png">Monthly Report</a></li>
-							<?php if ($is_admin) { ?> <li><a href="<?php echo $this->config->item('base_url'); ?>admin/maintenance"><img src="<?php echo $this->config->item('base_url'); ?>images/12_manually_run_icon_sm.png">Maintenance</a></li> <?php } ?>
-							<li><a href="<?php echo $this->config->item('base_url'); ?>admin/stalled_exports"><img src="<?php echo $this->config->item('base_url'); ?>images/10_view_logs_icon_sm.png">Stalled Exports</a></li>
-							<?php if ($is_admin) { ?> <li><a href="<?php echo $this->config->item('base_url'); ?>admin/view_config"><img src="<?php echo $this->config->item('base_url'); ?>images/10_view_logs_icon_sm.png">Macaw Config</a></li> <?php } ?>
-							<?php if ($is_admin) { ?> <li class="last"><a href="<?php echo $this->config->item('base_url'); ?>virtual_items"><img src="<?php echo $this->config->item('base_url'); ?>images/12_manually_run_icon_sm.png">Virtual Items</a></li> <?php } ?>
+							<li><a href="<?php echo $base_url; ?>admin/account"><img src="<?php echo $base_url; ?>images/08_list_accounts_icon_sm.png">List Accounts</a></li>
+							<li><a href="<?php echo $base_url; ?>admin/queues"><img src="<?php echo $base_url; ?>images/09_queues_icon_sm.png">Queues</a></li>
+							<li><a href="<?php echo $base_url; ?>contributor"><img src="<?php echo $base_url; ?>images/11_organisations_icon_sm.png">Contributors</a></li>
+							<li><a href="<?php echo $base_url; ?>admin/monthly_report"><img src="<?php echo $base_url; ?>images/10_view_logs_icon_sm.png">Monthly Report</a></li>
+							<?php if ($is_admin) { ?> <li><a href="<?php echo $base_url; ?>admin/maintenance"><img src="<?php echo $base_url; ?>images/12_manually_run_icon_sm.png">Maintenance</a></li> <?php } ?>
+							<li><a href="<?php echo $base_url; ?>admin/stalled_exports"><img src="<?php echo $base_url; ?>images/10_view_logs_icon_sm.png">Stalled Exports</a></li>
+							<?php if ($is_admin) { ?> <li><a href="<?php echo $base_url; ?>admin/view_config"><img src="<?php echo $base_url; ?>images/10_view_logs_icon_sm.png">Macaw Config</a></li> <?php } ?>
+							<?php if ($is_admin) { ?> <li class="last"><a href="<?php echo $base_url; ?>virtual_items"><img src="<?php echo $base_url; ?>images/12_manually_run_icon_sm.png">Virtual Items</a></li> <?php } ?>
 						</ul>
 					</li>
 					<li class="top"><a href="#" title="This is how much disk space is remaining for macaw to use for TIFF files, etc."><?php print $free.'% Free'; ?></a></li>
 				<?php } else { ?>
 					<li class="top"><a href="#admin">Admin</a>
 						<ul>
-							<li class="last"><a href="<?php echo $this->config->item('base_url'); ?>admin/stalled_exports"><img src="<?php echo $this->config->item('base_url'); ?>images/10_view_logs_icon_sm.png">Export Audit</a></li>
+							<li class="last"><a href="<?php echo $base_url; ?>admin/stalled_exports"><img src="<?php echo $base_url; ?>images/10_view_logs_icon_sm.png">Export Audit</a></li>
 						</ul>
 					</li>
 				<?php } ?>
@@ -109,7 +110,7 @@
 					$item_title = $item_title[0];
 				}
 				print '<div id="item-title">';
-				print htmlspecialchars($item_title, ENT_QUOTES);
+				print h($item_title, ENT_QUOTES);
 				print '</div>';
 			} 
 		?>

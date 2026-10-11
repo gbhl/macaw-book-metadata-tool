@@ -36,7 +36,7 @@
 			<h1>Confirm Delete Item</h1>
 			<form action="<?php echo $this->config->item('base_url'); ?>main/delete" method="post" id="confirm_form" enctype="multipart/form-data">
 			<input type="hidden" name="action" id="save_action" value="cancel">
-			<input type="hidden" name="barcode" value="<?php echo($identifier) ?>">
+			<input type="hidden" name="barcode" value="<?php echo(attr($identifier)) ?>">
 			
 			
 			<div id="deletewarning">
@@ -46,15 +46,15 @@
 					<table cellspacing="0" cellpadding="2">
 						<tr>
 							<td class="fieldname">Identifier</td>
-							<td><?php echo($identifier) ?></td>
+							<td><?php echo(h($identifier)) ?></td>
 						</tr>
 						<tr>
 							<td class="fieldname">Title:</td>
-							<td><?php echo($title) ?></td>
+							<td><?php echo(h($title)) ?></td>
 						</tr>
 						<tr>
 							<td class="fieldname">Contributor:</td>
-							<td><?php echo($organization) ?></td>
+							<td><?php echo(h($organization)) ?></td>
 						</tr>
 					</table>
 				</h3>

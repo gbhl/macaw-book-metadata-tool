@@ -6,7 +6,6 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=9" />
 	<title>Virtual Items | Macaw</title>
 	<?php $this->load->view('global/head_view') ?>
-  <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/themes/prism.min.css"/> -->
 </head>
 <body id="manualbody" class="yui-skin-sam">
 	<?php $this->load->view('global/header_view') ?>
@@ -20,8 +19,8 @@
       <tbody>
         <?php foreach ($config_params as $s) {
           echo "<tr>";
-            echo "<td>".$s['paramater']."</td>";
-            echo "<td>".$s['value']."</td>";
+            echo "<td>".h($s['paramater'])."</td>";
+            echo "<td>".h($s['value'])."</td>";
           echo "</tr>";
         }
         ?>
@@ -34,6 +33,5 @@
 	</script>
 
 	<?php $this->load->view('global/footer_view') ?>
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/prism.min.js"></script> -->
 </body>
 </html>

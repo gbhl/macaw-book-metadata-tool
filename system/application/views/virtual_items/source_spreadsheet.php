@@ -6,7 +6,6 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=9" />
 	<title>Virtual Items | Macaw</title>
 	<?php $this->load->view('global/head_view') ?>
-  <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/themes/prism.min.css"/> -->
 </head>
 <body id="manualbody" class="yui-skin-sam">
 	<?php $this->load->view('global/header_view') ?>
@@ -22,6 +21,5 @@
 	</script>
 
 	<?php $this->load->view('global/footer_view') ?>
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/prism.min.js"></script> -->
 </body>
 </html>

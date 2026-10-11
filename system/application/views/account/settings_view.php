@@ -32,7 +32,7 @@
 <body class="yui-skin-sam">
 	<?php $this->load->view('global/header_view') ?>
 	<div id="edit">
-		<h1><?php if ($new) { echo 'Add Account'; } elseif ($is_self) { echo 'Account Settings'; } else { echo 'Edit Account: ' . htmlspecialchars($username); } ?></h1>
+		<h1><?php if ($new) { echo 'Add Account'; } elseif ($is_self) { echo 'Account Settings'; } else { echo 'Edit Account: ' . h($username); } ?></h1>
 
 		<form action="<?php echo $this->config->item('base_url'); ?>account/settings_save/" method="post" id="edit_form">
 			<input type="hidden" name="li_token" value="<?php echo $token; ?>">
@@ -40,8 +40,8 @@
 				<input type="hidden" name="new" value="1">
 				<input type="hidden" name="return_to" value="account/settings/new">
 			<?php } else { ?>
-				<input type="hidden" name="username" value="<?php echo htmlspecialchars($username); ?>">
-				<input type="hidden" name="return_to" value="account/settings/<?php echo htmlspecialchars($username); ?>">
+				<input type="hidden" name="username" value="<?php echo h($username); ?>">
+				<input type="hidden" name="return_to" value="account/settings/<?php echo h($username); ?>">
 			<?php } ?>
 			<table border="0" cellspacing="5" cellpadding="5">
 				<tr class="row">
@@ -49,22 +49,22 @@
 					<td><?php if ($new) { ?>
 						<input type="text" name="username" value="" id="username" size="20">
 					<?php } else { ?>
-						<?php echo htmlspecialchars($username); ?>
+						<?php echo h($username); ?>
 					<?php } ?></td>
 				</tr>
 				<?php if (!$new) { ?>
 					<tr class="row">
 						<td class="fieldname">Last Login:</td>
-						<td><?php echo $last_login; ?></td>
+						<td><?php echo h($last_login); ?></td>
 					</tr>
 					<tr class="row">
 						<td class="fieldname">Account Created / Last Modified:</td>
-						<td><?php echo $created; ?> / <?php echo $modified; ?></td>
+						<td><?php echo h($created); ?> / <?php echo h($modified); ?></td>
 					</tr>
 				<?php } ?>
 				<tr class="row">
 					<td class="fieldname">Full Name:</td>
-					<td><input type="text" name="full_name" value="<?php echo htmlspecialchars($full_name); ?>" id="full_name" size="30"></td>
+					<td><input type="text" name="full_name" value="<?php echo attr($full_name); ?>" id="full_name" size="30"></td>
 				</tr>
 				<tr class="row">
 					<td class="fieldname">New Password:</td>
@@ -83,22 +83,22 @@
 				</tr>
 				<tr class="row">
 					<td class="fieldname">Email:</td>
-					<td><input type="text" name="email" value="<?php echo htmlspecialchars($email); ?>" size="60" id="email"></td>
+					<td><input type="text" name="email" value="<?php echo attr($email); ?>" size="60" id="email"></td>
 				</tr>
 				<tr class="row">
 					<td class="fieldname">Contributor:</td>
 					<td>
 					<?php if ($locked_org_id) { ?>
-						<?php echo htmlspecialchars($org_name); ?>
+						<?php echo h($org_name); ?>
 						<input type="hidden" id="org_id" name="org_id" value="<?php echo $org_id; ?>">
 					<?php } else { ?>
 						<select id="org_id" name="org_id">
 							<option value="">-- Select one --</option>
 							<?php foreach ($organizations as $o) {
 								if ($o->id == $org_id) {
-									echo('<option value="'.$o->id.'" selected>'.htmlspecialchars($o->name).'</option>');
+									echo('<option value="'.$o->id.'" selected>'.h($o->name).'</option>');
 								} else {
-									echo('<option value="'.$o->id.'">'.htmlspecialchars($o->name).'</option>');
+									echo('<option value="'.$o->id.'">'.h($o->name).'</option>');
 								}
 							} ?>
 						</select>

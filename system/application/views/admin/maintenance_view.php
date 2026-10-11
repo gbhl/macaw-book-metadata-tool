@@ -126,9 +126,9 @@
 						<div class="directory-list">
 							<?php foreach ($unused_directories as $dir): ?>
 								<div class="directory-item">
-									<input type="checkbox" name="unused_dirs" value="<?php echo htmlspecialchars($dir['barcode']); ?>">
-									<strong><?php echo htmlspecialchars($dir['barcode']); ?></strong>:
-									<?php echo htmlspecialchars($dir['title']); ?>
+									<input type="checkbox" name="unused_dirs" value="<?php echo h($dir['barcode']); ?>">
+									<strong><?php echo h($dir['barcode']); ?></strong>:
+									<?php echo h($dir['title']); ?>
 									(<?php echo $dir['size_display']; ?>)
 								</div>
 							<?php endforeach; ?>
@@ -154,9 +154,9 @@
 						<div class="directory-list">
 							<?php foreach ($ia_directories as $dir): ?>
 								<div class="directory-item">
-									<input type="checkbox" name="ia_dirs" value="<?php echo htmlspecialchars($dir['barcode']); ?>">
-									<strong><?php echo htmlspecialchars($dir['barcode']); ?></strong>:
-									<?php echo htmlspecialchars($dir['title']); ?>
+									<input type="checkbox" name="ia_dirs" value="<?php echo h($dir['barcode']); ?>">
+									<strong><?php echo h($dir['barcode']); ?></strong>:
+									<?php echo h($dir['title']); ?>
 									(<?php echo $dir['size_display']; ?>)
 								</div>
 							<?php endforeach; ?>

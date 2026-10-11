@@ -16,7 +16,7 @@
 	<?php $this->load->view('global/header_view') ?>
 	
   <?php if ($view_items) { ?>
-    <h1>Virtual Item for <?php echo $name; ?></h1>
+    <h1>Virtual Item for <?php echo h($name); ?></h1>
     <h2>Summary</h2>
     <div id="VirtualItemSummary" class="halftable">
       <table id="viSummary">
@@ -26,8 +26,8 @@
         <tbody>
           <?php foreach ($item_summary as $s) {
             echo "<tr>";
-              echo "<td>".$s['status_code']."</td>";
-              echo "<td>".$s['thecount']."</td>";
+              echo "<td>".h($s['status_code'])."</td>";
+              echo "<td>".h($s['thecount'])."</td>";
             echo "</tr>";
           }
           ?>
@@ -42,7 +42,7 @@
 				<li class="selected"><a href="#tab2">Virtual Item Articles</a></li>
 				<select id="queue-filter">
 					<?php foreach ($filter as $f) { ?>
-						<option value="<?php echo strtolower($f) ?>"><?php echo $f ?></option>
+						<option value="<?php echo attr(strtolower($f)) ?>"><?php echo f($f) ?></option>
 					<?php } ?>
 				</select>
 			</ul>

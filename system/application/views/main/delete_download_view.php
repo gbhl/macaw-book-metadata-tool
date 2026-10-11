@@ -17,7 +17,7 @@
 			<tr>
 				<td>
 					<h3>The item was deleted successfully.</h3>
-					<a href="<?php echo $path ?>">Download <?php echo $filename ?></a>
+					<a href="<?php echo safe_url($path) ?>">Download <?php echo $filename ?></a>
 				</td>
 			</tr>
 		</table>
