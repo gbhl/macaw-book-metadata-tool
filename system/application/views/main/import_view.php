@@ -25,7 +25,7 @@
         CSV Templates may be found at: 
         <ul>
           <li><a href="https://drive.google.com/file/d/1t4evnIuz8zAvTT4Xrc_gZpOZPE-rNDp8/view?pli=1" _target="_blank" rel="noopener noreferrer">Macaw Item Level Template.xslx</a></li>
-          <li><a href="https://drive.google.com/file/d/1CkFEzLCRl5aKErpD7Dp7Kx11i5TYoJEM/view?pli=1" _target="_blank" rel="noopener noreferrer"Macaw Page Level Template.xslx</a></li>
+          <li><a href="https://drive.google.com/file/d/1CkFEzLCRl5aKErpD7Dp7Kx11i5TYoJEM/view?pli=1" _target="_blank" rel="noopener noreferrer">Macaw Page Level Template.xslx</a></li>
         </ul>
         
       </p>
