@@ -945,7 +945,7 @@ class Common extends Controller {
 				// 3. Get the number of bytes used in the /books/ directory
 				$output = array();
 				$matches = array();
-				exec('df -k '.$this->CI->cfg['data_directory'], $output);
+				exec('df -k '.escapeshellarg($this->CI->cfg['data_directory']), $output);
 				$pct = preg_match('/\b([0-9]+)\%/', $output[1], $matches);
 				
 				$this->CI->db->query(
@@ -973,7 +973,7 @@ class Common extends Controller {
 		} else {
 			$matches = array();
 
-			exec('df -k '.$this->CI->cfg['data_directory'], $output);
+			exec('df -k '.escapeshellarg($this->CI->cfg['data_directory']), $output);
 
 			$pct = preg_match('/\b([0-9]+)\%/', $output[1], $matches);
 

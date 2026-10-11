@@ -906,7 +906,7 @@ class Scan extends Controller {
 							}
 							$this->logging->log('book', 'info', 'EXEC Output: '.$logoutput, $this->book->barcode);		
 						} else {
-							$exec = 'MACAW_OVERRIDE=1 "'.PHP_BINDIR.'/php" "'.$this->cfg['base_directory'].'/index.php" utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file->name).'> /dev/null 2> /dev/null < /dev/null &';
+							$exec = 'MACAW_OVERRIDE=1 "'.PHP_BINDIR.'/php" '.escapeshellarg($this->cfg['base_directory'].'/index.php').' utils import_pdf '.escapeshellarg($this->book->barcode).' '.escapeshellarg($file->name).'> /dev/null 2> /dev/null < /dev/null &';
 							$this->logging->log('book', 'info', 'EXEC: '.$exec, $this->book->barcode);
 							exec($exec, $output);
 

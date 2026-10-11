@@ -44,7 +44,7 @@
 		<div id="progress" style="display:none">
 			Please wait while the file(s) are imported...
 			<div id="bar"></div>
-			<div id="message" class="message-overlay" style="display:none"></div>
+			<div id="message" class="message-overlay message" style="display:none"></div>
 		</div>
 	</div>
 	<?php $this->load->view('global/footer_view') ?>
