@@ -57,30 +57,7 @@ if ( ! function_exists('dohash'))
 {	
 	function dohash($str, $type = 'sha1')
 	{
-		if ($type == 'sha1')
-		{
-			if ( ! function_exists('sha1'))
-			{
-				if ( ! function_exists('mhash'))
-				{	
-					require_once(BASEPATH.'libraries/Sha1'.EXT);
-					$SH = new CI_SHA;
-					return $SH->generate($str);
-				}
-				else
-				{
-					return bin2hex(mhash(MHASH_SHA1, $str));
-				}
-			}
-			else
-			{
-				return sha1($str);
-			}	
-		}
-		else
-		{
-			return md5($str);
-		}
+		return hash($type, $str);
 	}
 }
 	
