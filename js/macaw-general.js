@@ -350,21 +350,6 @@
 			}
 		},
 		// ----------------------------
-		// Function: openHelp
-		//
-		// Show the help window. Easy enough!
-		//
-		// Arguments
-		//    None
-		//
-		// Return Value / Effect
-		//    Popup window appears
-		// ----------------------------
-		openHelp: function() {
-			window.open(sBaseUrl+'/help','help_window','height=700,width=300,status=no,location=no,menubar=no,resizable=yes,toolbar=no');
-		},
-
-		// ----------------------------
 		// Function: showMagnifier()
 		//
 		// Event handler - When the preview image is clicked, show the

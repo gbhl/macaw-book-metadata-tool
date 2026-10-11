@@ -1616,16 +1616,6 @@ a.yui-pg-last{ /* Greyed out */
 textarea, input {
 	outline:none;
 }
-#help dt {
-	margin-bottom: 10px;
-}
-#help dt a {
-	text-decoration: none;
-	font-size: 120%;
-}
-#help dd {
-	margin-bottom: 10px;
-}
 /* ****************************** */
 /* EDIT PAGE                   */
 /* ****************************** */
