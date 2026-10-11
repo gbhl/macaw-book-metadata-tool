@@ -1048,7 +1048,6 @@ class Main extends Controller {
 		$this->logging->log('access', 'info', 'Barcode '.$info['barcode'].' scanned successfully.');
 		$this->logging->log('book', 'info', 'Barcode scanned successfully.', $info['barcode']);
 
-		// SCS Change to redirect to /scan/monitor as this is a new item*/
 		redirect($this->config->item('base_url').'scan/upload');
 	}
 

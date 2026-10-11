@@ -1902,7 +1902,6 @@ class Book extends Model {
 						$this->update();
 	
 						// Add the pages to the database (or update) with status "Pending".
-						// This will make them appear in the list on the monitor page.
 						foreach ($files as $f) {
 							$fname = $incoming_dir.'/'.$this->barcode.'/'.$f;
 							$info = get_file_info($fname, 'size');

@@ -15,9 +15,6 @@
  * # Check every hour of every weekday for new books
  * 0 * * * 1-5     /opt/local/apache2/htdocs/cron.php  --run=/cron/new_items --quiet > /dev/null
  * 
- * # Check every minute of every weekday for new pages
- * * * * * 1-5     /opt/local/apache2/htdocs/cron.php --run=/cron/import_pages --quiet > /dev/null
- * 
  * # Once per weekday at 2:17am, export/verify/harvest/archive/etc
  * 17 2 * * 1-5   /opt/local/apache2/htdocs/cron.php --run=/cron/export --quiet > /dev/null
  * 
@@ -89,52 +86,6 @@ class Cron extends Controller {
 	}
 
 	/**
-	 * Search for newly scanned pages and add them to the system
-	 *
-	 * CLI: Cycles through all of the scanning servers to batch process the
-	 * movement of raw scanned files from the scanning server onto the
-	 * processing server, processing those files and updating the database
-	 * accordingly. Calls Book.get_scanned_files(), Book.copy_scanned_file(),
-	 * and Book.process_file(), but not necessarily in that order.
-	 *
-	 * @since Version 1.5
-	 */
-	function import_pages() {
-		$args = func_get_args();
-
-		if (!$this->_init('import_pages')) { return; }
-		// Scan the directory and see if there are any files there
-		if (count($args) > 0) {
-			$barcodes = $args;
-		} else {			
-			$barcodes = directory_map($this->cfg['incoming_directory'], TRUE);
-		}
-		
-		if (count($barcodes)) {
-			// Assume that any directory names are the barcodes for a book
-			foreach ($barcodes as $bc) {
-				// Sometimes we get encoded chars for things that aren't friendly to URLs.
-				// Convert them back to something useful.
-				$bc = html_entity_decode($bc);
-				if ($this->book->exists($bc)) {
-					try {
-						// Check that the barcode actually exists
-						// If it doesn't, this will throw an error
-						$this->book->load($bc);
-					} catch (Exception $e) {
-						// If the barcode does not exist, log an error of "debug" status.
-						$this->logging->log('error', 'debug', $this->book->last_error);
-						continue;
-					}
-					$this->book->import_images();
-				} else {
-					echo "Item with barcode \"$bc\" not found.\n";	
-				}
-			}
-		}
-	}
-
-	/**
 	 * Export and archive completed books
 	 *
 	 * CLI: Runs the export modules via the Exporter model. Then it
@@ -166,7 +117,7 @@ class Cron extends Controller {
 
 	function index() {
 		echo "No command specified.\n";
-		echo "Usage:\n    php index.php cron (new_items|import_pages|export|statistics)\n";
+		echo "Usage:\n    php index.php cron (new_items|export|statistics|daily)\n";
 		echo "    php index.php cron export [export-specific-arguments]\n\n";
 	}
 
