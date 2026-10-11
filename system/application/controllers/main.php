@@ -271,22 +271,11 @@ class Main extends Controller {
 	}
 	
 	/**
-	 * Display the help page
+	 * Shim to get the Javascript conifiguration
 	 *
-	 * Loads the help window based on the help ID provided. Shows help index
-	 * if ID is not provided.
-	 *
-	 */
-	function help() {
-		$this->common->check_session();
-		$this->load->view('main/help_view');
-	}
-
-	/**
-	 * Display the help page
-	 *
-	 * Loads the help window based on the help ID provided. Shows help index
-	 * if ID is not provided.
+	 * This returns a single line of Javascript that all of the other
+	 * Javascript relies on. If Macaw can't load this, a warning will
+	 * appear on the login page.
 	 *
 	 */
 	function js_config() {
