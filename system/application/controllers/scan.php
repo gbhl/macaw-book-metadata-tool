@@ -864,7 +864,7 @@ class Scan extends Controller {
 			if ($this->book->direct_get_metadata('processing_pdf')) {
 				$total = count($foundFiles);
 				$count = count($this->book->get_pages());
-				echo json_encode(array('files' => $foundFiles, 'reload' => 'true', 'message' => 'Processing PDF pages ('.$count.'/'.$total.')...', 'dir' => $scans_dir));
+				echo json_encode(array('files' => $foundFiles, 'reload' => 'true', 'message' => 'Processing PDF: '.$count.' page images of '.$total.' total. Please wait...', 'dir' => $scans_dir));
 			} else {
 				echo json_encode(array('files' => $foundFiles));
 			}

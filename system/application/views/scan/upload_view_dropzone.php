@@ -7,7 +7,7 @@
 	<title>Scan | Upload | Macaw</title>
 
 	<!-- Dropzone styles -->
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.css">
+	<link rel="stylesheet" href="https://unpkg.com/@deltablot/dropzone@7/dist/dropzone.css" type="text/css" />
 	<link rel="stylesheet" href="/css/dropzone-custom.css">
 	<?php $this->load->view('global/head_view') ?>
 	<script type="text/javascript">
@@ -50,11 +50,35 @@
 			<?php } ?>
 
 			<p>
-				Upload image files (<strong>PNG, TIFF, JP2</strong>) or PDFs for this item to the Macaw server.<br>
-				You can <strong>drag &amp; drop</strong> files from your desktop on this webpage (all modern browsers).<br>
+				Upload image files (<strong>PNG, TIFF, JP2</strong>) or PDFs for this item to the Macaw server. 
 				The maximum size for each file is <strong><?php echo($upload_max_filesize) ?></strong><br>
-				<span style="font-weight:bold;color:#900;">Please note: Thumbnails for existing image files are no longer displayed.</span>
 			</p>
+				<div class="upload-controls" style="margin-top: 20px;">
+					<div class="progress-wrapper">
+						<div style="display:block;" id="progressLabel">Progress:</div>
+
+						<div class="progress" id="uploadProgress">
+							<div class="progress-bar progress-bar-success" id="progressBar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+								<span id="progressText">0%</span>
+							</div>
+						</div>
+						
+						<div id="pdfmessage" style="display:none;">
+							Processing PDF pages...
+						</div>
+					</div>
+					<div style="margin-top: 10px;">
+						<button type="button" class="btn btn-primary" id="startUpload" disabled>
+							<i class="glyphicon glyphicon-upload"></i> Start Upload
+						</button>
+						<button type="button" class="btn btn-metadata" style="display:none;">
+							<i class="glyphicon glyphicon-book"></i> Enter Page Metadata
+						</button>
+						<button type="button" class="btn btn-missing" style="display:none;">
+							<i class="glyphicon glyphicon-sort-by-attributes"></i> Insert Missing Pages
+						</button>
+					</div>
+				</div>
 			</div>
 
 			<div class="upload-area">
@@ -72,30 +96,6 @@
 					</div>
 				</form>
 
-				<div class="upload-controls" style="margin-top: 20px;">
-					<div class="progress" id="uploadProgress" style="display:none;">
-						<div class="progress-bar progress-bar-success" id="progressBar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
-							<span id="progressText">0%</span>
-						</div>
-					</div>
-					<div id="pdfmessage" class="btn btn-info" style="display:none; margin-top: 10px;">
-						Processing PDF pages...
-					</div>
-					<div style="margin-top: 10px;">
-						<button type="button" class="btn btn-primary" id="startUpload" disabled>
-							<i class="glyphicon glyphicon-upload"></i> Start Upload
-						</button>
-						<button type="button" class="btn btn-warning" id="cancelUpload" disabled>
-							<i class="glyphicon glyphicon-ban-circle"></i> Cancel Upload
-						</button>
-						<button type="button" class="btn btn-metadata" style="display:none;">
-							<i class="glyphicon glyphicon-book"></i> Enter Page Metadata
-						</button>
-						<button type="button" class="btn btn-missing" style="display:none;">
-							<i class="glyphicon glyphicon-sort-by-attributes"></i> Insert Missing Pages
-						</button>
-					</div>
-				</div>
 			</div>
 		</div>
 	<?php } ?>
@@ -103,7 +103,7 @@
 	<!-- jQuery (modern version) -->
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 	<!-- Dropzone -->
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
+	<script src="https://unpkg.com/@deltablot/dropzone@7/dist/dropzone-min.js"></script>
 	<!-- Dropzone initialization -->
 	<script src="/js/main-dropzone.js?v=<?php echo $version_rev; ?>"></script>
 	<script>

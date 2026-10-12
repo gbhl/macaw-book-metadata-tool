@@ -174,7 +174,7 @@ td.yui-dt-last {
 	color: #7d4c00;
 	background: #ffe8c5;
 }
-#alert.message {
+#alert.message, #message.message {
 	border-color: #5DA31C;
 	color: #21350E;
 	background: #E8EEE0;
@@ -1378,6 +1378,28 @@ table#admin_scheduled_jobs td {
 	margin: 0 5px;
 	background: url(../images/icons/email_go.png) 2px 50%  no-repeat;
 }
+.yui-button#btnStartImport button {
+	background-color: #426A80;
+	background-image: -moz-linear-gradient(center top , #6A92A9, #426A80);
+	border: 1px solid #265858;
+	border-radius: 3px 3px 3px 3px;
+	color: #FFFFFF;
+	font-family: Georgia;
+	font-size: 100%;
+	height: 31px;
+	min-width: 100px;
+}
+.yui-button#btnSkipImport button {
+	background-color: #426A80;
+	background-image: -moz-linear-gradient(center top , #6A92A9, #426A80);
+	border: 1px solid #265858;
+	border-radius: 3px 3px 3px 3px;
+	color: #FFFFFF;
+	font-family: Georgia;
+	font-size: 100%;
+	height: 31px;
+	min-width: 100px;
+}
 .yui-button#btnReviewNow button {
 	background-color: #426A80;
 	background-image: -moz-linear-gradient(center top , #6A92A9, #426A80);
@@ -1389,12 +1411,25 @@ table#admin_scheduled_jobs td {
 	height: 31px;
 	min-width: 100px;
 }
+.yui-button.yui-button-disabled#btnStartImport button,
+.yui-button.yui-button-disabled#btnSkipImport button {
+	background-color: #CCC;
+	background-image: none;
+	border: 1px solid #999;
+}
 
 .yui-button#btnInsertMissingPages button {
 	text-indent: 1.5em;
 	padding: 5px 3px;
 	margin: 0 5px;
 	background: url(../images/icons/image_edit.png) 2px 50%  no-repeat;
+	font-size: 110%;
+}
+.yui-button#btnCancelImport button {
+	text-indent: 1.5em;
+	padding: 5px 3px;
+	margin: 0 5px;
+	background: url(../images/icons/cancel.png) 2px 50%  no-repeat;
 	font-size: 110%;
 }
 .yui-button#btnAddField button {
@@ -1706,6 +1741,16 @@ textarea, input {
 #import #message h3.finished {
 	font-size: 1.75em;
 	color: #009900;
+}
+.yui-button#btnImport button {
+	text-indent: 2em;
+	padding: 2px 2px;
+	margin: 0 4px;
+	background: url(../images/icons/database_go.png) 2px 50%  no-repeat;
+  font-size: 100%;
+  font-family: Georgia;
+  height: 27px;
+  width: 70px;
 }
 #log_view {
 	margin-top: 2em;
@@ -2081,12 +2126,6 @@ p.size {
 	margin: 9px 0px 0px 0px;
   float: right;
 }
-
-div.progress {
-	margin: 9px 0px 0px 0px;
-	background-color: #CCC;
-	width: 150px;
-}
 #fileupload table {
 	margin: 0 auto;
 }
@@ -2105,24 +2144,21 @@ div.progress {
 }
 
 .btn {
-	padding: 3px 7px !important;
+	padding: 4px 7px !important;
 }
 
 .fileupload-buttonbar .message {
-    color: #000;
-    background-color: #ddd;
-    border-color: #ccc;
-    display: none;
+	color: #000;
+	background-color: #ddd;
+	border-color: #ccc;
+	display: none;
 }
 
 .btn-missing, .btn-metadata  {
-    color: #fff;
-    background-color: #1e6620;
-    border-color: #1a511b;
-    display: none;
-}
-.btn-missing:hover, .btn-metadata:hover  {
-    color: #fff;
-    background-color: #0f3010;
-    border-color: #000000;
+	color: #fff;
+	background-color: #1f4e21;
+	display: none;
+	border: 1px solid #1a511b;
+	border-radius: 4px;
+	font-weight: bold;
 }

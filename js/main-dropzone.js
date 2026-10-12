@@ -19,13 +19,13 @@ document.addEventListener('DOMContentLoaded', function() {
 	// Initialize Dropzone
 	dropzoneInstance = new Dropzone('form#dropzoneForm', {
 		autoProcessQueue: false,
-		maxFilesize: 1073741824,
-		parallelUploads: 3,
+		maxFilesize: 512,
 		uploadMultiple: false,
 		acceptedFiles: '.png,.tiff,.tif,.jp2,.pdf,.jpg,.jpeg,.webp',
 		addRemoveLinks: false,
 		timeout: 300000,
-		createImageThumbnails: true
+		createImageThumbnails: false,
+		maxFiles: 10000
 	});
 
 	console.log('Dropzone initialized');
@@ -93,10 +93,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	// Handle upload complete
 	dropzoneInstance.on('complete', function(file) {
+		// This a hack. 
+		// If there are no files uploading and no files queued, we are really done.
+		if (dropzoneInstance.getUploadingFiles().length === 0 && dropzoneInstance.getQueuedFiles().length === 0) {
+			console.log("END ", dropzoneInstance.getQueuedFiles().length);
+		} else {
+			// Otherwise, start queue processing again
+			dropzoneInstance.processQueue();
+		}
+
 		if (dropzoneInstance.getUploadingFiles().length === 0) {
 			if (!loadingPDF) {
 				updateActionButtons();
-				document.getElementById('cancelUpload').disabled = true;
 			}
 		}
 	});
@@ -107,32 +115,19 @@ document.addEventListener('DOMContentLoaded', function() {
 		if (!loadingPDF) {
 			loadExistingFiles();
 			updateActionButtons();
-			document.getElementById('cancelUpload').disabled = true;
 		}
 	});
 
 	// Button handlers
 	document.getElementById('startUpload').addEventListener('click', function(e) {
 		e.preventDefault();
-		console.log('Start upload clicked, queued files:', dropzoneInstance.getQueuedFiles().length);
-		if (dropzoneInstance.getQueuedFiles().length > 0) {
-			document.getElementById('uploadProgress').style.display = 'block';
+		console.log('Start upload clicked, queued files:', dropzoneInstance.files.length);
+		if (dropzoneInstance.files.length > 0) {
 			document.getElementById('startUpload').disabled = true;
-			document.getElementById('cancelUpload').disabled = false;
 			dropzoneInstance.processQueue();
 		} else {
 			alert('Please select files first');
 		}
-	});
-
-	document.getElementById('cancelUpload').addEventListener('click', function(e) {
-		e.preventDefault();
-		console.log('Cancel upload clicked');
-		dropzoneInstance.removeAllFiles(true);
-		document.getElementById('uploadProgress').style.display = 'none';
-		document.getElementById('progressBar').style.width = '0%';
-		document.getElementById('progressText').textContent = '0%';
-		updateStartButtonState();
 	});
 
 	// Track upload progress
@@ -165,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	});
 
 	function updateStartButtonState() {
-		var hasFiles = dropzoneInstance.getQueuedFiles().length > 0;
+		var hasFiles = dropzoneInstance.files.length > 0;
 		document.getElementById('startUpload').disabled = !hasFiles;
 	}
 
@@ -263,4 +258,5 @@ document.addEventListener('DOMContentLoaded', function() {
 		div.textContent = text;
 		return div.innerHTML;
 	}
+
 });

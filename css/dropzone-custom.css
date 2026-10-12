@@ -172,14 +172,32 @@
 	display: none;
 }
 
+/* Progress bar and text */
+.progress-wrapper {
+	display: flex;
+	flex-wrap: nowrap;
+	font-weight: bold;
+}
+.progress-wrapper div {
+	flex: none;
+}
+
+#progressLabel {
+	padding: 10px 5px 0 0;
+}
 #uploadProgress {
-	margin-top: 15px;
+	margin: 7px 8px;
+	border: 1px solid #007000;
+	width: 200px;
+}
+#progressBar {
+	background-color: #87da87;
+	padding: 2px 0px;
+	font-weight: normal;
 }
 
 #pdfmessage {
-	display: none;
-	margin-top: 10px;
-	padding: 10px 15px;
+	padding: 10px 0 0 5px;
 } 
 
 /* Responsive */
@@ -198,3 +216,4 @@
 		width: calc(100% - 20px);
 	}
 }
+
