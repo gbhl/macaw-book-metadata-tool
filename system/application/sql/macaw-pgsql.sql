@@ -208,7 +208,7 @@ INSERT INTO account VALUES (1, 'admin', null, 1, null, now());
 
 INSERT INTO permission VALUES ('admin', 'admin');
 INSERT INTO permission VALUES ('admin', 'scan');
-INSERT INTO settings VALUES ('version', '3.1');
+INSERT INTO settings VALUES ('version', '3.3');
 INSERT INTO settings values ('installed', '1');
 
 SELECT pg_catalog.setval('account_id_seq', 1, true);

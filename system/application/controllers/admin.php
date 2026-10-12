@@ -771,6 +771,7 @@ class Admin extends Controller {
 
 		$data = [];
 		$data['config_params'] = [];
+		$base_dir = $this->cfg['base_directory'];
 
 		foreach (array_keys($this->cfg) as $k) {
 			$val = '';
@@ -779,12 +780,19 @@ class Admin extends Controller {
 			} else {
 				$val = $this->cfg[$k];
 			}
+			if ($k == 'base_directory') {
+				$val = '<em>[REDACTED]</em>';
+			}
+
 			if (is_array($this->cfg[$k])) {
 				$data['config_params'][] = array(
 					'paramater' => $k, 
 					'value' => preg_replace('/\t/', '&nbsp;&nbsp;', print_r($val, true))
 				);
 			} else {
+				if (strpos($val, $base_dir) !== false) {
+					$val = str_replace($base_dir, '...', $val);
+				}
 				$data['config_params'][] = array(
 					'paramater' => $k, 
 					'value' => $val
