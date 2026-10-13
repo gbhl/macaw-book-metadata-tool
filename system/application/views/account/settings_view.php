@@ -68,11 +68,11 @@
 				</tr>
 				<tr class="row">
 					<td class="fieldname">New Password:</td>
-					<td><input type="password" name="password" value="" size="20" id="password"></td>
+					<td><input type="password" name="password" value="" size="20" id="password" autocomplete="off"></td>
 				</tr>
 				<tr class="row">
 					<td class="fieldname">Confirm Password:</td>
-					<td><input type="password" name="password_c" value="" size="20" id="password_c"></td>
+					<td><input type="password" name="password_c" value="" size="20" id="password_c" autocomplete="off"></td>
 				</tr>
 				<tr class="row">
 					<td></td>

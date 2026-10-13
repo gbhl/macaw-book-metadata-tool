@@ -216,7 +216,7 @@ class Main extends Controller {
 
 			// Give our response to the user.
 			$this->session->set_userdata('errormessage', 'The item with identifier "'.$barcode.'" could not be found.');
-			redirect($this->config->item('base_url').'main/listitems');
+			redirect($this->config->item('base_url').'dashboard');
 			return;
 		}
 
