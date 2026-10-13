@@ -794,7 +794,14 @@ class Scan extends Controller {
 		}
 		$barcode = $this->session->userdata('barcode');
 		// Get our book
-		$this->book->load($barcode);
+		try {
+			$this->book->load($barcode);
+		} catch (Exception $e) {
+			$this->session->set_userdata('errormessage','The item could not be loaded or was not found.');
+			redirect($this->config->item('base_url').'dashboard');
+			return;
+		}
+		
 		$this->common->check_missing_metadata($this->book);
 
 		$data['upload_max_filesize'] = ini_get('upload_max_filesize');
