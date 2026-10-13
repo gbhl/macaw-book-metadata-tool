@@ -11,7 +11,7 @@
 	<title>Login | Macaw</title>
 	<?php $this->load->view('global/head_view') ?>
 	<script type="text/javascript">
-		YAHOO.util.Event.onDOMReady(function() { Login.init(); CookieConsent.init(); });
+		YAHOO.util.Event.onDOMReady(function() { Login.init(); });
 	</script>
 </head>
 <body class="yui-skin-sam">

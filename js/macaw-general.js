@@ -104,70 +104,7 @@
 		// ----------------------------
 		handleLoginSubmit: function() {
 			// Ignore submissions (including the Enter key) until cookies are accepted
-			if (!CookieConsent.hasConsent()) {
-				return;
-			}
 			Dom.get('loginform').submit();
-		}
-	}
-
-	CookieConsent = {
-
-		// ----------------------------
-		// Function: init()
-		//
-		// Shows the cookie consent modal unless the visitor has already accepted it.
-		// While the modal is open, the rest of the page cannot be used: the overlay
-		// blocks mouse clicks and Tab keeps focus inside the dialog.
-		//
-		// Arguments
-		//    None
-		//
-		// Return Value / Effect
-		//    The modal is displayed until accepted. Acceptance is stored in a
-		//    cookie that lasts one year.
-		// ----------------------------
-		cookieName: 'macaw_cookie_consent',
-
-		init: function() {
-			if (CookieConsent.hasConsent()) {
-				return;
-			}
-			var overlay = Dom.get('cookieconsent_overlay');
-			if (!overlay) {
-				return;
-			}
-			YAHOO.util.Event.addListener('cookieconsent_accept', 'click', CookieConsent.accept);
-			YAHOO.util.Event.addListener(overlay, 'keydown', function(ev) {
-				// Keep keyboard focus on the Accept button
-				if (YAHOO.util.Event.getCharCode(ev) === 9) {
-					YAHOO.util.Event.preventDefault(ev);
-					Dom.get('cookieconsent_accept').focus();
-				}
-			});
-			overlay.style.display = 'flex';
-			Dom.get('cookieconsent_accept').focus();
-		},
-
-		// ----------------------------
-		// Function: hasConsent()
-		//
-		// Returns true if the consent cookie is already set.
-		// ----------------------------
-		hasConsent: function() {
-			return document.cookie.split(';').some(function(c) {
-				return c.trim().indexOf(CookieConsent.cookieName + '=') === 0;
-			});
-		},
-
-		// ----------------------------
-		// Function: accept()
-		//
-		// Records the visitor's acceptance in a cookie and closes the modal.
-		// ----------------------------
-		accept: function() {
-			document.cookie = CookieConsent.cookieName + '=1; path=/; max-age=31536000; SameSite=Lax';
-			Dom.get('cookieconsent_overlay').style.display = 'none';
 		}
 	}
 
