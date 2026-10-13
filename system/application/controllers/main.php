@@ -85,6 +85,15 @@ class Main extends Controller {
 	
 	}
 
+	function terms_view() {
+		$data = [];
+		$data['logged_in'] = false;
+		if ($this->common->check_session(true)) {
+			$data['logged_in'] = true;
+		}
+		$data['terms'] = nl2br(read_file($this->cfg['base_directory'].'/terms.txt'));
+		$this->load->view('main/terms_readonly_view', $data);	
+	}
 	/**
 	 * Obselete function. Now we just redirect to main which handles redirecting to somewhere appropriate.
 	 **/

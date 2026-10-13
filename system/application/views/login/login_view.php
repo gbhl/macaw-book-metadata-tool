@@ -11,7 +11,7 @@
 	<title>Login | Macaw</title>
 	<?php $this->load->view('global/head_view') ?>
 	<script type="text/javascript">
-	    YAHOO.util.Event.onDOMReady(Login.init);
+		YAHOO.util.Event.onDOMReady(function() { Login.init(); CookieConsent.init(); });
 	</script>
 </head>
 <body class="yui-skin-sam">
@@ -54,5 +54,15 @@
 		 at the Missouri Botanical Garden.
 	</div>
 	<?php $this->load->view('global/footer_view') ?>
+	<div id="cookieconsent_overlay" style="display:none">
+		<div id="cookieconsent" role="dialog" aria-modal="true" aria-labelledby="cookieconsent_title">
+			<h2 id="cookieconsent_title">Cookie notice</h2>
+			<p>Macaw uses cookies to keep you logged in and to remember your session. 
+				These are essential for the system to work. 
+				Macaw does not use tracking or traffic analysis cookies. Read more in the <a href="<?php echo $this->config->item('base_url').'terms.txt'; ?>" target="_blank">Terms of Use.</a></p>
+			<p>You must accept this notice to continue to the login page.</p>
+			<button type="button" id="cookieconsent_accept">Accept</button>
+		</div>
+	</div>
 </body>
 </html>
