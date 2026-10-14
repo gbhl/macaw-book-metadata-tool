@@ -289,7 +289,7 @@ class Main extends Controller {
 	 */
 	function js_config() {
         header("Content-Type:application/javascript");
-        header("Cache-Control:max-age=290304000, public");
+        header("Cache-Control:max-age=43200, public");
 
 		echo "var sBaseUrl = '".preg_replace('/\/$/','',$this->config->item('base_url'))."';";
 	}
@@ -420,7 +420,7 @@ class Main extends Controller {
 			return;
 		}
 
-		if ($_REQUEST['action'] == 'delete') {
+		if (isset($_REQUEST['action']) && $_REQUEST['action'] == 'delete') {
 			return $this->delete_confirm();
 		}
 				

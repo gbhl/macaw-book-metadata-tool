@@ -2,10 +2,8 @@
 <div id="page_top">
 	
 	<div id="enter_barcode">
-		<form action="#" onSubmit="Barcode.submit();return false">
 		<input type="text" name="barcode" id="txtBarcode" maxlength="64" placeholder="Enter Item ID">
-		<input type="submit" value="Go">
-		</form>
+		<input type="submit" value="Go" onClick="Barcode.submit();return false">
 	</div>
 
 	<div id="login_details">
