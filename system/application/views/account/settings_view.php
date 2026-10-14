@@ -12,12 +12,14 @@
 			var obtnSave = new YAHOO.widget.Button("btnSave");
 			obtnSave.on('click', function() { Dom.get('edit_form').submit(); });
 
-			var obtnDisableTOTP = new YAHOO.widget.Button("btnDisableTOTP");
-			obtnDisableTOTP.on('click', function() {
-				if (confirm('Disable two-factor authentication?')) {
-					Dom.get('totp_disable_form').submit();
-				}
-			});
+			<?php if ($totp_enabled) { ?>
+				var obtnDisableTOTP = new YAHOO.widget.Button("btnDisableTOTP");
+				obtnDisableTOTP.on('click', function() {
+					if (confirm('Disable two-factor authentication?')) {
+						Dom.get('totp_disable_form').submit();
+					}
+				});
+			<?php } ?>
 		}
 		YAHOO.util.Event.onDOMReady(init);
 	</script>
