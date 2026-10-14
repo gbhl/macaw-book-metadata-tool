@@ -31,7 +31,6 @@
       </p>
     </div>
 		<form id="upload_form" enctype="multipart/form-data" name="upload_form">
-			<input type="hidden" name="li_token" value="<?php echo($token); ?>">
 			<div id="fields">
 				<label for="itemdata">Item Level CSV</label> 
 				<input type="file" id="itemdata" name="itemdata"><br><br>

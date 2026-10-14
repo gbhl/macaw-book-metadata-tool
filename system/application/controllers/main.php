@@ -1129,7 +1129,6 @@ class Main extends Controller {
 		}
 		
 		$data = array();
-		$data['token'] = $this->session->userdata('li_token');
 		$this->load->view('main/import_view', $data);
 	}
 

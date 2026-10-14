@@ -22,7 +22,6 @@
 	<div id="edit">
 		<h1>Enable Two-Factor Authentication</h1>
 		<form action="<?php echo $this->config->item('base_url'); ?>account/totp_enable/" method="post" id="totp_setup_form">
-		<input type="hidden" name="li_token" value="<?php echo h($token); ?>">
 
 		<table border="0" cellspacing="5" cellpadding="5">
 			<tr class="row">

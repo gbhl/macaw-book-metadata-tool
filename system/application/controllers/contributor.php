@@ -120,7 +120,6 @@ class Contributor extends Controller {
 				$data['api_key'] = $this->organization->ia_api_key;
 				$data['secret_key'] = $this->organization->ia_secret_key;
 			}
-			$data['token'] = $this->session->userdata('li_token');
 
 			// Display the page
 			$this->load->view('contributor/contributor_edit_page', $data);
@@ -171,7 +170,6 @@ class Contributor extends Controller {
 			$data['secret_key'] = '';
 		}
 		$data['id'] = 0;
-		$data['token'] = $this->session->userdata('li_token');
 
 		// Display the page
 		$this->load->view('contributor/contributor_add_page', $data);

@@ -126,7 +126,6 @@ class Account extends Controller {
 			}
 		}
 
-		$data['token'] = $this->session->userdata('li_token');
 		$data['is_admin'] = $is_admin;
 		$data['is_local_admin'] = $is_local_admin;
 		$data['totp_enabled'] = (!$new && $data['is_self']) ? $this->user->totp_enabled : false;
@@ -159,7 +158,6 @@ class Account extends Controller {
 		// $data['qr_svg'] = QrCode::svg($otpauth, 4, 1); // code, cell size, margin
 		$data['secret'] = $secret;
 		$data['otpauth'] = convert_uuencode($otpauth);
-		$data['token'] = $this->session->userdata('li_token');
 		$this->load->view('account/totp_setup_view', $data);
 	}
 
