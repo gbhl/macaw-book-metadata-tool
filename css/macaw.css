@@ -296,13 +296,14 @@ td.yui-dt-last {
 	float:right;
 }
 #enter_barcode input[type=text] {
-	font-size: 95%;
+	font-size: 100%;
 	font-weight: normal;
 	font-family: Georgia;
-	color: #4F7E97;
-	margin: 0px 3px;
+	color: #152f3e;
 	width: 180px;
 	padding: 0;
+	padding: 2px 3px;
+	margin-top: 1px;
 }
 #enter_barcode input[type="submit"]{
 	font-family: Georgia;

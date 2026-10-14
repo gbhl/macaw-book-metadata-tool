@@ -52,7 +52,12 @@ class Scan extends Controller {
 
 		$this->common->ajax_headers();
 		$bc = $this->session->userdata('barcode');
-		$this->book->load($bc);
+		try {
+			$this->book->load($bc);
+		} catch (Exception $e) {
+			echo json_encode(array('message' => 'Error: The item could not be loaded or was not found'));
+			return;
+		}
 
 		// Strip out anything that's Processed. We want them to disappear from
 		// the list when they are done.
@@ -117,7 +122,13 @@ class Scan extends Controller {
 
 		try {
 			// Get our book
-			$this->book->load($this->session->userdata('barcode'));
+			try {
+				$this->book->load($this->session->userdata('barcode'));
+			} catch (Exception $e) {
+				$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+				redirect($this->config->item('base_url').'main/listitems');
+				return;
+			}
 			$this->book->set_status('scanning');
 			$this->book->set_status('scanned');
 			redirect($this->config->item('base_url').'scan/review');
@@ -150,7 +161,13 @@ class Scan extends Controller {
 
 		try {
 			// Get our book
-			$this->book->load($this->session->userdata('barcode'));
+			try {
+				$this->book->load($this->session->userdata('barcode'));
+			} catch (Exception $e) {
+				$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+				redirect($this->config->item('base_url').'main/listitems');
+				return;
+			}
 
 			$this->book->set_status('scanning');
 			$this->book->set_status('scanned');
@@ -185,7 +202,13 @@ class Scan extends Controller {
 
 		try {
 			// Get our book
-			$this->book->load($this->session->userdata('barcode'));
+			try {
+				$this->book->load($this->session->userdata('barcode'));
+			} catch (Exception $e) {
+				$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+				redirect($this->config->item('base_url').'main/listitems');
+				return;
+			}
 
 			$this->book->set_status('scanned');
 			redirect($this->config->item('base_url').'scan/review');
@@ -221,7 +244,13 @@ class Scan extends Controller {
 
 		try {
 			// Get our book
-			$this->book->load($this->session->userdata('barcode'));
+			try {
+				$this->book->load($this->session->userdata('barcode'));
+			} catch (Exception $e) {
+				$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+				redirect($this->config->item('base_url').'main/listitems');
+				return;
+			}
 
 			// This book is in the QA queue
 			if ($this->book->status == 'qa-ready' || $this->book->status == 'qa-active') {
@@ -326,7 +355,13 @@ class Scan extends Controller {
 		}
 		$this->common->ajax_headers();
 		// Get our book
-        $this->book->load($this->session->userdata('barcode'));
+		try {
+			$this->book->load($this->session->userdata('barcode'));
+		} catch (Exception $e) {
+			header("Content-Type: application/json; charset=utf-8");
+			echo json_encode(array('message' => 'Error: The item could not be loaded or was not found'));
+			return;
+		}
 
 		// Embedded ampersands in the data cause trouble.
 		$data = preg_replace('/\&/i', '&amp;', $this->input->post('data'));
@@ -408,7 +443,13 @@ class Scan extends Controller {
 		try {
 			// Get our book
 			$barcode = $this->session->userdata('barcode');
-			$this->book->load($barcode);
+			try {
+				$this->book->load($barcode);
+			} catch (Exception $e) {
+				$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+				redirect($this->config->item('base_url').'main/listitems');
+				return;
+			}
 
 			// Completing a book with missing metadata is bad.
 			$missing_metadata = $this->book->get_missing_metadata(true);
@@ -643,7 +684,13 @@ class Scan extends Controller {
 		}
 
 		// Load the book
-		$this->book->load($this->session->userdata('barcode'));
+		try {
+			$this->book->load($this->session->userdata('barcode'));
+		} catch (Exception $e) {
+			$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+			redirect($this->config->item('base_url').'main/listitems');
+			return;
+		}
 		// Get the pagesm sorted by filebase
 		$pages = $this->book->get_pages('filebase');
 		$seq = 1;
@@ -686,7 +733,13 @@ class Scan extends Controller {
 			return;
 		}
 
-		$this->book->load($this->session->userdata('barcode'));
+		try {
+			$this->book->load($this->session->userdata('barcode'));
+		} catch (Exception $e) {
+			$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+			redirect($this->config->item('base_url').'main/listitems');
+			return;
+		}
 		$data['ia_identifier'] = null;
 		if ($this->db->table_exists('custom_internet_archive')) {
 			$query = $this->db->query('select * from custom_internet_archive where item_id = ?', array($this->book->id));
@@ -743,7 +796,14 @@ class Scan extends Controller {
 			$this->common->ajax_headers();
 			try {
 				// Get our book
-				$this->book->load($this->session->userdata('barcode'));
+				try {
+					$this->book->load($this->session->userdata('barcode'));
+				} catch (Exception $e) {
+					$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+					header("Content-Type: application/json; charset=utf-8");
+					echo json_encode(array('redirect' => $this->config->item('base_url').'main/listitems/'));
+					return;
+				}
 				if ($this->book->status == 'scanning') {
 					$this->book->set_status('scanned');
 				} 
@@ -763,7 +823,14 @@ class Scan extends Controller {
 		} elseif ($arg == 'insert') {
 			$this->common->check_session();
 			// Show the insert missing pages
-			$this->book->load($this->session->userdata('barcode'));
+			try {
+				$this->book->load($this->session->userdata('barcode'));
+			} catch (Exception $e) {
+				$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+				header("Content-Type: application/json; charset=utf-8");
+				echo json_encode(array('redirect' => $this->config->item('base_url').'main/listitems/'));
+				return;
+			}
 			$this->common->check_missing_metadata($this->book);
 			if ($this->book->status == 'scanning') {
 				$this->book->set_status('scanned');
@@ -798,7 +865,7 @@ class Scan extends Controller {
 			$this->book->load($barcode);
 		} catch (Exception $e) {
 			$this->session->set_userdata('errormessage','The item could not be loaded or was not found.');
-			redirect($this->config->item('base_url').'dashboard');
+			redirect($this->config->item('base_url').'main/listitems');
 			return;
 		}
 		
@@ -850,7 +917,16 @@ class Scan extends Controller {
 	public function do_upload() {
 		// Set our paths
 		$barcode = $this->session->userdata('barcode');
-		$this->book->load($barcode);
+		try {
+			$this->book->load($barcode);
+		} catch (Exception $e) {
+			header("Content-Type: application/json; charset=utf-8");
+			header('Cache-Control: no-cache, must-revalidate');
+			header('Pragma: no-cache');
+			header('Expires: 0');
+			echo json_encode(array('files' => 0, 'reload' => 'true', 'message' => '', 'dir' => ''));
+			return;
+		}
 		$scans_dir = $this->cfg['data_directory'].'/'.$barcode.'/scans/';
 		$upload_path_url = base_url().'books/'.$barcode.'/scans/';
 		

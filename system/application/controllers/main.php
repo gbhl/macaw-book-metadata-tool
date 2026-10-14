@@ -36,7 +36,13 @@ class Main extends Controller {
 		
 		$data = array();
 		if ($this->session->userdata('barcode')) {
-			$this->book->load($this->session->userdata('barcode'));
+			try {
+				$this->book->load($this->session->userdata('barcode'));
+			} catch (Exception $e) {
+				$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+				redirect($this->config->item('base_url').'main/listitems');
+				return;
+			}
 			$status = $this->book->status;
 			
 			if ($status == 'new' || $status == 'scanning') {
@@ -148,7 +154,13 @@ class Main extends Controller {
 		// Query the database for the barcode
 		try {
 			// Get the book
-			$this->book->load($barcode);
+			try {
+				$this->book->load($barcode);
+			} catch (Exception $e) {
+				$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+				redirect($this->config->item('base_url').'main/listitems');
+				return;
+			}
 			
 			// Do we have permission to view this item? 
 			// People with the same org or super admins can access it, everyone else gets denied
@@ -223,7 +235,13 @@ class Main extends Controller {
 		// Query the database for the barcode
 		try {
 			// Get the book
-			$this->book->load($barcode);
+			try {
+				$this->book->load($barcode);
+			} catch (Exception $e) {
+				$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+				redirect($this->config->item('base_url').'main/listitems');
+				return;
+			}
 
 			// Do we have permission to view this item? 
 			// People with the same org or super admins can access it, everyone else gets denied
@@ -320,7 +338,13 @@ class Main extends Controller {
 		$barcode = $this->session->userdata('barcode');
 
 		// Get our book
-		$this->book->load($barcode);
+		try {
+			$this->book->load($barcode);
+		} catch (Exception $e) {
+			$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+			redirect($this->config->item('base_url').'main/listitems');
+			return;
+		}
 		$this->common->check_missing_metadata($this->book);
 
 		// Fill in the data
@@ -426,7 +450,13 @@ class Main extends Controller {
 				
 		// Get our book
 		$barcode = $this->session->userdata('barcode');
-		$this->book->load($barcode);
+		try {
+			$this->book->load($barcode);
+		} catch (Exception $e) {
+			$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+			redirect($this->config->item('base_url').'main/listitems');
+			return;
+		}
 
 		// Who are we?
 		$is_local_admin = $this->user->has_permission('local_admin');
@@ -606,7 +636,13 @@ class Main extends Controller {
 			$this->load->view('main/admin_edit_view', $data);
 			return;
 		} 
-		$this->book->load($barcode);
+		try {
+			$this->book->load($barcode);
+		} catch (Exception $e) {
+			$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+			redirect($this->config->item('base_url').'main/listitems');
+			return;
+		}
 
 		$data = [];
 		$data['identifier'] = $this->book->barcode;
@@ -685,7 +721,13 @@ class Main extends Controller {
 
 		// Check each item retuned, save only if it's different
 		$barcode = $this->session->userdata('barcode');
-		$this->book->load($barcode);
+		try {
+			$this->book->load($barcode);
+		} catch (Exception $e) {
+			$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+			redirect($this->config->item('base_url').'main/listitems');
+			return;
+		}
 
 		$changed = false;
 		$messages = [];
@@ -735,7 +777,13 @@ class Main extends Controller {
 		$this->common->check_session();
 
 		// Get our book
-		$this->book->load($this->session->userdata('barcode'));
+		try {
+			$this->book->load($this->session->userdata('barcode'));
+		} catch (Exception $e) {
+			$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+			redirect($this->config->item('base_url').'main/listitems');
+			return;
+		}
 		$barcode = $this->session->userdata('barcode');
 
 		# 1. Count up the number of files
@@ -799,7 +847,13 @@ class Main extends Controller {
 		}
 		// Get our book and current user
 		$barcode = $this->session->userdata('barcode');
-		$this->book->load($barcode);
+		try {
+			$this->book->load($barcode);
+		} catch (Exception $e) {
+			$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+			redirect($this->config->item('base_url').'main/listitems');
+			return;
+		}
 		$this->user->load($this->session->userdata('username'));
 
 		// Make sure we can access this item
