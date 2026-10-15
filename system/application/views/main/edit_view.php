@@ -216,7 +216,7 @@
 					<td class="fieldname">Identifier:</td>
 					<td>
 					<?php if ($new) { ?>
-						<input type="text" name="identifier"  value="<?php echo attr($identifier) ?>">
+						<input type="text" name="identifier" value="<?php echo $identifier; ?>">
 					<?php } else { ?>
 						<?php echo h($identifier) ?>&nbsp;&nbsp;&nbsp;&nbsp;(<strong>Macaw ID:</strong> <?php echo($id) ?>)
 					<?php } ?>
