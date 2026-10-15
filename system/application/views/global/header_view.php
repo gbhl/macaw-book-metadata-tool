@@ -110,7 +110,7 @@
 					$item_title = $item_title[0];
 				}
 				print '<div id="item-title">';
-				print h($item_title, ENT_QUOTES);
+				print h(($item_title ? $item_title : "(the title is not set!)"), ENT_QUOTES);
 				print '</div>';
 			} 
 		?>

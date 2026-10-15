@@ -217,6 +217,7 @@ class Main extends Controller {
 			return;
 		}
 
+		$barcode = html_entity_decode($barcode);
 		
 		// Get the barcode from the form		
 		if (!$this->book->exists($barcode)) {
@@ -608,7 +609,7 @@ class Main extends Controller {
 
 		$this->session->set_userdata('message', 'Changes saved!');
 		if (count($errormessages) > 0) {
-			$this->session->set_userdata('errormessage', '<ul><li>'.implode('</li><li>', $errormessages).'</li></ul>');
+			$this->session->set_userdata('errormessage', implode('<br>', $errormessages));
 		}
 		//Changed redirect to review with new style and workflow
 		redirect($this->config->item('base_url').'main/edit');	
