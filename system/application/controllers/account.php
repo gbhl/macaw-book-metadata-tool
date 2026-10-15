@@ -402,7 +402,12 @@ class Account extends Controller {
 	 */
 	private function _can_edit($user, $target) {
 		$target_user = new User;
-		$target_user->load($target);
+		try {
+			$target_user->load($target);
+		} catch (Exception $e) {
+			$this->session->set_userdata('errormessage', 'The user could not be loaded or was not found.');
+			return false;
+		}
 
 		$this->user->load($this->session->userdata('username'));
 
