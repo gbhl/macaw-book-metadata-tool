@@ -36,15 +36,15 @@
 
 		<div id="logincontent">
 			<div id="logincontenttemplate" style="width:30px; display:none;visibility:hidden">
-				<p>Enter your email address to<br>
+				<p>Enter your user name to<br>
 				receive a password reset link.</p>
 
 				<?php echo form_open($this->config->item('base_url').'login/request_password_reset', array('id' => 'lostpwdform')) ?>
 
-					<span class="loginlabel"><?php echo form_label('Email:','email') ?></span>
-					<span class="loginfield"><?php echo form_input(array('name' => 'email', 'id' => 'email', 'size' => '20', 'maxlength' => '128', 'tabindex' => '1')) ?></span>
+					<span class="loginlabel"><?php echo form_label('User Name:','username') ?></span>
+					<span class="loginfield"><?php echo form_input(array('name' => 'username', 'id' => 'username', 'size' => '20', 'maxlength' => '128', 'tabindex' => '1', 'placeholder' => 'User name...')) ?></span>
 					<div style="margin-bottom: 15px;">
-						<a href="<?php echo $this->config->item('base_url').'login'; ?>" style="margin-left: 10px;">Back to Login</a>
+						<a href="<?php echo $this->config->item('base_url').'login'; ?>">Back to Login</a>
 					</div>
 				<?php echo form_close() ?>
 			</div>

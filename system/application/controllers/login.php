@@ -159,18 +159,18 @@ class Login extends Controller {
 	 * Process forgot password request
 	 */
 	function request_password_reset() {
-		$email = trim($this->input->post('email'));
+		$username = trim($this->input->post('username'));
 
-		if (!$email) {
-			$this->session->set_userdata('errormessage', 'Please enter your email address.');
+		if (!$username) {
+			$this->session->set_userdata('errormessage', 'Please enter your user name.');
 			redirect($this->config->item('base_url').'login/forgot_password');
 			return;
 		}
 
-		$account = $this->db->get_where('account', array('email' => $email))->row();
+		$account = $this->db->get_where('account', array('username' => $username))->row();
 
 		if (!$account || !$account->email) {
-			$this->session->set_userdata('message', 'If an account exists with that email address, you will receive a message with a password reset link.');
+			$this->session->set_userdata('message', 'If an account exists with that user name, you will receive an email message with a password reset link.');
 			redirect($this->config->item('base_url').'login');
 			return;
 		}
