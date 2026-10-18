@@ -365,7 +365,7 @@ class Main extends Controller {
 				array_push($md, array(
 					'fieldnamex' => $i['fieldname'].'_'.$array_counts[$i['fieldname']],
 					'fieldname' => $i['fieldname'],
-					'value' => htmlspecialchars($i['value'])
+					'value' => $i['value']
 				));
 			}
 		}
@@ -511,7 +511,7 @@ class Main extends Controller {
 							$v = trim($v);
 							// Don't save an empty value.
 							if (isset($v) && $v != '') {
-								$v = htmlspecialchars_decode($v);
+								// $v = htmlspecialchars_decode($v);
 								$this->book->set_metadata(trim($field), $v, false);
 							}
 						}
