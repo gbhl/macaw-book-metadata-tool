@@ -214,10 +214,10 @@ class Login extends Controller {
 		);
 
 		if ($this->email->send()) {
-			$this->logging->log('access', 'error', 'Sent password reset email to '.$email);
+			$this->logging->log('access', 'error', 'Sent password reset email to '.$account->email.' for username '.$username);
 			$this->session->set_userdata('message', 'If an account exists with that email address, you will receive a message with a password reset link.');
 		} else {
-			$this->logging->log('access', 'error', 'Failed to send password reset email to '.$email);
+			$this->logging->log('access', 'error', 'Failed to send password reset email to '.$account->email.' for username '.$username);
 			$this->session->set_userdata('errormessage', 'Failed to send password reset email.');
 		}
 
