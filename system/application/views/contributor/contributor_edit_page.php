@@ -10,7 +10,14 @@
 		function init() {
 			MessageBox.init();
 			var obtnSave = new YAHOO.widget.Button("btnSave");
-			obtnSave.on('click', function() { Dom.get('edit_form').submit(); });
+			obtnSave.on('click', function() { 
+				el_name = Dom.get('org_name');
+				if (el_name.value.trim() == '') {
+					alert('Contributor Name is required.');
+					return;
+				}
+				Dom.get('edit_form').submit(); 
+			});
 		}
 		YAHOO.util.Event.onDOMReady(init);
 	</script>

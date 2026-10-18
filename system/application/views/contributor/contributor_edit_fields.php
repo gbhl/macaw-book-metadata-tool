@@ -13,7 +13,7 @@
 		<?php } ?>
 		<tr class="row">
 			<td class="fieldname">Contributor Name:</td>
-			<td><input type="text" name="name" value="<?php echo attr($name); ?>" size="25"> (req.)</td>
+			<td><input type="text" id="org_name" name="name" value="<?php echo attr($name); ?>" size="25"> (required)</td>
 		</tr>
 		<tr class="row">
 			<td class="fieldname">Contact Person:</td>

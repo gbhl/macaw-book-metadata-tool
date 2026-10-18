@@ -261,20 +261,18 @@ class Organization extends Model {
 	 */
 	function get_list($org_id = 0) {
 		// Simple query, get everyone, but list the fields we want. Password should always be hidden.
-		$l = $this->db->query(
-			'SELECT o.*, coalesce(i.bytes, 0) as bytes '.
+		$sql = 'SELECT o.*, coalesce(i.bytes, 0) as bytes '.
 			'FROM organization o '.
 			'LEFT OUTER JOIN ( '.
-			'	SELECT sum(p.bytes) AS bytes, max(i.id) as id, max(i.status_code) AS status_code, max(i.org_id) as org_id, count(*) as pages '.
-			'	FROM page p  '.
-			'	INNER JOIN item i ON p.item_id = i.id  '.
-			'	WHERE i.status_code NOT IN (\'completed\', \'exporting\')  '.
-			'	GROUP BY i.org_id '.
+			'SELECT sum(p.bytes) AS bytes, max(i.id) as id, max(i.status_code) AS status_code, max(i.org_id) as org_id, count(*) as pages '.
+			'FROM page p  '.
+			'INNER JOIN item i ON p.item_id = i.id  '.
+			'WHERE i.status_code NOT IN (\'completed\', \'exporting\')  '.
+			'GROUP BY i.org_id '.
 			') i ON o.id = i.org_id '.
-			($org_id > 0 ? ' WHERE org_id = ? ' : '').
-			'ORDER BY o.name',
-			($org_id > 0 ? array($org_id) : [])
-		)->result();
+			($org_id > 0 ? ' WHERE o.id = ? ' : '').
+			'ORDER BY o.name';
+		$l = $this->db->query($sql, ($org_id > 0 ? array($org_id) : []))->result();
 		for ($i=0; $i < count($l); $i++) {
 			$l[$i]->created = preg_replace("/\.(\d+)$/","",$l[$i]->created);
 			$l[$i]->modified = preg_replace("/\.(\d+)$/","",$l[$i]->modified);
