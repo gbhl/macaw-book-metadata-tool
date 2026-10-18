@@ -55,7 +55,9 @@ class Common extends Controller {
 		# remove any sequences of more than one dash
 		$bc = preg_replace('/-+/', '-', $bc);
 		# remove trailing and leading symbols, just in case.
-		$bc = preg_replace('/^[\._-]|[\._-]$/', '', $bc);
+		while (preg_match('/^[\._-]|[\._-]$/', $bc)) {
+			$bc = preg_replace('/^[\._-]|[\._-]$/', '', $bc);
+		}
 		return $bc;
 	}
 
