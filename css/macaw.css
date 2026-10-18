@@ -1682,9 +1682,19 @@ textarea, input {
 #edit input[type=password],
 #edit input[type=file],
 #edit textarea {
-	width: 60%;
-	color: #333;
+	width: 100%;
+	color: #000;
 }
+#edit input.short,
+#edit textarea.short {
+	width: 60%;
+}
+#edit input.very_short,
+#edit textarea.very_short {
+	width: 30%;
+}
+
+
 #edit textarea {
 	height: 100px;
 }

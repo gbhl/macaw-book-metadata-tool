@@ -25,7 +25,7 @@
 		</tr>
 		<tr class="row">
 			<td class="fieldname">Contact Phone:</td>
-			<td><input type="text" name="phone" value="<?php echo attr($phone); ?>" size="25"></td>
+			<td><input class="short" type="text" name="phone" value="<?php echo attr($phone); ?>" size="25"></td>
 		</tr>
 		<tr class="row">
 			<td class="fieldname">Address:</td>
@@ -36,19 +36,19 @@
 		</tr>
 		<tr class="row">
 			<td class="fieldname">City:</td>
-			<td><input type="text" name="city" value="<?php echo attr($city); ?>" size="25"></td>
+			<td><input class="short" type="text" name="city" value="<?php echo attr($city); ?>" size="25"></td>
 		</tr>
 		<tr class="row">
 			<td class="fieldname">State/Province:</td>
-			<td><input type="text" name="state" value="<?php echo attr($state); ?>" size="25"></td>
+			<td><input class="short" type="text" name="state" value="<?php echo attr($state); ?>" size="25"></td>
 		</tr>
 		<tr class="row">
 			<td class="fieldname">ZIP/Postal Code:</td>
-			<td><input type="text" name="postal" value="<?php echo attr($postal); ?>" size="25"></td>
+			<td><input class="short" type="text" name="postal" value="<?php echo attr($postal); ?>" size="25"></td>
 		</tr>
 		<tr class="row">
 			<td class="fieldname">Country:</td>
-			<td><input type="text" name="country" value="<?php echo attr($country); ?>" size="25"></td>
+			<td><input class="short" type="text" name="country" value="<?php echo attr($country); ?>" size="25"></td>
 		</tr>
 		<?php if ($show_api_keys) { ?>
 			<tr class="row">
@@ -56,11 +56,11 @@
 			</tr>
 			<tr class="row">
 				<td class="fieldname">API Key:</td>
-				<td><input type="text" name="api_key" autocomplete="false" value="<?php echo attr($api_key); ?>" size="25" maxlength="64"> (max: 64 chars)</td>
+				<td><input class="short" type="text" name="api_key" autocomplete="false" value="<?php echo attr($api_key); ?>" size="25" maxlength="64"> (max: 64 chars)</td>
 			</tr>
 			<tr class="row">
 				<td class="fieldname">Secret Key:</td>
-				<td><input type="password" name="secret_key" autocomplete="false" value="" size="25" maxlength="64"> (max: 64 chars)</td>
+				<td><input class="short" type="password" name="secret_key" autocomplete="false" value="" size="25" maxlength="64"> (max: 64 chars)</td>
 			</tr>
 		<?php } ?>
 	</table>

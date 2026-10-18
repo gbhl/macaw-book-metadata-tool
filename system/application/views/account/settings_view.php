@@ -65,15 +65,15 @@
 				<?php } ?>
 				<tr class="row">
 					<td class="fieldname">Full Name:</td>
-					<td><input type="text" name="full_name" value="<?php echo attr($full_name); ?>" id="full_name" size="30"></td>
+					<td><input class="very_short" type="text" name="full_name" value="<?php echo attr($full_name); ?>" id="full_name" size="30"></td>
 				</tr>
 				<tr class="row">
 					<td class="fieldname">New Password:</td>
-					<td><input type="password" name="password" value="" size="20" id="password" autocomplete="off"></td>
+					<td><input class="very_short" type="password" name="password" value="" size="20" id="password" autocomplete="off"></td>
 				</tr>
 				<tr class="row">
 					<td class="fieldname">Confirm Password:</td>
-					<td><input type="password" name="password_c" value="" size="20" id="password_c" autocomplete="off"></td>
+					<td><input class="very_short" type="password" name="password_c" value="" size="20" id="password_c" autocomplete="off"></td>
 				</tr>
 				<tr class="row">
 					<td></td>
@@ -84,7 +84,7 @@
 				</tr>
 				<tr class="row">
 					<td class="fieldname">Email:</td>
-					<td><input type="text" name="email" value="<?php echo attr($email); ?>" size="60" id="email"></td>
+					<td><input class="short" type="text" name="email" value="<?php echo attr($email); ?>" size="60" id="email"></td>
 				</tr>
 				<tr class="row">
 					<td class="fieldname">Contributor:</td>
