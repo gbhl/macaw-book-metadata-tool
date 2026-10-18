@@ -92,8 +92,9 @@
     }
     
     $config = array();
+	# Load our local config
     require_once('system/application/config/macaw.php');
-    if(!defined('CRON_LOG')) define('CRON_LOG', 'system/application/logs/'.macaw_strftime($config['macaw']['cron_log']));
+    if(!defined('CRON_LOG')) define('CRON_LOG', $config['macaw']['logs_directory'].'/'.macaw_strftime($config['macaw']['cron_log']));
     
     if(!defined('CRON_TIME_LIMIT')) define('CRON_TIME_LIMIT', 0);
     if(!defined('CRON_FLUSH_BUFFERS')) define('CRON_FLUSH_BUFFERS', TRUE);
@@ -106,17 +107,17 @@
     set_time_limit(CRON_TIME_LIMIT);
 
 # Run CI and capture the output
-    ob_start();
+    // ob_start();
 
     chdir(dirname(CRON_CI_INDEX));
     require(CRON_CI_INDEX);           // Main CI index.php file
-    $output = trim(ob_get_contents());
+    // $output = trim(ob_get_contents());
     
-    if(defined('CRON_FLUSH_BUFFERS') && CRON_FLUSH_BUFFERS == TRUE) {
-        while(@ob_end_flush());        // display buffer contents
-    } else {
-        ob_end_clean();
-    }
+    // if(defined('CRON_FLUSH_BUFFERS') && CRON_FLUSH_BUFFERS == TRUE) {
+    //     while(@ob_end_flush());        // display buffer contents
+    // } else {
+    //     ob_end_clean();
+    // }
 
 # Log the results of this run
     error_log("### ".date('Y-m-d H:i:s')." cron.php $cmdline\n", 3, CRON_LOG);
