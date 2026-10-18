@@ -28,7 +28,7 @@ class Virtual_Items extends Controller {
 
 		// Permission Checking
 		if (!$this->user->has_permission('admin') && !$this->user->has_permission('local_admin')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			$this->session->append_userdata('errormessage', 'You do not have permission to access that page.');
 			redirect($this->config->item('base_url').'main/listitems');
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 		}
@@ -42,7 +42,7 @@ class Virtual_Items extends Controller {
 
 		// Permission Checking
 		if (!$this->user->has_permission('admin') && !$this->user->has_permission('local_admin')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			$this->session->append_userdata('errormessage', 'You do not have permission to access that page.');
 			redirect($this->config->item('base_url').'main/listitems');
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 		}
@@ -112,7 +112,7 @@ class Virtual_Items extends Controller {
 
 		// Permission Checking
 		if (!$this->user->has_permission('admin') && !$this->user->has_permission('local_admin')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			$this->session->append_userdata('errormessage', 'You do not have permission to access that page.');
 			redirect($this->config->item('base_url').'main/listitems');
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 		}
@@ -147,7 +147,7 @@ class Virtual_Items extends Controller {
 
 		// Permission Checking
 		if (!$this->user->has_permission('admin') && !$this->user->has_permission('local_admin')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			$this->session->append_userdata('errormessage', 'You do not have permission to access that page.');
 			redirect($this->config->item('base_url').'main/listitems');
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 		}
@@ -229,7 +229,7 @@ class Virtual_Items extends Controller {
 
 		// Permission Checking
 		if (!$this->user->has_permission('admin') && !$this->user->has_permission('local_admin')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			$this->session->append_userdata('errormessage', 'You do not have permission to access that page.');
 			redirect($this->config->item('base_url').'main/listitems');
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 		}
@@ -282,7 +282,7 @@ class Virtual_Items extends Controller {
 			);
 
 		} else {
-			$this->session->set_userdata('errormessage', 'Virtual Item with Source '.strip_tags($name).' not found.');
+			$this->session->append_userdata('errormessage', 'Virtual Item with Source '.strip_tags($name).' not found.');
 			redirect($this->config->item('base_url').'virtual_items/sources');					
 		}
 

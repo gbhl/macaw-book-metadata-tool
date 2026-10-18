@@ -27,7 +27,7 @@ if ($this->session->userdata('message') ||
 <?php 
 	}
 	// Clear the errors
-	$this->session->set_userdata('message', '');
-	$this->session->set_userdata('warning', '');
-	$this->session->set_userdata('errormessage', '');
+	$this->session->unset_userdata('message');
+	$this->session->unset_userdata('warning');
+	$this->session->unset_userdata('errormessage');
 ?>

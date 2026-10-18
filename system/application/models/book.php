@@ -91,7 +91,7 @@ class Book extends Model {
 		$old_barcode = $barcode;
 		$barcode = $this->common->clean_barcode($barcode);
 		if ($barcode != $old_barcode) {
-			$this->session->set_userdata('warning', 'IMPORTANT: The identifier was updated to "'.$barcode.'"');
+			$this->session->append_userdata('warning', 'IMPORTANT: The identifier was updated to "'.$barcode.'"');
 		}
 
 		if (isset($barcode)) {
@@ -1070,13 +1070,13 @@ class Book extends Model {
 			$old_barcode = $info['barcode'];
 			$info['barcode'] = $this->common->clean_barcode($info['barcode']);
 			if ($info['barcode'] != $old_barcode) {
-				$this->session->set_userdata('warning', 'IMPORTANT: The identifier was updated to "'.$info['barcode'].'"');
+				$this->session->append_userdata('warning', 'IMPORTANT: The identifier was updated to "'.$info['barcode'].'"');
 			}
 		}
 		if (isset($info['identifier'])) {
 			$info['barcode'] = $this->common->clean_barcode($info['identifier']);
 			if ($info['barcode'] != $info['identifier']) {
-				$this->session->set_userdata('warning', 'IMPORTANT: The identifier was updated to "'.$info['barcode'].'"');
+				$this->session->append_userdata('warning', 'IMPORTANT: The identifier was updated to "'.$info['barcode'].'"');
 			}
 		}
 		# Holding institution and contributor are equivalent
@@ -1589,7 +1589,7 @@ class Book extends Model {
 			// Checks for a redundant Scanning Instition and ignores it if found.
 			if ($key == 'scanning_institution' && $value == $this->get_contributor()){
 				$msg = 'The Added By/Scanning Institution field was not saved because it is the same as the Contributor. Please refer to the <a href="https://docs.google.com/document/d/1-_XCe2LmbroQfnOC1Y5_tNpAhzI1BOiFVjkJH_ykvak/edit">Macaw User Guide</a> for details.';
-				$this->session->set_userdata('warning', $msg);
+				$this->session->append_userdata('warning', $msg);
 				return;
 			}
 			

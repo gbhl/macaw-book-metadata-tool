@@ -467,6 +467,38 @@ class CI_Session {
 	// --------------------------------------------------------------------
 
 	/**
+	 * Add or change data in the "userdata" array
+	 *
+	 * @access	public
+	 * @param	mixed
+	 * @param	string
+	 * @return	void
+	 */
+	function append_userdata($newdata = array(), $newval = '')
+	{
+		if (is_string($newdata))
+		{
+			$newdata = array($newdata => $newval);
+		}
+
+		if (count($newdata) > 0)
+		{
+			foreach ($newdata as $key => $val)
+			{
+				if (isset($this->userdata[$key]) && $this->userdata[$key] != '') {
+					$this->userdata[$key] .= "<br><br>".$val;
+				} else {
+					$this->userdata[$key] = $val;
+				}
+			}
+		}
+
+		$this->sess_write();
+	}
+	
+	// --------------------------------------------------------------------
+
+	/**
 	 * Delete a session variable from the "userdata" array
 	 *
 	 * @access	array

@@ -30,7 +30,7 @@ class Admin extends Controller {
 
 		// Permission Checking
 		if (!$this->user->has_permission('admin') && !$this->user->has_permission('local_admin')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			$this->session->append_userdata('errormessage', 'You do not have permission to access that page.');
 			redirect($this->config->item('base_url').'main/listitems');
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 		}
@@ -56,7 +56,7 @@ class Admin extends Controller {
 
 		// Permission Checking
 		if (!$this->user->has_permission('admin') && !$this->user->has_permission('local_admin')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			$this->session->append_userdata('errormessage', 'You do not have permission to access that page.');
 			redirect($this->config->item('base_url').'main/listitems');
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 		}
@@ -274,7 +274,7 @@ class Admin extends Controller {
 
 		// Permission Checking
 		if (!$this->user->has_permission('admin')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			$this->session->append_userdata('errormessage', 'You do not have permission to access that page.');
 			redirect($this->config->item('base_url').'main/listitems');
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 		}
@@ -648,7 +648,7 @@ class Admin extends Controller {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('admin') && !$this->user->has_permission('local_admin')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			$this->session->append_userdata('errormessage', 'You do not have permission to access that page.');
 			redirect($this->config->item('base_url').'main/listitems');
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 		}
@@ -764,7 +764,7 @@ class Admin extends Controller {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('admin')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			$this->session->append_userdata('errormessage', 'You do not have permission to access that page.');
 			redirect($this->config->item('base_url').'main/listitems');
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 		}
@@ -849,7 +849,7 @@ class Admin extends Controller {
 	function monthly_report() {
 		if (!$this->user->has_permission('admin') && !$this->user->has_permission('local_admin')) {
 			$data['results'] = array();
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			$this->session->append_userdata('errormessage', 'You do not have permission to access that page.');
 			$content = $this->load->view('admin/monthly_report', $data);
 			return;
 		}

@@ -39,7 +39,7 @@ class Main extends Controller {
 			try {
 				$this->book->load($this->session->userdata('barcode'));
 			} catch (Exception $e) {
-				$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+				$this->session->append_userdata('errormessage', 'The item could not be loaded or was not found.');
 				redirect($this->config->item('base_url').'main/listitems');
 				return;
 			}
@@ -157,7 +157,7 @@ class Main extends Controller {
 			try {
 				$this->book->load($barcode);
 			} catch (Exception $e) {
-				$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+				$this->session->append_userdata('errormessage', 'The item could not be loaded or was not found.');
 				redirect($this->config->item('base_url').'main/listitems');
 				return;
 			}
@@ -212,7 +212,7 @@ class Main extends Controller {
 
 		// Make sure we got a barcode from the form
 		if (!isset($barcode)) {
-			$this->session->set_userdata('errormessage', 'Please enter an identifier.');
+			$this->session->append_userdata('errormessage', 'Please enter an identifier.');
 			redirect($this->config->item('base_url').'main/listitems');
 			return;
 		}
@@ -228,7 +228,7 @@ class Main extends Controller {
 			$this->session->set_userdata('author', '');
 
 			// Give our response to the user.
-			$this->session->set_userdata('errormessage', 'The item with identifier "'.$barcode.'" could not be found.');
+			$this->session->append_userdata('errormessage', 'The item with identifier "'.$barcode.'" could not be found.');
 			redirect($this->config->item('base_url').'dashboard');
 			return;
 		}
@@ -239,7 +239,7 @@ class Main extends Controller {
 			try {
 				$this->book->load($barcode);
 			} catch (Exception $e) {
-				$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+				$this->session->append_userdata('errormessage', 'The item could not be loaded or was not found.');
 				redirect($this->config->item('base_url').'main/listitems');
 				return;
 			}
@@ -249,7 +249,7 @@ class Main extends Controller {
 			$this->user->load($this->session->userdata('username'));
 			if ($this->book->org_id != $this->user->org_id && !$this->user->has_permission('admin')) {
 				// Give our response to the user.
-				$this->session->set_userdata('errormessage', 'You do not have permission to use that item.');
+				$this->session->append_userdata('errormessage', 'You do not have permission to use that item.');
 				redirect($this->config->item('base_url').'main/listitems');
 
 			} else {
@@ -269,11 +269,11 @@ class Main extends Controller {
 				redirect($this->config->item('base_url').'scan/review');
 
 				} elseif ($this->book->status == 'completed' || $this->book->status == 'exporting' || $this->book->status == 'archived'){
-					$this->session->set_userdata('warning', 'This item can no longer be edited. You are seeing the item\'s history instead.');
+					$this->session->append_userdata('warning', 'This item can no longer be edited. You are seeing the item\'s history instead.');
 					redirect($this->config->item('base_url').'scan/history');
 
 				} elseif ($this->book->status == 'error' ){
-					$this->session->set_userdata('errormessage', 'This item has had an error. Here is the history of the item to help debug.');
+					$this->session->append_userdata('errormessage', 'This item has had an error. Here is the history of the item to help debug.');
 					redirect($this->config->item('base_url').'scan/history');
 
 				} else {
@@ -289,7 +289,7 @@ class Main extends Controller {
 			$this->session->set_userdata('author', '');
 
 			// Redirect to the main activities page
-			$this->session->set_userdata('errormessage', 'This item could not be loaded. The error is: '.$e->getMessage());
+			$this->session->append_userdata('errormessage', 'This item could not be loaded. The error is: '.$e->getMessage());
 			$this->logging->log('error', 'error', 'Barcode scan for '.$barcode.' error: '.$e->getMessage());
 			$this->logging->log('book', 'error', 'Barcode scan returned error: '.$e->getMessage(), $barcode);
 			redirect($this->config->item('base_url').'scan/history');
@@ -330,7 +330,7 @@ class Main extends Controller {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('scan')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			$this->session->append_userdata('errormessage', 'You do not have permission to access that page.');
 			redirect($this->config->item('base_url').'main');
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 			return;
@@ -342,7 +342,7 @@ class Main extends Controller {
 		try {
 			$this->book->load($barcode);
 		} catch (Exception $e) {
-			$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+			$this->session->append_userdata('errormessage', 'The item could not be loaded or was not found.');
 			redirect($this->config->item('base_url').'main/listitems');
 			return;
 		}
@@ -439,7 +439,7 @@ class Main extends Controller {
 		
 		// Permission Checking
 		if (!$this->user->has_permission('scan')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			$this->session->append_userdata('errormessage', 'You do not have permission to access that page.');
 			redirect($this->config->item('base_url').'main');
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 			return;
@@ -454,7 +454,7 @@ class Main extends Controller {
 		try {
 			$this->book->load($barcode);
 		} catch (Exception $e) {
-			$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+			$this->session->append_userdata('errormessage', 'The item could not be loaded or was not found.');
 			redirect($this->config->item('base_url').'main/listitems');
 			return;
 		}
@@ -576,13 +576,13 @@ class Main extends Controller {
 		if (array_key_exists('copyright', $_POST)) {
 			if (isset($_POST['copyright'][0])) {
 				if ($_POST['copyright'][0] == '1' && !$rights_holder) {
-					$this->session->set_userdata('warning', "<strong>Rights Holder</strong> is required when the item is <strong>In Copyright</strong>.");
+					$this->session->append_userdata('warning', "<strong>Rights Holder</strong> is required when the item is <strong>In Copyright</strong>.");
 				}
 				if ($_POST['copyright'][0] == '1' && !$_POST['cc_license'][0]) {
-					$this->session->set_userdata('warning', "<strong>Creative Commons</strong> is required when the item is <strong>In Copyright</strong>.");
+					$this->session->append_userdata('warning', "<strong>Creative Commons</strong> is required when the item is <strong>In Copyright</strong>.");
 				}
 				if ($_POST['copyright'][0] == '0' && $_POST['cc_license'][0]) {
-					$this->session->set_userdata('warning', "<strong>Creative Commons</strong> should be NONE when item is not in copyright.");
+					$this->session->append_userdata('warning', "<strong>Creative Commons</strong> should be NONE when item is not in copyright.");
 				}
 			}
 		}
@@ -607,9 +607,9 @@ class Main extends Controller {
 		$this->session->set_userdata('title', $this->book->get_metadata('title'));
 		$this->session->set_userdata('author', $this->book->get_metadata('author'));
 
-		$this->session->set_userdata('message', 'Changes saved!');
+		$this->session->append_userdata('message', 'Changes saved!');
 		if (count($errormessages) > 0) {
-			$this->session->set_userdata('errormessage', implode('<br>', $errormessages));
+			$this->session->append_userdata('errormessage', implode('<br>', $errormessages));
 		}
 		//Changed redirect to review with new style and workflow
 		redirect($this->config->item('base_url').'main/edit');	
@@ -620,7 +620,7 @@ class Main extends Controller {
 		$errormessages = [];
 
 		if (!$this->user->has_permission('admin')) {
-			$this->session->set_userdata('errormessage', 'Only admins can use the admin edit page!');
+			$this->session->append_userdata('errormessage', 'Only admins can use the admin edit page!');
 			redirect($this->config->item('base_url').'main/edit');
 			return;		
 		}
@@ -640,7 +640,7 @@ class Main extends Controller {
 		try {
 			$this->book->load($barcode);
 		} catch (Exception $e) {
-			$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+			$this->session->append_userdata('errormessage', 'The item could not be loaded or was not found.');
 			redirect($this->config->item('base_url').'main/listitems');
 			return;
 		}
@@ -689,14 +689,14 @@ class Main extends Controller {
 	function admin_edit_save() {
 		$this->common->check_session();
 		if (!$this->user->has_permission('admin')) {
-			$this->session->set_userdata('errormessage', 'Only admins can use the admin edit page!');
+			$this->session->append_userdata('errormessage', 'Only admins can use the admin edit page!');
 			redirect($this->config->item('base_url').'main/edit');
 			return;		
 		}
 
 		// Sanitize the item status
 		if (!$this->book->_is_valid_status('book', $_REQUEST['new_export_status'])) {
-			$this->session->set_userdata('errormessage', 'Invalid status.');
+			$this->session->append_userdata('errormessage', 'Invalid status.');
 			redirect($this->config->item('base_url').'main/admin_edit');
 			return;
 		}
@@ -712,7 +712,7 @@ class Main extends Controller {
 					$obj = new $m();
 					// The value given has to be in the list
 					if (array_search($_REQUEST['new_'.$m],$obj->get_statuses()) === false) {
-						$this->session->set_userdata('errormessage', 'Invalid item status.');
+						$this->session->append_userdata('errormessage', 'Invalid item status.');
 						redirect($this->config->item('base_url').'main/admin_edit');
 						return;
 					}
@@ -725,7 +725,7 @@ class Main extends Controller {
 		try {
 			$this->book->load($barcode);
 		} catch (Exception $e) {
-			$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+			$this->session->append_userdata('errormessage', 'The item could not be loaded or was not found.');
 			redirect($this->config->item('base_url').'main/listitems');
 			return;
 		}
@@ -751,9 +751,9 @@ class Main extends Controller {
 			$messages[] = 'Item status saved!';
 		}
 		if (count($messages)) {
-			$this->session->set_userdata('message', implode('<br>', $messages));
+			$this->session->append_userdata('message', implode('<br>', $messages));
 		} else {
-			$this->session->set_userdata('warning', 'No changes were made.');
+			$this->session->append_userdata('warning', 'No changes were made.');
 		}
 		
 		//Changed redirect to review with new style and workflow
@@ -781,7 +781,7 @@ class Main extends Controller {
 		try {
 			$this->book->load($this->session->userdata('barcode'));
 		} catch (Exception $e) {
-			$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+			$this->session->append_userdata('errormessage', 'The item could not be loaded or was not found.');
 			redirect($this->config->item('base_url').'main/listitems');
 			return;
 		}
@@ -851,7 +851,7 @@ class Main extends Controller {
 		try {
 			$this->book->load($barcode);
 		} catch (Exception $e) {
-			$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+			$this->session->append_userdata('errormessage', 'The item could not be loaded or was not found.');
 			redirect($this->config->item('base_url').'main/listitems');
 			return;
 		}
@@ -860,7 +860,7 @@ class Main extends Controller {
 		// Make sure we can access this item
 		// (either we are admin or we are local admin and the book is in our org_id)
 		if ($this->user->org_id != $this->book->org_id && !$this->user->has_permission('admin')) {
-			$this->session->set_userdata('errormessage', 'Unable to delete the item with identifier "'.$barcode.'". It does not belong to your organization!');
+			$this->session->append_userdata('errormessage', 'Unable to delete the item with identifier "'.$barcode.'". It does not belong to your organization!');
 			redirect($this->config->item('base_url').'main/listitems');
 			return;		
 		}
@@ -874,7 +874,7 @@ class Main extends Controller {
 					$path = $this->common->serialize($barcode);
 				} catch (Exception $e) {
 					// Whoops! 
-					$this->session->set_userdata('errormessage', 'Unable to backup the item before deleting. The error was: '.$e->getMessage());
+					$this->session->append_userdata('errormessage', 'Unable to backup the item before deleting. The error was: '.$e->getMessage());
 					redirect($this->config->item('base_url').'main/delete_confirm');
 					return;
 				}
@@ -901,7 +901,7 @@ class Main extends Controller {
 				delete_files($this->cfg['data_directory'].'/'.$barcode, TRUE);
 				rmdir($this->cfg['data_directory'].'/'.$barcode);
 			} catch (Exception $e) {
-				$this->session->set_userdata('errormessage', 'Unable to delete the the item.<br>'.$e->getMessage());			
+				$this->session->append_userdata('errormessage', 'Unable to delete the the item.<br>'.$e->getMessage());			
 			}
 		}
 
@@ -916,7 +916,7 @@ class Main extends Controller {
 			$this->load->view('main/delete_download_view', $data);						
 			
 		} else {
-			$this->session->set_userdata('message', 'The item was deleted successfully.');
+			$this->session->append_userdata('message', 'The item was deleted successfully.');
 			redirect($this->config->item('base_url').'main/listitems');	
 		}
 
@@ -932,7 +932,7 @@ class Main extends Controller {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('scan')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			$this->session->append_userdata('errormessage', 'You do not have permission to access that page.');
 			redirect($this->config->item('base_url').'main');
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 			return;
@@ -1001,7 +1001,7 @@ class Main extends Controller {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('scan')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			$this->session->append_userdata('errormessage', 'You do not have permission to access that page.');
 			redirect($this->config->item('base_url').'main');
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 			return;
@@ -1016,7 +1016,7 @@ class Main extends Controller {
 		}
 		$info['barcode'] = $this->common->clean_barcode($_POST['identifier']);
 		if ($_POST['identifier'] != $info['barcode']) {
-			$this->session->set_userdata('warning', 'IMPORTANT: The identifier was updated to "'.$info['barcode'].'"');
+			$this->session->append_userdata('warning', 'IMPORTANT: The identifier was updated to "'.$info['barcode'].'"');
 		}
 
 		try {
@@ -1031,7 +1031,7 @@ class Main extends Controller {
 			$data['is_qa_user'] = false;
 			$data['missing_metadata'] = array();
 			$data['organization'] = $this->user->org_name;
-			$this->session->set_userdata('errormessage', $e->getMessage().' Please go back and try again.');
+			$this->session->append_userdata('errormessage', $e->getMessage().' Please go back and try again.');
 			$data['org_has_qa'] = false;
 			if ($this->user->org_has_qa()) {
 				$data['org_has_qa'] = true;
@@ -1051,7 +1051,7 @@ class Main extends Controller {
 			if ($field == 'year') {
 				if (strlen(trim($val[0])) > 0) {
 					if (!preg_match('/^\d\d\d\d$/', $val[0]) && !preg_match('/^\d\d\d\d-\d\d\d\d$/', $val[0])) {
-						$this->session->set_userdata('errormessage', 'The year must be empty, YYYY, or YYYY-YYYY.');
+						$this->session->append_userdata('errormessage', 'The year must be empty, YYYY, or YYYY-YYYY.');
 					}
 				}
 			}
@@ -1096,12 +1096,12 @@ class Main extends Controller {
 		$marc = $this->book->get_metadata('marc_xml');
 		$marc = $this->common->clean_marc($marc);
 		if ($msg = $this->common->validate_marc($marc)){
-			$this->session->set_userdata('errormessage', $msg);
+			$this->session->append_userdata('errormessage', $msg);
 		}
 		$this->book->set_metadata('marc_xml',$marc);
 
  		$this->book->update();
-		$this->session->set_userdata('message', 'Item Added!');
+		$this->session->append_userdata('message', 'Item Added!');
 
 		// Set the barcode and other info in the session
 		$this->session->set_userdata('barcode', $this->book->barcode);
@@ -1123,7 +1123,7 @@ class Main extends Controller {
 	 */
 	function import() {
 		if (!$this->user->has_permission('scan')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			$this->session->append_userdata('errormessage', 'You do not have permission to access that page.');
 			redirect($this->config->item('base_url').'main');
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 			return;

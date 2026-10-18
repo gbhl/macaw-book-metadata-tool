@@ -25,7 +25,7 @@ class Contributor extends Controller {
 		$data['is_admin'] = $this->user->has_permission('admin');
 		// Permission Checking
 		if (!$this->user->has_permission('admin') && !$this->user->has_permission('local_admin')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			$this->session->append_userdata('errormessage', 'You do not have permission to access that page.');
 			redirect($this->config->item('base_url').'main/listitems');
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 		}
@@ -82,14 +82,14 @@ class Contributor extends Controller {
 		if ($this->user->has_permission('admin')) { $continue = true; }
 		if ($this->user->has_permission('local_admin') && $this->user->org_id == $id) { $continue = true; }
 		if (!$continue) {
-			$this->session->set_userdata('errormessage', "Permission denied to edit a contributor.");
+			$this->session->append_userdata('errormessage', "Permission denied to edit a contributor.");
 			$this->logging->log('error', 'debug', 'Permission denied to edit a contributor ID='.$id);
 			redirect('contributor');
 		}
 
 		// If we didn't get an ID on the URL, we assume we are editing ourself.
 		if (!$id) {
-			$this->session->set_userdata('errormessage', "Please select an organization to edit.");
+			$this->session->append_userdata('errormessage', "Please select an organization to edit.");
 			redirect('contributor');
 		}
 
@@ -126,7 +126,7 @@ class Contributor extends Controller {
 
 		} catch (Exception $e) {
 			// This handles anything strange that might come across while getting the organization object.
-			$this->session->set_userdata('errormessage', $e->getMessage());
+			$this->session->append_userdata('errormessage', $e->getMessage());
 			redirect('contributor');
 		}
 	}
@@ -144,7 +144,7 @@ class Contributor extends Controller {
 			return;
 		}
 		if (!$this->user->has_permission('admin')) {
-			$this->session->set_userdata('errormessage', 'Permission denied to add a contributor.');
+			$this->session->append_userdata('errormessage', 'Permission denied to add a contributor.');
 			$this->logging->log('error', 'debug', 'Permission denied to add a contributor.');
 			redirect('contributor');
 		}
@@ -195,7 +195,7 @@ class Contributor extends Controller {
 
 			// Allow admins to edit any contributor
 			if (!$this->user->has_permission('admin')) {
-				$this->session->set_userdata('errormessage', 'Permission denied to saving a new contributor.');
+				$this->session->append_userdata('errormessage', 'Permission denied to saving a new contributor.');
 				$this->logging->log('error', 'debug', 'Permission denied to saving a new contributor.');
 				redirect('contributor');
 			}
@@ -228,12 +228,12 @@ class Contributor extends Controller {
 				$this->organization->add();
 
 				// Redirect to organization list on success
-				$this->session->set_userdata('message', 'Contributor added!');
+				$this->session->append_userdata('message', 'Contributor added!');
 				$this->logging->log('access', 'info', 'Added contributor '.$this->input->post('name'));
 				redirect('contributor');
 			} catch (Exception $e) {
 				// This handles anything strange that might come across while getting the organization object.
-				$this->session->set_userdata('errormessage', $e->getMessage());
+				$this->session->append_userdata('errormessage', $e->getMessage());
 				$this->logging->log('error', 'debug', 'Inside organization_save() (new): '.$e->getMessage());
 				redirect('contributor/add');
 			}
@@ -245,7 +245,7 @@ class Contributor extends Controller {
 			if ($this->user->has_permission('admin')) { $continue = true; }
 			if ($this->user->has_permission('local_admin') && $this->user->org_id == $this->input->post('id')) { $continue = true; }
 			if (!$continue) {
-				$this->session->set_userdata('errormessage', 'Permission denied to edit the contributor.');
+				$this->session->append_userdata('errormessage', 'Permission denied to edit the contributor.');
 				$this->logging->log('error', 'debug', 'Permission denied to edit the contributor "'.$this->input->post('name'));
 				redirect('contributor');
 			}
@@ -267,7 +267,7 @@ class Contributor extends Controller {
 			$this->organization->country = $this->input->post('country');
 			if ($this->db->table_exists('custom_internet_archive_keys')) {
 				if (!trim($this->input->post('api_key')) && trim($this->input->post('secret_key'))) {
-					$this->session->set_userdata('errormessage', 'Both API Key and Secret Key are required.');
+					$this->session->append_userdata('errormessage', 'Both API Key and Secret Key are required.');
 				} elseif (!trim($this->input->post('api_key'))) {
 					// clear the secret key when the api key is empty
 					$this->organization->ia_api_key = '';
@@ -287,12 +287,12 @@ class Contributor extends Controller {
 				$this->organization->update();
 
 				// Redirect to organization list on success
-				$this->session->set_userdata('message', 'Changes saved!');
+				$this->session->append_userdata('message', 'Changes saved!');
 				$this->logging->log('access', 'info', 'Updated Contributor: '.$this->input->post('name'). ' (id '.$this->input->post('id').')');
 				redirect('contributor');
 			} catch (Exception $e) {
 				// This handles anything strange that might come across while getting the organization object.
-				$this->session->set_userdata('errormessage', $e->getMessage());
+				$this->session->append_userdata('errormessage', $e->getMessage());
 				$this->logging->log('error', 'debug', 'Inside organization_save() (update): '.$e->getMessage());
 				redirect('contributor/edit/'.$this->input->post('id'));
 			}

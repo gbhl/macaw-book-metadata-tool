@@ -114,7 +114,7 @@ class Scan extends Controller {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('scan')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			$this->session->append_userdata('errormessage', 'You do not have permission to access that page.');
 			redirect($this->config->item('base_url').'main');
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 			return;
@@ -125,7 +125,7 @@ class Scan extends Controller {
 			try {
 				$this->book->load($this->session->userdata('barcode'));
 			} catch (Exception $e) {
-				$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+				$this->session->append_userdata('errormessage', 'The item could not be loaded or was not found.');
 				redirect($this->config->item('base_url').'main/listitems');
 				return;
 			}
@@ -136,7 +136,7 @@ class Scan extends Controller {
 
 		} catch (Exception $e) {
 			// Set the error and redirect to the main page
-			$this->session->set_userdata('errormessage', $e->getMessage());
+			$this->session->append_userdata('errormessage', $e->getMessage());
 			$this->logging->log('error', 'debug', 'Error in end_scan()'. $e->getMessage());
 			redirect($this->config->item('base_url').'main');
 		} // try-catch
@@ -153,7 +153,7 @@ class Scan extends Controller {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('scan')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			$this->session->append_userdata('errormessage', 'You do not have permission to access that page.');
 			redirect($this->config->item('base_url').'main');
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 			return;
@@ -164,7 +164,7 @@ class Scan extends Controller {
 			try {
 				$this->book->load($this->session->userdata('barcode'));
 			} catch (Exception $e) {
-				$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+				$this->session->append_userdata('errormessage', 'The item could not be loaded or was not found.');
 				redirect($this->config->item('base_url').'main/listitems');
 				return;
 			}
@@ -176,7 +176,7 @@ class Scan extends Controller {
 
 		} catch (Exception $e) {
 			// Set the error and redirect to the main page
-			$this->session->set_userdata('errormessage', $e->getMessage());
+			$this->session->append_userdata('errormessage', $e->getMessage());
 			redirect($this->config->item('base_url').'main');
 		} // try-catch
 	}
@@ -194,7 +194,7 @@ class Scan extends Controller {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('scan')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page..');
+			$this->session->append_userdata('errormessage', 'You do not have permission to access that page..');
 			redirect($this->config->item('base_url').'main');
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 			return;
@@ -205,7 +205,7 @@ class Scan extends Controller {
 			try {
 				$this->book->load($this->session->userdata('barcode'));
 			} catch (Exception $e) {
-				$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+				$this->session->append_userdata('errormessage', 'The item could not be loaded or was not found.');
 				redirect($this->config->item('base_url').'main/listitems');
 				return;
 			}
@@ -216,7 +216,7 @@ class Scan extends Controller {
 
 		} catch (Exception $e) {
 			// Set the error and redirect to the main page
-			$this->session->set_userdata('errormessage', $e->getMessage());
+			$this->session->append_userdata('errormessage', $e->getMessage());
 			$this->logging->log('error', 'debug', 'Error in end_missing_scan()'. $e->getMessage());
 			redirect($this->config->item('base_url').'main');
 		} // try-catch
@@ -236,7 +236,7 @@ class Scan extends Controller {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('scan')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			$this->session->append_userdata('errormessage', 'You do not have permission to access that page.');
 			redirect($this->config->item('base_url').'main/listitems');
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 			return;
@@ -247,7 +247,7 @@ class Scan extends Controller {
 			try {
 				$this->book->load($this->session->userdata('barcode'));
 			} catch (Exception $e) {
-				$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+				$this->session->append_userdata('errormessage', 'The item could not be loaded or was not found.');
 				redirect($this->config->item('base_url').'main/listitems');
 				return;
 			}
@@ -258,7 +258,7 @@ class Scan extends Controller {
 				if ($this->user->has_permission('qa') || $this->user->has_permission('local_admin') || $this->user->has_permission('admin')) {
 					$this->book->set_status('qa-active');
 				} else {
-					$this->session->set_userdata('errormessage', 'You do not have permission to edit items that are in QA.');
+					$this->session->append_userdata('errormessage', 'You do not have permission to edit items that are in QA.');
 					redirect($this->config->item('base_url').'main/listitems');
 					return;
 				}
@@ -268,12 +268,12 @@ class Scan extends Controller {
 				$this->book->set_status('reviewed');
 				$this->book->set_status('reviewing');
 			} elseif ($this->user->has_permission('qa_required') && $this->book->status == 'reviewed') {
-				$this->session->set_userdata('errormessage', 'You do not have permission to edit an item that is ready for export.');
+				$this->session->append_userdata('errormessage', 'You do not have permission to edit an item that is ready for export.');
 				redirect($this->config->item('base_url').'main/listitems');
 				return;
 			} else {
 				if ($this->book->status == 'reviewed') {
-					$this->session->set_userdata('warning', 'This item <em>was</em> ready to be exported. Be sure to click <strong>Review Complete</strong> when you are done.');
+					$this->session->append_userdata('warning', 'This item <em>was</em> ready to be exported. Be sure to click <strong>Review Complete</strong> when you are done.');
 				}
 				$this->book->set_status('reviewing');
 			}
@@ -289,7 +289,7 @@ class Scan extends Controller {
 
 		} catch (Exception $e) {
 			// Set the error and redirect to the main page
-			$this->session->set_userdata('errormessage', $e->getMessage());
+			$this->session->append_userdata('errormessage', $e->getMessage());
 			$this->logging->log('error', 'debug', 'Error in review() '. $e->getMessage());
 			redirect($this->config->item('base_url').'main/listitems');
 		} // try-catch
@@ -446,7 +446,7 @@ class Scan extends Controller {
 			try {
 				$this->book->load($barcode);
 			} catch (Exception $e) {
-				$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+				$this->session->append_userdata('errormessage', 'The item could not be loaded or was not found.');
 				redirect($this->config->item('base_url').'main/listitems');
 				return;
 			}
@@ -499,13 +499,13 @@ class Scan extends Controller {
 				}
 			}
 			if ($page_number_count == 0) {
-				$this->session->set_userdata('warning', "The item was completed with no page numbers. Please verify that this is correct.");
+				$this->session->append_userdata('warning', "The item was completed with no page numbers. Please verify that this is correct.");
 			}
 			// Make sure we have exactly one contributor
 			$contributor = $this->book->get_contributor();
 			if (is_array($contributor)) {
 				$c = $contributor[0];
-				$this->session->set_userdata('warning', "The item has more than one Holding Institution defined. Please fix this or \"$c\" will be sent to the Internet Archive.");
+				$this->session->append_userdata('warning', "The item has more than one Holding Institution defined. Please fix this or \"$c\" will be sent to the Internet Archive.");
 			}
 			// Make sure each page as a page side
 			foreach ($all_pages as $p) {
@@ -552,7 +552,7 @@ class Scan extends Controller {
 				$this->book->set_status('qa-ready');
 				// Email the QA staff that it needs to be reviewed
 				$this->_notify_qa($this->book->org_id);
-				$this->session->set_userdata('message', 'Changes saved and item sent for QA review!');
+				$this->session->append_userdata('message', 'Changes saved and item sent for QA review!');
 
 			} elseif ($this->book->needs_qa) {
 				// Is the person reviewing the book a QA person?
@@ -560,18 +560,18 @@ class Scan extends Controller {
 					// Did they reject for QA?
 					// Only a QA person can finish a book that's marked for QA
 					$this->book->set_status('reviewed');
-					$this->session->set_userdata('message', 'Changes saved! ');
+					$this->session->append_userdata('message', 'Changes saved! ');
 				} else {
 					// Leave the book open
 					$this->book->set_status('qa-ready');
 					// Email the QA staff that it needs to be reviewed
 					$this->_notify_qa($this->book->org_id);
-					$this->session->set_userdata('message', 'Changes saved and item sent for QA review!');
+					$this->session->append_userdata('message', 'Changes saved and item sent for QA review!');
 				}
 			} else {
 				// Otherwise, we just treat the book normally and finish it.
 				$this->book->set_status('reviewed');
-				$this->session->set_userdata('message', 'Changes saved! ');
+				$this->session->append_userdata('message', 'Changes saved! ');
 			}
 			$this->book->update();
 
@@ -581,7 +581,7 @@ class Scan extends Controller {
 
 		} catch (Exception $e) {
 			// Set the error and redirect to the main page
-			$this->session->set_userdata('errormessage', $e->getMessage());
+			$this->session->append_userdata('errormessage', $e->getMessage());
 			redirect($this->config->item('base_url').'main');
 		} // try-catch
 	}
@@ -659,11 +659,11 @@ class Scan extends Controller {
 			);
 			error_reporting(0);
 			if (!$this->email->send()) {
-				$this->session->set_userdata('warning', "Warning: Unable to send QA notification email. Please check your SMTP settings.");
+				$this->session->append_userdata('warning', "Warning: Unable to send QA notification email. Please check your SMTP settings.");
 			}
 			error_reporting(E_ALL & ~E_DEPRECATED);
 		} else {
-			$this->session->set_userdata('warning', "Warning: Unable to send QA notification email. Could not find a QA or Admin user.");
+			$this->session->append_userdata('warning', "Warning: Unable to send QA notification email. Could not find a QA or Admin user.");
 		}
 	}
 
@@ -677,7 +677,7 @@ class Scan extends Controller {
 
 		// Permission Checking
 		if (!$this->user->has_permission('scan')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			$this->session->append_userdata('errormessage', 'You do not have permission to access that page.');
 			redirect($this->config->item('base_url').'main');
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 			return;
@@ -687,7 +687,7 @@ class Scan extends Controller {
 		try {
 			$this->book->load($this->session->userdata('barcode'));
 		} catch (Exception $e) {
-			$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+			$this->session->append_userdata('errormessage', 'The item could not be loaded or was not found.');
 			redirect($this->config->item('base_url').'main/listitems');
 			return;
 		}
@@ -727,7 +727,7 @@ class Scan extends Controller {
 		$this->common->check_session();
 		// Permission Checking
 		if (!$this->user->has_permission('scan')) {
-			$this->session->set_userdata('errormessage', 'You do not have permission to access that page.');
+			$this->session->append_userdata('errormessage', 'You do not have permission to access that page.');
 			redirect($this->config->item('base_url').'main');
 			$this->logging->log('error', 'debug', 'Permission Denied to access '.uri_string());
 			return;
@@ -736,7 +736,7 @@ class Scan extends Controller {
 		try {
 			$this->book->load($this->session->userdata('barcode'));
 		} catch (Exception $e) {
-			$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+			$this->session->append_userdata('errormessage', 'The item could not be loaded or was not found.');
 			redirect($this->config->item('base_url').'main/listitems');
 			return;
 		}
@@ -799,7 +799,7 @@ class Scan extends Controller {
 				try {
 					$this->book->load($this->session->userdata('barcode'));
 				} catch (Exception $e) {
-					$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+					$this->session->append_userdata('errormessage', 'The item could not be loaded or was not found.');
 					header("Content-Type: application/json; charset=utf-8");
 					echo json_encode(array('redirect' => $this->config->item('base_url').'main/listitems/'));
 					return;
@@ -815,7 +815,7 @@ class Scan extends Controller {
 
 			} catch (Exception $e) {
 				// Set the error and redirect to the main page
-				$this->session->set_userdata('errormessage', $e->getMessage());
+				$this->session->append_userdata('errormessage', $e->getMessage());
 				redirect($this->config->item('base_url').'main');
 			} // try-catch
 
@@ -826,7 +826,7 @@ class Scan extends Controller {
 			try {
 				$this->book->load($this->session->userdata('barcode'));
 			} catch (Exception $e) {
-				$this->session->set_userdata('errormessage', 'The item could not be loaded or was not found.');
+				$this->session->append_userdata('errormessage', 'The item could not be loaded or was not found.');
 				header("Content-Type: application/json; charset=utf-8");
 				echo json_encode(array('redirect' => $this->config->item('base_url').'main/listitems/'));
 				return;
@@ -864,7 +864,7 @@ class Scan extends Controller {
 		try {
 			$this->book->load($barcode);
 		} catch (Exception $e) {
-			$this->session->set_userdata('errormessage','The item could not be loaded or was not found.');
+			$this->session->append_userdata('errormessage','The item could not be loaded or was not found.');
 			redirect($this->config->item('base_url').'main/listitems');
 			return;
 		}

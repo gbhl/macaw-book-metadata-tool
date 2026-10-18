@@ -55,7 +55,7 @@ class Account extends Controller {
 		if ($new) {
 			// Only admins and local admins can add accounts
 			if (!$is_admin && !$is_local_admin) {
-				$this->session->set_userdata('errormessage', 'You do not have permission to add accounts.');
+				$this->session->append_userdata('errormessage', 'You do not have permission to add accounts.');
 				redirect('admin/account');
 				return;
 			}
@@ -93,7 +93,7 @@ class Account extends Controller {
 			}
 
 			if (!$this->_can_edit($current_user, $username)) {
-				$this->session->set_userdata('errormessage', 'You do not have permission to edit that account.');
+				$this->session->append_userdata('errormessage', 'You do not have permission to edit that account.');
 				redirect('account/settings');
 				return;
 			}
@@ -195,13 +195,13 @@ class Account extends Controller {
 
 		$secret = $this->session->userdata('totp_pending_secret');
 		if (!$secret) {
-			$this->session->set_userdata('errormessage', 'Setup session expired. Please try again.');
+			$this->session->append_userdata('errormessage', 'Setup session expired. Please try again.');
 			redirect('account/totp_setup');
 			return;
 		}
 
 		if (!$this->totp->verify($secret, $this->input->post('totp_code'))) {
-			$this->session->set_userdata('errormessage', 'Invalid verification code. Please try again.');
+			$this->session->append_userdata('errormessage', 'Invalid verification code. Please try again.');
 			redirect('account/totp_setup');
 			return;
 		}
@@ -211,7 +211,7 @@ class Account extends Controller {
 		$this->db->update('account', array('totp_secret' => $secret, 'totp_enabled' => 1));
 		$this->session->unset_userdata('totp_pending_secret');
 
-		$this->session->set_userdata('message', 'Two-factor authentication has been enabled.');
+		$this->session->append_userdata('message', 'Two-factor authentication has been enabled.');
 		$this->logging->log('access', 'info', 'User ' . $username . ' enabled TOTP.');
 		redirect('account/settings');
 	}
@@ -231,7 +231,7 @@ class Account extends Controller {
 		$this->db->where('username', $username);
 		$this->db->update('account', array('totp_secret' => null, 'totp_enabled' => 0));
 
-		$this->session->set_userdata('message', 'Two-factor authentication has been disabled.');
+		$this->session->append_userdata('message', 'Two-factor authentication has been disabled.');
 		$this->logging->log('access', 'info', 'User ' . $username . ' disabled TOTP.');
 		redirect('account/settings');
 	}
@@ -260,13 +260,13 @@ class Account extends Controller {
 		$password_c = $this->input->post('password_c');
 
 		if (!$full_name || !$email) {
-			$this->session->set_userdata('errormessage', 'Full name and email are required.');
+			$this->session->append_userdata('errormessage', 'Full name and email are required.');
 			redirect($this->_return_url());
 			return;
 		}
 
 		if ($password !== $password_c) {
-			$this->session->set_userdata('errormessage', 'Passwords do not match.');
+			$this->session->append_userdata('errormessage', 'Passwords do not match.');
 			redirect($this->_return_url());
 			return;
 		}
@@ -274,7 +274,7 @@ class Account extends Controller {
 		if ($password) {
 			$validation = $this->passwordvalidator->validate($password);
 			if (!$validation['valid']) {
-				$this->session->set_userdata('errormessage', 'Password does not meet requirements: ' . implode(' ', $validation['errors']));
+				$this->session->append_userdata('errormessage', 'Password does not meet requirements: ' . implode(' ', $validation['errors']));
 				redirect($this->_return_url());
 				return;
 			}
@@ -283,14 +283,14 @@ class Account extends Controller {
 		if ($this->input->post('new')) {
 			// ---- ADDING A NEW ACCOUNT ----
 			if (!$is_admin && !$is_local_admin) {
-				$this->session->set_userdata('errormessage', 'You do not have permission to add accounts.');
+				$this->session->append_userdata('errormessage', 'You do not have permission to add accounts.');
 				redirect('main/listitems');
 				return;
 			}
 
 			$new_username = $this->input->post('username');
 			if (!$new_username) {
-				$this->session->set_userdata('errormessage', 'A username is required.');
+				$this->session->append_userdata('errormessage', 'A username is required.');
 				redirect('account/settings/new');
 				return;
 			}
@@ -322,12 +322,12 @@ class Account extends Controller {
 					$this->user->set_permissions($perms);
 				}
 
-				$this->session->set_userdata('message', 'Account created.');
+				$this->session->append_userdata('message', 'Account created.');
 				$this->logging->log('access', 'info', 'Added account: ' . $new_username);
 				redirect('admin/account');
 
 			} catch (Exception $e) {
-				$this->session->set_userdata('errormessage', 'Error creating account: ' . $e->getMessage());
+				$this->session->append_userdata('errormessage', 'Error creating account: ' . $e->getMessage());
 				$this->logging->log('error', 'debug', 'settings_save() new: ' . $e->getMessage());
 				redirect('account/settings/new');
 			}
@@ -337,7 +337,7 @@ class Account extends Controller {
 			$username = $this->input->post('username');
 
 			if (!$this->_can_edit($current_user, $username)) {
-				$this->session->set_userdata('errormessage', 'You do not have permission to edit that account.');
+				$this->session->append_userdata('errormessage', 'You do not have permission to edit that account.');
 				redirect('account/settings');
 				return;
 			}
@@ -377,13 +377,13 @@ class Account extends Controller {
 					$this->session->set_userdata('email', $email);
 				}
 
-				$this->session->set_userdata('message', 'Account settings saved.');
+				$this->session->append_userdata('message', 'Account settings saved.');
 				$this->logging->log('access', 'info', 'Updated account: ' . $username);
 
 				redirect($username === $current_user ? 'account/settings' : 'admin/account');
 
 			} catch (Exception $e) {
-				$this->session->set_userdata('errormessage', 'Error saving account: ' . $e->getMessage());
+				$this->session->append_userdata('errormessage', 'Error saving account: ' . $e->getMessage());
 				$this->logging->log('error', 'debug', 'settings_save() edit: ' . $e->getMessage());
 				redirect('account/settings/' . $username);
 			}
@@ -405,7 +405,7 @@ class Account extends Controller {
 		try {
 			$target_user->load($target);
 		} catch (Exception $e) {
-			$this->session->set_userdata('errormessage', 'The user could not be loaded or was not found.');
+			$this->session->append_userdata('errormessage', 'The user could not be loaded or was not found.');
 			return false;
 		}
 

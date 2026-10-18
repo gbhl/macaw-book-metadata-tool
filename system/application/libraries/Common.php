@@ -79,7 +79,7 @@ class Common extends Controller {
 	 */
 	function check_session($ajax = false) {
 		if (!$this->CI->session->userdata('logged_in')) {
-			$this->CI->session->set_userdata('errormessage', 'Your session has expired. Please login again.');
+			$this->CI->session->append_userdata('errormessage', 'Your session has expired. Please login again.');
 			if ($ajax) {
 				$this->ajax_headers();
 				echo json_encode(array('redirect' => $this->CI->config->item('base_url').'login'));
@@ -629,7 +629,7 @@ class Common extends Controller {
 					}
 				}
 				$version = $next_version;
-				$this->CI->session->set_userdata('message', 'Database upgraded to version '.sprintf('%1.1f', $version));
+				$this->CI->session->append_userdata('message', 'Database upgraded to version '.sprintf('%1.1f', $version));
 				$this->CI->logging->log('access', 'info', 'Upgraded Macaw Database to version '.sprintf('%1.1f', $version));
 			} else {
 				$upgrade_needed = false;
@@ -662,7 +662,7 @@ class Common extends Controller {
 				}
 			}
 			if ($msg != '') {
-				$this->CI->session->set_userdata('warning', $msg);
+				$this->CI->session->append_userdata('warning', $msg);
 			}
 		}	
 	}

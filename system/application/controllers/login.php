@@ -73,7 +73,7 @@ class Login extends Controller {
 				redirect($this->config->item('base_url').'dashboard');
 			}
 		} else {
-			$this->session->set_userdata('errormessage', 'You entered an incorrect username or password. Please try again.');
+			$this->session->append_userdata('errormessage', 'You entered an incorrect username or password. Please try again.');
 			$this->logging->log('access', 'info', 'User '.$user.' failed to log in.');
 			$this->index();
 		}
@@ -121,7 +121,7 @@ class Login extends Controller {
 			$this->logging->log('access', 'info', 'User '.$username.' completed TOTP verification.');
 			redirect($this->config->item('base_url').'dashboard');
 		} else {
-			$this->session->set_userdata('errormessage', 'Invalid verification code. Please try again.');
+			$this->session->append_userdata('errormessage', 'Invalid verification code. Please try again.');
 			$this->logging->log('access', 'info', 'User '.$username.' failed TOTP verification.');
 			$this->totp();
 		}
@@ -162,7 +162,7 @@ class Login extends Controller {
 		$username = trim($this->input->post('username'));
 
 		if (!$username) {
-			$this->session->set_userdata('errormessage', 'Please enter your user name.');
+			$this->session->append_userdata('errormessage', 'Please enter your user name.');
 			redirect($this->config->item('base_url').'login/forgot_password');
 			return;
 		}
@@ -170,7 +170,7 @@ class Login extends Controller {
 		$account = $this->db->get_where('account', array('username' => $username))->row();
 
 		if (!$account || !$account->email) {
-			$this->session->set_userdata('message', 'If an account exists with that user name, you will receive an email message with a password reset link.');
+			$this->session->append_userdata('message', 'If an account exists with that user name, you will receive an email message with a password reset link.');
 			redirect($this->config->item('base_url').'login');
 			return;
 		}
@@ -215,10 +215,10 @@ class Login extends Controller {
 
 		if ($this->email->send()) {
 			$this->logging->log('access', 'error', 'Sent password reset email to '.$account->email.' for username '.$username);
-			$this->session->set_userdata('message', 'If an account exists with that email address, you will receive a message with a password reset link.');
+			$this->session->append_userdata('message', 'If an account exists with that email address, you will receive a message with a password reset link.');
 		} else {
 			$this->logging->log('access', 'error', 'Failed to send password reset email to '.$account->email.' for username '.$username);
-			$this->session->set_userdata('errormessage', 'Failed to send password reset email.');
+			$this->session->append_userdata('errormessage', 'Failed to send password reset email.');
 		}
 
 		redirect($this->config->item('base_url').'login');
@@ -233,7 +233,7 @@ class Login extends Controller {
 		}
 
 		if (!$token) {
-			$this->session->set_userdata('errormessage', 'Invalid or missing reset token.');
+			$this->session->append_userdata('errormessage', 'Invalid or missing reset token.');
 			redirect($this->config->item('base_url').'login');
 			return;
 		}
@@ -241,7 +241,7 @@ class Login extends Controller {
 		$reset = $this->db->get_where('password_reset_tokens', array('token' => $token))->row();
 
 		if (!$reset || $reset->used || strtotime($reset->expires) < time()) {
-			$this->session->set_userdata('errormessage', 'Password reset link has expired or is invalid.');
+			$this->session->append_userdata('errormessage', 'Password reset link has expired or is invalid.');
 			redirect($this->config->item('base_url').'login');
 			return;
 		}
@@ -259,26 +259,26 @@ class Login extends Controller {
 		$password_confirm = $this->input->post('password_confirm');
 
 		if (!$token) {
-			$this->session->set_userdata('errormessage', 'Invalid or missing reset token.');
+			$this->session->append_userdata('errormessage', 'Invalid or missing reset token.');
 			redirect($this->config->item('base_url').'login');
 			return;
 		}
 
 		if (!$password || !$password_confirm) {
-			$this->session->set_userdata('errormessage', 'Please enter and confirm your new password.');
+			$this->session->append_userdata('errormessage', 'Please enter and confirm your new password.');
 			redirect($this->config->item('base_url').'login/reset_password/'.$token);
 			return;
 		}
 
 		if ($password !== $password_confirm) {
-			$this->session->set_userdata('errormessage', 'Passwords do not match.');
+			$this->session->append_userdata('errormessage', 'Passwords do not match.');
 			redirect($this->config->item('base_url').'login/reset_password/'.$token);
 			return;
 		}
 
 		$validation = $this->passwordvalidator->validate($password);
 		if (!$validation['valid']) {
-			$this->session->set_userdata('errormessage', 'Password does not meet requirements: ' . implode(' ', $validation['errors']));
+			$this->session->append_userdata('errormessage', 'Password does not meet requirements: ' . implode(' ', $validation['errors']));
 			redirect($this->config->item('base_url').'login/reset_password/'.$token);
 			return;
 		}
@@ -286,7 +286,7 @@ class Login extends Controller {
 		$reset = $this->db->get_where('password_reset_tokens', array('token' => $token))->row();
 
 		if (!$reset || $reset->used || strtotime($reset->expires) < time()) {
-			$this->session->set_userdata('errormessage', 'Password reset link has expired or is invalid.');
+			$this->session->append_userdata('errormessage', 'Password reset link has expired or is invalid.');
 			redirect($this->config->item('base_url').'login');
 			return;
 		}
@@ -313,7 +313,7 @@ class Login extends Controller {
 		$account = $this->db->get_where('account', array('id' => $reset->account_id))->row();
 		$this->logging->log('access', 'info', 'User '.$account->username.' reset their password.');
 
-		$this->session->set_userdata('message', 'Your password has been successfully reset. You can now log in with your new password.');
+		$this->session->append_userdata('message', 'Your password has been successfully reset. You can now log in with your new password.');
 		redirect($this->config->item('base_url').'login');
 	}
 }
