@@ -49,7 +49,7 @@
     define('CRON', TRUE);   // Test for this in your controllers if you only want them accessible via cron
 
 
-# Parse the command line
+	# Parse the command line
     $script = array_shift($argv);
     $cmdline = implode(' ', $argv);
     $usage = "Usage: cron.php --run=/controller/method [--quiet][-q] [--log-file=logfile] [--time-limit=N] [--server=http_server_name]\n\n";
@@ -103,26 +103,31 @@
         if(!$present) die($usage);
     }
 
-# Set run time limit
+	# Set run time limit
     set_time_limit(CRON_TIME_LIMIT);
 
-# Run CI and capture the output
-    // ob_start();
+	# Run CI and capture the output
+    $buffered = ob_start();
 
     chdir(dirname(CRON_CI_INDEX));
     require(CRON_CI_INDEX);           // Main CI index.php file
-    // $output = trim(ob_get_contents());
-    
-    // if(defined('CRON_FLUSH_BUFFERS') && CRON_FLUSH_BUFFERS == TRUE) {
-    //     while(@ob_end_flush());        // display buffer contents
-    // } else {
-    //     ob_end_clean();
-    // }
 
-# Log the results of this run
+	$output = '';
+	if ($buffered ) {
+		# Log the output, but only if we could buffer it.
+		$output = trim(ob_get_contents());
+    
+		if(defined('CRON_FLUSH_BUFFERS') && CRON_FLUSH_BUFFERS == TRUE) {
+			while(@ob_end_flush());
+		} else {
+			ob_end_clean();
+		}
+	}
+
+	# Log the results of this run
     error_log("### ".date('Y-m-d H:i:s')." cron.php $cmdline\n", 3, CRON_LOG);
     if ($output.'' != '') {
-	    error_log("'".$output."'"."\n", 3, CRON_LOG);
+	    error_log($output."\n", 3, CRON_LOG);
 	}
 
 	function already_running($action) {
