@@ -703,23 +703,25 @@ class Common extends Controller {
 			throw new Exception("Permission denied to write to ".$tmp.'/import_export/serialize/');
 		}
 
-		if (!file_exists(realpath($tmp.'/import_export/serialize/'.$barcode))) {
-			mkdir(realpath($tmp.'/import_export/serialize/'.$barcode));
+		$save_path = $tmp.'/import_export/serialize/'.$barcode;
+		if (!file_exists($save_path)) {
+			mkdir($save_path);
+			$save_path = realpath($save_path);
 		}		
-		if (!is_writable(realpath($tmp.'/import_export/serialize/'.$barcode))) {
-			throw new Exception("Permission denied to write to ".$tmp.'/import_export/serialize/'.$barcode);
+		if (!is_writable($save_path)) {
+			throw new Exception("Permission denied to write to ".$save_path);
 		}
 
 		# 1. Get the item information
 		$query = $this->CI->db->query('select * from item where barcode = ?', array($barcode));
 		$item = $query->result();
 		$id = $item[0]->id;
-		write_file(realpath($tmp.'/import_export/serialize/'.$barcode.'/item.dat'), serialize((array)$item[0]));
+		write_file($save_path.'/item.dat', serialize((array)$item[0]));
 
 		# 2. Get the item_export_status information
 		$query = $this->CI->db->query('select * from item_export_status where item_id = ?', array($id));
 		$item_export_status = $query->result();
-		write_file(realpath($tmp.'/import_export/serialize/'.$barcode.'/item_export_status.dat'), serialize((array)$item_export_status));
+		write_file($save_path.'/item_export_status.dat', serialize((array)$item_export_status));
 
 		# 3. Get the page information
 		$query = $this->CI->db->query('select * from page where item_id = ?', array($id));
@@ -727,7 +729,7 @@ class Common extends Controller {
 		for ($i = 0; $i < count($page); $i++) {
 			$page[$i] = (array)$page[$i];
 		}
-		write_file(realpath($tmp.'/import_export/serialize/'.$barcode.'/page.dat'), serialize($page));
+		write_file($save_path.'/page.dat', serialize($page));
 
 		# 4. Get the metadata information
 		$query = $this->CI->db->query('select * from metadata where item_id = ?', array($id));
@@ -735,7 +737,7 @@ class Common extends Controller {
 		for ($i = 0; $i < count($metadata); $i++) {
 			$metadata[$i] = (array)$metadata[$i];
 		}
-		write_file(realpath($tmp.'/import_export/serialize/'.$barcode.'/metadata.dat'), serialize($metadata));
+		write_file($save_path.'/metadata.dat', serialize($metadata));
 
 		if ($this->CI->db->table_exists('custom_internet_archive')) {
 			$query = $this->CI->db->query('select * from metadata where item_id = ?', array($id));
@@ -743,21 +745,21 @@ class Common extends Controller {
 			for ($i = 0; $i < count($custom_ia); $i++) {
 			$custom_ia[$i] = (array)$custom_ia[$i];
 			}
-			write_file(realpath($tmp.'/import_export/serialize/'.$barcode.'/custom_internet_archive.dat'), serialize($custom_ia));
+			write_file($save_path.'/custom_internet_archive.dat', serialize($custom_ia));
 		}
 
 		# 5. Gather the files
 		$files = array('marc.xml', 'thumbs', 'preview', 'scans');		
 		foreach ($files as $f) {
  			if (file_exists($this->CI->cfg['data_directory'].'/'.$barcode.'/'.$f)) {
-				system('cp -r '.$this->CI->cfg['data_directory'].'/'.$barcode.'/'.$f.' '.$tmp.'/import_export/serialize/'.$barcode.'/.');
+				system('cp -r '.$this->CI->cfg['data_directory'].'/'.$barcode.'/'.$f.' '.$save_path.'/.');
 			} else if  (file_exists($this->CI->cfg['data_directory'].'/archive/'.$barcode.'/'.$f)) {
-				system('cp -r '.$this->CI->cfg['data_directory'].'/archive/'.$barcode.'/'.$f.' '.$tmp.'/import_export/serialize/'.$barcode.'/.');
+				system('cp -r '.$this->CI->cfg['data_directory'].'/archive/'.$barcode.'/'.$f.' '.$save_path.'/.');
 			}
 		}
 		# tar things up
 		system('cd '.$tmp.'/import_export/serialize && tar fcz '.$barcode.'.tgz '.$barcode);
-		system('rm -r '.$tmp.'/import_export/serialize/'.$barcode);
+		system('rm -r '.$save_path);
 		return "$tmp/import_export/serialize/".$barcode.".tgz";
 	}
 
