@@ -30,7 +30,7 @@
         
       </p>
     </div>
-		<form id="upload_form" enctype="multipart/form-data" name="upload_form">
+		<form id="upload_form" enctype="multipart/form-data" name="upload_form" method="post">
 			<div id="fields">
 				<label for="itemdata">Item Level CSV</label> 
 				<input type="file" id="itemdata" name="itemdata"><br><br>
