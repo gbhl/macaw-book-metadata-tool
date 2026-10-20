@@ -456,7 +456,7 @@ class Scan extends Controller {
 
 			if (count($missing_metadata) > 0) {
 				// Yup. Missing some metadata. Let's prevent them from finishing.
-				$msg = 'Some metadata fields are missing. They must be filled in before you can complete the metadata.<br/><br/>';
+				$msg = 'Some metadata fields are missing or incorrect. They must be filled in before you can complete the metadata.<br/><br/>';
 				foreach ($missing_metadata as $module => $fields) {
 					$msg .= 'The missing fields are: <strong>'.implode(', ', $fields).'</strong><br/>';
 				}

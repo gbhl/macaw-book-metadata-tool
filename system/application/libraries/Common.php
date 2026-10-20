@@ -656,9 +656,9 @@ class Common extends Controller {
 			$missing_metadata =  $book->get_missing_metadata(true);
 			$msg = '';
 			if (count($missing_metadata) > 0) {
-				$msg .= 'Some metadata fields are missing. They must be filled in before you can export to other systems.<br/>';
+				$msg .= 'Some metadata fields are msising or incorrect. They must be filled in before you can export to other systems.<br/>';
 				foreach ($missing_metadata as $module => $fields) {
-					$msg .= 'Export to <strong>'.str_replace('_', ' ', $module).'</strong> is missing: '.implode(', ', $fields).'<br/>';
+					$msg .= 'The missing fields are: <strong>'.implode(', ', $fields).'</strong><br/>';
 				}
 			}
 			if ($msg != '') {

@@ -1557,7 +1557,7 @@ class Book extends Model {
 	 * Gathers an array of all of the metadata fieldnames for the object.
 	 * If a fieldname is duplicated, it will be returned only once.
 	 *
-	 * @return string An array of fieldnames (strings).
+	 * @return array An array of fieldnames (strings).
 	 */
 	function get_metadata_fieldnames() {
 		$results = array();
@@ -1664,6 +1664,22 @@ class Book extends Model {
 				// Loop through the required metadata fields
 				foreach ($fields as $f) {
 					if ($f == 'copyright') { continue; }
+					if ($f == 'year') {
+						// Year is special. YYYY, YYYY-YYYY or BLANK
+						$year = $this->get_metadata($f);
+						if (!is_array($year)) {
+							$year = [$year];
+						}
+						foreach ($year as $yr) {
+							if (strlen(trim($yr)) > 0) {
+								if (!preg_match('/^\d\d\d\d$/', trim($yr)) && !preg_match('/^\d\d\d\d-\d\d\d\d$/', trim($yr))) {
+									array_push($tmp, $f);
+									break;
+								}
+							}
+						}
+						continue; 
+					}
 					if (in_array($f, $all_fields)) {
 						if ($strict) {
 							// If we're strict, we demand a non-empty value
